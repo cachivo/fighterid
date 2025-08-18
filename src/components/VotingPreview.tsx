@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import votingIcon from "@/assets/voting-icon.jpg";
 
 const VotingPreview = () => {
   const [selectedBattler, setSelectedBattler] = useState<number | null>(null);
@@ -14,12 +15,12 @@ const VotingPreview = () => {
       {/* Background image section from poster */}
       <div className="absolute inset-0">
         <img 
-          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          src={votingIcon}
           alt="Voting Background"
           className="w-full h-full object-cover"
           style={{ objectPosition: '50% 20%' }}
         />
-        <div className="absolute inset-0 bg-black/80"></div>
+        <div className="absolute inset-0 bg-black/40"></div>
       </div>
       
       <div className="relative z-10 max-w-4xl mx-auto">

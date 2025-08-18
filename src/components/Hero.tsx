@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import heroImage from "@/assets/hero-urban.jpg";
 
 const Hero = () => {
   return (
@@ -6,11 +7,11 @@ const Hero = () => {
       {/* Background image from poster */}
       <div className="absolute inset-0">
         <img 
-          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          src={heroImage}
           alt="Batalla de Gimnasios Background"
           className="w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/20"></div>
       </div>
       
       {/* Content */}

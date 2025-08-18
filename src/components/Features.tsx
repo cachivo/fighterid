@@ -26,12 +26,12 @@ const Features = () => {
       {/* Background image section from poster */}
       <div className="absolute inset-0">
         <img 
-          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          src={streamingIcon}
           alt="Features Background"
           className="w-full h-full object-cover"
           style={{ objectPosition: '50% 60%' }}
         />
-        <div className="absolute inset-0 bg-black/75"></div>
+        <div className="absolute inset-0 bg-black/30"></div>
       </div>
       
       <div className="relative z-10 max-w-6xl mx-auto">
