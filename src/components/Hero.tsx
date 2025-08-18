@@ -24,18 +24,14 @@ const Hero = () => {
           />
         </div>
         
-        {/* Main battle title with cinematic style */}
-        <h1 className="text-5xl md:text-7xl font-black mb-4 text-white drop-shadow-2xl animate-slide-up">
+        {/* New call to action focused on participation */}
+        <h1 className="text-4xl md:text-6xl font-black mb-4 text-white drop-shadow-2xl animate-slide-up">
           <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-            ¿QUIÉN SERÁ EL
+            ÚNETE A LA
           </span>
           <br />
-          <span className="text-white text-shadow-lg">GANADOR?</span>
+          <span className="text-white text-shadow-lg">REVOLUCIÓN URBANA</span>
         </h1>
-        
-        <p className="text-xl md:text-2xl mb-4 font-light max-w-2xl mx-auto animate-fade-in text-gray-300">
-          6 GIMNASIOS • 30 GUERREROS • 1 CONQUISTADOR
-        </p>
         
         <p className="text-lg md:text-xl mb-8 font-light max-w-2xl mx-auto animate-fade-in text-gray-400">
           Transmisión en vivo de eventos urbanos con votaciones en tiempo real. 
