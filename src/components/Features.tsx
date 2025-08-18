@@ -22,11 +22,17 @@ const Features = () => {
   ];
 
   return (
-    <section className="relative py-20 px-4 bg-gray-900">
-      {/* Urban lighting effects */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-gray-900 to-black/30"></div>
-      <div className="absolute top-10 right-10 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl"></div>
-      <div className="absolute bottom-10 left-10 w-48 h-48 bg-blue-500/15 rounded-full blur-xl"></div>
+    <section className="relative py-20 px-4">
+      {/* Background image section from poster */}
+      <div className="absolute inset-0">
+        <img 
+          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          alt="Features Background"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: '50% 60%' }}
+        />
+        <div className="absolute inset-0 bg-black/75"></div>
+      </div>
       
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="text-center mb-16">

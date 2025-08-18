@@ -2,14 +2,16 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-black">
-      {/* Cinematic lighting effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/30 via-black to-blue-900/20"></div>
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl"></div>
-      
-      {/* Urban texture overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,150,255,0.1)_0%,transparent_70%)]"></div>
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+      {/* Background image from poster */}
+      <div className="absolute inset-0">
+        <img 
+          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          alt="Batalla de Gimnasios Background"
+          className="w-full h-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+      </div>
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">

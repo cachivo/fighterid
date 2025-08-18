@@ -10,11 +10,17 @@ const VotingPreview = () => {
   ];
 
   return (
-    <section className="relative py-20 px-4 bg-black">
-      {/* Cinematic lighting for voting section */}
-      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-black to-gray-900/50"></div>
-      <div className="absolute top-0 left-1/3 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-blue-500/10 rounded-full blur-2xl"></div>
+    <section className="relative py-20 px-4">
+      {/* Background image section from poster */}
+      <div className="absolute inset-0">
+        <img 
+          src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+          alt="Voting Background"
+          className="w-full h-full object-cover"
+          style={{ objectPosition: '50% 20%' }}
+        />
+        <div className="absolute inset-0 bg-black/80"></div>
+      </div>
       
       <div className="relative z-10 max-w-4xl mx-auto">
         <div className="text-center mb-12">
