@@ -1,12 +1,18 @@
+import logo from "@/assets/logo.png";
+
 const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
-            <h3 className="text-2xl font-bold mb-4 text-accent">
-              BATALLA DE GIMNASIOS
-            </h3>
+            <div className="mb-4">
+              <img 
+                src={logo} 
+                alt="Batalla de Gimnasios" 
+                className="h-8 w-auto filter brightness-0 invert"
+              />
+            </div>
             <p className="text-gray-300 mb-4">
               La plataforma líder para eventos urbanos en vivo. 
               Conectando la cultura callejera con tecnología de vanguardia.

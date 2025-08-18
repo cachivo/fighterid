@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-urban.jpg";
+import logo from "@/assets/logo.png";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Background with urban image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -14,10 +15,13 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
-        <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight animate-slide-up">
-          BATALLA DE 
-          <span className="block text-accent">GIMNASIOS</span>
-        </h1>
+        <div className="mb-6 animate-slide-up">
+          <img 
+            src={logo} 
+            alt="Batalla de Gimnasios" 
+            className="h-24 md:h-32 w-auto mx-auto filter brightness-0 invert"
+          />
+        </div>
         
         <p className="text-xl md:text-2xl mb-8 font-light max-w-2xl mx-auto animate-fade-in">
           Transmisión en vivo de eventos urbanos con votaciones en tiempo real. 
