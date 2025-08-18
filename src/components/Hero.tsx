@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-urban.jpg";
+import batallaPoster from "@/assets/batalla-poster.jpg";
 
 const Hero = () => {
   return (
@@ -7,7 +7,7 @@ const Hero = () => {
       {/* Background image from poster */}
       <div className="absolute inset-0">
         <img 
-          src={heroImage}
+          src="/lovable-uploads/047f0269-860f-4365-9dc4-8e1343a62359.png"
           alt="Batalla de Gimnasios Background"
           className="w-full h-full object-cover object-center"
         />

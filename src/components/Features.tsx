@@ -1,11 +1,11 @@
-import streamingIcon from "@/assets/streaming-icon.jpg";
+import batallaPoster from "@/assets/batalla-poster.jpg";
 import votingIcon from "@/assets/voting-icon.jpg";
 import rankingIcon from "@/assets/ranking-icon.jpg";
 
 const Features = () => {
   const features = [
     {
-      icon: streamingIcon,
+      icon: votingIcon,
       title: "Streaming EN VIVO",
       description: "Transmisión de alta calidad de todas las batallas urbanas en tiempo real con múltiples ángulos de cámara.",
     },
@@ -26,7 +26,7 @@ const Features = () => {
       {/* Background image section from poster */}
       <div className="absolute inset-0">
         <img 
-          src={streamingIcon}
+          src="/lovable-uploads/047f0269-860f-4365-9dc4-8e1343a62359.png"
           alt="Features Background"
           className="w-full h-full object-cover"
           style={{ objectPosition: '50% 60%' }}
