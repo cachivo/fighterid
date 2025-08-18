@@ -1,19 +1,10 @@
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-urban.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Background with urban image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-black/60"></div>
-      </div>
-      
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-primary">
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
+      <div className="relative z-10 text-center text-primary-foreground px-4 max-w-4xl mx-auto">
         <div className="mb-6 animate-slide-up">
           <img 
             src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
