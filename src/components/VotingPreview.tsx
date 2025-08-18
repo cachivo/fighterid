@@ -10,25 +10,32 @@ const VotingPreview = () => {
   ];
 
   return (
-    <section className="py-20 px-4 bg-background">
-      <div className="max-w-4xl mx-auto">
+    <section className="relative py-20 px-4 bg-black">
+      {/* Cinematic lighting for voting section */}
+      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-black to-gray-900/50"></div>
+      <div className="absolute top-0 left-1/3 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/3 w-72 h-72 bg-blue-500/10 rounded-full blur-2xl"></div>
+      
+      <div className="relative z-10 max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-primary">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white drop-shadow-xl">
             Sistema de Votación
           </h2>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl text-gray-300">
             Vota por tu favorito y ve los resultados en tiempo real
           </p>
         </div>
         
-        <div className="bg-card rounded-xl p-8 shadow-urban">
+        <div className="relative bg-black/60 backdrop-blur-md border border-gray-700/50 rounded-xl p-8 shadow-2xl shadow-cyan-500/10">
+          {/* Card glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5 rounded-xl"></div>
           <div className="mb-8">
-            <h3 className="text-2xl font-bold text-center mb-2 text-primary">
+            <h3 className="relative text-2xl font-bold text-center mb-2 text-white drop-shadow-lg">
               BATALLA ACTUAL: FREESTYLE FINAL
             </h3>
-            <div className="flex items-center justify-center gap-2 text-accent font-semibold">
-              <div className="w-3 h-3 bg-accent rounded-full animate-pulse"></div>
-              EN VIVO
+            <div className="flex items-center justify-center gap-2 text-cyan-400 font-semibold">
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
+              <span className="tracking-wider">EN VIVO</span>
             </div>
           </div>
           
@@ -36,28 +43,28 @@ const VotingPreview = () => {
             {battlers.map((battler) => (
               <div 
                 key={battler.id}
-                className={`border-2 rounded-lg p-6 transition-all duration-300 cursor-pointer ${
+                className={`relative border-2 rounded-lg p-6 transition-all duration-300 cursor-pointer ${
                   selectedBattler === battler.id 
-                    ? 'border-accent bg-accent/5' 
-                    : 'border-border hover:border-accent/50'
+                    ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-400/20' 
+                    : 'border-gray-600 hover:border-cyan-500/50 bg-gray-900/50'
                 }`}
                 onClick={() => setSelectedBattler(battler.id)}
               >
                 <div className="text-center">
-                  <h4 className="text-2xl font-bold mb-4 text-primary">
+                  <h4 className="text-2xl font-bold mb-4 text-white drop-shadow-md">
                     {battler.name}
                   </h4>
                   
                   <div className="mb-4">
-                    <div className="w-full bg-muted rounded-full h-4 mb-2">
+                    <div className="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
                       <div 
-                        className="bg-accent h-4 rounded-full transition-all duration-500"
+                        className="bg-gradient-to-r from-cyan-500 to-blue-500 h-4 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/30"
                         style={{ width: `${battler.percentage}%` }}
                       ></div>
                     </div>
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                    <div className="flex justify-between text-sm text-gray-400">
                       <span>{battler.votes} votos</span>
-                      <span>{battler.percentage}%</span>
+                      <span className="text-cyan-400 font-semibold">{battler.percentage}%</span>
                     </div>
                   </div>
                   
@@ -77,11 +84,11 @@ const VotingPreview = () => {
           </div>
           
           <div className="mt-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              Total de votos: <span className="font-bold text-accent">526</span>
+            <p className="relative text-gray-400 mb-4">
+              Total de votos: <span className="font-bold text-cyan-400">526</span>
             </p>
-            <p className="text-sm text-muted-foreground">
-              ⚡ Los votos se actualizan en tiempo real
+            <p className="relative text-sm text-gray-500">
+              <span className="text-cyan-400">⚡</span> Los votos se actualizan en tiempo real
             </p>
           </div>
         </div>

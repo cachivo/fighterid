@@ -2,9 +2,17 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-primary">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 bg-black">
+      {/* Cinematic lighting effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/30 via-black to-blue-900/20"></div>
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl"></div>
+      
+      {/* Urban texture overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,150,255,0.1)_0%,transparent_70%)]"></div>
+      
       {/* Content */}
-      <div className="relative z-10 text-center text-primary-foreground px-4 max-w-4xl mx-auto">
+      <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
         <div className="mb-6 animate-slide-up">
           <img 
             src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
@@ -13,7 +21,20 @@ const Hero = () => {
           />
         </div>
         
-        <p className="text-xl md:text-2xl mb-8 font-light max-w-2xl mx-auto animate-fade-in">
+        {/* Main battle title with cinematic style */}
+        <h1 className="text-5xl md:text-7xl font-black mb-4 text-white drop-shadow-2xl animate-slide-up">
+          <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            ¿QUIÉN SERÁ EL
+          </span>
+          <br />
+          <span className="text-white text-shadow-lg">GANADOR?</span>
+        </h1>
+        
+        <p className="text-xl md:text-2xl mb-4 font-light max-w-2xl mx-auto animate-fade-in text-gray-300">
+          6 GIMNASIOS • 30 GUERREROS • 1 CONQUISTADOR
+        </p>
+        
+        <p className="text-lg md:text-xl mb-8 font-light max-w-2xl mx-auto animate-fade-in text-gray-400">
           Transmisión en vivo de eventos urbanos con votaciones en tiempo real. 
           La cultura callejera se encuentra con la tecnología.
         </p>
@@ -27,15 +48,20 @@ const Hero = () => {
           </Button>
         </div>
         
-        {/* Live indicator */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-accent font-semibold">
-          <div className="w-3 h-3 bg-accent rounded-full animate-pulse-accent"></div>
-          PRÓXIMO EVENTO: 25 ENE 2025
+        {/* Live indicator with cinematic style */}
+        <div className="mt-8 flex items-center justify-center gap-2 text-cyan-400 font-semibold">
+          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
+          <span className="text-lg tracking-wider">PRÓXIMO EVENTO: 25 ENE 2025</span>
         </div>
       </div>
       
-      {/* Decorative urban elements */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent"></div>
+      {/* Cinematic bottom fade */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent"></div>
+      
+      {/* Urban architectural elements */}
+      <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+      <div className="absolute top-1/2 left-0 w-2 h-40 bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
+      <div className="absolute top-1/3 right-0 w-2 h-32 bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent"></div>
     </section>
   );
 };
