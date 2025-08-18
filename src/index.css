@@ -32,8 +32,8 @@ All colors MUST be HSL.
     --muted: 0 0% 94%;
     --muted-foreground: 0 0% 45%;
 
-    /* Street accent - vibrant orange for CTA and highlights */
-    --accent: 20 91% 48%;
+    /* Accent - Gray tone for monochrome scheme */
+    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -41,24 +41,24 @@ All colors MUST be HSL.
 
     --border: 0 0% 90%;
     --input: 0 0% 94%;
-    --ring: 20 91% 48%;
+    --ring: 0 0% 20%;
 
-    /* Urban-specific tokens */
+    /* Urban-specific tokens - monochrome */
     --urban-gray: 0 0% 25%;
     --urban-light: 0 0% 96%;
-    --street-accent: 20 91% 48%;
-    --vote-active: 142 76% 36%;
+    --street-accent: 0 0% 30%;
+    --vote-active: 0 0% 35%;
     --vote-inactive: 0 0% 70%;
 
-    /* Gradients for urban aesthetics */
+    /* Gradients for urban aesthetics - monochrome */
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 20%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
-    --gradient-accent: linear-gradient(90deg, hsl(20 91% 48%) 0%, hsl(25 95% 53%) 100%);
+    --gradient-accent: linear-gradient(90deg, hsl(0 0% 20%) 0%, hsl(0 0% 30%) 100%);
 
-    /* Shadows with urban feel */
+    /* Shadows with urban feel - monochrome */
     --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
     --shadow-card: 0 2px 12px -3px hsl(0 0% 8% / 0.08);
-    --shadow-accent: 0 4px 20px -4px hsl(20 91% 48% / 0.3);
+    --shadow-accent: 0 4px 20px -4px hsl(0 0% 20% / 0.3);
 
     --radius: 0.5rem;
 
