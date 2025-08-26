@@ -33,7 +33,7 @@ const Servicios = () => {
     <section id="servicios" className="py-20 relative overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
-        style={{ backgroundImage: 'url(/lovable-uploads/urban-background-new.png)' }}
+        style={{ backgroundImage: 'url(/lovable-uploads/17f6dde8-5a0e-4986-a833-30fc435b156c.png)' }}
       />
       <div className="absolute inset-0 bg-black/70" />
       
