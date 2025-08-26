@@ -50,7 +50,7 @@ const Ranking = () => {
     <section id="ranking" className="py-20 relative overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
-        style={{ backgroundImage: 'url(/src/assets/hero-urban.jpg)' }}
+        style={{ backgroundImage: 'url(/lovable-uploads/86756d44-95a8-4bcc-bb47-2842dca49d75.png)' }}
       />
       <div className="absolute inset-0 bg-black/85" />
       
