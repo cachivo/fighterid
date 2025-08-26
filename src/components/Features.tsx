@@ -48,11 +48,11 @@ const Features = () => {
           {features.map((feature, index) => (
             <div 
               key={index}
-              className="relative bg-black/40 backdrop-blur-sm border border-gray-700/50 p-8 rounded-lg hover:border-cyan-500/50 transition-all duration-300 text-center group hover:-translate-y-2 hover:shadow-xl hover:shadow-cyan-500/20"
+              className="relative bg-black/40 backdrop-blur-sm border border-gray-700/50 p-8 rounded-lg hover:border-magenta-primary/50 transition-all duration-300 text-center group hover:-translate-y-2 hover:shadow-xl hover:shadow-magenta-primary/20"
             >
               {/* Card lighting effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-blue-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="relative w-20 h-20 mx-auto mb-6 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center group-hover:border-cyan-500 group-hover:shadow-lg group-hover:shadow-cyan-500/30 transition-all duration-300">
+              <div className="absolute inset-0 bg-gradient-to-br from-magenta-primary/5 to-magenta-secondary/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="relative w-20 h-20 mx-auto mb-6 rounded-full bg-gray-800 border border-gray-600 flex items-center justify-center group-hover:border-magenta-primary group-hover:shadow-lg group-hover:shadow-magenta-primary/30 transition-all duration-300">
                 <img 
                   src={feature.icon} 
                   alt={feature.title}
@@ -60,7 +60,7 @@ const Features = () => {
                 />
               </div>
               
-              <h3 className="relative text-2xl font-bold mb-4 text-white group-hover:text-cyan-400 transition-colors duration-300">
+              <h3 className="relative text-2xl font-bold mb-4 text-white group-hover:text-magenta-primary transition-colors duration-300">
                 {feature.title}
               </h3>
               

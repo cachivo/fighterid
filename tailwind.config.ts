@@ -56,6 +56,8 @@ export default {
 				'urban-gray': 'hsl(var(--urban-gray))',
 				'urban-light': 'hsl(var(--urban-light))',
 				'street-accent': 'hsl(var(--street-accent))',
+				'magenta-primary': 'hsl(var(--magenta-primary))',
+				'magenta-secondary': 'hsl(var(--magenta-secondary))',
 				'vote-active': 'hsl(var(--vote-active))',
 				'vote-inactive': 'hsl(var(--vote-inactive))',
 				sidebar: {

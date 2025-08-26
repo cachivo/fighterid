@@ -43,22 +43,24 @@ All colors MUST be HSL.
     --input: 0 0% 94%;
     --ring: 0 0% 20%;
 
-    /* Urban-specific tokens - monochrome */
+    /* Urban-specific tokens - magenta theme */
     --urban-gray: 0 0% 25%;
     --urban-light: 0 0% 96%;
-    --street-accent: 0 0% 30%;
-    --vote-active: 0 0% 35%;
+    --street-accent: 320 70% 50%;
+    --magenta-primary: 320 70% 60%;
+    --magenta-secondary: 310 60% 45%;
+    --vote-active: 320 70% 50%;
     --vote-inactive: 0 0% 70%;
 
-    /* Gradients for urban aesthetics - monochrome */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 20%) 100%);
+    /* Gradients for urban aesthetics - magenta theme */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(320 30% 15%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
-    --gradient-accent: linear-gradient(90deg, hsl(0 0% 20%) 0%, hsl(0 0% 30%) 100%);
+    --gradient-magenta: linear-gradient(90deg, hsl(320 70% 60%) 0%, hsl(310 60% 45%) 100%);
 
-    /* Shadows with urban feel - monochrome */
+    /* Shadows with urban feel - magenta theme */
     --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
     --shadow-card: 0 2px 12px -3px hsl(0 0% 8% / 0.08);
-    --shadow-accent: 0 4px 20px -4px hsl(0 0% 20% / 0.3);
+    --shadow-magenta: 0 4px 20px -4px hsl(320 70% 50% / 0.3);
 
     --radius: 0.5rem;
 
@@ -145,9 +147,9 @@ All colors MUST be HSL.
     to { opacity: 1; }
   }
 
-  @keyframes pulse-accent {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4); }
-    50% { box-shadow: 0 0 0 8px hsl(var(--accent) / 0); }
+  @keyframes pulse-magenta {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--magenta-primary) / 0.4); }
+    50% { box-shadow: 0 0 0 8px hsl(var(--magenta-primary) / 0); }
   }
 
   .animate-slide-up {
@@ -158,7 +160,7 @@ All colors MUST be HSL.
     animation: fadeIn 0.4s ease-out;
   }
 
-  .animate-pulse-accent {
-    animation: pulse-accent 2s infinite;
+  .animate-pulse-magenta {
+    animation: pulse-magenta 2s infinite;
   }
 }

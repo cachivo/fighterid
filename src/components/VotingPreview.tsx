@@ -33,15 +33,15 @@ const VotingPreview = () => {
           </p>
         </div>
         
-        <div className="relative bg-black/60 backdrop-blur-md border border-gray-700/50 rounded-xl p-8 shadow-2xl shadow-cyan-500/10">
+        <div className="relative bg-black/60 backdrop-blur-md border border-gray-700/50 rounded-xl p-8 shadow-2xl shadow-magenta-primary/10">
           {/* Card glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5 rounded-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-magenta-primary/5 via-transparent to-magenta-secondary/5 rounded-xl"></div>
           <div className="mb-8">
             <h3 className="relative text-2xl font-bold text-center mb-2 text-white drop-shadow-lg">
               BATALLA ACTUAL: FREESTYLE FINAL
             </h3>
-            <div className="flex items-center justify-center gap-2 text-cyan-400 font-semibold">
-              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
+            <div className="flex items-center justify-center gap-2 text-magenta-primary font-semibold">
+              <div className="w-3 h-3 bg-magenta-primary rounded-full animate-pulse shadow-lg shadow-magenta-primary/50"></div>
               <span className="tracking-wider">EN VIVO</span>
             </div>
           </div>
@@ -52,8 +52,8 @@ const VotingPreview = () => {
                 key={battler.id}
                 className={`relative border-2 rounded-lg p-6 transition-all duration-300 cursor-pointer ${
                   selectedBattler === battler.id 
-                    ? 'border-cyan-400 bg-cyan-500/10 shadow-lg shadow-cyan-400/20' 
-                    : 'border-gray-600 hover:border-cyan-500/50 bg-gray-900/50'
+                    ? 'border-magenta-primary bg-magenta-primary/10 shadow-lg shadow-magenta-primary/20' 
+                    : 'border-gray-600 hover:border-magenta-primary/50 bg-gray-900/50'
                 }`}
                 onClick={() => setSelectedBattler(battler.id)}
               >
@@ -65,13 +65,13 @@ const VotingPreview = () => {
                   <div className="mb-4">
                     <div className="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
                       <div 
-                        className="bg-gradient-to-r from-cyan-500 to-blue-500 h-4 rounded-full transition-all duration-500 shadow-lg shadow-cyan-500/30"
+                        className="bg-gradient-to-r from-magenta-primary to-magenta-secondary h-4 rounded-full transition-all duration-500 shadow-lg shadow-magenta-primary/30"
                         style={{ width: `${battler.percentage}%` }}
                       ></div>
                     </div>
                     <div className="flex justify-between text-sm text-gray-400">
                       <span>{battler.votes} votos</span>
-                      <span className="text-cyan-400 font-semibold">{battler.percentage}%</span>
+                      <span className="text-magenta-primary font-semibold">{battler.percentage}%</span>
                     </div>
                   </div>
                   
@@ -92,10 +92,10 @@ const VotingPreview = () => {
           
           <div className="mt-8 text-center">
             <p className="relative text-gray-400 mb-4">
-              Total de votos: <span className="font-bold text-cyan-400">526</span>
+              Total de votos: <span className="font-bold text-magenta-primary">526</span>
             </p>
             <p className="relative text-sm text-gray-500">
-              <span className="text-cyan-400">⚡</span> Los votos se actualizan en tiempo real
+              <span className="text-magenta-primary">⚡</span> Los votos se actualizan en tiempo real
             </p>
           </div>
         </div>

@@ -19,7 +19,7 @@ const Hero = () => {
         
         {/* New call to action focused on participation */}
         <h1 className="text-4xl md:text-6xl font-black mb-4 text-white drop-shadow-2xl animate-slide-up">
-          <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-magenta-primary to-magenta-secondary bg-clip-text text-transparent">
             ÚNETE A LA
           </span>
           <br />
@@ -41,8 +41,8 @@ const Hero = () => {
         </div>
         
         {/* Live indicator with cinematic style */}
-        <div className="mt-8 flex items-center justify-center gap-2 text-cyan-400 font-semibold">
-          <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse shadow-lg shadow-cyan-400/50"></div>
+        <div className="mt-8 flex items-center justify-center gap-2 text-magenta-primary font-semibold">
+          <div className="w-3 h-3 bg-magenta-primary rounded-full animate-pulse shadow-lg shadow-magenta-primary/50"></div>
           <span className="text-lg tracking-wider">PRÓXIMO EVENTO: 25 ENE 2025</span>
         </div>
       </div>
@@ -51,9 +51,9 @@ const Hero = () => {
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent"></div>
       
       {/* Urban architectural elements */}
-      <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
-      <div className="absolute top-1/2 left-0 w-2 h-40 bg-gradient-to-b from-transparent via-blue-400/30 to-transparent"></div>
-      <div className="absolute top-1/3 right-0 w-2 h-32 bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent"></div>
+      <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-magenta-primary/50 to-transparent"></div>
+      <div className="absolute top-1/2 left-0 w-2 h-40 bg-gradient-to-b from-transparent via-magenta-secondary/30 to-transparent"></div>
+      <div className="absolute top-1/3 right-0 w-2 h-32 bg-gradient-to-b from-transparent via-magenta-primary/40 to-transparent"></div>
     </section>
   );
 };
