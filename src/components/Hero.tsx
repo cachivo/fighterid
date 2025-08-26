@@ -11,7 +11,7 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
         <div className="mb-6 animate-slide-up">
           <img 
-            src="/lovable-uploads/batalla-logo-new.png" 
+            src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
             alt="Logo" 
             className="h-24 md:h-32 w-auto mx-auto animate-glow-neon"
           />

@@ -6,7 +6,7 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/batalla-logo-new.png" 
+                src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
                 alt="Logo" 
                 className="h-8 w-auto"
               />
