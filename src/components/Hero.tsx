@@ -12,7 +12,7 @@ const Hero = () => {
         <div className="mb-6 animate-slide-up">
           <img 
             src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
-            alt="Batalla de Gimnasios" 
+            alt="Logo" 
             className="h-24 md:h-32 w-auto mx-auto filter brightness-0 invert"
           />
         </div>

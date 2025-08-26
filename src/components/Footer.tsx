@@ -7,7 +7,7 @@ const Footer = () => {
             <div className="mb-4">
               <img 
                 src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
-                alt="Batalla de Gimnasios" 
+                alt="Logo" 
                 className="h-8 w-auto filter brightness-0 invert"
               />
             </div>
@@ -48,7 +48,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2025 Batalla de Gimnasios. Todos los derechos reservados.</p>
+          <p>&copy; 2025. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
