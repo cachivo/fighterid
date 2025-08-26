@@ -47,10 +47,12 @@ const Ranking = () => {
   ];
 
   return (
-    <section id="ranking" className="py-20 bg-urban-gray/10 relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-neon-primary/10 to-purple-neon-secondary/5" />
-      </div>
+    <section id="ranking" className="py-20 relative overflow-hidden">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
+        style={{ backgroundImage: 'url(/src/assets/hero-urban.jpg)' }}
+      />
+      <div className="absolute inset-0 bg-black/85" />
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16 animate-slide-up">

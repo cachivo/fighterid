@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import urbanBackground from "@/assets/urban-background.jpg";
 
 const EventosDeportivos = () => {
   const tiposEventos = [
@@ -28,10 +29,10 @@ const EventosDeportivos = () => {
   return (
     <section id="eventos-deportivos" className="py-20 relative overflow-hidden">
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-10"
+        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-20"
         style={{ backgroundImage: 'url(/src/assets/hero-urban.jpg)' }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/80" />
+      <div className="absolute inset-0 bg-black/75" />
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16 animate-slide-up">
