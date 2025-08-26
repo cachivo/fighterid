@@ -4,15 +4,8 @@ import batallaPoster from "@/assets/batalla-poster.jpg";
 const Hero = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Background image from poster */}
-      <div className="absolute inset-0">
-        <img 
-          src="/lovable-uploads/047f0269-860f-4365-9dc4-8e1343a62359.png"
-          alt="Batalla de Gimnasios Background"
-          className="w-full h-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-black/20"></div>
-      </div>
+      {/* Dark gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto">
