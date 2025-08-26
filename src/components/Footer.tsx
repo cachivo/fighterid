@@ -6,9 +6,9 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="mb-4">
               <img 
-                src="/lovable-uploads/19e8d3e6-b5ff-48b7-bd8f-c14e12a47b0f.png" 
+                src="/lovable-uploads/batalla-logo-new.png" 
                 alt="Logo" 
-                className="h-8 w-auto filter brightness-0 invert"
+                className="h-8 w-auto"
               />
             </div>
             <p className="text-gray-300 mb-4">

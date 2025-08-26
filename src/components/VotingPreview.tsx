@@ -33,15 +33,15 @@ const VotingPreview = () => {
           </p>
         </div>
         
-        <div className="relative bg-black/60 backdrop-blur-md border border-gray-700/50 rounded-xl p-8 shadow-2xl shadow-magenta-primary/10">
+        <div className="relative bg-black/60 backdrop-blur-md border border-gray-700/50 rounded-xl p-8 shadow-2xl shadow-purple-neon-primary/10">
           {/* Card glow effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-magenta-primary/5 via-transparent to-magenta-secondary/5 rounded-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-neon-primary/5 via-transparent to-purple-neon-secondary/5 rounded-xl"></div>
           <div className="mb-8">
             <h3 className="relative text-2xl font-bold text-center mb-2 text-white drop-shadow-lg">
               BATALLA ACTUAL: FREESTYLE FINAL
             </h3>
-            <div className="flex items-center justify-center gap-2 text-magenta-primary font-semibold">
-              <div className="w-3 h-3 bg-magenta-primary rounded-full animate-pulse shadow-lg shadow-magenta-primary/50"></div>
+            <div className="flex items-center justify-center gap-2 text-purple-neon-primary font-semibold">
+              <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
               <span className="tracking-wider">EN VIVO</span>
             </div>
           </div>
@@ -52,8 +52,8 @@ const VotingPreview = () => {
                 key={battler.id}
                 className={`relative border-2 rounded-lg p-6 transition-all duration-300 cursor-pointer ${
                   selectedBattler === battler.id 
-                    ? 'border-magenta-primary bg-magenta-primary/10 shadow-lg shadow-magenta-primary/20' 
-                    : 'border-gray-600 hover:border-magenta-primary/50 bg-gray-900/50'
+                    ? 'border-purple-neon-primary bg-purple-neon-primary/10 shadow-lg shadow-purple-neon-primary/20' 
+                    : 'border-gray-600 hover:border-purple-neon-primary/50 bg-gray-900/50'
                 }`}
                 onClick={() => setSelectedBattler(battler.id)}
               >
@@ -62,18 +62,18 @@ const VotingPreview = () => {
                     {battler.name}
                   </h4>
                   
-                  <div className="mb-4">
-                    <div className="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
-                      <div 
-                        className="bg-gradient-to-r from-magenta-primary to-magenta-secondary h-4 rounded-full transition-all duration-500 shadow-lg shadow-magenta-primary/30"
-                        style={{ width: `${battler.percentage}%` }}
-                      ></div>
+                    <div className="mb-4">
+                      <div className="w-full bg-gray-700 rounded-full h-4 mb-2 overflow-hidden">
+                        <div 
+                          className="bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary h-4 rounded-full transition-all duration-500 shadow-lg shadow-purple-neon-primary/30"
+                          style={{ width: `${battler.percentage}%` }}
+                        ></div>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-400">
+                        <span>{battler.votes} votos</span>
+                        <span className="text-purple-neon-primary font-semibold">{battler.percentage}%</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm text-gray-400">
-                      <span>{battler.votes} votos</span>
-                      <span className="text-magenta-primary font-semibold">{battler.percentage}%</span>
-                    </div>
-                  </div>
                   
                   <Button 
                     variant={selectedBattler === battler.id ? "hero" : "vote"}
@@ -92,10 +92,10 @@ const VotingPreview = () => {
           
           <div className="mt-8 text-center">
             <p className="relative text-gray-400 mb-4">
-              Total de votos: <span className="font-bold text-magenta-primary">526</span>
+              Total de votos: <span className="font-bold text-purple-neon-primary">526</span>
             </p>
             <p className="relative text-sm text-gray-500">
-              <span className="text-magenta-primary">⚡</span> Los votos se actualizan en tiempo real
+              <span className="text-purple-neon-primary">⚡</span> Los votos se actualizan en tiempo real
             </p>
           </div>
         </div>

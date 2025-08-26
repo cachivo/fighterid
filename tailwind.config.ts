@@ -52,12 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Urban-specific color tokens
+				// Urban-specific color tokens - neon purple theme
 				'urban-gray': 'hsl(var(--urban-gray))',
 				'urban-light': 'hsl(var(--urban-light))',
 				'street-accent': 'hsl(var(--street-accent))',
-				'magenta-primary': 'hsl(var(--magenta-primary))',
-				'magenta-secondary': 'hsl(var(--magenta-secondary))',
+				'purple-neon-primary': 'hsl(var(--purple-neon-primary))',
+				'purple-neon-secondary': 'hsl(var(--purple-neon-secondary))',
+				'purple-neon-glow': 'hsl(var(--purple-neon-glow))',
 				'vote-active': 'hsl(var(--vote-active))',
 				'vote-inactive': 'hsl(var(--vote-inactive))',
 				sidebar: {

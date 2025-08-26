@@ -43,24 +43,25 @@ All colors MUST be HSL.
     --input: 0 0% 94%;
     --ring: 0 0% 20%;
 
-    /* Urban-specific tokens - magenta theme */
+    /* Urban-specific tokens - neon purple theme */
     --urban-gray: 0 0% 25%;
     --urban-light: 0 0% 96%;
-    --street-accent: 320 70% 50%;
-    --magenta-primary: 320 70% 60%;
-    --magenta-secondary: 310 60% 45%;
-    --vote-active: 320 70% 50%;
+    --street-accent: 280 100% 70%;
+    --purple-neon-primary: 280 100% 70%;
+    --purple-neon-secondary: 270 90% 60%;
+    --purple-neon-glow: 280 100% 80%;
+    --vote-active: 280 100% 70%;
     --vote-inactive: 0 0% 70%;
 
-    /* Gradients for urban aesthetics - magenta theme */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(320 30% 15%) 100%);
+    /* Gradients for urban aesthetics - neon purple theme */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(280 50% 15%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
-    --gradient-magenta: linear-gradient(90deg, hsl(320 70% 60%) 0%, hsl(310 60% 45%) 100%);
+    --gradient-purple-neon: linear-gradient(90deg, hsl(280 100% 70%) 0%, hsl(270 90% 60%) 100%);
 
-    /* Shadows with urban feel - magenta theme */
+    /* Shadows with urban feel - neon purple theme */
     --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
     --shadow-card: 0 2px 12px -3px hsl(0 0% 8% / 0.08);
-    --shadow-magenta: 0 4px 20px -4px hsl(320 70% 50% / 0.3);
+    --shadow-purple-neon: 0 4px 20px -4px hsl(280 100% 70% / 0.4);
 
     --radius: 0.5rem;
 
@@ -147,9 +148,22 @@ All colors MUST be HSL.
     to { opacity: 1; }
   }
 
-  @keyframes pulse-magenta {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--magenta-primary) / 0.4); }
-    50% { box-shadow: 0 0 0 8px hsl(var(--magenta-primary) / 0); }
+  @keyframes pulse-purple-neon {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--purple-neon-primary) / 0.4); }
+    50% { box-shadow: 0 0 0 8px hsl(var(--purple-neon-primary) / 0); }
+  }
+
+  @keyframes glow-neon {
+    0%, 100% { 
+      box-shadow: 0 0 5px hsl(var(--purple-neon-primary) / 0.5),
+                  0 0 10px hsl(var(--purple-neon-primary) / 0.4),
+                  0 0 15px hsl(var(--purple-neon-primary) / 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 10px hsl(var(--purple-neon-primary) / 0.8),
+                  0 0 20px hsl(var(--purple-neon-primary) / 0.6),
+                  0 0 30px hsl(var(--purple-neon-primary) / 0.4);
+    }
   }
 
   .animate-slide-up {
@@ -160,7 +174,11 @@ All colors MUST be HSL.
     animation: fadeIn 0.4s ease-out;
   }
 
-  .animate-pulse-magenta {
-    animation: pulse-magenta 2s infinite;
+  .animate-pulse-purple-neon {
+    animation: pulse-purple-neon 2s infinite;
+  }
+
+  .animate-glow-neon {
+    animation: glow-neon 2s ease-in-out infinite;
   }
 }
