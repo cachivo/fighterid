@@ -10,6 +10,11 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
+import EventosDigitales from "./pages/admin/EventosDigitales";
+import Servicios from "./pages/admin/Servicios";
+import Ranking from "./pages/admin/Ranking";
+import Comunidad from "./pages/admin/Comunidad";
+import Configuracion from "./pages/admin/Configuracion";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +35,11 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/eventos-deportivos" element={<EventosDeportivos />} />
+                    <Route path="/eventos-digitales" element={<EventosDigitales />} />
+                    <Route path="/servicios" element={<Servicios />} />
+                    <Route path="/ranking" element={<Ranking />} />
+                    <Route path="/comunidad" element={<Comunidad />} />
+                    <Route path="/configuracion" element={<Configuracion />} />
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>
