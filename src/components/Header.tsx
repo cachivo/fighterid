@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone } from "lucide-react";
@@ -93,8 +94,9 @@ const Header = () => {
                     variant="outline" 
                     className="w-full"
                     onClick={() => setMobileMenuOpen(false)}
+                    asChild
                   >
-                    Acceso Organizadores
+                    <Link to="/auth">Admin Panel</Link>
                   </Button>
                   <Button 
                     variant="default" 
@@ -116,8 +118,8 @@ const Header = () => {
           </Sheet>
 
           {/* Desktop Actions */}
-          <Button variant="outline" size="sm" className="hidden sm:flex">
-            Acceso Organizadores
+          <Button variant="outline" size="sm" className="hidden sm:flex" asChild>
+            <Link to="/auth">Admin Panel</Link>
           </Button>
           <Button variant="default" size="sm" className="hidden md:flex">
             Solicitar Cotización
