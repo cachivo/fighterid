@@ -76,6 +76,7 @@ export default function EventosDeportivos() {
   const [editForm, setEditForm] = useState<Partial<EventoDeportivo>>({});
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [toggleLoading, setToggleLoading] = useState<Record<string, boolean>>({});
 
   const form = useForm<EventoFormData>({
     resolver: zodResolver(eventoSchema),
@@ -157,14 +158,37 @@ export default function EventosDeportivos() {
   };
 
   const toggleActivo = async (id: string, activo: boolean) => {
+    console.log('🔄 Iniciando toggleActivo:', { id, activo, currentState: eventos.find(e => e.id === id)?.activo });
+    
+    // Actualizar estado local inmediatamente para mejor UX
+    setEventos(prev => prev.map(evento => 
+      evento.id === id ? { ...evento, activo } : evento
+    ));
+
+    // Activar loading para este evento específico
+    setToggleLoading(prev => ({ ...prev, [id]: true }));
+
     try {
-      const { error } = await supabase
+      console.log('📤 Enviando request a Supabase:', { table: 'eventos_deportivos', update: { activo }, where: { id } });
+      
+      const { data, error } = await supabase
         .from('eventos_deportivos')
         .update({ activo })
-        .eq('id', id);
+        .eq('id', id)
+        .select('*'); // Agregar select para obtener el resultado
+        
+      console.log('📥 Respuesta de Supabase:', { data, error });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error de Supabase:', error);
+        // Revertir el estado local si hay error
+        setEventos(prev => prev.map(evento => 
+          evento.id === id ? { ...evento, activo: !activo } : evento
+        ));
+        throw error;
+      }
 
+      console.log('✅ Update exitoso, refrescando datos...');
       await fetchEventos();
       
       toast({
@@ -172,11 +196,15 @@ export default function EventosDeportivos() {
         description: `Evento ${activo ? 'activado' : 'desactivado'} correctamente`,
       });
     } catch (error) {
+      console.error('❌ Error completo en toggleActivo:', error);
       toast({
         title: 'Error',
-        description: 'No se pudo cambiar el estado del evento',
+        description: `No se pudo ${activo ? 'activar' : 'desactivar'} el evento: ${error.message || 'Error desconocido'}`,
         variant: 'destructive',
       });
+    } finally {
+      // Desactivar loading
+      setToggleLoading(prev => ({ ...prev, [id]: false }));
     }
   };
 
@@ -421,10 +449,11 @@ export default function EventosDeportivos() {
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={evento.activo}
+                          disabled={toggleLoading[evento.id]}
                           onCheckedChange={(checked) => toggleActivo(evento.id, checked)}
                         />
                         <Badge variant={evento.activo ? 'default' : 'secondary'}>
-                          {evento.activo ? 'Activo' : 'Inactivo'}
+                          {toggleLoading[evento.id] ? 'Procesando...' : (evento.activo ? 'Activo' : 'Inactivo')}
                         </Badge>
                       </div>
                     )}
