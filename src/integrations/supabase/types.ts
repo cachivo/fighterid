@@ -14,7 +14,273 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      configuracion_sitio: {
+        Row: {
+          clave: string
+          descripcion: string | null
+          id: string
+          updated_at: string
+          valor: string
+        }
+        Insert: {
+          clave: string
+          descripcion?: string | null
+          id?: string
+          updated_at?: string
+          valor: string
+        }
+        Update: {
+          clave?: string
+          descripcion?: string | null
+          id?: string
+          updated_at?: string
+          valor?: string
+        }
+        Relationships: []
+      }
+      estadisticas: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string
+          icono: string
+          id: string
+          numero: string
+          orden: number | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion: string
+          icono: string
+          id?: string
+          numero: string
+          orden?: number | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string
+          icono?: string
+          id?: string
+          numero?: string
+          orden?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      eventos_deportivos: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string
+          icono: string
+          id: string
+          orden: number | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion: string
+          icono: string
+          id?: string
+          orden?: number | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string
+          icono?: string
+          id?: string
+          orden?: number | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      eventos_destacados: {
+        Row: {
+          activo: boolean | null
+          audiencia: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number | null
+          participantes: string
+          ranking: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          audiencia: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number | null
+          participantes: string
+          ranking: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          audiencia?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number | null
+          participantes?: string
+          ranking?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      eventos_digitales: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string
+          icono: string
+          id: string
+          orden: number | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion: string
+          icono: string
+          id?: string
+          orden?: number | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string
+          icono?: string
+          id?: string
+          orden?: number | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string
+          id: string
+          logo: string | null
+          nombre: string
+          orden: number | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion: string
+          id?: string
+          logo?: string | null
+          nombre: string
+          orden?: number | null
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string
+          id?: string
+          logo?: string | null
+          nombre?: string
+          orden?: number | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      servicios: {
+        Row: {
+          activo: boolean | null
+          created_at: string
+          descripcion: string
+          icono: string
+          id: string
+          items: string[]
+          orden: number | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion: string
+          icono: string
+          id?: string
+          items?: string[]
+          orden?: number | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string
+          descripcion?: string
+          icono?: string
+          id?: string
+          items?: string[]
+          orden?: number | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      testimonios: {
+        Row: {
+          activo: boolean | null
+          avatar: string | null
+          cargo: string
+          created_at: string
+          id: string
+          nombre: string
+          orden: number | null
+          testimonio: string
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          avatar?: string | null
+          cargo: string
+          created_at?: string
+          id?: string
+          nombre: string
+          orden?: number | null
+          testimonio: string
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          avatar?: string | null
+          cargo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          orden?: number | null
+          testimonio?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
