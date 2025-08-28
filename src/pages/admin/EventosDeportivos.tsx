@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Table,
   TableBody,
@@ -70,6 +71,7 @@ type EventoFormData = z.infer<typeof eventoSchema>;
 
 export default function EventosDeportivos() {
   const { toast } = useToast();
+  const { user, session } = useAuth();
   const [eventos, setEventos] = useState<EventoDeportivo[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -160,6 +162,24 @@ export default function EventosDeportivos() {
   const toggleActivo = async (id: string, activo: boolean) => {
     console.log('🔄 Iniciando toggleActivo:', { id, activo, currentState: eventos.find(e => e.id === id)?.activo });
     
+    // VERIFICACIÓN DE AUTENTICACIÓN
+    console.log('🔐 Estado de autenticación:', { 
+      user: user?.id, 
+      userEmail: user?.email, 
+      session: !!session,
+      sessionAccessToken: session?.access_token ? '✅' : '❌'
+    });
+    
+    if (!user || !session) {
+      console.error('❌ Usuario no autenticado');
+      toast({
+        title: 'Error de Autenticación',
+        description: 'Debes estar autenticado para realizar esta acción',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     // Actualizar estado local inmediatamente para mejor UX
     setEventos(prev => prev.map(evento => 
       evento.id === id ? { ...evento, activo } : evento
@@ -169,18 +189,39 @@ export default function EventosDeportivos() {
     setToggleLoading(prev => ({ ...prev, [id]: true }));
 
     try {
-      console.log('📤 Enviando request a Supabase:', { table: 'eventos_deportivos', update: { activo }, where: { id } });
+      console.log('📤 Enviando request a Supabase:', { 
+        table: 'eventos_deportivos', 
+        update: { activo }, 
+        where: { id },
+        userId: user.id,
+        hasSession: !!session
+      });
+      
+      // Verificar que el cliente tenga la sesión actualizada
+      const currentSession = await supabase.auth.getSession();
+      console.log('🔍 Sesión actual de Supabase:', {
+        hasSession: !!currentSession.data.session,
+        userId: currentSession.data.session?.user?.id,
+        accessToken: currentSession.data.session?.access_token ? '✅' : '❌'
+      });
       
       const { data, error } = await supabase
         .from('eventos_deportivos')
         .update({ activo })
         .eq('id', id)
-        .select('*'); // Agregar select para obtener el resultado
+        .select('*');
         
       console.log('📥 Respuesta de Supabase:', { data, error });
 
       if (error) {
         console.error('❌ Error de Supabase:', error);
+        console.error('❌ Detalles del error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
         // Revertir el estado local si hay error
         setEventos(prev => prev.map(evento => 
           evento.id === id ? { ...evento, activo: !activo } : evento
@@ -197,9 +238,18 @@ export default function EventosDeportivos() {
       });
     } catch (error) {
       console.error('❌ Error completo en toggleActivo:', error);
+      
+      let errorMessage = 'Error desconocido';
+      if (error?.message) {
+        errorMessage = error.message;
+      }
+      if (error?.code === 'PGRST301') {
+        errorMessage = 'No tienes permisos para realizar esta acción. Verifica tu autenticación.';
+      }
+      
       toast({
         title: 'Error',
-        description: `No se pudo ${activo ? 'activar' : 'desactivar'} el evento: ${error.message || 'Error desconocido'}`,
+        description: `No se pudo ${activo ? 'activar' : 'desactivar'} el evento: ${errorMessage}`,
         variant: 'destructive',
       });
     } finally {
