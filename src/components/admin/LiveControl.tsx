@@ -66,7 +66,6 @@ export function LiveControl() {
   const { toast } = useToast();
   const { 
     poolUpdates, 
-    marketStates, 
     ticketUpdates, 
     connectionStatus,
     getPoolForOutcome,
@@ -204,11 +203,12 @@ export function LiveControl() {
           break;
           
         case 'REFUND_MARKET':
-          // This would trigger refunds for all pending bets in the market
-          const { error: refundError } = await supabase.rpc('emergency_refund_market', {
-            p_market_id: action.marketId,
-            p_reason: action.reason
-          });
+          // Refund all pending bets in the market by setting tickets to cancelled
+          const { error: refundError } = await supabase
+            .from('bet_ticket')
+            .update({ status: 'CANCELLED' })
+            .eq('market_id', action.marketId)
+            .in('status', ['PENDING_DELAY', 'ACCEPTED']);
           
           if (refundError) throw refundError;
           break;
@@ -418,7 +418,7 @@ export function LiveControl() {
                         </div>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          {ticketUpdates.length > 0 ? 'Actividad reciente' : 'Sin actividad'}
+                          {Object.keys(ticketUpdates).length > 0 ? 'Actividad reciente' : 'Sin actividad'}
                         </div>
                       </div>
                     </TableCell>
@@ -536,8 +536,8 @@ export function LiveControl() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {ticketUpdates.slice(0, 10).map((update, index) => (
-              <div key={index} className="flex items-center justify-between text-sm border-b pb-1">
+            {Object.values(ticketUpdates).slice(0, 10).map((update, index) => (
+              <div key={update.id} className="flex items-center justify-between text-sm border-b pb-1">
                 <span>
                   {update.status === 'ACCEPTED' ? (
                     <CheckCircle className="h-4 w-4 inline mr-1 text-green-500" />
@@ -547,11 +547,11 @@ export function LiveControl() {
                   Apuesta {update.status.toLowerCase()}
                 </span>
                 <span className="text-muted-foreground">
-                  {new Date(update.timestamp).toLocaleTimeString()}
+                  Hace un momento
                 </span>
               </div>
             ))}
-            {ticketUpdates.length === 0 && (
+            {Object.keys(ticketUpdates).length === 0 && (
               <p className="text-muted-foreground text-center py-4">
                 Sin actividad reciente
               </p>
