@@ -9,6 +9,7 @@ import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import {
   Table,
   TableBody,
@@ -374,7 +375,11 @@ export default function EventosDeportivos() {
                     <FormItem>
                       <FormLabel>Icono (Emoji)</FormLabel>
                       <FormControl>
-                        <Input placeholder="🏆" {...field} />
+                        <EmojiPicker
+                          value={field.value}
+                          onSelect={field.onChange}
+                          placeholder="Seleccionar icono de evento deportivo"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -454,10 +459,9 @@ export default function EventosDeportivos() {
                 <TableRow key={evento.id}>
                   <TableCell>
                     {editingId === evento.id ? (
-                      <Input
+                      <EmojiPicker
                         value={editForm.icono || ''}
-                        onChange={(e) => setEditForm({...editForm, icono: e.target.value})}
-                        className="w-16"
+                        onSelect={(emoji) => setEditForm({...editForm, icono: emoji})}
                         placeholder="🏆"
                       />
                     ) : (

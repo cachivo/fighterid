@@ -14,6 +14,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 
 const formSchema = z.object({
   numero: z.string().min(1, "El número es requerido"),
@@ -285,7 +286,11 @@ const Ranking = () => {
                         <FormItem>
                           <FormLabel>Icono (Emoji)</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="📊" />
+                            <EmojiPicker
+                              value={field.value}
+                              onSelect={field.onChange}
+                              placeholder="Seleccionar icono de estadística"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -450,7 +455,11 @@ const Ranking = () => {
                   <FormItem>
                     <FormLabel>Icono (Emoji)</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="📊" />
+                      <EmojiPicker
+                        value={field.value}
+                        onSelect={field.onChange}
+                        placeholder="Seleccionar icono de estadística"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
