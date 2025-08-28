@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone } from "lucide-react";
+import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigationItems = [
+    { name: "Predicciones", href: "/predicciones", icon: DollarSign },
     { name: "Eventos Deportivos", href: "#eventos-deportivos", icon: Trophy },
     { name: "Eventos Digitales", href: "#eventos-digitales", icon: Monitor },
     { name: "Servicios", href: "#servicios", icon: Settings },
@@ -30,6 +31,9 @@ const Header = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/predicciones" className="text-foreground hover:text-primary transition-colors">
+            Predicciones
+          </Link>
           <a href="#eventos-deportivos" className="text-foreground hover:text-primary transition-colors">
             Eventos Deportivos
           </a>
@@ -71,20 +75,36 @@ const Header = () => {
                 {/* Navigation Items */}
                 <div className="flex-1 py-6">
                   <nav className="space-y-2 px-4">
-                    {navigationItems.map((item) => {
-                      const IconComponent = item.icon;
-                      return (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <IconComponent className="h-5 w-5 text-primary" />
-                          <span className="font-medium">{item.name}</span>
-                        </a>
-                      );
-                    })}
+                     {navigationItems.map((item) => {
+                       const IconComponent = item.icon;
+                       const isExternalLink = item.href.startsWith('#');
+                       
+                       if (isExternalLink) {
+                         return (
+                           <a
+                             key={item.name}
+                             href={item.href}
+                             className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
+                             onClick={() => setMobileMenuOpen(false)}
+                           >
+                             <IconComponent className="h-5 w-5 text-primary" />
+                             <span className="font-medium">{item.name}</span>
+                           </a>
+                         );
+                       }
+                       
+                       return (
+                         <Link
+                           key={item.name}
+                           to={item.href}
+                           className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
+                           onClick={() => setMobileMenuOpen(false)}
+                         >
+                           <IconComponent className="h-5 w-5 text-primary" />
+                           <span className="font-medium">{item.name}</span>
+                         </Link>
+                       );
+                     })}
                   </nav>
                 </div>
                 

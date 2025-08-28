@@ -8,6 +8,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminLayout from "@/components/AdminLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Predicciones from "./pages/Predicciones";
+import EventoBetting from "./pages/EventoBetting";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
 import EventosDigitales from "./pages/admin/EventosDigitales";
@@ -31,6 +33,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/predicciones" element={<Predicciones />} />
+            <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
             <Route path="/admin/*" element={
               <ProtectedRoute>
                 <AdminLayout>
