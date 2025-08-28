@@ -8,6 +8,7 @@ import {
   Users, 
   Settings,
   Vote,
+  DollarSign,
   LogOut
 } from 'lucide-react';
 import {
@@ -33,6 +34,7 @@ const adminItems = [
   { title: 'Servicios', url: '/admin/servicios', icon: Briefcase },
   { title: 'Ranking', url: '/admin/ranking', icon: TrendingUp },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
+  { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
   { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
 ];

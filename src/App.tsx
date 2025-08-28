@@ -16,6 +16,7 @@ import Ranking from "./pages/admin/Ranking";
 import Comunidad from "./pages/admin/Comunidad";
 import Configuracion from "./pages/admin/Configuracion";
 import Votaciones from "./pages/admin/Votaciones";
+import Betting from "./pages/admin/Betting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                     <Route path="/servicios" element={<Servicios />} />
                     <Route path="/ranking" element={<Ranking />} />
                     <Route path="/votaciones" element={<Votaciones />} />
+                    <Route path="/betting" element={<Betting />} />
                     <Route path="/comunidad" element={<Comunidad />} />
                     <Route path="/configuracion" element={<Configuracion />} />
                   </Routes>
