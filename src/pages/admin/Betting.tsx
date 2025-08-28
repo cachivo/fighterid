@@ -14,6 +14,8 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit2, Trash2, Play, Pause, Square, Eye, Clock, DollarSign, Users, TrendingUp, AlertTriangle } from 'lucide-react';
+import { LiveControl } from '@/components/admin/LiveControl';
+import { SettlementConsole } from '@/components/admin/SettlementConsole';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -746,39 +748,11 @@ export default function AdminBetting() {
         </TabsContent>
 
         <TabsContent value="live" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Control en Vivo</CardTitle>
-              <CardDescription>
-                Panel de control para mercados activos durante eventos en vivo
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Panel de control en vivo próximamente</p>
-                <p className="text-sm">Gestión de estados, pools en tiempo real, y controles de emergencia</p>
-              </div>
-            </CardContent>
-          </Card>
+          <LiveControl />
         </TabsContent>
 
         <TabsContent value="settlement" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Console de Liquidación</CardTitle>
-              <CardDescription>
-                Liquidación de mercados y distribución de pagos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Console de liquidación próximamente</p>
-                <p className="text-sm">Confirmación dual-admin, evidencia de resultados, y distribución automática</p>
-              </div>
-            </CardContent>
-          </Card>
+          <SettlementConsole />
         </TabsContent>
       </Tabs>
     </div>
