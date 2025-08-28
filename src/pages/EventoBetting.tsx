@@ -11,12 +11,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useWallet } from '@/hooks/useWallet';
+import { useRealtimeBetting } from '@/hooks/useRealtimeBetting';
 import { 
   TrendingUp, Clock, DollarSign, Users, AlertTriangle, 
   Trophy, MapPin, Calendar, Zap, Timer, Target, ArrowLeft
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import WalletDisplay from '@/components/WalletDisplay';
 import { Link } from 'react-router-dom';
 
 interface BDGEvent {
@@ -67,6 +70,8 @@ export default function EventoBetting() {
   const { eventId } = useParams<{ eventId: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { placeBet, getAvailableBalance } = useWallet();
+  const { getPoolForOutcome, getMarketState, isConnected } = useRealtimeBetting(eventId);
   
   const [event, setEvent] = useState<BDGEvent | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
@@ -187,20 +192,39 @@ export default function EventoBetting() {
   };
 
   const calculateQuote = useCallback((market: Market, outcome: Outcome) => {
-    const totalPool = market.outcomes.reduce((sum, o) => sum + o.pool, 0);
+    // Use real-time pool data if available
+    const realtimePool = getPoolForOutcome(outcome.id);
+    const currentPool = realtimePool > 0 ? realtimePool : outcome.pool;
+    
+    const totalPool = market.outcomes.reduce((sum, o) => {
+      const oPool = getPoolForOutcome(o.id);
+      return sum + (oPool > 0 ? oPool : o.pool);
+    }, 0);
+    
     const epsilon = 1; // Liquidity seed
-    const effectivePool = outcome.pool + epsilon;
+    const effectivePool = currentPool + epsilon;
     const netPool = totalPool * (1 - market.rake);
     
     if (effectivePool === 0) return 1.00;
     return Math.max(1.00, netPool / effectivePool);
-  }, []);
+  }, [getPoolForOutcome]);
 
   const addToBettingSlip = (market: Market, outcome: Outcome) => {
     if (!user) {
       toast({
         title: 'Inicia Sesión',
         description: 'Debes iniciar sesión para apostar',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check available balance
+    const availableBalance = getAvailableBalance('BDG');
+    if (availableBalance < market.min_stake) {
+      toast({
+        title: 'Saldo Insuficiente',
+        description: `Necesitas al menos $${market.min_stake} para apostar`,
         variant: 'destructive',
       });
       return;
@@ -244,23 +268,13 @@ export default function EventoBetting() {
       setBetting(true);
       
       for (const bet of selectedBets) {
-        const { error } = await supabase
-          .from('bet_ticket')
-          .insert({
-            user_id: user.id,
-            market_id: bet.marketId,
-            outcome_id: bet.outcomeId,
-            stake: bet.stake,
-            potential_payout: bet.stake * bet.quote
-          });
-
-        if (error) throw error;
+        const ticketId = await placeBet(bet.marketId, bet.outcomeId, bet.stake);
+        
+        if (!ticketId) {
+          // Error already shown by placeBet hook
+          continue;
+        }
       }
-
-      toast({
-        title: '¡Apuestas Colocadas!',
-        description: `${selectedBets.length} apuesta(s) colocada(s) exitosamente`,
-      });
 
       setSelectedBets([]);
       fetchUserTickets();
@@ -411,6 +425,10 @@ export default function EventoBetting() {
                   <div className="grid gap-3">
                     {market.outcomes.map((outcome) => {
                       const quote = calculateQuote(market, outcome);
+                      // Use real-time pool if available
+                      const currentPool = getPoolForOutcome(outcome.id) || outcome.pool;
+                      const realtimeState = getMarketState(market.id) || market.state;
+                      
                       const isSelected = selectedBets.some(bet => 
                         bet.marketId === market.id && bet.outcomeId === outcome.id
                       );
@@ -423,14 +441,17 @@ export default function EventoBetting() {
                             isSelected 
                               ? 'bg-orange-600 hover:bg-orange-700 border-orange-500' 
                               : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
-                          } ${market.state !== 'open' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          } ${realtimeState !== 'open' ? 'opacity-50 cursor-not-allowed' : ''}`}
                           onClick={() => addToBettingSlip(market, outcome)}
-                          disabled={market.state !== 'open' || !outcome.active}
+                          disabled={realtimeState !== 'open' || !outcome.active}
                         >
                           <div className="text-left">
                             <div className="font-medium">{outcome.label}</div>
-                            <div className="text-sm opacity-75">
-                              Pool: ${outcome.pool.toFixed(2)}
+                            <div className="text-sm opacity-75 flex items-center gap-2">
+                              Pool: ${currentPool.toFixed(2)}
+                              {getPoolForOutcome(outcome.id) !== outcome.pool && (
+                                <span className="text-xs bg-green-600 px-1 rounded">LIVE</span>
+                              )}
                             </div>
                           </div>
                           <div className="text-right">
@@ -441,7 +462,7 @@ export default function EventoBetting() {
                     })}
                   </div>
                   
-                  {market.state === 'suspended' && (
+                  {(getMarketState(market.id) || market.state) === 'suspended' && (
                     <div className="mt-4 p-3 bg-yellow-900/30 border border-yellow-700 rounded-lg">
                       <div className="flex items-center gap-2 text-yellow-400">
                         <AlertTriangle className="h-4 w-4" />
@@ -454,8 +475,21 @@ export default function EventoBetting() {
             ))}
           </div>
 
-          {/* Betting Slip */}
+          {/* Betting Slip & Wallet */}
           <div className="space-y-6">
+            {/* Wallet Display */}
+            <WalletDisplay compact />
+            
+            {/* Real-time Connection Status */}
+            {!isConnected && (
+              <div className="p-3 bg-yellow-900/30 border border-yellow-700 rounded-lg">
+                <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>Conectando a actualizaciones en tiempo real...</span>
+                </div>
+              </div>
+            )}
+
             <Card className="bg-gray-900 border-gray-800 sticky top-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -525,10 +559,11 @@ export default function EventoBetting() {
                     <Button 
                       className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
                       onClick={placeBets}
-                      disabled={betting || !user}
+                      disabled={betting || !user || getAvailableBalance('BDG') < totalSelectedStake}
                     >
                       {betting ? 'Colocando...' : 
-                       !user ? 'Inicia Sesión para Apostar' : 
+                       !user ? 'Inicia Sesión para Apostar' :
+                       getAvailableBalance('BDG') < totalSelectedStake ? 'Saldo Insuficiente' :
                        `Apostar $${totalSelectedStake.toFixed(2)}`}
                     </Button>
                   </>

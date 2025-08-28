@@ -115,6 +115,38 @@ export type Database = {
           },
         ]
       }
+      bet_delay_queue: {
+        Row: {
+          created_at: string
+          id: string
+          process_at: string
+          status: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          process_at?: string
+          status?: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          process_at?: string
+          status?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bet_delay_queue_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "bet_ticket"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bet_ticket: {
         Row: {
           created_at: string | null
@@ -180,13 +212,6 @@ export type Database = {
             columns: ["outcome_id"]
             isOneToOne: false
             referencedRelation: "outcome"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bet_ticket_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "app_user"
             referencedColumns: ["id"]
           },
         ]
@@ -1098,6 +1123,27 @@ export type Database = {
       calculate_parimutuel_payout: {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
+      }
+      confirm_bet_after_delay: {
+        Args: { p_ticket_id: string }
+        Returns: undefined
+      }
+      process_bet_transaction: {
+        Args: {
+          p_market_id: string
+          p_outcome_id: string
+          p_stake: number
+          p_user_id: string
+        }
+        Returns: string
+      }
+      refund_bet: {
+        Args: { p_reason: string; p_ticket_id: string }
+        Returns: undefined
+      }
+      settle_market_payouts: {
+        Args: { p_market_id: string; p_winning_outcome_id: string }
+        Returns: undefined
       }
     }
     Enums: {
