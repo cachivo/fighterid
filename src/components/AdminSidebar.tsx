@@ -7,6 +7,7 @@ import {
   TrendingUp, 
   Users, 
   Settings,
+  Vote,
   LogOut
 } from 'lucide-react';
 import {
@@ -31,6 +32,7 @@ const adminItems = [
   { title: 'Eventos Digitales', url: '/admin/eventos-digitales', icon: Monitor },
   { title: 'Servicios', url: '/admin/servicios', icon: Briefcase },
   { title: 'Ranking', url: '/admin/ranking', icon: TrendingUp },
+  { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
 ];

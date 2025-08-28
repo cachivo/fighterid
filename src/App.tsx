@@ -15,6 +15,7 @@ import Servicios from "./pages/admin/Servicios";
 import Ranking from "./pages/admin/Ranking";
 import Comunidad from "./pages/admin/Comunidad";
 import Configuracion from "./pages/admin/Configuracion";
+import Votaciones from "./pages/admin/Votaciones";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
                     <Route path="/eventos-digitales" element={<EventosDigitales />} />
                     <Route path="/servicios" element={<Servicios />} />
                     <Route path="/ranking" element={<Ranking />} />
+                    <Route path="/votaciones" element={<Votaciones />} />
                     <Route path="/comunidad" element={<Comunidad />} />
                     <Route path="/configuracion" element={<Configuracion />} />
                   </Routes>
