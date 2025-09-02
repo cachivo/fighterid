@@ -493,6 +493,83 @@ export type Database = {
           },
         ]
       }
+      fighter_profiles: {
+        Row: {
+          active: boolean | null
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          created_at: string | null
+          elo_rating: number | null
+          fighting_style: string | null
+          first_name: string
+          height_cm: number | null
+          id: string
+          last_name: string
+          nickname: string | null
+          reach_cm: number | null
+          record_draws: number | null
+          record_losses: number | null
+          record_wins: number | null
+          updated_at: string | null
+          user_id: string | null
+          weight_class: string
+          weight_kg: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string | null
+          elo_rating?: number | null
+          fighting_style?: string | null
+          first_name: string
+          height_cm?: number | null
+          id?: string
+          last_name: string
+          nickname?: string | null
+          reach_cm?: number | null
+          record_draws?: number | null
+          record_losses?: number | null
+          record_wins?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          weight_class: string
+          weight_kg?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string | null
+          elo_rating?: number | null
+          fighting_style?: string | null
+          first_name?: string
+          height_cm?: number | null
+          id?: string
+          last_name?: string
+          nickname?: string | null
+          reach_cm?: number | null
+          record_draws?: number | null
+          record_losses?: number | null
+          record_wins?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          weight_class?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market: {
         Row: {
           created_at: string | null
