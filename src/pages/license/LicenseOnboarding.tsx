@@ -234,6 +234,23 @@ export default function LicenseOnboarding() {
         console.error('Supabase error code:', (error as any).code);
         console.error('Supabase error details:', (error as any).details);
         console.error('Supabase error hint:', (error as any).hint);
+        
+        // Handle specific error cases
+        if ((error as any).code === '23505') {
+          // Duplicate key constraint - user already has a profile
+          toast.success('Ya tienes un perfil de peleador. Redirigiendo al dashboard...');
+          setTimeout(() => {
+            navigate('/license/dashboard', { replace: true });
+          }, 1000);
+          return;
+        } else if ((error as any).code === '42501') {
+          // RLS policy violation - license creation issue
+          toast.error('Tu perfil se creó pero hubo un problema con la licencia. Contacta al administrador.');
+          setTimeout(() => {
+            navigate('/license/dashboard', { replace: true });
+          }, 2000);
+          return;
+        }
       }
       
       toast.error(`Error al crear el perfil: ${error instanceof Error ? error.message : 'Error desconocido'}`);
