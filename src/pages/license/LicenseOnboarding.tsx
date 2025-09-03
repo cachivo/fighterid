@@ -157,7 +157,21 @@ export default function LicenseOnboarding() {
       
     } catch (error) {
       console.error('Error creating profile:', error);
-      toast.error('Error al crear el perfil. Por favor intenta de nuevo.');
+      
+      // Log more detailed error information
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
+      // If it's a Supabase error, log the details
+      if (error && typeof error === 'object' && 'code' in error) {
+        console.error('Supabase error code:', (error as any).code);
+        console.error('Supabase error details:', (error as any).details);
+        console.error('Supabase error hint:', (error as any).hint);
+      }
+      
+      toast.error(`Error al crear el perfil: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }
