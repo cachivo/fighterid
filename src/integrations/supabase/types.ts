@@ -25,6 +25,7 @@ export type Database = {
           email: string | null
           handle: string
           id: string
+          is_admin: boolean | null
           kyc_level: number | null
           phone: string | null
           updated_at: string | null
@@ -39,6 +40,7 @@ export type Database = {
           email?: string | null
           handle: string
           id?: string
+          is_admin?: boolean | null
           kyc_level?: number | null
           phone?: string | null
           updated_at?: string | null
@@ -53,6 +55,7 @@ export type Database = {
           email?: string | null
           handle?: string
           id?: string
+          is_admin?: boolean | null
           kyc_level?: number | null
           phone?: string | null
           updated_at?: string | null
@@ -493,6 +496,70 @@ export type Database = {
           },
         ]
       }
+      fighter_licenses: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          discipline: Database["public"]["Enums"]["discipline"] | null
+          expires_at: string | null
+          fighter_id: string
+          id: string
+          issued_at: string | null
+          license_number: string
+          notes: string | null
+          organization_id: string | null
+          state: Database["public"]["Enums"]["license_state"]
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          expires_at?: string | null
+          fighter_id: string
+          id?: string
+          issued_at?: string | null
+          license_number: string
+          notes?: string | null
+          organization_id?: string | null
+          state?: Database["public"]["Enums"]["license_state"]
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          expires_at?: string | null
+          fighter_id?: string
+          id?: string
+          issued_at?: string | null
+          license_number?: string
+          notes?: string | null
+          organization_id?: string | null
+          state?: Database["public"]["Enums"]["license_state"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_licenses_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_licenses_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_licenses_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_profiles: {
         Row: {
           active: boolean | null
@@ -500,21 +567,25 @@ export type Database = {
           bio: string | null
           country: string | null
           created_at: string | null
+          discipline: Database["public"]["Enums"]["discipline"] | null
           elo_rating: number | null
           fighting_style: string | null
           first_name: string
           height_cm: number | null
           id: string
           last_name: string
+          level: string | null
           license_expires_date: string | null
           license_issued_date: string | null
           license_number: string | null
           license_status: string | null
           nickname: string | null
+          organization_id: string | null
           reach_cm: number | null
           record_draws: number | null
           record_losses: number | null
           record_wins: number | null
+          stance: string | null
           updated_at: string | null
           user_id: string | null
           weight_class: string
@@ -526,21 +597,25 @@ export type Database = {
           bio?: string | null
           country?: string | null
           created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
           elo_rating?: number | null
           fighting_style?: string | null
           first_name: string
           height_cm?: number | null
           id?: string
           last_name: string
+          level?: string | null
           license_expires_date?: string | null
           license_issued_date?: string | null
           license_number?: string | null
           license_status?: string | null
           nickname?: string | null
+          organization_id?: string | null
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
           record_wins?: number | null
+          stance?: string | null
           updated_at?: string | null
           user_id?: string | null
           weight_class: string
@@ -552,21 +627,25 @@ export type Database = {
           bio?: string | null
           country?: string | null
           created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
           elo_rating?: number | null
           fighting_style?: string | null
           first_name?: string
           height_cm?: number | null
           id?: string
           last_name?: string
+          level?: string | null
           license_expires_date?: string | null
           license_issued_date?: string | null
           license_number?: string | null
           license_status?: string | null
           nickname?: string | null
+          organization_id?: string | null
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
           record_wins?: number | null
+          stance?: string | null
           updated_at?: string | null
           user_id?: string | null
           weight_class?: string
@@ -574,10 +653,68 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fighter_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fighter_profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fighter_status_updates: {
+        Row: {
+          bodyfat_pct: number | null
+          created_at: string | null
+          created_by: string | null
+          fighter_id: string
+          id: string
+          injuries: string | null
+          note: string | null
+          ready_to_fight: boolean | null
+          weight_kg: number | null
+        }
+        Insert: {
+          bodyfat_pct?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          fighter_id: string
+          id?: string
+          injuries?: string | null
+          note?: string | null
+          ready_to_fight?: boolean | null
+          weight_kg?: number | null
+        }
+        Update: {
+          bodyfat_pct?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          fighter_id?: string
+          id?: string
+          injuries?: string | null
+          note?: string | null
+          ready_to_fight?: boolean | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -650,8 +787,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fights_fighter_b_id_fkey"
             columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
@@ -660,7 +818,94 @@ export type Database = {
             foreignKeyName: "fights_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fights_history: {
+        Row: {
+          blue_fighter_id: string | null
+          created_at: string | null
+          discipline: Database["public"]["Enums"]["discipline"] | null
+          event_date: string | null
+          event_name: string | null
+          id: string
+          method: string | null
+          notes: string | null
+          organization_id: string | null
+          red_fighter_id: string | null
+          result: Database["public"]["Enums"]["fight_result"] | null
+          round: number | null
+          time_in_round: string | null
+          weight_class: string | null
+        }
+        Insert: {
+          blue_fighter_id?: string | null
+          created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          red_fighter_id?: string | null
+          result?: Database["public"]["Enums"]["fight_result"] | null
+          round?: number | null
+          time_in_round?: string | null
+          weight_class?: string | null
+        }
+        Update: {
+          blue_fighter_id?: string | null
+          created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          event_date?: string | null
+          event_name?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          organization_id?: string | null
+          red_fighter_id?: string | null
+          result?: Database["public"]["Enums"]["fight_result"] | null
+          round?: number | null
+          time_in_round?: string | null
+          weight_class?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fights_history_blue_fighter_id_fkey"
+            columns: ["blue_fighter_id"]
+            isOneToOne: false
             referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_blue_fighter_id_fkey"
+            columns: ["blue_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_red_fighter_id_fkey"
+            columns: ["red_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_red_fighter_id_fkey"
+            columns: ["red_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -758,6 +1003,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organizations: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          id: string
+          name: string
+          short_code: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+          short_code?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+          short_code?: string | null
+        }
+        Relationships: []
       }
       outcome: {
         Row: {
@@ -1076,6 +1345,74 @@ export type Database = {
           },
         ]
       }
+      sparring_requests: {
+        Row: {
+          created_at: string | null
+          discipline: Database["public"]["Enums"]["discipline"] | null
+          from_fighter_id: string
+          id: string
+          location: string | null
+          message: string | null
+          proposed_at: string | null
+          status: Database["public"]["Enums"]["request_status"] | null
+          to_fighter_id: string | null
+          weight_range: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          from_fighter_id: string
+          id?: string
+          location?: string | null
+          message?: string | null
+          proposed_at?: string | null
+          status?: Database["public"]["Enums"]["request_status"] | null
+          to_fighter_id?: string | null
+          weight_range?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          discipline?: Database["public"]["Enums"]["discipline"] | null
+          from_fighter_id?: string
+          id?: string
+          location?: string | null
+          message?: string | null
+          proposed_at?: string | null
+          status?: Database["public"]["Enums"]["request_status"] | null
+          to_fighter_id?: string | null
+          weight_range?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
+            columns: ["from_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
+            columns: ["from_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
+            columns: ["to_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
+            columns: ["to_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       testimonios: {
         Row: {
           activo: boolean | null
@@ -1279,6 +1616,40 @@ export type Database = {
       }
     }
     Views: {
+      public_fighter_profile: {
+        Row: {
+          active: boolean | null
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          discipline: Database["public"]["Enums"]["discipline"] | null
+          elo_rating: number | null
+          fighting_style: string | null
+          first_name: string | null
+          height_cm: number | null
+          id: string | null
+          last_name: string | null
+          level: string | null
+          nickname: string | null
+          organization_id: string | null
+          organization_name: string | null
+          reach_cm: number | null
+          record_draws: number | null
+          record_losses: number | null
+          record_wins: number | null
+          weight_class: string | null
+          weight_kg: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vw_round_leaderboard: {
         Row: {
           contestant_id: string | null
@@ -1300,6 +1671,10 @@ export type Database = {
         Args: { p_ticket_id: string }
         Returns: undefined
       }
+      expire_old_licenses: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_license_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1318,6 +1693,10 @@ export type Database = {
           p_weight_lbs: number
         }
         Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       process_bet_transaction: {
         Args: {
@@ -1338,7 +1717,23 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      discipline:
+        | "MMA"
+        | "Boxeo"
+        | "Judo"
+        | "JiuJitsu"
+        | "Kickboxing"
+        | "MuayThai"
+        | "Grappling"
+        | "Otro"
+      fight_result: "red_win" | "blue_win" | "draw" | "no_contest" | "scheduled"
+      license_state: "active" | "suspended" | "expired" | "pending"
+      request_status:
+        | "pending"
+        | "accepted"
+        | "declined"
+        | "cancelled"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1465,6 +1860,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      discipline: [
+        "MMA",
+        "Boxeo",
+        "Judo",
+        "JiuJitsu",
+        "Kickboxing",
+        "MuayThai",
+        "Grappling",
+        "Otro",
+      ],
+      fight_result: ["red_win", "blue_win", "draw", "no_contest", "scheduled"],
+      license_state: ["active", "suspended", "expired", "pending"],
+      request_status: [
+        "pending",
+        "accepted",
+        "declined",
+        "cancelled",
+        "expired",
+      ],
+    },
   },
 } as const

@@ -7,6 +7,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 import { FighterLicense } from './pages/FighterLicense';
+import FighterMe from './pages/FighterMe';
+import VerifyLicense from './pages/VerifyLicense';
+import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Predicciones from "./pages/Predicciones";
@@ -40,9 +43,10 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/eventos" element={<Events />} />
             <Route path="/evento/:eventId" element={<EventDetail />} />
-          <Route path="/fighters" element={
+          <Route path="/fighters" element={<Fighters />} />
+          <Route path="/fighters/me" element={
             <ProtectedRoute>
-              <Fighters />
+              <FighterMe />
             </ProtectedRoute>
           } />
           <Route path="/fighters/license/:id" element={
@@ -50,6 +54,7 @@ const App = () => (
               <FighterLicense />
             </ProtectedRoute>
           } />
+          <Route path="/verify/license/:licenseNumber" element={<VerifyLicense />} />
             <Route path="/import-event" element={<ImportEvent />} />
             <Route path="/predicciones" element={<Predicciones />} />
             <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
@@ -66,6 +71,7 @@ const App = () => (
                     <Route path="/betting" element={<Betting />} />
                     <Route path="/comunidad" element={<Comunidad />} />
                     <Route path="/configuracion" element={<Configuracion />} />
+                    <Route path="/licencias" element={<ValidacionLicencias />} />
                   </Routes>
                 </AdminLayout>
               </ProtectedRoute>

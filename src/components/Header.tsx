@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,6 +15,7 @@ import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, C
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   const navigationItems = [
     { name: "Eventos", href: "/eventos", icon: Trophy },
@@ -71,6 +73,19 @@ const Header = () => {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
+
+            {user && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link 
+                    to="/fighters/me" 
+                    className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  >
+                    Mi Fighter ID
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
 
             <NavigationMenuItem>
               <NavigationMenuLink asChild>

@@ -9,7 +9,8 @@ import {
   Settings,
   Vote,
   DollarSign,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 import {
   Sidebar,
@@ -35,6 +36,7 @@ const adminItems = [
   { title: 'Ranking', url: '/admin/ranking', icon: TrendingUp },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
+  { title: 'Licencias', url: '/admin/licencias', icon: Shield },
   { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
 ];

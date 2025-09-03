@@ -27,6 +27,9 @@ export interface FighterProfile {
   license_issued_date?: string;
   license_expires_date?: string;
   license_status?: string;
+  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  level?: string;
+  organization_id?: string | null;
 }
 
 export interface FighterProfileData {
@@ -41,6 +44,9 @@ export interface FighterProfileData {
   fighting_style?: string;
   bio?: string;
   avatar_url?: string;
+  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  level?: string;
+  organization_id?: string | null;
 }
 
 export function useFighterProfiles() {
