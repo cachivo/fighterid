@@ -18,7 +18,7 @@ const Header = () => {
   const { user } = useAuth();
 
   const navigationItems = [
-    { name: "Mi Fighter ID", href: "/fighters/me", icon: Shield },
+    { name: "Mi Fighter ID", href: "/license/dashboard", icon: Shield },
     { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
@@ -57,7 +57,7 @@ const Header = () => {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
-                  to={user ? "/fighters/me" : "/auth"}
+                  to="/license/dashboard"
                   className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none"
                 >
                   <Shield className="h-4 w-4" />
@@ -143,7 +143,7 @@ const Header = () => {
         {/* Simplified Navigation for Medium Screens */}
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
           <Link 
-            to={user ? "/fighters/me" : "/auth"}
+            to="/license/dashboard"
             className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
             <Shield className="h-3 w-3" />
@@ -189,7 +189,7 @@ const Header = () => {
                   {/* Featured Mi Fighter ID */}
                   <div className="px-4 pb-4">
                     <Link
-                      to={user ? "/fighters/me" : "/auth"}
+                      to="/license/dashboard"
                       className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -197,7 +197,7 @@ const Header = () => {
                       <div>
                         <span className="font-semibold text-base">Mi Fighter ID</span>
                         <p className="text-xs opacity-90 mt-0.5">
-                          {user ? "Gestiona tu perfil" : "Crea tu perfil"}
+                          Gestiona tu licencia de pelea
                         </p>
                       </div>
                     </Link>
