@@ -496,45 +496,144 @@ export type Database = {
           },
         ]
       }
+      fight_bookings: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          event_name: string
+          fight_type: string | null
+          id: string
+          license_id: string
+          opponent_license_id: string | null
+          promoter: string | null
+          scheduled_date: string
+          status: string | null
+          updated_at: string | null
+          venue: string | null
+          weight_class: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          event_name: string
+          fight_type?: string | null
+          id?: string
+          license_id: string
+          opponent_license_id?: string | null
+          promoter?: string | null
+          scheduled_date: string
+          status?: string | null
+          updated_at?: string | null
+          venue?: string | null
+          weight_class: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          event_name?: string
+          fight_type?: string | null
+          id?: string
+          license_id?: string
+          opponent_license_id?: string | null
+          promoter?: string | null
+          scheduled_date?: string
+          status?: string | null
+          updated_at?: string | null
+          venue?: string | null
+          weight_class?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_bookings_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_bookings_opponent_license_id_fkey"
+            columns: ["opponent_license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_licenses: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           created_at: string | null
           created_by: string | null
           discipline: Database["public"]["Enums"]["discipline"] | null
           expires_at: string | null
           fighter_id: string
           id: string
+          is_primary: boolean | null
           issued_at: string | null
+          license_level: Database["public"]["Enums"]["license_level"] | null
           license_number: string
+          medical_cleared: boolean | null
+          medical_expires_at: string | null
+          next_fight_date: string | null
           notes: string | null
           organization_id: string | null
-          state: Database["public"]["Enums"]["license_state"]
+          physical_cleared: boolean | null
+          qr_code_url: string | null
+          status: Database["public"]["Enums"]["license_status"] | null
+          suspension_reason: string | null
+          suspension_until: string | null
+          version: number | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           created_by?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
           expires_at?: string | null
           fighter_id: string
           id?: string
+          is_primary?: boolean | null
           issued_at?: string | null
+          license_level?: Database["public"]["Enums"]["license_level"] | null
           license_number: string
+          medical_cleared?: boolean | null
+          medical_expires_at?: string | null
+          next_fight_date?: string | null
           notes?: string | null
           organization_id?: string | null
-          state?: Database["public"]["Enums"]["license_state"]
+          physical_cleared?: boolean | null
+          qr_code_url?: string | null
+          status?: Database["public"]["Enums"]["license_status"] | null
+          suspension_reason?: string | null
+          suspension_until?: string | null
+          version?: number | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           created_at?: string | null
           created_by?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
           expires_at?: string | null
           fighter_id?: string
           id?: string
+          is_primary?: boolean | null
           issued_at?: string | null
+          license_level?: Database["public"]["Enums"]["license_level"] | null
           license_number?: string
+          medical_cleared?: boolean | null
+          medical_expires_at?: string | null
+          next_fight_date?: string | null
           notes?: string | null
           organization_id?: string | null
-          state?: Database["public"]["Enums"]["license_state"]
+          physical_cleared?: boolean | null
+          qr_code_url?: string | null
+          status?: Database["public"]["Enums"]["license_status"] | null
+          suspension_reason?: string | null
+          suspension_until?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -581,6 +680,7 @@ export type Database = {
           license_status: string | null
           nickname: string | null
           organization_id: string | null
+          primary_license_id: string | null
           reach_cm: number | null
           record_draws: number | null
           record_losses: number | null
@@ -611,6 +711,7 @@ export type Database = {
           license_status?: string | null
           nickname?: string | null
           organization_id?: string | null
+          primary_license_id?: string | null
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
@@ -641,6 +742,7 @@ export type Database = {
           license_status?: string | null
           nickname?: string | null
           organization_id?: string | null
+          primary_license_id?: string | null
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
@@ -657,6 +759,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_profiles_primary_license_id_fkey"
+            columns: ["primary_license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
           },
           {
@@ -910,6 +1019,88 @@ export type Database = {
           },
         ]
       }
+      license_audit_log: {
+        Row: {
+          action: string
+          id: string
+          license_id: string
+          metadata: Json | null
+          new_level: Database["public"]["Enums"]["license_level"] | null
+          new_status: Database["public"]["Enums"]["license_status"] | null
+          old_level: Database["public"]["Enums"]["license_level"] | null
+          old_status: Database["public"]["Enums"]["license_status"] | null
+          performed_at: string | null
+          performed_by: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          id?: string
+          license_id: string
+          metadata?: Json | null
+          new_level?: Database["public"]["Enums"]["license_level"] | null
+          new_status?: Database["public"]["Enums"]["license_status"] | null
+          old_level?: Database["public"]["Enums"]["license_level"] | null
+          old_status?: Database["public"]["Enums"]["license_status"] | null
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          id?: string
+          license_id?: string
+          metadata?: Json | null
+          new_level?: Database["public"]["Enums"]["license_level"] | null
+          new_status?: Database["public"]["Enums"]["license_status"] | null
+          old_level?: Database["public"]["Enums"]["license_level"] | null
+          old_status?: Database["public"]["Enums"]["license_status"] | null
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_audit_log_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_verification_tokens: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          license_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          license_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          license_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_verification_tokens_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market: {
         Row: {
           created_at: string | null
@@ -1000,6 +1191,59 @@ export type Database = {
             columns: ["market_id"]
             isOneToOne: false
             referencedRelation: "market"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_certifications: {
+        Row: {
+          certification_type: string
+          cleared: boolean | null
+          created_at: string | null
+          expires_date: string
+          file_url: string | null
+          id: string
+          issued_by: string
+          issued_date: string | null
+          license_id: string
+          medical_number: string | null
+          notes: string | null
+          restrictions: string | null
+        }
+        Insert: {
+          certification_type: string
+          cleared?: boolean | null
+          created_at?: string | null
+          expires_date: string
+          file_url?: string | null
+          id?: string
+          issued_by: string
+          issued_date?: string | null
+          license_id: string
+          medical_number?: string | null
+          notes?: string | null
+          restrictions?: string | null
+        }
+        Update: {
+          certification_type?: string
+          cleared?: boolean | null
+          created_at?: string | null
+          expires_date?: string
+          file_url?: string | null
+          id?: string
+          issued_by?: string
+          issued_date?: string | null
+          license_id?: string
+          medical_number?: string | null
+          notes?: string | null
+          restrictions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_certifications_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
           },
         ]
@@ -1663,6 +1907,13 @@ export type Database = {
       }
     }
     Functions: {
+      approve_license: {
+        Args: {
+          p_level?: Database["public"]["Enums"]["license_level"]
+          p_license_id: string
+        }
+        Returns: undefined
+      }
       calculate_parimutuel_payout: {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
@@ -1677,6 +1928,10 @@ export type Database = {
       }
       generate_license_number: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_license_qr_token: {
+        Args: { p_license_id: string }
         Returns: string
       }
       import_fighter_data: {
@@ -1715,6 +1970,10 @@ export type Database = {
         Args: { p_market_id: string; p_winning_outcome_id: string }
         Returns: undefined
       }
+      suspend_license: {
+        Args: { p_license_id: string; p_reason: string; p_until?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       discipline:
@@ -1727,7 +1986,20 @@ export type Database = {
         | "Grappling"
         | "Otro"
       fight_result: "red_win" | "blue_win" | "draw" | "no_contest" | "scheduled"
+      license_level:
+        | "AMATEUR"
+        | "SEMI_PRO"
+        | "PROFESSIONAL"
+        | "SUSPENDED"
+        | "RETIRED"
       license_state: "active" | "suspended" | "expired" | "pending"
+      license_status:
+        | "APPLIED"
+        | "PENDING_REVIEW"
+        | "ACTIVE"
+        | "SUSPENDED"
+        | "REVOKED"
+        | "EXPIRED"
       request_status:
         | "pending"
         | "accepted"
@@ -1872,7 +2144,22 @@ export const Constants = {
         "Otro",
       ],
       fight_result: ["red_win", "blue_win", "draw", "no_contest", "scheduled"],
+      license_level: [
+        "AMATEUR",
+        "SEMI_PRO",
+        "PROFESSIONAL",
+        "SUSPENDED",
+        "RETIRED",
+      ],
       license_state: ["active", "suspended", "expired", "pending"],
+      license_status: [
+        "APPLIED",
+        "PENDING_REVIEW",
+        "ACTIVE",
+        "SUSPENDED",
+        "REVOKED",
+        "EXPIRED",
+      ],
       request_status: [
         "pending",
         "accepted",

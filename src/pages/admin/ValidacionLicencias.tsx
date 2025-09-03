@@ -21,7 +21,7 @@ export default function ValidacionLicencias() {
   const [fighterId, setFighterId] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
   const [discipline, setDiscipline] = useState<'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro'>('MMA');
-  const [state, setState] = useState<'active'|'suspended'|'expired'|'pending'>('active');
+  const [status, setStatus] = useState<'ACTIVE'|'SUSPENDED'|'EXPIRED'|'PENDING_REVIEW'>('ACTIVE');
   const [notes, setNotes] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
 
@@ -72,7 +72,7 @@ export default function ValidacionLicencias() {
         fighter_id: fighterId,
         license_number: licenseNumber,
         discipline: discipline as any,
-        state,
+        status,
         notes: notes || undefined,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : undefined,
       };
@@ -87,7 +87,7 @@ export default function ValidacionLicencias() {
       setFighterId('');
       setLicenseNumber('');
       setDiscipline('MMA');
-      setState('active');
+      setStatus('ACTIVE');
       setNotes('');
       setExpiresAt('');
       
@@ -97,28 +97,28 @@ export default function ValidacionLicencias() {
     }
   };
 
-  const updateLicenseState = async (licenseId: string, newState: 'active' | 'suspended' | 'expired' | 'pending') => {
+  const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'PENDING_REVIEW') => {
     try {
       const { error } = await supabase
         .from('fighter_licenses')
-        .update({ state: newState })
+        .update({ status: newStatus })
         .eq('id', licenseId);
 
       if (error) throw error;
 
-      toast({ title: "Licencia actualizada", description: `Estado cambiado a ${newState}` });
+      toast({ title: "Licencia actualizada", description: `Estado cambiado a ${newStatus}` });
       refetch();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
-  const getLicenseStatusColor = (state: string) => {
-    switch (state) {
-      case 'active': return 'bg-green-500/20 text-green-700 border-green-500/30';
-      case 'suspended': return 'bg-red-500/20 text-red-700 border-red-500/30';
-      case 'expired': return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
-      case 'pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
+  const getLicenseStatusColor = (status: string) => {
+    switch (status) {
+      case 'ACTIVE': return 'bg-green-500/20 text-green-700 border-green-500/30';
+      case 'SUSPENDED': return 'bg-red-500/20 text-red-700 border-red-500/30';
+      case 'EXPIRED': return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
+      case 'PENDING_REVIEW': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
       default: return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
     }
   };
@@ -179,15 +179,15 @@ export default function ValidacionLicencias() {
 
           <div className="space-y-2">
             <Label htmlFor="state_select">Estado</Label>
-            <Select value={state} onValueChange={(v: any) => setState(v)}>
+            <Select value={status} onValueChange={(v: any) => setStatus(v)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pendiente</SelectItem>
-                <SelectItem value="active">Activa</SelectItem>
-                <SelectItem value="suspended">Suspendida</SelectItem>
-                <SelectItem value="expired">Expirada</SelectItem>
+                <SelectItem value="PENDING_REVIEW">Pendiente</SelectItem>
+                <SelectItem value="ACTIVE">Activa</SelectItem>
+                <SelectItem value="SUSPENDED">Suspendida</SelectItem>
+                <SelectItem value="EXPIRED">Expirada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -245,8 +245,8 @@ export default function ValidacionLicencias() {
                 <div className="space-y-1 flex-1">
                   <div className="flex items-center gap-3">
                     <div className="font-medium">{license.license_number}</div>
-                    <Badge className={getLicenseStatusColor(license.state)}>
-                      {license.state}
+                    <Badge className={getLicenseStatusColor(license.status)}>
+                      {license.status}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -266,21 +266,21 @@ export default function ValidacionLicencias() {
                 </div>
                 
                 <div className="flex gap-2 ml-4">
-                  {license.state !== 'active' && (
+                  {license.status !== 'ACTIVE' && (
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => updateLicenseState(license.id, 'active')}
+                      onClick={() => updateLicenseState(license.id, 'ACTIVE')}
                       className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
                     >
                       Activar
                     </Button>
                   )}
-                  {license.state === 'active' && (
+                  {license.status === 'ACTIVE' && (
                     <Button 
                       size="sm" 
                       variant="outline"
-                      onClick={() => updateLicenseState(license.id, 'suspended')}
+                      onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
                       className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
                     >
                       Suspender

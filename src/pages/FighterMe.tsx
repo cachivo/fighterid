@@ -104,8 +104,8 @@ export default function FighterMe() {
     }
   };
 
-  const getLicenseStatusColor = (state: string) => {
-    switch (state) {
+  const getLicenseStatusColor = (status: string) => {
+    switch (status) {
       case 'active': return 'bg-green-500/20 text-green-700 border-green-500/30';
       case 'suspended': return 'bg-red-500/20 text-red-700 border-red-500/30';
       case 'expired': return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
@@ -204,8 +204,8 @@ export default function FighterMe() {
                   </div>
                   {license.notes && <div className="text-sm text-muted-foreground">{license.notes}</div>}
                 </div>
-                <Badge className={getLicenseStatusColor(license.state)}>
-                  {license.state}
+                <Badge className={getLicenseStatusColor(license.status)}>
+                  {license.status}
                 </Badge>
               </div>
             ))}
