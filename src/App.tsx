@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
-import { FighterLicense } from '@/pages/FighterLicense';
+import { FighterLicense } from './pages/FighterLicense';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Predicciones from "./pages/Predicciones";
