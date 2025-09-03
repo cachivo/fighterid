@@ -42,64 +42,108 @@ export default function LicenseOnboarding() {
     setLoading(true);
     
     try {
+      console.log('Starting profile creation for user:', user.id);
+      
       // Create app_user if it doesn't exist
-      const { data: appUser } = await supabase
+      console.log('Checking for existing app_user...');
+      const { data: appUser, error: appUserSelectError } = await supabase
         .from('app_user')
         .select('id')
         .eq('auth_user_id', user.id)
         .maybeSingle();
 
+      if (appUserSelectError) {
+        console.error('Error checking app_user:', appUserSelectError);
+        throw appUserSelectError;
+      }
+
       let userId = appUser?.id;
+      console.log('Existing app_user:', userId);
       
       if (!userId) {
+        console.log('Creating new app_user...');
         const { data: newAppUser, error: appUserError } = await supabase
           .from('app_user')
           .insert({
             auth_user_id: user.id,
             email: user.email,
-            handle: `${formData.firstName}_${formData.lastName}`.toLowerCase()
+            handle: `${formData.firstName}_${formData.lastName}_${Date.now()}`.toLowerCase().replace(/\s+/g, '_')
           })
           .select('id')
           .single();
 
-        if (appUserError) throw appUserError;
+        if (appUserError) {
+          console.error('Error creating app_user:', appUserError);
+          throw appUserError;
+        }
         userId = newAppUser.id;
+        console.log('Created app_user with ID:', userId);
       }
 
       // Create fighter profile
+      console.log('Creating fighter profile...');
+      const profileData = {
+        user_id: userId,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        nickname: formData.nickname || null,
+        country: formData.country,
+        weight_class: formData.weightClass,
+        height_cm: parseInt(formData.heightCm),
+        weight_kg: parseFloat(formData.weightKg),
+        discipline: formData.discipline,
+        fighting_style: formData.fightingStyle || null,
+        bio: formData.bio || null
+      };
+      
+      console.log('Profile data:', profileData);
+      
       const { data: profile, error: profileError } = await supabase
         .from('fighter_profiles')
-        .insert({
-          user_id: userId,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          nickname: formData.nickname || null,
-          country: formData.country,
-          weight_class: formData.weightClass,
-          height_cm: parseInt(formData.heightCm),
-          weight_kg: parseFloat(formData.weightKg),
-          discipline: formData.discipline,
-          fighting_style: formData.fightingStyle || null,
-          bio: formData.bio || null
-        })
+        .insert(profileData)
         .select('id')
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error creating fighter profile:', profileError);
+        throw profileError;
+      }
+      
+      console.log('Created fighter profile with ID:', profile.id);
 
-      // Create initial license
+      // Create initial license with generated license number
+      console.log('Generating license number...');
+      const { data: licenseNumber, error: licenseGenError } = await supabase
+        .rpc('generate_license_number');
+
+      if (licenseGenError) {
+        console.error('Error generating license number:', licenseGenError);
+        throw licenseGenError;
+      }
+
+      console.log('Generated license number:', licenseNumber);
+
+      const licenseData = {
+        fighter_id: profile.id,
+        discipline: formData.discipline,
+        license_level: 'AMATEUR' as const,
+        status: 'PENDING_REVIEW' as const,
+        is_primary: true,
+        license_number: licenseNumber
+      };
+      
+      console.log('License data:', licenseData);
+      
       const { error: licenseError } = await supabase
         .from('fighter_licenses')
-        .insert({
-          fighter_id: profile.id,
-          discipline: formData.discipline,
-          license_level: 'AMATEUR',
-          status: 'PENDING_REVIEW',
-          is_primary: true,
-          license_number: `TEMP-${Date.now()}` // Temporary license number, will be updated by trigger
-        });
+        .insert(licenseData);
 
-      if (licenseError) throw licenseError;
+      if (licenseError) {
+        console.error('Error creating fighter license:', licenseError);
+        throw licenseError;
+      }
+
+      console.log('License created successfully');
 
       // Refresh license data to update the auth context
       await refreshLicense();
