@@ -2,7 +2,15 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign } from "lucide-react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -19,6 +27,14 @@ const Header = () => {
     { name: "Contacto", href: "#contacto", icon: Phone },
   ];
 
+  const sectionItems = [
+    { name: "Eventos Deportivos", href: "#eventos-deportivos", icon: Trophy },
+    { name: "Eventos Digitales", href: "#eventos-digitales", icon: Monitor },
+    { name: "Servicios", href: "#servicios", icon: Settings },
+    { name: "Ranking", href: "#ranking", icon: BarChart3 },
+    { name: "Comunidad", href: "#comunidad", icon: Users },
+  ];
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -32,30 +48,95 @@ const Header = () => {
         </div>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link to="/eventos" className="text-foreground hover:text-primary transition-colors">
+        <NavigationMenu className="hidden lg:flex">
+          <NavigationMenuList className="space-x-2">
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
+                  to="/eventos" 
+                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                >
+                  Eventos
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
+                  to="/fighters" 
+                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                >
+                  Fighters
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
+                  to="/predicciones" 
+                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                >
+                  Predicciones
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="text-sm">
+                Secciones
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="grid w-80 gap-1 p-4">
+                  {sectionItems.map((item) => {
+                    const IconComponent = item.icon;
+                    return (
+                      <NavigationMenuLink key={item.name} asChild>
+                        <a
+                          href={item.href}
+                          className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                        >
+                          <div className="flex items-center gap-2">
+                            <IconComponent className="h-4 w-4 text-primary" />
+                            <div className="text-sm font-medium leading-none">
+                              {item.name}
+                            </div>
+                          </div>
+                        </a>
+                      </NavigationMenuLink>
+                    );
+                  })}
+                </div>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <a 
+                  href="#contacto" 
+                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                >
+                  Contacto
+                </a>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+
+        {/* Simplified Navigation for Medium Screens */}
+        <nav className="hidden md:flex lg:hidden items-center space-x-4">
+          <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
             Eventos
           </Link>
-          <Link to="/fighters" className="text-foreground hover:text-primary transition-colors">
+          <Link to="/fighters" className="text-sm text-foreground hover:text-primary transition-colors">
             Fighters
           </Link>
-          <Link to="/predicciones" className="text-foreground hover:text-primary transition-colors">
+          <Link to="/predicciones" className="text-sm text-foreground hover:text-primary transition-colors">
             Predicciones
           </Link>
-          <a href="#eventos-deportivos" className="text-foreground hover:text-primary transition-colors">
-            Eventos Deportivos
-          </a>
-          <a href="#eventos-digitales" className="text-foreground hover:text-primary transition-colors">
-            Eventos Digitales
-          </a>
-          <a href="#servicios" className="text-foreground hover:text-primary transition-colors">
-            Servicios
-          </a>
-          <a href="#ranking" className="text-foreground hover:text-primary transition-colors">
-            Ranking
-          </a>
-          <a href="#comunidad" className="text-foreground hover:text-primary transition-colors">
-            Comunidad
+          <a href="#contacto" className="text-sm text-foreground hover:text-primary transition-colors">
+            Contacto
           </a>
         </nav>
         
