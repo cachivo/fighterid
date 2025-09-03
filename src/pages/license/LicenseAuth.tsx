@@ -14,7 +14,8 @@ export default function LicenseAuth() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    phone: ''
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,6 +129,22 @@ export default function LicenseAuth() {
                 </div>
               </div>
 
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="+504 9999-9999"
+                    required
+                    className="h-11"
+                  />
+                </div>
+              )}
+
               <Button
                 type="submit"
                 className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
@@ -150,7 +167,7 @@ export default function LicenseAuth() {
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError('');
-                  setFormData({ email: '', password: '' });
+                  setFormData({ email: '', password: '', phone: '' });
                 }}
                 className="text-sm text-gray-700 hover:text-gray-900 font-medium underline underline-offset-4"
               >

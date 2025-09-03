@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, User, Award } from 'lucide-react';
+import { Loader2, User, Award, Upload, FileText } from 'lucide-react';
+import { FileUpload } from '@/components/ui/file-upload';
 
 export default function LicenseOnboarding() {
   const { user, refreshLicense } = useLicenseAuth();
@@ -28,8 +29,15 @@ export default function LicenseOnboarding() {
     weightKg: '',
     discipline: 'MMA' as const,
     fightingStyle: '',
-    bio: ''
+    bio: '',
+    phone: ''
   });
+
+  const [identityDocument, setIdentityDocument] = useState<File | null>(null);
+  const [fighterPhoto, setFighterPhoto] = useState<File | null>(null);
+  const [identityPreview, setIdentityPreview] = useState<string | null>(null);
+  const [fighterPhotoPreview, setFighterPhotoPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const weightClasses = [
     'Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight',
@@ -85,6 +93,7 @@ export default function LicenseOnboarding() {
     if (!user) return;
 
     setLoading(true);
+    setUploading(true);
     
     try {
       // Check if user already has a profile (should not happen due to useEffect check)
@@ -132,6 +141,7 @@ export default function LicenseOnboarding() {
           .insert({
             auth_user_id: user.id,
             email: user.email,
+            phone: formData.phone,
             handle: `${formData.firstName}_${formData.lastName}_${Date.now()}`.toLowerCase().replace(/\s+/g, '_')
           })
           .select('id')
@@ -199,16 +209,94 @@ export default function LicenseOnboarding() {
       
       console.log('License data:', licenseData);
       
-      const { error: licenseError } = await supabase
+      const { data: license, error: licenseError } = await supabase
         .from('fighter_licenses')
-        .insert(licenseData);
+        .insert(licenseData)
+        .select('id')
+        .single();
 
       if (licenseError) {
         console.error('Error creating fighter license:', licenseError);
         throw licenseError;
       }
 
-      console.log('License created successfully');
+      console.log('License created successfully with ID:', license.id);
+
+      // Upload identity document
+      if (identityDocument) {
+        console.log('Uploading identity document...');
+        const identityFileName = `${user.id}/identity-${Date.now()}.${identityDocument.type.split('/')[1]}`;
+        
+        const { error: identityUploadError } = await supabase.storage
+          .from('license-documents')
+          .upload(identityFileName, identityDocument, {
+            contentType: identityDocument.type,
+            upsert: false
+          });
+
+        if (identityUploadError) {
+          console.error('Error uploading identity document:', identityUploadError);
+          throw new Error(`Error uploading identity document: ${identityUploadError.message}`);
+        }
+
+        // Create document record
+        const { error: docRecordError } = await supabase
+          .from('license_documents')
+          .insert({
+            license_id: license.id,
+            document_type: 'identity',
+            file_path: identityFileName,
+            file_name: identityDocument.name,
+            file_size: identityDocument.size,
+            mime_type: identityDocument.type,
+            uploaded_by: user.id
+          });
+
+        if (docRecordError) {
+          console.error('Error creating document record:', docRecordError);
+          // Don't throw here, document uploaded but record creation failed
+        }
+
+        console.log('Identity document uploaded successfully');
+      }
+
+      // Upload fighter photo if provided
+      if (fighterPhoto) {
+        console.log('Uploading fighter photo...');
+        const photoFileName = `${user.id}/photo-${Date.now()}.${fighterPhoto.type.split('/')[1]}`;
+        
+        const { error: photoUploadError } = await supabase.storage
+          .from('fighter-photos')
+          .upload(photoFileName, fighterPhoto, {
+            contentType: fighterPhoto.type,
+            upsert: false
+          });
+
+        if (photoUploadError) {
+          console.error('Error uploading fighter photo:', photoUploadError);
+          // Don't throw here, photo is optional
+        } else {
+          // Create document record
+          const { error: photoRecordError } = await supabase
+            .from('license_documents')
+            .insert({
+              license_id: license.id,
+              document_type: 'photo',
+              file_path: photoFileName,
+              file_name: fighterPhoto.name,
+              file_size: fighterPhoto.size,
+              mime_type: fighterPhoto.type,
+              uploaded_by: user.id
+            });
+
+          if (photoRecordError) {
+            console.error('Error creating photo record:', photoRecordError);
+            // Don't throw here, photo uploaded but record creation failed
+          }
+
+          console.log('Fighter photo uploaded successfully');
+        }
+      }
 
       // Refresh license data to update the auth context
       await refreshLicense();
@@ -256,6 +344,7 @@ export default function LicenseOnboarding() {
       toast.error(`Error al crear el perfil: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -330,6 +419,18 @@ export default function LicenseOnboarding() {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="phone">Teléfono *</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    placeholder="+504 9999-9999"
+                    required
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="heightCm">Altura (cm) *</Label>
@@ -376,7 +477,7 @@ export default function LicenseOnboarding() {
                   <Button 
                     type="button" 
                     onClick={() => setStep(2)}
-                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass}
+                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone}
                   >
                     Continuar
                   </Button>
@@ -386,6 +487,51 @@ export default function LicenseOnboarding() {
 
             {step === 2 && (
               <div className="space-y-4">
+                <div>
+                  <Label htmlFor="identityDocument">Documento de Identidad * <span className="text-sm text-gray-500">(Cédula, pasaporte, etc.)</span></Label>
+                  <FileUpload
+                    onFileSelect={(file) => {
+                      setIdentityDocument(file);
+                      const previewUrl = URL.createObjectURL(file);
+                      setIdentityPreview(previewUrl);
+                    }}
+                    onRemoveFile={() => {
+                      setIdentityDocument(null);
+                      if (identityPreview) {
+                        URL.revokeObjectURL(identityPreview);
+                        setIdentityPreview(null);
+                      }
+                    }}
+                    accept="image/*"
+                    preview={identityPreview || undefined}
+                    loading={uploading}
+                    required
+                    className="mb-4"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="fighterPhoto">Foto del Peleador <span className="text-sm text-gray-500">(Opcional - para tu perfil)</span></Label>
+                  <FileUpload
+                    onFileSelect={(file) => {
+                      setFighterPhoto(file);
+                      const previewUrl = URL.createObjectURL(file);
+                      setFighterPhotoPreview(previewUrl);
+                    }}
+                    onRemoveFile={() => {
+                      setFighterPhoto(null);
+                      if (fighterPhotoPreview) {
+                        URL.revokeObjectURL(fighterPhotoPreview);
+                        setFighterPhotoPreview(null);
+                      }
+                    }}
+                    accept="image/*"
+                    preview={fighterPhotoPreview || undefined}
+                    loading={uploading}
+                    className="mb-4"
+                  />
+                </div>
+
                 <div>
                   <Label htmlFor="fightingStyle">Estilo de Pelea</Label>
                   <Input
@@ -411,7 +557,7 @@ export default function LicenseOnboarding() {
                   <Button type="button" variant="outline" onClick={() => setStep(1)}>
                     Atrás
                   </Button>
-                  <Button type="submit" disabled={loading}>
+                  <Button type="submit" disabled={loading || !identityDocument}>
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

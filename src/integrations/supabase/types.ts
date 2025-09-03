@@ -28,6 +28,7 @@ export type Database = {
           is_admin: boolean | null
           kyc_level: number | null
           phone: string | null
+          phone_verified: boolean | null
           updated_at: string | null
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           is_admin?: boolean | null
           kyc_level?: number | null
           phone?: string | null
+          phone_verified?: boolean | null
           updated_at?: string | null
         }
         Update: {
@@ -58,6 +60,7 @@ export type Database = {
           is_admin?: boolean | null
           kyc_level?: number | null
           phone?: string | null
+          phone_verified?: boolean | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1062,6 +1065,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "license_audit_log_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      license_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          license_id: string
+          mime_type: string | null
+          notes: string | null
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          license_id: string
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          license_id?: string
+          mime_type?: string | null
+          notes?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "license_documents_license_id_fkey"
             columns: ["license_id"]
             isOneToOne: false
             referencedRelation: "fighter_licenses"

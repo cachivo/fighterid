@@ -9,13 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Search, Plus, FileText } from 'lucide-react';
+import { Shield, Search, Plus, FileText, Loader2 } from 'lucide-react';
 
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
 export default function ValidacionLicencias() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   
   // Form state for creating/updating licenses
   const [fighterId, setFighterId] = useState('');
@@ -98,6 +99,8 @@ export default function ValidacionLicencias() {
   };
 
   const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'PENDING_REVIEW') => {
+    setLoadingStates(prev => ({ ...prev, [licenseId]: true }));
+    
     try {
       const { error } = await supabase
         .from('fighter_licenses')
@@ -106,10 +109,13 @@ export default function ValidacionLicencias() {
 
       if (error) throw error;
 
-      toast({ title: "Licencia actualizada", description: `Estado cambiado a ${newStatus}` });
+      const statusText = newStatus === 'ACTIVE' ? 'Activada' : 'Suspendida';
+      toast({ title: "Licencia actualizada", description: `Licencia ${statusText} exitosamente` });
       refetch();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [licenseId]: false }));
     }
   };
 
@@ -271,9 +277,17 @@ export default function ValidacionLicencias() {
                       size="sm" 
                       variant="outline"
                       onClick={() => updateLicenseState(license.id, 'ACTIVE')}
-                      className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
+                      disabled={loadingStates[license.id]}
+                      className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50"
                     >
-                      Activar
+                      {loadingStates[license.id] ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          Activando...
+                        </>
+                      ) : (
+                        'Activar'
+                      )}
                     </Button>
                   )}
                   {license.status === 'ACTIVE' && (
@@ -281,9 +295,17 @@ export default function ValidacionLicencias() {
                       size="sm" 
                       variant="outline"
                       onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
-                      className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white"
+                      disabled={loadingStates[license.id]}
+                      className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white disabled:opacity-50"
                     >
-                      Suspender
+                      {loadingStates[license.id] ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          Suspendiendo...
+                        </>
+                      ) : (
+                        'Suspender'
+                      )}
                     </Button>
                   )}
                 </div>
