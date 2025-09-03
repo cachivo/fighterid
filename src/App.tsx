@@ -4,8 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import AdminLayout from "@/components/AdminLayout";
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminLayout from '@/components/AdminLayout';
+import { FighterLicense } from '@/pages/FighterLicense';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Predicciones from "./pages/Predicciones";
@@ -39,7 +40,16 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/eventos" element={<Events />} />
             <Route path="/evento/:eventId" element={<EventDetail />} />
-            <Route path="/fighters" element={<Fighters />} />
+          <Route path="/fighters" element={
+            <ProtectedRoute>
+              <Fighters />
+            </ProtectedRoute>
+          } />
+          <Route path="/fighters/license/:id" element={
+            <ProtectedRoute>
+              <FighterLicense />
+            </ProtectedRoute>
+          } />
             <Route path="/import-event" element={<ImportEvent />} />
             <Route path="/predicciones" element={<Predicciones />} />
             <Route path="/evento/:eventId/betting" element={<EventoBetting />} />

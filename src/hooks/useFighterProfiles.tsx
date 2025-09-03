@@ -23,6 +23,10 @@ export interface FighterProfile {
   active: boolean;
   created_at: string;
   updated_at: string;
+  license_number?: string;
+  license_issued_date?: string;
+  license_expires_date?: string;
+  license_status?: string;
 }
 
 export interface FighterProfileData {
@@ -50,7 +54,13 @@ export function useFighterProfiles() {
       setLoading(true);
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select('*')
+        .select(`
+          *,
+        license_number,
+        license_issued_date,
+        license_expires_date,
+        license_status
+        `)
         .eq('active', true)
         .order('elo_rating', { ascending: false });
 
@@ -142,6 +152,21 @@ export function useFighterProfiles() {
     }
   };
 
+  const getFighterById = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('fighter_profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Error desconocido');
+    }
+  };
+
   useEffect(() => {
     fetchFighters();
   }, []);
@@ -153,6 +178,7 @@ export function useFighterProfiles() {
     createFighterProfile,
     updateFighterProfile,
     getUserFighterProfile,
+    getFighterById,
     refreshFighters: fetchFighters
   };
 }

@@ -1,6 +1,9 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
+import { useNavigate } from 'react-router-dom';
+import { CreditCard, Shield } from 'lucide-react';
 
 interface FighterCardProps {
   fighter: FighterProfile;
@@ -8,6 +11,16 @@ interface FighterCardProps {
 }
 
 export function FighterCard({ fighter, onClick }: FighterCardProps) {
+  const navigate = useNavigate();
+
+  const getLicenseStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'suspended': return 'bg-red-500';
+      case 'expired': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
+  };
   const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
   
   return (
@@ -79,6 +92,31 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             Debutante
           </Badge>
         )}
+
+        {/* License Info */}
+        <div className="flex items-center justify-between pt-3 mt-3 border-t">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">{fighter.license_number}</span>
+          </div>
+          <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs`}>
+            {fighter.license_status?.toUpperCase() || 'ACTIVA'}
+          </Badge>
+        </div>
+
+        {/* License Button */}
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full mt-3"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/fighters/license/${fighter.id}`);
+          }}
+        >
+          <CreditCard className="h-4 w-4 mr-2" />
+          Ver Licencia
+        </Button>
       </CardContent>
     </Card>
   );

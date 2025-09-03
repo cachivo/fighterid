@@ -506,6 +506,10 @@ export type Database = {
           height_cm: number | null
           id: string
           last_name: string
+          license_expires_date: string | null
+          license_issued_date: string | null
+          license_number: string | null
+          license_status: string | null
           nickname: string | null
           reach_cm: number | null
           record_draws: number | null
@@ -528,6 +532,10 @@ export type Database = {
           height_cm?: number | null
           id?: string
           last_name: string
+          license_expires_date?: string | null
+          license_issued_date?: string | null
+          license_number?: string | null
+          license_status?: string | null
           nickname?: string | null
           reach_cm?: number | null
           record_draws?: number | null
@@ -550,6 +558,10 @@ export type Database = {
           height_cm?: number | null
           id?: string
           last_name?: string
+          license_expires_date?: string | null
+          license_issued_date?: string | null
+          license_number?: string | null
+          license_status?: string | null
           nickname?: string | null
           reach_cm?: number | null
           record_draws?: number | null
@@ -1287,6 +1299,10 @@ export type Database = {
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
+      }
+      generate_license_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       import_fighter_data: {
         Args: {
