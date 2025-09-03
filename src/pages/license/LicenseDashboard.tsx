@@ -14,6 +14,9 @@ export default function LicenseDashboard() {
   const { user, licenseData } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
 
+  console.log('Dashboard - licenseData:', licenseData);
+  console.log('Dashboard - license:', license);
+
   if (!licenseData) {
     return (
       <div className="text-center py-12">
@@ -53,13 +56,16 @@ export default function LicenseDashboard() {
     }
   };
 
-  const upcomingFights = fightBookings.data?.filter(fight => 
+  const upcomingFights = fightBookings?.data?.filter(fight => 
     new Date(fight.scheduled_date) > new Date()
   ).slice(0, 3) || [];
 
-  const validMedicalCert = medicalCerts.data?.find(cert => 
+  const validMedicalCert = medicalCerts?.data?.find(cert => 
     cert.cleared && new Date(cert.expires_date) > new Date()
   );
+
+  // Get fighter profile from license data
+  const fighterProfile = license?.data?.fighter_profiles;
 
   return (
     <div className="space-y-6">
@@ -86,17 +92,17 @@ export default function LicenseDashboard() {
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-purple-neon-primary">
                 <AvatarFallback className="bg-purple-neon-primary text-white text-xl">
-                  {license.data?.fighter_profiles?.first_name?.charAt(0)}
-                  {license.data?.fighter_profiles?.last_name?.charAt(0)}
+                  {fighterProfile?.first_name?.charAt(0) || 'U'}
+                  {fighterProfile?.last_name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <CardTitle className="text-2xl">
-                  {license.data?.fighter_profiles?.first_name} {license.data?.fighter_profiles?.last_name}
+                  {fighterProfile?.first_name || 'Usuario'} {fighterProfile?.last_name || ''}
                 </CardTitle>
-                {license.data?.fighter_profiles?.nickname && (
+                {fighterProfile?.nickname && (
                   <CardDescription className="text-lg font-medium">
-                    "{license.data.fighter_profiles.nickname}"
+                    "{fighterProfile.nickname}"
                   </CardDescription>
                 )}
                 <div className="mt-2 flex items-center gap-2">
@@ -127,23 +133,23 @@ export default function LicenseDashboard() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <p className="text-sm text-muted-foreground">País</p>
-              <p className="font-medium">{license.data?.fighter_profiles?.country || 'N/A'}</p>
+              <p className="font-medium">{fighterProfile?.country || 'N/A'}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">División</p>
-              <p className="font-medium">{license.data?.fighter_profiles?.weight_class || 'N/A'}</p>
+              <p className="font-medium">{fighterProfile?.weight_class || 'N/A'}</p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Record</p>
               <p className="font-medium">
-                {license.data?.fighter_profiles?.record_wins}-
-                {license.data?.fighter_profiles?.record_losses}-
-                {license.data?.fighter_profiles?.record_draws}
+                {fighterProfile?.record_wins || 0}-
+                {fighterProfile?.record_losses || 0}-
+                {fighterProfile?.record_draws || 0}
               </p>
             </div>
             <div className="text-center">
               <p className="text-sm text-muted-foreground">Rating ELO</p>
-              <p className="font-medium">{license.data?.fighter_profiles?.elo_rating || 1200}</p>
+              <p className="font-medium">{fighterProfile?.elo_rating || 1200}</p>
             </div>
           </div>
         </CardContent>

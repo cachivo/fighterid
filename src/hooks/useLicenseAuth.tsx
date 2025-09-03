@@ -25,32 +25,59 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkLicenseStatus = async (userId: string) => {
     try {
-      // Get user's fighter profile and license
-      const { data: profile } = await supabase
-        .from('fighter_profiles')
-        .select(`
-          *,
-          fighter_licenses!fighter_profiles_primary_license_id_fkey (
-            id,
-            license_number,
-            status,
-            license_level,
-            medical_cleared,
-            physical_cleared,
-            expires_at,
-            next_fight_date,
-            suspension_reason,
-            suspension_until
-          )
-        `)
-        .eq('user_id', userId)
-        .eq('active', true)
-        .single();
+      console.log('Checking license status for user:', userId);
+      
+      // First check if user exists in app_user table
+      const { data: appUser } = await supabase
+        .from('app_user')
+        .select('*')
+        .eq('auth_user_id', userId)
+        .maybeSingle();
+      
+      console.log('App user data:', appUser);
+      
+      if (!appUser) {
+        console.log('No app user found');
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        return;
+      }
 
-      if (profile?.fighter_licenses) {
-        setLicenseData(profile.fighter_licenses);
-        setHasActiveLicense(profile.fighter_licenses.status === 'ACTIVE');
+      // Get user's fighter profile
+      const { data: profile, error: profileError } = await supabase
+        .from('fighter_profiles')
+        .select('*')
+        .eq('user_id', appUser.id)
+        .eq('active', true)
+        .maybeSingle();
+
+      console.log('Profile data:', profile);
+      console.log('Profile error:', profileError);
+
+      if (!profile) {
+        console.log('No fighter profile found');
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        return;
+      }
+
+      // Get the primary license for this fighter
+      const { data: license, error: licenseError } = await supabase
+        .from('fighter_licenses')
+        .select('*')
+        .eq('fighter_id', profile.id)
+        .eq('is_primary', true)
+        .maybeSingle();
+
+      console.log('License data:', license);
+      console.log('License error:', licenseError);
+
+      if (license) {
+        console.log('License found:', license);
+        setLicenseData(license);
+        setHasActiveLicense(license.status === 'ACTIVE');
       } else {
+        console.log('No license found');
         setLicenseData(null);
         setHasActiveLicense(false);
       }
