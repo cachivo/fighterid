@@ -570,6 +570,89 @@ export type Database = {
           },
         ]
       }
+      fights: {
+        Row: {
+          created_at: string
+          event_id: string
+          fight_number: number
+          fight_type: string
+          fighter_a_id: string
+          fighter_b_id: string
+          finish_method: string | null
+          finish_round: number | null
+          finish_time: string | null
+          id: string
+          scheduled_time: string | null
+          status: string
+          updated_at: string
+          weight_class: string
+          winner_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          fight_number: number
+          fight_type?: string
+          fighter_a_id: string
+          fighter_b_id: string
+          finish_method?: string | null
+          finish_round?: number | null
+          finish_time?: string | null
+          id?: string
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+          weight_class: string
+          winner_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          fight_number?: number
+          fight_type?: string
+          fighter_a_id?: string
+          fighter_b_id?: string
+          finish_method?: string | null
+          finish_round?: number | null
+          finish_time?: string | null
+          id?: string
+          scheduled_time?: string | null
+          status?: string
+          updated_at?: string
+          weight_class?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fights_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market: {
         Row: {
           created_at: string | null
@@ -1204,6 +1287,21 @@ export type Database = {
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
+      }
+      import_fighter_data: {
+        Args: {
+          p_academy?: string
+          p_age: number
+          p_birth_date?: string
+          p_country: string
+          p_first_name: string
+          p_height_text: string
+          p_last_name: string
+          p_nickname?: string
+          p_record: string
+          p_weight_lbs: number
+        }
+        Returns: string
       }
       process_bet_transaction: {
         Args: {

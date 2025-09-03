@@ -10,6 +10,10 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Predicciones from "./pages/Predicciones";
 import EventoBetting from "./pages/EventoBetting";
+import Events from "./pages/Events";
+import EventDetail from "./pages/EventDetail";
+import Fighters from "./pages/Fighters";
+import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
 import EventosDigitales from "./pages/admin/EventosDigitales";
@@ -33,6 +37,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/eventos" element={<Events />} />
+            <Route path="/evento/:eventId" element={<EventDetail />} />
+            <Route path="/fighters" element={<Fighters />} />
+            <Route path="/import-event" element={<ImportEvent />} />
             <Route path="/predicciones" element={<Predicciones />} />
             <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
             <Route path="/admin/*" element={

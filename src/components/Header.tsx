@@ -8,6 +8,8 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navigationItems = [
+    { name: "Eventos", href: "/eventos", icon: Trophy },
+    { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
     { name: "Eventos Deportivos", href: "#eventos-deportivos", icon: Trophy },
     { name: "Eventos Digitales", href: "#eventos-digitales", icon: Monitor },
@@ -31,6 +33,12 @@ const Header = () => {
         
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
+          <Link to="/eventos" className="text-foreground hover:text-primary transition-colors">
+            Eventos
+          </Link>
+          <Link to="/fighters" className="text-foreground hover:text-primary transition-colors">
+            Fighters
+          </Link>
           <Link to="/predicciones" className="text-foreground hover:text-primary transition-colors">
             Predicciones
           </Link>

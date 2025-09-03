@@ -1,5 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Monitor, Briefcase, TrendingUp, Users, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { Calendar, Monitor, Briefcase, TrendingUp, Users, Settings, Download } from 'lucide-react';
 
 const stats = [
   {
@@ -66,6 +68,20 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="flex items-center space-x-4 rounded-md border p-4">
+              <Download className="h-5 w-5" />
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium leading-none">
+                  Importar Batalla de Gimnasios #1
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Cargar evento completo con 36 peleadores
+                </p>
+              </div>
+              <Button asChild size="sm">
+                <Link to="/import-event">Importar</Link>
+              </Button>
+            </div>
             <div className="flex items-center space-x-4 rounded-md border p-4">
               <Calendar className="h-5 w-5" />
               <div className="flex-1 space-y-1">
