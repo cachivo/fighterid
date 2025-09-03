@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, User, Award } from 'lucide-react';
 
 export default function LicenseOnboarding() {
-  const { user } = useLicenseAuth();
+  const { user, refreshLicense } = useLicenseAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -101,8 +101,15 @@ export default function LicenseOnboarding() {
 
       if (licenseError) throw licenseError;
 
+      // Refresh license data to update the auth context
+      await refreshLicense();
+
       toast.success('¡Perfil creado exitosamente! Tu licencia está pendiente de revisión.');
-      navigate('/license/pending');
+      
+      // Small delay to ensure context is updated
+      setTimeout(() => {
+        navigate('/license/pending', { replace: true });
+      }, 500);
       
     } catch (error) {
       console.error('Error creating profile:', error);
