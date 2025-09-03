@@ -53,21 +53,21 @@ export default function LicenseAuth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-urban-light">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-neon-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-800" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-urban-light p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-gray-50 p-4">
       <div className="w-full max-w-md">
         <Card className="border-0 shadow-2xl bg-card/95 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 p-3 rounded-full bg-purple-neon-primary/10">
-              <Shield className="h-8 w-8 text-purple-neon-primary" />
+            <div className="mx-auto mb-4 p-3 rounded-full bg-gray-100">
+              <Shield className="h-8 w-8 text-gray-800" />
             </div>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-2xl font-bold text-gray-900">
               {isLogin ? 'Acceso a tu Licencia' : 'Crear Licencia'}
             </CardTitle>
             <CardDescription>
@@ -130,7 +130,7 @@ export default function LicenseAuth() {
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-purple-neon-primary hover:bg-purple-neon-secondary text-white font-medium"
+                className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
@@ -152,7 +152,7 @@ export default function LicenseAuth() {
                   setError('');
                   setFormData({ email: '', password: '' });
                 }}
-                className="text-sm text-purple-neon-primary hover:text-purple-neon-secondary font-medium"
+                className="text-sm text-gray-700 hover:text-gray-900 font-medium underline underline-offset-4"
               >
                 {isLogin 
                   ? '¿No tienes licencia? Solicítala aquí' 

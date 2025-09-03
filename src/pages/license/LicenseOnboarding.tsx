@@ -269,7 +269,7 @@ export default function LicenseOnboarding() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-neon-primary" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-800" />
               <p className="text-muted-foreground">Verificando perfil existente...</p>
             </div>
           </CardContent>
@@ -284,9 +284,9 @@ export default function LicenseOnboarding() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             {step === 1 ? (
-              <User className="h-12 w-12 text-purple-neon-primary" />
+              <User className="h-12 w-12 text-gray-800" />
             ) : (
-              <Award className="h-12 w-12 text-purple-neon-primary" />
+              <Award className="h-12 w-12 text-gray-800" />
             )}
           </div>
           <CardTitle className="text-2xl">Configurar Tu Perfil de Peleador</CardTitle>

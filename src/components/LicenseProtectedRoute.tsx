@@ -30,14 +30,14 @@ export default function LicenseProtectedRoute({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-neon-primary" />
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-800" />
           <p className="text-muted-foreground">
             {showTimeout ? "Conexión lenta, redirigiendo..." : "Verificando licencia..."}
           </p>
           {showTimeout && (
             <button 
               onClick={() => window.location.href = '/license/onboarding'}
-              className="mt-4 px-4 py-2 bg-purple-neon-primary text-white rounded hover:bg-purple-neon-primary/80"
+              className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800"
             >
               Continuar sin esperar
             </button>
