@@ -64,6 +64,31 @@ export default function ValidacionLicencias() {
     },
   });
 
+  // Set up real-time subscription for license updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('license-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'fighter_licenses'
+        },
+        (payload) => {
+          console.log('License change detected:', payload);
+          // Invalidate and refetch the licenses query
+          queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, refetch]);
+
   const createOrUpdateLicense = async () => {
     if (!fighterId || !licenseNumber) {
       toast({ title: "Error", description: "Fighter ID y número de licencia son requeridos", variant: "destructive" });
@@ -283,69 +308,69 @@ export default function ValidacionLicencias() {
               const displayStatus = optimisticUpdates[license.id] || license.status;
               
               return (
-              <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-card/50">
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="font-medium">{license.license_number}</div>
-                    <Badge className={getLicenseStatusColor(displayStatus)}>
-                      {displayStatus}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Peleador:</strong> {license.fighter?.first_name} {license.fighter?.last_name}
-                    {license.fighter?.nickname ? ` "${license.fighter.nickname}"` : ''}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Disciplina:</strong> {license.discipline} | 
-                    <strong> División:</strong> {license.fighter?.weight_class} | 
-                    <strong> Expira:</strong> {license.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'N/A'}
-                  </div>
-                  {license.notes && (
-                    <div className="text-sm text-muted-foreground">
-                      <strong>Notas:</strong> {license.notes}
+                <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-card/50">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="font-medium">{license.license_number}</div>
+                      <Badge className={getLicenseStatusColor(displayStatus)}>
+                        {displayStatus}
+                      </Badge>
                     </div>
-                  )}
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Peleador:</strong> {license.fighter?.first_name} {license.fighter?.last_name}
+                      {license.fighter?.nickname ? ` "${license.fighter.nickname}"` : ''}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Disciplina:</strong> {license.discipline} | 
+                      <strong> División:</strong> {license.fighter?.weight_class} | 
+                      <strong> Expira:</strong> {license.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'N/A'}
+                    </div>
+                    {license.notes && (
+                      <div className="text-sm text-muted-foreground">
+                        <strong>Notas:</strong> {license.notes}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 ml-4">
+                    {displayStatus !== 'ACTIVE' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => updateLicenseState(license.id, 'ACTIVE')}
+                        disabled={loadingStates[license.id]}
+                        className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50"
+                      >
+                        {loadingStates[license.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            Activando...
+                          </>
+                        ) : (
+                          'Activar'
+                        )}
+                      </Button>
+                    )}
+                    {displayStatus === 'ACTIVE' && (
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
+                        disabled={loadingStates[license.id]}
+                        className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white disabled:opacity-50"
+                      >
+                        {loadingStates[license.id] ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            Suspendiendo...
+                          </>
+                        ) : (
+                          'Suspender'
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="flex gap-2 ml-4">
-                  {displayStatus !== 'ACTIVE' && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => updateLicenseState(license.id, 'ACTIVE')}
-                      disabled={loadingStates[license.id]}
-                      className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50"
-                    >
-                      {loadingStates[license.id] ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          Activando...
-                        </>
-                      ) : (
-                        'Activar'
-                      )}
-                    </Button>
-                  )}
-                  {displayStatus === 'ACTIVE' && (
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
-                      disabled={loadingStates[license.id]}
-                      className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white disabled:opacity-50"
-                    >
-                      {loadingStates[license.id] ? (
-                        <>
-                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          Suspendiendo...
-                        </>
-                      ) : (
-                        'Suspender'
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
               );
             })}
             
