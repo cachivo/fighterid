@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ export default function LicenseOnboarding() {
   const { user, refreshLicense } = useLicenseAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [checkingExisting, setCheckingExisting] = useState(true);
   const [step, setStep] = useState(1);
   
   const [formData, setFormData] = useState({
@@ -35,6 +36,50 @@ export default function LicenseOnboarding() {
     'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
   ];
 
+  // Check if user already has a profile
+  useEffect(() => {
+    const checkExistingProfile = async () => {
+      if (!user) return;
+
+      try {
+        console.log('Checking for existing profile...');
+        
+        // Check for app_user
+        const { data: appUser } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .maybeSingle();
+
+        if (appUser) {
+          console.log('App user found, checking for fighter profile...');
+          
+          // Check for fighter profile
+          const { data: profile } = await supabase
+            .from('fighter_profiles')
+            .select('id')
+            .eq('user_id', appUser.id)
+            .eq('active', true)
+            .maybeSingle();
+
+          if (profile) {
+            console.log('Fighter profile found, redirecting to pending...');
+            navigate('/license/pending', { replace: true });
+            return;
+          }
+        }
+
+        console.log('No existing profile found, can proceed with onboarding');
+      } catch (error) {
+        console.error('Error checking existing profile:', error);
+      } finally {
+        setCheckingExisting(false);
+      }
+    };
+
+    checkExistingProfile();
+  }, [user, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -42,8 +87,28 @@ export default function LicenseOnboarding() {
     setLoading(true);
     
     try {
-      console.log('Starting profile creation for user:', user.id);
-      
+      // Check if user already has a profile (should not happen due to useEffect check)
+      const { data: existingAppUser } = await supabase
+        .from('app_user')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .maybeSingle();
+
+      if (existingAppUser) {
+        const { data: existingProfile } = await supabase
+          .from('fighter_profiles')
+          .select('id')
+          .eq('user_id', existingAppUser.id)
+          .eq('active', true)
+          .maybeSingle();
+
+        if (existingProfile) {
+          toast.success('Ya tienes un perfil creado. Redirigiendo...');
+          navigate('/license/pending', { replace: true });
+          return;
+        }
+      }
+
       // Create app_user if it doesn't exist
       console.log('Checking for existing app_user...');
       const { data: appUser, error: appUserSelectError } = await supabase
@@ -179,6 +244,21 @@ export default function LicenseOnboarding() {
 
   if (!user) {
     return <div>No autorizado</div>;
+  }
+
+  if (checkingExisting) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-purple-neon-primary" />
+              <p className="text-muted-foreground">Verificando perfil existente...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
