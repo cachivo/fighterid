@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,8 +15,10 @@ const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Gr
 
 export default function ValidacionLicencias() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
+  const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, string>>({});
   
   // Form state for creating/updating licenses
   const [fighterId, setFighterId] = useState('');
@@ -27,7 +29,7 @@ export default function ValidacionLicencias() {
   const [expiresAt, setExpiresAt] = useState('');
 
   // Fetch all licenses for admin view
-  const { data: licenses, refetch } = useQuery({
+  const { data: licenses, refetch, isLoading } = useQuery({
     queryKey: ['admin_licenses', searchTerm],
     queryFn: async () => {
       let query = supabase
@@ -99,23 +101,53 @@ export default function ValidacionLicencias() {
   };
 
   const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'PENDING_REVIEW') => {
+    // Optimistic update
+    setOptimisticUpdates(prev => ({ ...prev, [licenseId]: newStatus }));
     setLoadingStates(prev => ({ ...prev, [licenseId]: true }));
     
     try {
       const { error } = await supabase
         .from('fighter_licenses')
-        .update({ status: newStatus })
+        .update({ 
+          status: newStatus,
+          approved_at: newStatus === 'ACTIVE' ? new Date().toISOString() : null,
+          approved_by: newStatus === 'ACTIVE' ? (await supabase.auth.getUser()).data.user?.id : null
+        })
         .eq('id', licenseId);
 
       if (error) throw error;
 
       const statusText = newStatus === 'ACTIVE' ? 'Activada' : 'Suspendida';
-      toast({ title: "Licencia actualizada", description: `Licencia ${statusText} exitosamente` });
-      refetch();
+      toast({ 
+        title: "Licencia actualizada", 
+        description: `Licencia ${statusText} exitosamente`,
+        duration: 3000 
+      });
+      
+      // Force a refetch and invalidate related queries
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+      
     } catch (error: any) {
+      // Revert optimistic update on error
+      setOptimisticUpdates(prev => {
+        const newState = { ...prev };
+        delete newState[licenseId];
+        return newState;
+      });
+      
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoadingStates(prev => ({ ...prev, [licenseId]: false }));
+      
+      // Clear optimistic update after a short delay
+      setTimeout(() => {
+        setOptimisticUpdates(prev => {
+          const newState = { ...prev };
+          delete newState[licenseId];
+          return newState;
+        });
+      }, 1000);
     }
   };
 
@@ -246,13 +278,17 @@ export default function ValidacionLicencias() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {licenses?.map(license => (
+            {licenses?.map(license => {
+              // Use optimistic update if available, otherwise use actual status
+              const displayStatus = optimisticUpdates[license.id] || license.status;
+              
+              return (
               <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-card/50">
                 <div className="space-y-1 flex-1">
                   <div className="flex items-center gap-3">
                     <div className="font-medium">{license.license_number}</div>
-                    <Badge className={getLicenseStatusColor(license.status)}>
-                      {license.status}
+                    <Badge className={getLicenseStatusColor(displayStatus)}>
+                      {displayStatus}
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
@@ -272,7 +308,7 @@ export default function ValidacionLicencias() {
                 </div>
                 
                 <div className="flex gap-2 ml-4">
-                  {license.status !== 'ACTIVE' && (
+                  {displayStatus !== 'ACTIVE' && (
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -290,7 +326,7 @@ export default function ValidacionLicencias() {
                       )}
                     </Button>
                   )}
-                  {license.status === 'ACTIVE' && (
+                  {displayStatus === 'ACTIVE' && (
                     <Button 
                       size="sm" 
                       variant="outline"
@@ -310,7 +346,8 @@ export default function ValidacionLicencias() {
                   )}
                 </div>
               </div>
-            ))}
+              );
+            })}
             
             {!licenses?.length && (
               <div className="text-center py-8 text-muted-foreground">

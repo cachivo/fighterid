@@ -102,6 +102,8 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const refreshLicense = async () => {
     if (user) {
+      console.log('Manually refreshing license status...');
+      setLoading(true);
       await checkLicenseStatus(user.id);
     }
   };

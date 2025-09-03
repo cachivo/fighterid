@@ -1,12 +1,17 @@
-import { Clock, Shield, CheckCircle, FileText, AlertTriangle, Home } from 'lucide-react';
+import { Clock, Shield, CheckCircle, FileText, AlertTriangle, Home, RefreshCw } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function LicensePending() {
-  const { user, licenseData, signOut } = useLicenseAuth();
+  const { user, licenseData, signOut, refreshLicense } = useLicenseAuth();
+  const navigate = useNavigate();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const getStatusSteps = () => {
     const currentStatus = licenseData?.status;
@@ -41,10 +46,53 @@ export default function LicensePending() {
 
   const steps = getStatusSteps();
 
-  if (licenseData?.status === 'ACTIVE') {
-    window.location.href = '/license/dashboard';
-    return null;
-  }
+  // Auto-refresh license status every 10 seconds
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await refreshLicense();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [refreshLicense]);
+
+  // Set up real-time subscription for license changes
+  useEffect(() => {
+    if (!user || !licenseData?.id) return;
+
+    const channel = supabase
+      .channel('license-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'fighter_licenses',
+          filter: `id=eq.${licenseData.id}`
+        },
+        async (payload) => {
+          console.log('License updated in real-time:', payload);
+          await refreshLicense();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, licenseData?.id, refreshLicense]);
+
+  // Handle redirect when license becomes active
+  useEffect(() => {
+    if (licenseData?.status === 'ACTIVE') {
+      navigate('/license/dashboard', { replace: true });
+    }
+  }, [licenseData?.status, navigate]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshLicense();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-urban-light p-4">
@@ -61,11 +109,20 @@ export default function LicensePending() {
           <div className="mt-4 flex justify-center gap-3">
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <Home className="h-4 w-4" />
               Pantalla Principal
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary"
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Actualizando...' : 'Actualizar Estado'}
             </Button>
             <Button
               variant="outline"
