@@ -34,10 +34,10 @@ export function FighterLicense() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'suspended': return 'bg-red-500';
-      case 'expired': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'active': return 'bg-fighter-success text-white';
+      case 'suspended': return 'bg-fighter-danger text-white';
+      case 'expired': return 'bg-fighter-info text-white';
+      default: return 'bg-fighter-info text-white';
     }
   };
 
@@ -172,7 +172,7 @@ export function FighterLicense() {
 
               <div className="flex items-center justify-between pt-2 border-t">
                 <span className="font-medium">Estado:</span>
-                <Badge className={`${getStatusColor(fighter.license_status || 'active')} text-white`}>
+                <Badge className={getStatusColor(fighter.license_status || 'active')}>
                   {getStatusText(fighter.license_status || 'active')}
                 </Badge>
               </div>

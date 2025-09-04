@@ -106,11 +106,11 @@ export default function FighterMe() {
 
   const getLicenseStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20 text-green-700 border-green-500/30';
-      case 'suspended': return 'bg-red-500/20 text-red-700 border-red-500/30';
-      case 'expired': return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
-      case 'pending': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
-      default: return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
+      case 'active': return 'bg-fighter-success/20 text-fighter-success border-fighter-success/30';
+      case 'suspended': return 'bg-fighter-danger/20 text-fighter-danger border-fighter-danger/30';
+      case 'expired': return 'bg-fighter-info/20 text-fighter-info border-fighter-info/30';
+      case 'pending': return 'bg-fighter-warning/20 text-fighter-warning border-fighter-warning/30';
+      default: return 'bg-fighter-info/20 text-fighter-info border-fighter-info/30';
     }
   };
 
@@ -352,9 +352,9 @@ export default function FighterMe() {
                     {r.location && <div className="text-sm text-muted-foreground">Lugar: {r.location}</div>}
                     {r.message && <div className="text-sm mt-2 p-2 bg-background/50 rounded">{r.message}</div>}
                   </div>
-                  <Badge className={r.status === 'pending' ? 'bg-yellow-500/20 text-yellow-700' : 
-                                  r.status === 'accepted' ? 'bg-green-500/20 text-green-700' :
-                                  'bg-red-500/20 text-red-700'}>
+                  <Badge className={r.status === 'pending' ? 'bg-fighter-warning/20 text-fighter-warning' : 
+                                  r.status === 'accepted' ? 'bg-fighter-success/20 text-fighter-success' :
+                                  'bg-fighter-danger/20 text-fighter-danger'}>
                     {r.status}
                   </Badge>
                 </div>

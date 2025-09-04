@@ -56,35 +56,35 @@ export default function VerifyLicense() {
     switch (state) {
       case 'active':
         return {
-          color: 'bg-green-500/20 text-green-700 border-green-500/30',
+          color: 'bg-fighter-success/20 text-fighter-success border-fighter-success/30',
           icon: CheckCircle,
           text: 'LICENCIA VÁLIDA',
           description: 'Esta licencia está activa y permite competir oficialmente.'
         };
       case 'suspended':
         return {
-          color: 'bg-red-500/20 text-red-700 border-red-500/30',
+          color: 'bg-fighter-danger/20 text-fighter-danger border-fighter-danger/30',
           icon: XCircle,
           text: 'LICENCIA SUSPENDIDA',
           description: 'Esta licencia está suspendida. El peleador no puede competir.'
         };
       case 'expired':
         return {
-          color: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
+          color: 'bg-fighter-info/20 text-fighter-info border-fighter-info/30',
           icon: Clock,
           text: 'LICENCIA EXPIRADA',
           description: 'Esta licencia ha expirado y debe ser renovada.'
         };
       case 'pending':
         return {
-          color: 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30',
+          color: 'bg-fighter-warning/20 text-fighter-warning border-fighter-warning/30',
           icon: AlertTriangle,
           text: 'LICENCIA PENDIENTE',
           description: 'Esta licencia está pendiente de aprobación.'
         };
       default:
         return {
-          color: 'bg-gray-500/20 text-gray-700 border-gray-500/30',
+          color: 'bg-fighter-info/20 text-fighter-info border-fighter-info/30',
           icon: XCircle,
           text: 'ESTADO DESCONOCIDO',
           description: 'El estado de esta licencia no es válido.'
@@ -210,7 +210,7 @@ export default function VerifyLicense() {
             <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Fecha de Expiración</label>
-                <p className={`text-base ${isExpired ? 'text-red-600 font-semibold' : ''}`}>
+                <p className={`text-base ${isExpired ? 'text-fighter-danger font-semibold' : ''}`}>
                   {licenseData.expires_at ? new Date(licenseData.expires_at).toLocaleDateString() : 'N/A'}
                   {isExpired && ' (EXPIRADA)'}
                 </p>
