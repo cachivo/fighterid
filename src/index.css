@@ -70,15 +70,33 @@ All colors MUST be HSL.
     --fighter-danger: 0 63% 31%; /* Brick red */
     --fighter-info: 210 100% 45%; /* Steel blue */
 
+    /* Professional License/Profile System - Elegant & Masculine */
+    --professional-primary: 210 15% 20%; /* Deep steel blue */
+    --professional-primary-foreground: 0 0% 98%;
+    --professional-secondary: 210 12% 35%; /* Medium steel */
+    --professional-secondary-foreground: 0 0% 98%;
+    --professional-accent: 210 8% 55%; /* Light steel */
+    --professional-accent-foreground: 0 0% 10%;
+    --professional-muted: 210 10% 85%; /* Light gray-blue */
+    --professional-border: 210 12% 25%; /* Dark border */
+    
     /* Gradients for urban aesthetics - neon purple theme */
     --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(280 50% 15%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(0 0% 97%) 100%);
     --gradient-purple-neon: linear-gradient(90deg, hsl(280 100% 70%) 0%, hsl(270 90% 60%) 100%);
+    
+    /* Professional gradients - elegant and subtle */
+    --gradient-professional: linear-gradient(135deg, hsl(210 15% 20%) 0%, hsl(210 12% 35%) 100%);
+    --gradient-professional-light: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 10% 96%) 100%);
 
     /* Shadows with urban feel - neon purple theme */
     --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
     --shadow-card: 0 2px 12px -3px hsl(0 0% 8% / 0.08);
     --shadow-purple-neon: 0 4px 20px -4px hsl(280 100% 70% / 0.4);
+    
+    /* Professional shadows - subtle and elegant */
+    --shadow-professional: 0 4px 16px -2px hsl(210 15% 20% / 0.15);
+    --shadow-professional-light: 0 2px 8px -1px hsl(210 15% 20% / 0.1);
 
     --radius: 0.5rem;
 
@@ -138,6 +156,16 @@ All colors MUST be HSL.
     --fighter-background: 222.2 84% 4.9%; /* Dark background */
     --fighter-card: 217.2 32.6% 17.5%; /* Dark card */
     --fighter-border: 210 8% 25%; /* Dark border */
+    
+    /* Professional License/Profile System - Dark mode */
+    --professional-primary: 210 40% 98%;
+    --professional-primary-foreground: 210 15% 15%;
+    --professional-secondary: 215 20.2% 65.1%;
+    --professional-secondary-foreground: 210 15% 15%;
+    --professional-accent: 210 8% 45%;
+    --professional-accent-foreground: 210 40% 98%;
+    --professional-muted: 210 15% 25%;
+    --professional-border: 210 12% 30%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;

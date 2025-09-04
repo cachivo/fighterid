@@ -68,12 +68,12 @@ export default function LicenseDashboard() {
   const fighterProfile = license?.data?.fighter_profiles;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-urban-light/30 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">
       <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-professional-primary">
               Mi Licencia de Pelea
             </h1>
             <p className="text-muted-foreground text-lg">
@@ -83,7 +83,7 @@ export default function LicenseDashboard() {
           <Button 
             asChild 
             variant="outline" 
-            className="border-2 border-purple-neon-primary/50 text-purple-neon-primary hover:bg-purple-neon-primary hover:text-white hover:shadow-purple-neon transition-all duration-300 hover-scale"
+            className="border-2 border-professional-accent/60 text-professional-primary hover:bg-professional-primary hover:text-professional-primary-foreground shadow-professional-light transition-all duration-300 hover-scale"
           >
             <Link to="/license/qr">
               <QrCode className="h-4 w-4 mr-2" />
@@ -93,15 +93,15 @@ export default function LicenseDashboard() {
         </div>
 
         {/* Main License Card */}
-        <Card className="relative overflow-hidden border-2 border-purple-neon-primary/20 bg-gradient-card shadow-urban hover:shadow-purple-neon transition-all duration-500 animate-slide-up">
-          {/* Neon accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-purple-neon"></div>
+        <Card className="relative overflow-hidden border-2 border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional transition-all duration-500 animate-slide-up">
+          {/* Professional accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-professional"></div>
           
           <CardHeader className="pb-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
-                <Avatar className="h-20 w-20 border-3 border-purple-neon-primary/50 shadow-glow">
-                  <AvatarFallback className="bg-gradient-to-br from-purple-neon-primary to-purple-neon-secondary text-white text-2xl font-bold">
+                <Avatar className="h-20 w-20 border-3 border-professional-accent/50 shadow-professional-light">
+                  <AvatarFallback className="bg-gradient-professional text-professional-primary-foreground text-2xl font-bold">
                     {fighterProfile?.first_name?.charAt(0) || 'U'}
                     {fighterProfile?.last_name?.charAt(0) || 'U'}
                   </AvatarFallback>
@@ -111,7 +111,7 @@ export default function LicenseDashboard() {
                     {fighterProfile?.first_name || 'Usuario'} {fighterProfile?.last_name || ''}
                   </CardTitle>
                   {fighterProfile?.nickname && (
-                    <CardDescription className="text-xl font-medium text-purple-neon-primary">
+                    <CardDescription className="text-xl font-medium text-professional-accent">
                       "{fighterProfile.nickname}"
                     </CardDescription>
                   )}
@@ -129,16 +129,16 @@ export default function LicenseDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="text-right bg-gradient-to-br from-purple-neon-primary/10 to-purple-neon-secondary/10 p-6 rounded-xl border border-purple-neon-primary/20">
-                <p className="text-sm font-medium text-purple-neon-primary uppercase tracking-wider">Número de Licencia</p>
-                <p className="text-3xl font-bold text-purple-neon-primary tracking-wider mt-2 font-mono">
+              <div className="text-right bg-gradient-to-br from-professional-muted/20 to-professional-accent/10 p-6 rounded-xl border border-professional-border/30">
+                <p className="text-sm font-medium text-professional-accent uppercase tracking-wider">Número de Licencia</p>
+                <p className="text-3xl font-bold text-professional-primary tracking-wider mt-2 font-mono">
                   {licenseData.license_number}
                 </p>
               </div>
             </div>
           </CardHeader>
           
-          <Separator className="bg-gradient-to-r from-transparent via-purple-neon-primary/30 to-transparent" />
+          <Separator className="bg-gradient-to-r from-transparent via-professional-accent/40 to-transparent" />
           
           <CardContent className="pt-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -151,7 +151,7 @@ export default function LicenseDashboard() {
                 },
                 { label: 'Rating ELO', value: fighterProfile?.elo_rating || 1200 }
               ].map((stat, index) => (
-                <div key={index} className="text-center p-4 rounded-lg bg-gradient-to-br from-background to-muted/20 border border-border hover:border-purple-neon-primary/30 transition-all duration-300">
+                <div key={index} className="text-center p-4 rounded-lg bg-gradient-to-br from-background to-professional-muted/10 border border-professional-border/20 hover:border-professional-accent/40 transition-all duration-300">
                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
                   <p className="text-xl font-bold text-foreground mt-2">{stat.value}</p>
                 </div>
@@ -163,11 +163,11 @@ export default function LicenseDashboard() {
         {/* Status Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
           {/* Status Overview */}
-          <Card className="border border-purple-neon-primary/20 bg-gradient-card shadow-urban hover:shadow-purple-neon/20 transition-all duration-300 hover-scale">
+          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-purple-neon-primary/10">
-                  <Shield className="h-5 w-5 text-purple-neon-primary" />
+                <div className="p-2 rounded-lg bg-professional-accent/20">
+                  <Shield className="h-5 w-5 text-professional-primary" />
                 </div>
                 Estado de Licencia
               </CardTitle>
@@ -190,8 +190,8 @@ export default function LicenseDashboard() {
                 )}
               </div>
               {licenseData.expires_at && (
-                <div className="p-3 rounded-lg bg-purple-neon-primary/5 border border-purple-neon-primary/20">
-                  <p className="text-sm font-medium text-purple-neon-primary uppercase tracking-wide">Expira</p>
+                <div className="p-3 rounded-lg bg-professional-muted/10 border border-professional-border/30">
+                  <p className="text-sm font-medium text-professional-accent uppercase tracking-wide">Expira</p>
                   <p className="font-bold text-foreground mt-1">
                     {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
                   </p>
@@ -201,11 +201,11 @@ export default function LicenseDashboard() {
           </Card>
 
           {/* Medical Certification */}
-          <Card className="border border-purple-neon-primary/20 bg-gradient-card shadow-urban hover:shadow-purple-neon/20 transition-all duration-300 hover-scale">
+          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-purple-neon-primary/10">
-                  <CheckCircle className="h-5 w-5 text-purple-neon-primary" />
+                <div className="p-2 rounded-lg bg-professional-accent/20">
+                  <CheckCircle className="h-5 w-5 text-professional-primary" />
                 </div>
                 Certificación Médica
               </CardTitle>
@@ -241,11 +241,11 @@ export default function LicenseDashboard() {
           </Card>
 
           {/* Next Fight */}
-          <Card className="border border-purple-neon-primary/20 bg-gradient-card shadow-urban hover:shadow-purple-neon/20 transition-all duration-300 hover-scale">
+          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-purple-neon-primary/10">
-                  <Calendar className="h-5 w-5 text-purple-neon-primary" />
+                <div className="p-2 rounded-lg bg-professional-accent/20">
+                  <Calendar className="h-5 w-5 text-professional-primary" />
                 </div>
                 Próxima Pelea
               </CardTitle>
@@ -253,7 +253,7 @@ export default function LicenseDashboard() {
             <CardContent>
               {upcomingFights.length > 0 ? (
                 <div className="space-y-3">
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-purple-neon-primary/10 to-purple-neon-secondary/10 border border-purple-neon-primary/20">
+                  <div className="p-4 rounded-lg bg-gradient-to-br from-professional-muted/15 to-professional-accent/10 border border-professional-border/30">
                     <p className="font-bold text-foreground text-lg">{upcomingFights[0].event_name}</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       {format(new Date(upcomingFights[0].scheduled_date), 'PPP', { locale: es })}
@@ -261,7 +261,7 @@ export default function LicenseDashboard() {
                     <p className="text-sm text-muted-foreground">
                       {upcomingFights[0].venue}
                     </p>
-                    <Badge variant="outline" className="mt-2 border-purple-neon-primary/50 text-purple-neon-primary">
+                    <Badge variant="outline" className="mt-2 border-professional-accent/60 text-professional-primary">
                       {upcomingFights[0].weight_class}
                     </Badge>
                   </div>
@@ -285,7 +285,7 @@ export default function LicenseDashboard() {
 
         {/* Suspension Notice */}
         {licenseData.status === 'SUSPENDED' && (
-          <Card className="border-2 border-fighter-danger/20 bg-gradient-to-br from-fighter-danger/5 to-fighter-danger/10 shadow-lg animate-pulse-purple-neon">
+          <Card className="border-2 border-fighter-danger/20 bg-gradient-to-br from-fighter-danger/5 to-fighter-danger/10 shadow-professional">
             <CardHeader>
               <CardTitle className="text-fighter-danger flex items-center gap-3 text-xl">
                 <div className="p-2 rounded-lg bg-fighter-danger/10">

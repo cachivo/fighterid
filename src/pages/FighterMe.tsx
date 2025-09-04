@@ -97,8 +97,8 @@ export default function FighterMe() {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-8">
       <div className="flex items-center gap-3 mb-8">
-        <Shield className="h-8 w-8 text-primary" />
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+        <Shield className="h-8 w-8 text-professional-primary" />
+        <h1 className="text-3xl font-bold text-professional-primary">
           Mi Fighter ID
         </h1>
       </div>
