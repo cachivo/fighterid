@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LicenseAuthContextType {
   user: User | null;
@@ -22,6 +23,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [loading, setLoading] = useState(true);
   const [hasActiveLicense, setHasActiveLicense] = useState(false);
   const [licenseData, setLicenseData] = useState<any>(null);
+  const queryClient = useQueryClient();
 
   const checkLicenseStatus = async (userId: string) => {
     try {
@@ -67,23 +69,32 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           return;
         }
 
-        // Get the primary license for this fighter
-        const { data: license, error: licenseError } = await supabase
+        // Get any license for this fighter (not just primary)
+        const { data: licenses, error: licenseError } = await supabase
           .from('fighter_licenses')
           .select('*')
           .eq('fighter_id', profile.id)
-          .eq('is_primary', true)
-          .maybeSingle();
+          .order('created_at', { ascending: false });
 
-        console.log('License data:', license);
+        console.log('Licenses data:', licenses);
         console.log('License error:', licenseError);
 
-        if (license) {
-          console.log('License found:', license);
-          setLicenseData(license);
-          setHasActiveLicense(license.status === 'ACTIVE');
+        if (licenses && licenses.length > 0) {
+          // Get the most recent license
+          const latestLicense = licenses[0];
+          console.log('Latest license found:', latestLicense);
+          setLicenseData(latestLicense);
+          const isActive = latestLicense.status === 'ACTIVE';
+          setHasActiveLicense(isActive);
+          
+          // Invalidate relevant queries when license status changes
+          if (isActive) {
+            queryClient.invalidateQueries({ queryKey: ['license'] });
+            queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+            queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
+          }
         } else {
-          console.log('No license found');
+          console.log('No licenses found');
           setLicenseData(null);
           setHasActiveLicense(false);
         }
@@ -105,6 +116,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('Manually refreshing license status...');
       setLoading(true);
       await checkLicenseStatus(user.id);
+      
+      // Also invalidate all license-related queries
+      queryClient.invalidateQueries({ queryKey: ['license'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
     }
   };
 

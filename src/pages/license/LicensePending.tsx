@@ -84,7 +84,11 @@ export default function LicensePending() {
   // Handle redirect when license becomes active
   useEffect(() => {
     if (licenseData?.status === 'ACTIVE') {
-      navigate('/license/dashboard', { replace: true });
+      console.log('License is now ACTIVE, redirecting to dashboard...');
+      // Add a small delay to ensure the UI updates are processed
+      setTimeout(() => {
+        navigate('/license/dashboard', { replace: true });
+      }, 1000);
     }
   }, [licenseData?.status, navigate]);
 
