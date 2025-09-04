@@ -200,13 +200,18 @@ export function useFighterProfiles() {
 
   const adminUpdateFighterProfile = async (fighterId: string, profileData: AdminFighterFormData) => {
     try {
+      console.log('Actualizando peleador:', fighterId, profileData);
+      
       // Usar la función administrativa de base de datos
       const { error } = await supabase.rpc('admin_update_fighter_profile', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error en RPC admin_update_fighter_profile:', error);
+        throw error;
+      }
 
       toast({
         title: "Éxito",
@@ -217,10 +222,11 @@ export function useFighterProfiles() {
       await fetchFighters();
       return true;
     } catch (err) {
+      console.error('Error completo:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al actualizar peleador';
       toast({
         title: "Error",
-        description: errorMessage,
+        description: `Error al actualizar: ${errorMessage}`,
         variant: "destructive",
       });
       return false;

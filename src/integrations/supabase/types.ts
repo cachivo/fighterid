@@ -2059,6 +2059,15 @@ export type Database = {
         | "MuayThai"
         | "Grappling"
         | "Otro"
+      discipline_type:
+        | "MMA"
+        | "Boxeo"
+        | "Judo"
+        | "JiuJitsu"
+        | "Kickboxing"
+        | "MuayThai"
+        | "Grappling"
+        | "Otro"
       fight_result: "red_win" | "blue_win" | "draw" | "no_contest" | "scheduled"
       license_level:
         | "AMATEUR"
@@ -2208,6 +2217,16 @@ export const Constants = {
   public: {
     Enums: {
       discipline: [
+        "MMA",
+        "Boxeo",
+        "Judo",
+        "JiuJitsu",
+        "Kickboxing",
+        "MuayThai",
+        "Grappling",
+        "Otro",
+      ],
+      discipline_type: [
         "MMA",
         "Boxeo",
         "Judo",

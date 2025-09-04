@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUpload } from '@/components/ui/file-upload';
+import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
 
 const WEIGHT_CLASSES = [
@@ -100,6 +101,11 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     e.preventDefault();
     
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
+      toast({
+        title: "Error de validación",
+        description: "El nombre y apellido son obligatorios",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -126,10 +132,23 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         delete (finalFormData as any)._avatarFile;
       }
 
+      console.log('Enviando datos para actualizar:', finalFormData);
+      
       const success = await adminUpdateFighterProfile(fighter.id, finalFormData);
       if (success) {
+        toast({
+          title: "¡Actualización exitosa!",
+          description: "El perfil del peleador ha sido actualizado correctamente.",
+        });
         onClose();
       }
+    } catch (error) {
+      console.error('Error en handleSubmit:', error);
+      toast({
+        title: "Error inesperado",
+        description: "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
