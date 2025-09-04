@@ -210,10 +210,10 @@ export function useFighterProfiles() {
 
       toast({
         title: "Éxito",
-        description: "Perfil de peleador actualizado correctamente",
+        description: "Perfil de peleador actualizado correctamente. Los cambios se sincronizarán automáticamente con el Fighter ID.",
       });
 
-      // Refrescar la lista
+      // Refrescar la lista para mostrar los cambios
       await fetchFighters();
       return true;
     } catch (err) {
