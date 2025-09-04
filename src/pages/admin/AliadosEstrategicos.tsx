@@ -69,7 +69,7 @@ export default function AliadosEstrategicos() {
   const uploadLogoMutation = useMutation({
     mutationFn: async (file: File) => {
       const fileExt = file.name.split('.').pop();
-      const fileName = `partner-${Date.now()}.${fileExt}`;
+      const fileName = `partners/partner-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('fighter-photos')
