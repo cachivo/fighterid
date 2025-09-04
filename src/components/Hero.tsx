@@ -17,19 +17,6 @@ const Hero = () => {
           />
         </div>
         
-        {/* New call to action focused on participation */}
-        <h1 className="text-4xl md:text-6xl font-black mb-4 text-white drop-shadow-2xl animate-slide-up">
-          <span className="bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary bg-clip-text text-transparent">
-            ÚNETE A LA
-          </span>
-          <br />
-          <span className="text-white text-shadow-lg">REVOLUCIÓN URBANA</span>
-        </h1>
-        
-        <p className="text-lg md:text-xl mb-8 font-light max-w-2xl mx-auto animate-fade-in text-gray-400">
-          Transmisión en vivo de eventos urbanos con votaciones en tiempo real. 
-          La cultura callejera se encuentra con la tecnología.
-        </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up">
           <Button variant="hero" size="lg" className="text-lg px-8 py-4">
