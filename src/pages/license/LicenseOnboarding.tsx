@@ -260,7 +260,7 @@ export default function LicenseOnboarding() {
         console.log('Identity document uploaded successfully');
       }
 
-      // Upload fighter photo if provided
+      // Upload fighter photo if provided - store directly in fighter_profiles.avatar_url
       if (fighterPhoto) {
         console.log('Uploading fighter photo...');
         const photoFileName = `${user.id}/photo-${Date.now()}.${fighterPhoto.type.split('/')[1]}`;
@@ -276,25 +276,22 @@ export default function LicenseOnboarding() {
           console.error('Error uploading fighter photo:', photoUploadError);
           // Don't throw here, photo is optional
         } else {
-          // Create document record
-          const { error: photoRecordError } = await supabase
-            .from('license_documents')
-            .insert({
-              license_id: license.id,
-              document_type: 'photo',
-              file_path: photoFileName,
-              file_name: fighterPhoto.name,
-              file_size: fighterPhoto.size,
-              mime_type: fighterPhoto.type,
-              uploaded_by: user.id
-            });
+          // Get public URL for the uploaded photo
+          const { data: publicUrl } = supabase.storage
+            .from('fighter-photos')
+            .getPublicUrl(photoFileName);
 
-          if (photoRecordError) {
-            console.error('Error creating photo record:', photoRecordError);
-            // Don't throw here, photo uploaded but record creation failed
+          // Update fighter profile with avatar URL
+          const { error: avatarUpdateError } = await supabase
+            .from('fighter_profiles')
+            .update({ avatar_url: publicUrl.publicUrl })
+            .eq('id', profile.id);
+
+          if (avatarUpdateError) {
+            console.error('Error updating avatar URL:', avatarUpdateError);
           }
 
-          console.log('Fighter photo uploaded successfully');
+          console.log('Fighter photo uploaded and avatar URL updated successfully');
         }
       }
 

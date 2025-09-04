@@ -94,7 +94,27 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     setIsSubmitting(true);
     
     try {
-      const success = await adminUpdateFighterProfile(fighter.id, formData);
+      // Handle avatar upload if a new file was selected
+      let finalFormData = { ...formData };
+      
+      if ((formData as any)._avatarFile) {
+        const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+        const avatarUrl = await uploadFighterAvatar(
+          (formData as any)._avatarFile, 
+          fighter.user_id, 
+          fighter.id,
+          fighter.avatar_url
+        );
+        
+        if (avatarUrl) {
+          finalFormData.avatar_url = avatarUrl;
+        }
+        
+        // Clean up temporary properties
+        delete (finalFormData as any)._avatarFile;
+      }
+
+      const success = await adminUpdateFighterProfile(fighter.id, finalFormData);
       if (success) {
         onClose();
       }
@@ -312,10 +332,20 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                   <Label>Foto de Perfil</Label>
                   <FileUpload
                     accept="image/*" 
-                    onFileSelect={(file) => {
-                      // Crear URL temporal para previsualización
-                      const url = URL.createObjectURL(file);
-                      handleChange('avatar_url', url);
+                    onFileSelect={async (file) => {
+                      try {
+                        // Import the photo utility function
+                        const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+                        
+                        // Create temporary URL for preview
+                        const tempUrl = URL.createObjectURL(file);
+                        handleChange('avatar_url', tempUrl);
+                        
+                        // Store the file for actual upload during form submission
+                        (formData as any)._avatarFile = file;
+                      } catch (error) {
+                        console.error('Error handling file selection:', error);
+                      }
                     }}
                     maxSize={5 * 1024 * 1024}
                     className="mt-2"
