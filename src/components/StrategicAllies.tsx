@@ -16,8 +16,7 @@ const StrategicAllies = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   if (isLoading) {
@@ -69,21 +68,22 @@ const StrategicAllies = () => {
               <div className="p-6 text-center">
                 <div className="mb-4 flex justify-center">
                   <div className="w-24 h-24 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors overflow-hidden">
-                    <img 
-                      src={partner.logo} 
-                      alt={partner.nombre}
-                      className="w-20 h-20 object-contain filter brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300"
-                      loading="lazy"
-                      onError={(e) => {
-                        console.log('Error loading image for:', partner.nombre, 'URL:', partner.logo);
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                        const fallback = target.parentElement?.querySelector('.fallback-icon') as HTMLElement;
-                        if (fallback) fallback.style.display = 'block';
-                      }}
-                    />
+                    {partner.logo ? (
+                      <img 
+                        src={partner.logo} 
+                        alt={partner.nombre}
+                        className="w-20 h-20 object-contain filter brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'block';
+                        }}
+                      />
+                    ) : null}
                     <div 
-                      className="fallback-icon text-2xl text-purple-neon-primary hidden"
+                      className="text-2xl text-purple-neon-primary"
+                      style={{ display: partner.logo ? 'none' : 'block' }}
                     >
                       {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
                     </div>
