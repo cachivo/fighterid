@@ -84,7 +84,8 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
               record_wins,
               record_losses,
               record_draws,
-              elo_rating
+              elo_rating,
+              discipline
             )
           `)
           .eq('fighter_id', profile.id)
@@ -140,6 +141,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   useEffect(() => {
     let mounted = true;
+    let realtimeChannel: any = null;
 
     // Set a backup timeout to prevent infinite loading
     const backupTimeout = setTimeout(() => {
@@ -186,10 +188,34 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     });
 
+    // Set up realtime subscription for fighter_profiles changes
+    if (user) {
+      realtimeChannel = supabase
+        .channel('fighter-profile-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'fighter_profiles'
+          },
+          (payload) => {
+            console.log('Fighter profile updated, refreshing license data...');
+            if (mounted) {
+              checkLicenseStatus(user.id);
+            }
+          }
+        )
+        .subscribe();
+    }
+
     return () => {
       mounted = false;
       clearTimeout(backupTimeout);
       subscription.unsubscribe();
+      if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+      }
     };
   }, []);
 

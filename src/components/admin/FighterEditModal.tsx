@@ -58,7 +58,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     bio: '',
     avatar_url: '',
     discipline: undefined,
-    level: undefined,
     record_wins: 0,
     record_losses: 0,
     record_draws: 0,
@@ -81,7 +80,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         bio: fighter.bio || '',
         avatar_url: fighter.avatar_url || '',
         discipline: fighter.discipline || undefined,
-        level: fighter.level || undefined,
         record_wins: fighter.record_wins,
         record_losses: fighter.record_losses,
         record_draws: fighter.record_draws,
@@ -240,24 +238,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="level">Categoría</Label>
-                  <Select 
-                    value={formData.level || ''} 
-                    onValueChange={(value) => handleChange('level', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORIES.map(category => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </CardContent>
             </Card>
 

@@ -218,14 +218,6 @@ export default function Fighters() {
                       </div>
                     )}
                     
-                    {fighter.level && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Nivel:</span>
-                        <Badge variant="secondary" className="text-xs">
-                          {fighter.level}
-                        </Badge>
-                      </div>
-                    )}
                   
                   {fighter.country && (
                     <div className="flex justify-between items-center">

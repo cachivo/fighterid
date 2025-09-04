@@ -119,12 +119,6 @@ export default function FighterMe() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-muted-foreground">Nivel</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {profile.level || 'No especificado'}
-              </div>
-            </div>
-            <div className="space-y-2">
               <Label className="text-muted-foreground">Organización</Label>
               <div className="p-2 bg-muted/50 rounded border">
                 {organizations.data?.find(org => org.id === profile.organization_id)?.name || 'Sin organización'}
