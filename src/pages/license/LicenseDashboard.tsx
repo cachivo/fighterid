@@ -65,7 +65,7 @@ export default function LicenseDashboard() {
   );
 
   // Get fighter profile from license data
-  const fighterProfile = license?.data?.fighter_profiles;
+  const fighterProfile = licenseData?.fighter_profiles;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">

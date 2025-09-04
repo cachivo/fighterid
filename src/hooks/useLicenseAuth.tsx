@@ -69,10 +69,24 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           return;
         }
 
-        // Get any license for this fighter (not just primary)
+        // Get any license for this fighter with profile data included
         const { data: licenses, error: licenseError } = await supabase
           .from('fighter_licenses')
-          .select('*')
+          .select(`
+            *,
+            fighter_profiles!inner(
+              first_name,
+              last_name,
+              nickname,
+              country,
+              weight_class,
+              avatar_url,
+              record_wins,
+              record_losses,
+              record_draws,
+              elo_rating
+            )
+          `)
           .eq('fighter_id', profile.id)
           .order('created_at', { ascending: false });
 
