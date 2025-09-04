@@ -334,15 +334,12 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     accept="image/*" 
                     onFileSelect={async (file) => {
                       try {
-                        // Import the photo utility function
-                        const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+                        // Store the file for upload during form submission
+                        (formData as any)._avatarFile = file;
                         
-                        // Create temporary URL for preview
+                        // Create temporary URL for preview only
                         const tempUrl = URL.createObjectURL(file);
                         handleChange('avatar_url', tempUrl);
-                        
-                        // Store the file for actual upload during form submission
-                        (formData as any)._avatarFile = file;
                       } catch (error) {
                         console.error('Error handling file selection:', error);
                       }

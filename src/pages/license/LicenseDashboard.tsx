@@ -4,7 +4,7 @@ import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -101,6 +101,10 @@ export default function LicenseDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-6">
                 <Avatar className="h-20 w-20 border-3 border-professional-accent/50 shadow-professional-light">
+                  <AvatarImage 
+                    src={fighterProfile?.avatar_url} 
+                    alt={`${fighterProfile?.first_name || 'Usuario'} ${fighterProfile?.last_name || ''}`}
+                  />
                   <AvatarFallback className="bg-gradient-professional text-professional-primary-foreground text-2xl font-bold">
                     {fighterProfile?.first_name?.charAt(0) || 'U'}
                     {fighterProfile?.last_name?.charAt(0) || 'U'}
