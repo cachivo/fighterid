@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
+import { OptimizedImage } from "@/components/ui/optimized-image";
+import { StrategicAlliesSkeleton } from "@/components/ui/strategic-allies-skeleton";
 
 const StrategicAllies = () => {
-  const { data: partners, isLoading } = useQuery({
+  const { data: partners, isLoading, error } = useQuery({
     queryKey: ["strategic-partners"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -16,36 +18,19 @@ const StrategicAllies = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 15 * 60 * 1000, // Cache for 15 minutes
+    gcTime: 30 * 60 * 1000, // Keep in memory for 30 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {
-    return (
-      <section className="py-16 px-4 bg-black">
-        <div className="container mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-white">
-            Aliados Estratégicos
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[...Array(2)].map((_, i) => (
-              <Card key={i} className="bg-urban-darker border-purple-neon-primary/20">
-                <div className="p-6 text-center">
-                  <div className="mb-4 flex justify-center">
-                    <div className="w-24 h-24 bg-white/10 rounded-lg animate-pulse" />
-                  </div>
-                  <div className="h-6 bg-white/10 rounded mb-2 animate-pulse" />
-                  <div className="h-4 bg-white/10 rounded mb-3 w-20 mx-auto animate-pulse" />
-                  <div className="space-y-2">
-                    <div className="h-3 bg-white/10 rounded animate-pulse" />
-                    <div className="h-3 bg-white/10 rounded w-3/4 mx-auto animate-pulse" />
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
+    return <StrategicAlliesSkeleton />;
+  }
+  
+  if (error) {
+    console.error('Error loading strategic partners:', error);
+    return null;
   }
 
   if (!partners || partners.length === 0) {
@@ -69,24 +54,22 @@ const StrategicAllies = () => {
                 <div className="mb-4 flex justify-center">
                   <div className="w-24 h-24 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors overflow-hidden">
                     {partner.logo ? (
-                      <img 
-                        src={partner.logo} 
+                      <OptimizedImage
+                        src={partner.logo}
                         alt={partner.nombre}
                         className="w-20 h-20 object-contain filter brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'block';
-                        }}
+                        priority={index < 3} // Prioritize first 3 images
+                        fallbackIcon={
+                          <div className="text-2xl text-purple-neon-primary">
+                            {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
+                          </div>
+                        }
                       />
-                    ) : null}
-                    <div 
-                      className="text-2xl text-purple-neon-primary"
-                      style={{ display: partner.logo ? 'none' : 'block' }}
-                    >
-                      {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
-                    </div>
+                    ) : (
+                      <div className="text-2xl text-purple-neon-primary">
+                        {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
+                      </div>
+                    )}
                   </div>
                 </div>
                 
