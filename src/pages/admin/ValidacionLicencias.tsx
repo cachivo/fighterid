@@ -10,7 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Search, Plus, FileText, Loader2, AlertCircle } from 'lucide-react';
+import { Shield, Search, Plus, FileText, Loader2, AlertCircle, User } from 'lucide-react';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
@@ -39,7 +40,7 @@ export default function ValidacionLicencias() {
         .from('fighter_licenses')
         .select(`
           *,
-          fighter:fighter_id(first_name, last_name, nickname, weight_class)
+          fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -406,7 +407,23 @@ export default function ValidacionLicencias() {
                   const displayStatus = optimisticUpdates[license.id] || license.status;
                   
                   return (
-                    <div key={license.id} className="flex items-center justify-between p-4 rounded-lg border border-border/50 bg-card/50">
+                    <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card/50">
+                      {/* Fighter Avatar */}
+                      <div className="flex-shrink-0">
+                        <OptimizedImage
+                          src={license.fighter?.avatar_url || ''}
+                          alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
+                          className="w-12 h-12 rounded-full border-2 border-border"
+                          fallbackIcon={
+                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                              <User className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          }
+                          priority={false}
+                        />
+                      </div>
+                      
+                      {/* License Information */}
                       <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-3">
                           <div className="font-medium">{license.license_number}</div>
