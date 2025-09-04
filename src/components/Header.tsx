@@ -22,20 +22,11 @@ const Header = () => {
     { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
-    { name: "Eventos Deportivos", href: "#eventos-deportivos", icon: Trophy },
-    { name: "Eventos Digitales", href: "#eventos-digitales", icon: Monitor },
-    { name: "Servicios", href: "#servicios", icon: Settings },
     { name: "Ranking", href: "#ranking", icon: BarChart3 },
-    { name: "Comunidad", href: "#comunidad", icon: Users },
-    { name: "Contacto", href: "#contacto", icon: Phone },
   ];
 
   const sectionItems = [
-    { name: "Eventos Deportivos", href: "#eventos-deportivos", icon: Trophy },
-    { name: "Eventos Digitales", href: "#eventos-digitales", icon: Monitor },
-    { name: "Servicios", href: "#servicios", icon: Settings },
     { name: "Ranking", href: "#ranking", icon: BarChart3 },
-    { name: "Comunidad", href: "#comunidad", icon: Users },
   ];
 
   return (
@@ -100,40 +91,12 @@ const Header = () => {
             </NavigationMenuItem>
 
             <NavigationMenuItem>
-              <NavigationMenuTrigger className="text-sm">
-                Secciones
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="grid w-80 gap-1 p-4">
-                  {sectionItems.map((item) => {
-                    const IconComponent = item.icon;
-                    return (
-                      <NavigationMenuLink key={item.name} asChild>
-                        <a
-                          href={item.href}
-                          className="group grid h-auto w-full items-center justify-start gap-1 rounded-md bg-background p-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
-                        >
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="h-4 w-4 text-primary" />
-                            <div className="text-sm font-medium leading-none">
-                              {item.name}
-                            </div>
-                          </div>
-                        </a>
-                      </NavigationMenuLink>
-                    );
-                  })}
-                </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <a 
-                  href="#contacto" 
+                  href="#ranking" 
                   className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
                 >
-                  Contacto
+                  Ranking
                 </a>
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -158,8 +121,8 @@ const Header = () => {
           <Link to="/predicciones" className="text-sm text-foreground hover:text-primary transition-colors">
             Predicciones
           </Link>
-          <a href="#contacto" className="text-sm text-foreground hover:text-primary transition-colors">
-            Contacto
+          <a href="#ranking" className="text-sm text-foreground hover:text-primary transition-colors">
+            Ranking
           </a>
         </nav>
         
