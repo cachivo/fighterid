@@ -16,23 +16,8 @@ const WEIGHT_CLASSES = [
   'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
 ];
 
-const FIGHTING_STYLES = [
-  'Peleador Técnico',
-  'Brawler/Agresivo',
-  'Contra-Atacador',
-  'Finalizador',
-  'Grappler',
-  'Striker',
-  'Híbrido',
-  'Defensivo',
-];
-
 const DISCIPLINES = [
   'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-];
-
-const CATEGORIES = [
-  'Amateur', 'Profesional'
 ];
 
 interface FighterEditModalProps {
@@ -50,12 +35,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     nickname: '',
     country: 'HN',
     weight_class: 'Lightweight',
-    height_cm: undefined,
-    weight_kg: undefined,
-    reach_cm: undefined,
-    fighting_style: '',
-    gym_name: '',
-    bio: '',
     avatar_url: '',
     discipline: undefined,
     record_wins: 0,
@@ -72,12 +51,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         nickname: fighter.nickname || '',
         country: fighter.country || 'HN',
         weight_class: fighter.weight_class,
-        height_cm: fighter.height_cm,
-        weight_kg: fighter.weight_kg,
-        reach_cm: fighter.reach_cm,
-        fighting_style: fighter.fighting_style || '',
-        gym_name: fighter.gym_name || '',
-        bio: fighter.bio || '',
         avatar_url: fighter.avatar_url || '',
         discipline: fighter.discipline || undefined,
         record_wins: fighter.record_wins,
@@ -201,16 +174,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                 </div>
 
                 <div>
-                  <Label htmlFor="gym_name">Gimnasio/Academia</Label>
-                  <Input
-                    id="gym_name"
-                    value={formData.gym_name}
-                    onChange={(e) => handleChange('gym_name', e.target.value)}
-                    placeholder="Ej: Gracie Barra"
-                  />
-                </div>
-
-                <div>
                   <Label htmlFor="country">País</Label>
                   <Input
                     id="country"
@@ -237,14 +200,13 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     </SelectContent>
                   </Select>
                 </div>
-
               </CardContent>
             </Card>
 
-            {/* Información Física */}
+            {/* Categoría de Peso y Avatar */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Información Física</CardTitle>
+                <CardTitle className="text-lg">Categoría de Peso y Avatar</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -266,65 +228,45 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="height_cm">Altura (cm)</Label>
-                    <Input
-                      id="height_cm"
-                      type="number"
-                      value={formData.height_cm || ''}
-                      onChange={(e) => handleChange('height_cm', e.target.value ? parseInt(e.target.value) : undefined)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="weight_kg">Peso (kg)</Label>
-                    <Input
-                      id="weight_kg"
-                      type="number"
-                      step="0.1"
-                      value={formData.weight_kg || ''}
-                      onChange={(e) => handleChange('weight_kg', e.target.value ? parseFloat(e.target.value) : undefined)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="reach_cm">Alcance (cm)</Label>
-                    <Input
-                      id="reach_cm"
-                      type="number"
-                      value={formData.reach_cm || ''}
-                      onChange={(e) => handleChange('reach_cm', e.target.value ? parseInt(e.target.value) : undefined)}
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <Label htmlFor="fighting_style">¿Qué tipo de peleador eres?</Label>
-                  <Select 
-                    value={formData.fighting_style} 
-                    onValueChange={(value) => handleChange('fighting_style', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FIGHTING_STYLES.map(style => (
-                        <SelectItem key={style} value={style}>
-                          {style}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Foto de Perfil</Label>
+                  <FileUpload
+                    accept="image/*" 
+                    onFileSelect={async (file) => {
+                      try {
+                        // Store the file for upload during form submission
+                        (formData as any)._avatarFile = file;
+                        
+                        // Create temporary URL for preview only
+                        const tempUrl = URL.createObjectURL(file);
+                        handleChange('avatar_url', tempUrl);
+                      } catch (error) {
+                        console.error('Error handling file selection:', error);
+                      }
+                    }}
+                    maxSize={5 * 1024 * 1024}
+                    className="mt-2"
+                  />
+                  {formData.avatar_url && (
+                    <div className="mt-2">
+                      <img 
+                        src={formData.avatar_url} 
+                        alt="Preview" 
+                        className="w-20 h-20 rounded-full object-cover border"
+                      />
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Récord y Estadísticas */}
-            <Card>
+            <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-lg">Récord y Estadísticas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="record_wins">Victorias</Label>
                     <Input
@@ -355,67 +297,17 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                       onChange={(e) => handleChange('record_draws', parseInt(e.target.value) || 0)}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="elo_rating">ELO Rating</Label>
-                  <Input
-                    id="elo_rating"
-                    type="number"
-                    min="800"
-                    max="2000"
-                    value={formData.elo_rating}
-                    onChange={(e) => handleChange('elo_rating', parseInt(e.target.value) || 1200)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Avatar y Biografía */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Avatar y Biografía</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Foto de Perfil</Label>
-                  <FileUpload
-                    accept="image/*" 
-                    onFileSelect={async (file) => {
-                      try {
-                        // Store the file for upload during form submission
-                        (formData as any)._avatarFile = file;
-                        
-                        // Create temporary URL for preview only
-                        const tempUrl = URL.createObjectURL(file);
-                        handleChange('avatar_url', tempUrl);
-                      } catch (error) {
-                        console.error('Error handling file selection:', error);
-                      }
-                    }}
-                    maxSize={5 * 1024 * 1024}
-                    className="mt-2"
-                  />
-                  {formData.avatar_url && (
-                    <div className="mt-2">
-                      <img 
-                        src={formData.avatar_url} 
-                        alt="Preview" 
-                        className="w-20 h-20 rounded-full object-cover border"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="bio">Biografía</Label>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleChange('bio', e.target.value)}
-                    placeholder="Información adicional sobre el peleador..."
-                    rows={4}
-                  />
+                  <div>
+                    <Label htmlFor="elo_rating">ELO Rating</Label>
+                    <Input
+                      id="elo_rating"
+                      type="number"
+                      min="800"
+                      max="2000"
+                      value={formData.elo_rating}
+                      onChange={(e) => handleChange('elo_rating', parseInt(e.target.value) || 1200)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -56,12 +56,6 @@ export interface AdminFighterFormData {
   nickname?: string;
   country?: string;
   weight_class: string;
-  height_cm?: number;
-  weight_kg?: number;
-  reach_cm?: number;
-  fighting_style?: string;
-  gym_name?: string;
-  bio?: string;
   avatar_url?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
   record_wins?: number;
