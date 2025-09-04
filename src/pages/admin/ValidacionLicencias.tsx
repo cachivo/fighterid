@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useAdminLicenseActions } from '@/hooks/useLicenseSystem';
+import { DeleteLicenseDialog } from '@/components/admin/DeleteLicenseDialog';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -428,7 +430,7 @@ export default function ValidacionLicencias() {
                         }
                         priority={false}
                       />
-                    </div>
+                      </div>
                       
                       {/* License Information */}
                       <div className="space-y-1 flex-1">
@@ -493,6 +495,15 @@ export default function ValidacionLicencias() {
                             )}
                           </Button>
                         )}
+                        
+                        {/* Delete License Button */}
+                        <div className="ml-auto">
+                          <DeleteLicenseDialog
+                            licenseId={license.id}
+                            fighterName={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
+                            onSuccess={() => refetch()}
+                          />
+                        </div>
                       </div>
                     </div>
                   );

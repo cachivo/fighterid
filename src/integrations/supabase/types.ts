@@ -1966,6 +1966,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_update_fighter_profile: {
+        Args: { p_fighter_id: string; p_profile_data: Json }
+        Returns: undefined
+      }
       approve_license: {
         Args: {
           p_level?: Database["public"]["Enums"]["license_level"]

@@ -14,6 +14,7 @@ import { FighterLicense } from './pages/FighterLicense';
 import FighterMe from './pages/FighterMe';
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
+import AdminFighters from './pages/admin/Fighters';
 import LicenseAuth from './pages/license/LicenseAuth';
 import LicenseDashboard from './pages/license/LicenseDashboard';
 import LicensePending from './pages/license/LicensePending';
@@ -126,6 +127,7 @@ const App = () => (
                       <Route path="/eventos-digitales" element={<EventosDigitales />} />
                       <Route path="/servicios" element={<Servicios />} />
                       <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
+                      <Route path="/fighters" element={<AdminFighters />} />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/votaciones" element={<Votaciones />} />
                       <Route path="/betting" element={<Betting />} />

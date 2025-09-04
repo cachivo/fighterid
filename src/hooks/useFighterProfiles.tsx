@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export interface FighterProfile {
   id: string;
@@ -49,11 +50,30 @@ export interface FighterProfileData {
   organization_id?: string | null;
 }
 
+export interface AdminFighterFormData {
+  first_name: string;
+  last_name: string;
+  nickname?: string;
+  country?: string;
+  weight_class: string;
+  height_cm?: number;
+  weight_kg?: number;
+  reach_cm?: number;
+  fighting_style?: string;
+  bio?: string;
+  avatar_url?: string;
+  record_wins?: number;
+  record_losses?: number;
+  record_draws?: number;
+  elo_rating?: number;
+}
+
 export function useFighterProfiles() {
   const [fighters, setFighters] = useState<FighterProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const fetchFighters = async () => {
     try {
@@ -173,6 +193,61 @@ export function useFighterProfiles() {
     }
   };
 
+  const adminUpdateFighterProfile = async (fighterId: string, profileData: AdminFighterFormData) => {
+    try {
+      // Usar la función administrativa de base de datos
+      const { error } = await supabase.rpc('admin_update_fighter_profile', {
+        p_fighter_id: fighterId,
+        p_profile_data: profileData as any
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Perfil de peleador actualizado correctamente",
+      });
+
+      // Refrescar la lista
+      await fetchFighters();
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar peleador';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const deleteLicense = async (licenseId: string) => {
+    try {
+      // Usar la función de eliminación segura de base de datos
+      const { error } = await supabase.rpc('delete_fighter_license', {
+        p_license_id: licenseId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Licencia eliminada correctamente",
+      });
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar licencia';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchFighters();
   }, []);
@@ -185,6 +260,8 @@ export function useFighterProfiles() {
     updateFighterProfile,
     getUserFighterProfile,
     getFighterById,
-    refreshFighters: fetchFighters
+    refreshFighters: fetchFighters,
+    adminUpdateFighterProfile,
+    deleteLicense
   };
 }
