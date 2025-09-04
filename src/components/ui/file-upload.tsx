@@ -1,7 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, FileImage, Loader2 } from 'lucide-react';
+import { Upload, X, FileImage, Loader2, Info } from 'lucide-react';
 import { Button } from './button';
 import { cn } from '@/lib/utils';
+import { resizeImage, formatFileSize, ImageResizeOptions, ImageResizeResult } from '@/lib/imageUtils';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -13,6 +14,9 @@ interface FileUploadProps {
   className?: string;
   disabled?: boolean;
   required?: boolean;
+  autoResize?: boolean;
+  resizeOptions?: ImageResizeOptions;
+  showResizeInfo?: boolean;
 }
 
 export function FileUpload({
@@ -24,12 +28,17 @@ export function FileUpload({
   loading = false,
   className,
   disabled = false,
-  required = false
+  required = false,
+  autoResize = true,
+  resizeOptions = { maxWidth: 800, maxHeight: 800, quality: 0.85, format: 'jpeg' },
+  showResizeInfo = true
 }: FileUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [resizeInfo, setResizeInfo] = useState<ImageResizeResult | null>(null);
+  const [processing, setProcessing] = useState(false);
 
-  const handleFiles = (files: FileList | null) => {
+  const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     
     const file = files[0];
@@ -45,8 +54,26 @@ export function FileUpload({
       alert('Tipo de archivo no válido');
       return;
     }
-    
-    onFileSelect(file);
+
+    try {
+      let finalFile = file;
+      let resizeResult: ImageResizeResult | null = null;
+
+      // Auto-resize images if enabled and file is an image
+      if (autoResize && file.type.startsWith('image/')) {
+        setProcessing(true);
+        resizeResult = await resizeImage(file, resizeOptions);
+        finalFile = resizeResult.file;
+        setResizeInfo(resizeResult);
+      }
+
+      onFileSelect(finalFile);
+    } catch (error) {
+      console.error('Error processing image:', error);
+      alert('Error al procesar la imagen. Intenta con otro archivo.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -70,13 +97,13 @@ export function FileUpload({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (disabled || loading) return;
+    if (disabled || loading || processing) return;
     
     handleFiles(e.target.files);
   };
 
   const handleClick = () => {
-    if (disabled || loading) return;
+    if (disabled || loading || processing) return;
     fileInputRef.current?.click();
   };
 
@@ -88,6 +115,7 @@ export function FileUpload({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    setResizeInfo(null);
   };
 
   return (
@@ -98,7 +126,7 @@ export function FileUpload({
         accept={accept}
         onChange={handleChange}
         className="hidden"
-        disabled={disabled || loading}
+        disabled={disabled || loading || processing}
         required={required}
       />
       
@@ -122,6 +150,18 @@ export function FileUpload({
               </Button>
             </div>
           </div>
+          {showResizeInfo && resizeInfo && (
+            <div className="mt-2 p-2 bg-muted rounded-md">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Info className="h-3 w-3" />
+                <span>Imagen optimizada:</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                <div>Tamaño: {formatFileSize(resizeInfo.originalSize)} → {formatFileSize(resizeInfo.newSize)}</div>
+                <div>Dimensiones: {resizeInfo.originalDimensions.width}×{resizeInfo.originalDimensions.height} → {resizeInfo.newDimensions.width}×{resizeInfo.newDimensions.height}</div>
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div
@@ -133,12 +173,12 @@ export function FileUpload({
           className={cn(
             "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200",
             dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400",
-            disabled || loading ? "cursor-not-allowed opacity-50" : "",
+            disabled || loading || processing ? "cursor-not-allowed opacity-50" : "",
             "bg-gray-50 hover:bg-gray-100"
           )}
         >
           <div className="flex flex-col items-center gap-2">
-            {loading ? (
+            {loading || processing ? (
               <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
             ) : (
               <FileImage className="h-8 w-8 text-gray-400" />
@@ -146,11 +186,16 @@ export function FileUpload({
             <div className="text-sm text-gray-600">
               {loading ? (
                 "Subiendo archivo..."
+              ) : processing ? (
+                "Procesando imagen..."
               ) : (
                 <>
                   <p><strong>Haz clic para subir</strong> o arrastra el archivo aquí</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Máximo {maxSize}MB. {accept === 'image/*' ? 'Solo imágenes' : accept}
+                    {autoResize && accept === 'image/*' && (
+                      <span className="block">Las imágenes se optimizarán automáticamente</span>
+                    )}
                   </p>
                 </>
               )}

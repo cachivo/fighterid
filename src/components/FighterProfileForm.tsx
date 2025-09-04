@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileUpload } from '@/components/ui/file-upload';
 import { FighterProfile, FighterProfileData, useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -256,13 +257,36 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
           </div>
 
           <div>
-            <Label htmlFor="avatar_url" className="text-foreground">URL de Foto</Label>
+            <Label htmlFor="avatar_url" className="text-foreground">Foto de Perfil</Label>
+            <FileUpload
+              onFileSelect={(file) => {
+                const url = URL.createObjectURL(file);
+                handleChange('avatar_url', url);
+              }}
+              onRemoveFile={() => handleChange('avatar_url', '')}
+              accept="image/*"
+              maxSize={3}
+              preview={formData.avatar_url}
+              autoResize={true}
+              resizeOptions={{ 
+                maxWidth: 300, 
+                maxHeight: 300, 
+                quality: 0.85, 
+                format: 'jpeg',
+                maintainAspectRatio: true 
+              }}
+              showResizeInfo={true}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              O ingresa una URL directamente:
+            </p>
             <Input
               id="avatar_url"
               type="url"
               value={formData.avatar_url}
               onChange={(e) => handleChange('avatar_url', e.target.value)}
               placeholder="https://ejemplo.com/mi-foto.jpg"
+              className="mt-2"
             />
           </div>
 

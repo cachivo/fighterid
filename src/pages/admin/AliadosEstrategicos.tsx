@@ -316,6 +316,15 @@ export default function AliadosEstrategicos() {
                   preview={previewUrl}
                   loading={isUploading}
                   className="h-32"
+                  autoResize={true}
+                  resizeOptions={{ 
+                    maxWidth: 200, 
+                    maxHeight: 200, 
+                    quality: 0.9, 
+                    format: 'jpeg',
+                    maintainAspectRatio: true 
+                  }}
+                  showResizeInfo={true}
                 />
               </div>
             </div>
