@@ -13,7 +13,7 @@ export function useLicenseData(licenseId: string | null) {
         .from('fighter_licenses')
         .select(`
           *,
-          fighter_profiles!inner(
+          fighter_profiles!fighter_licenses_fighter_id_fkey(
             first_name,
             last_name,
             nickname,
@@ -61,7 +61,7 @@ export function useLicenseData(licenseId: string | null) {
           *,
           opponent:fighter_licenses!fight_bookings_opponent_license_id_fkey(
             license_number,
-            fighter_profiles!inner(first_name, last_name, nickname)
+            fighter_profiles!fighter_licenses_fighter_id_fkey(first_name, last_name, nickname)
           )
         `)
         .eq('license_id', licenseId)
@@ -207,7 +207,7 @@ export function usePendingLicenses() {
         .from('fighter_licenses')
         .select(`
           *,
-          fighter_profiles!inner(
+          fighter_profiles!fighter_licenses_fighter_id_fkey(
             first_name,
             last_name,
             nickname,
@@ -240,7 +240,7 @@ export function useVerifyLicense(token: string | null) {
           expires_at,
           fighter_licenses!inner(
             *,
-            fighter_profiles!inner(
+            fighter_profiles!fighter_licenses_fighter_id_fkey(
               first_name,
               last_name,
               nickname,
