@@ -74,7 +74,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           .from('fighter_licenses')
           .select(`
             *,
-            fighter_profiles!inner(
+            fighter_profiles!fighter_licenses_fighter_id_fkey(
               first_name,
               last_name,
               nickname,

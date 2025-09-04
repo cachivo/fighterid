@@ -12,6 +12,7 @@ export default function LicensePending() {
   const { user, licenseData, signOut, refreshLicense } = useLicenseAuth();
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const getStatusSteps = () => {
     const currentStatus = licenseData?.status;
@@ -46,18 +47,26 @@ export default function LicensePending() {
 
   const steps = getStatusSteps();
 
-  // Auto-refresh license status every 10 seconds
+  // Auto-refresh license status every 10 seconds (only if not ACTIVE and not redirecting)
   useEffect(() => {
+    if (licenseData?.status === 'ACTIVE' || isRedirecting) {
+      return;
+    }
+
     const interval = setInterval(async () => {
-      await refreshLicense();
+      if (licenseData?.status !== 'ACTIVE' && !isRedirecting) {
+        await refreshLicense();
+      }
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [refreshLicense]);
+  }, [refreshLicense, licenseData?.status, isRedirecting]);
 
-  // Set up real-time subscription for license changes
+  // Set up real-time subscription for license changes (only if not ACTIVE and not redirecting)
   useEffect(() => {
-    if (!user || !licenseData?.id) return;
+    if (!user || !licenseData?.id || licenseData?.status === 'ACTIVE' || isRedirecting) {
+      return;
+    }
 
     const channel = supabase
       .channel('license-updates')
@@ -71,7 +80,9 @@ export default function LicensePending() {
         },
         async (payload) => {
           console.log('License updated in real-time:', payload);
-          await refreshLicense();
+          if (payload.new?.status !== 'ACTIVE' && !isRedirecting) {
+            await refreshLicense();
+          }
         }
       )
       .subscribe();
@@ -79,20 +90,26 @@ export default function LicensePending() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, licenseData?.id, refreshLicense]);
+  }, [user, licenseData?.id, licenseData?.status, refreshLicense, isRedirecting]);
 
   // Handle redirect when license becomes active
   useEffect(() => {
-    if (licenseData?.status === 'ACTIVE') {
-      console.log('License is now ACTIVE, redirecting to dashboard...');
-      // Add a small delay to ensure the UI updates are processed
+    if (licenseData?.status === 'ACTIVE' && !isRedirecting) {
+      console.log('License is now ACTIVE, stopping all updates and redirecting...');
+      setIsRedirecting(true);
+      
+      // Stop all updates and redirect immediately
       setTimeout(() => {
         navigate('/license/dashboard', { replace: true });
-      }, 1000);
+      }, 500);
     }
-  }, [licenseData?.status, navigate]);
+  }, [licenseData?.status, navigate, isRedirecting]);
 
   const handleManualRefresh = async () => {
+    if (licenseData?.status === 'ACTIVE' || isRedirecting) {
+      return;
+    }
+    
     setIsRefreshing(true);
     await refreshLicense();
     setTimeout(() => setIsRefreshing(false), 1000);
