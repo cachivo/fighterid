@@ -66,6 +66,7 @@ export interface AdminFighterFormData {
   bio?: string;
   avatar_url?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  level?: string;
   record_wins?: number;
   record_losses?: number;
   record_draws?: number;
