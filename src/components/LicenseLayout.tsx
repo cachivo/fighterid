@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/sidebar';
 
 const navigation = [
-  { name: 'Mi Licencia', href: '/license/dashboard', icon: Shield },
+  { name: 'Mi Fighter ID', href: '/license/dashboard', icon: Shield },
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
   { name: 'Próximas Peleas', href: '/license/fights', icon: Calendar },
   { name: 'Historial', href: '/license/history', icon: FileText },
@@ -57,7 +57,7 @@ export default function LicenseLayout() {
           <SidebarTrigger className="text-primary" />
           <div className="ml-4 flex items-center gap-3">
             <Shield className="h-6 w-6 text-professional-primary" />
-            <span className="font-bold text-lg">Licencia de Pelea</span>
+            <span className="font-bold text-lg">Fighter ID</span>
           </div>
           <div className="ml-auto flex items-center gap-3">
             {licenseData && (

@@ -69,12 +69,12 @@ export default function LicenseAuth() {
               <Shield className="h-8 w-8 text-gray-800" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              {isLogin ? 'Acceso a tu Licencia' : 'Crear Licencia'}
+              {isLogin ? 'Acceso a tu Fighter ID' : 'Crear Fighter ID'}
             </CardTitle>
             <CardDescription>
               {isLogin 
                 ? 'Ingresa a tu portal de peleador' 
-                : 'Solicita tu licencia de pelea'}
+                : 'Solicita tu Fighter ID'}
             </CardDescription>
           </CardHeader>
 

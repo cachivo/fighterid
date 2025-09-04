@@ -102,7 +102,7 @@ export function FighterLicense() {
             <div className="text-center border-b border-primary/20 pb-6">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <Shield className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold text-primary">LICENCIA DE PELEA</h1>
+                <h1 className="text-2xl font-bold text-primary">FIGHTER ID</h1>
               </div>
               <p className="text-sm text-muted-foreground">Federación de Combate Honduras</p>
             </div>

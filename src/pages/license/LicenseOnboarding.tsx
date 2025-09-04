@@ -298,7 +298,7 @@ export default function LicenseOnboarding() {
       // Refresh license data to update the auth context
       await refreshLicense();
 
-      toast.success('¡Perfil creado exitosamente! Tu licencia está pendiente de revisión.');
+      toast.success('¡Perfil creado exitosamente! Tu Fighter ID está pendiente de revisión.');
       
       // Small delay to ensure context is updated
       setTimeout(() => {

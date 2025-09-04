@@ -74,7 +74,7 @@ export default function LicenseDashboard() {
         <div className="flex items-center justify-between mb-8">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-professional-primary">
-              Mi Licencia de Pelea
+              Mi Fighter ID
             </h1>
             <p className="text-muted-foreground text-lg">
               Gestiona tu identidad como peleador profesional
@@ -237,7 +237,7 @@ export default function LicenseDashboard() {
                     <span className="font-bold text-fighter-warning">Requerida</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Necesitas una certificación médica válida para mantener tu licencia activa
+                    Necesitas una certificación médica válida para mantener tu Fighter ID activo
                   </p>
                 </div>
               )}
@@ -279,7 +279,7 @@ export default function LicenseDashboard() {
                     No tienes peleas programadas
                   </p>
                   <p className="text-sm text-muted-foreground/80 mt-1">
-                    Mantén tu licencia activa para futuras oportunidades
+                    Mantén tu Fighter ID activo para futuras oportunidades
                   </p>
                 </div>
               )}

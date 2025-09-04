@@ -160,7 +160,7 @@ const Header = () => {
                       <div>
                         <span className="font-semibold text-base">Mi Fighter ID</span>
                         <p className="text-xs opacity-90 mt-0.5">
-                          Gestiona tu licencia de pelea
+                          Gestiona tu Fighter ID
                         </p>
                       </div>
                     </Link>

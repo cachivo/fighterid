@@ -36,8 +36,8 @@ export default function LicensePending() {
       },
       {
         id: 'ACTIVE',
-        title: 'Licencia Aprobada',
-        description: 'Tu licencia ha sido aprobada y está activa',
+        title: 'Fighter ID Aprobado',
+        description: 'Tu Fighter ID ha sido aprobado y está activo',
         icon: CheckCircle,
         completed: currentStatus === 'ACTIVE',
         current: currentStatus === 'ACTIVE'
@@ -262,14 +262,14 @@ export default function LicensePending() {
                 <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
                 <p>
                   <strong>Documentación Requerida:</strong> Asegúrate de tener tu 
-                  certificado médico actualizado una vez que tu licencia sea aprobada.
+                  certificado médico actualizado una vez que tu Fighter ID sea aprobado.
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
                 <p>
                   <strong>Notificaciones:</strong> Recibirás un correo electrónico 
-                  cuando el estado de tu licencia cambie.
+                  cuando el estado de tu Fighter ID cambie.
                 </p>
               </div>
               <div className="flex items-start gap-3">
