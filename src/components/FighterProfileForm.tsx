@@ -22,16 +22,14 @@ const WEIGHT_CLASSES = [
 ];
 
 const FIGHTING_STYLES = [
-  'Boxeo',
-  'Muay Thai',
-  'Kickboxing',
-  'Jiu-Jitsu Brasileño',
-  'Wrestling',
-  'Judo',
-  'Karate',
-  'Taekwondo',
-  'MMA',
-  'Grappling',
+  'Peleador Técnico',
+  'Brawler/Agresivo',
+  'Contra-Atacador',
+  'Finalizador',
+  'Grappler',
+  'Striker',
+  'Híbrido',
+  'Defensivo',
 ];
 
 interface FighterProfileFormProps {
@@ -51,6 +49,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
     weight_kg: undefined,
     reach_cm: undefined,
     fighting_style: '',
+    gym_name: '',
     bio: '',
     avatar_url: '',
   });
@@ -71,6 +70,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
         weight_kg: existingProfile.weight_kg,
         reach_cm: existingProfile.reach_cm,
         fighting_style: existingProfile.fighting_style || '',
+        gym_name: existingProfile.gym_name || '',
         bio: existingProfile.bio || '',
         avatar_url: existingProfile.avatar_url || '',
       });
@@ -169,6 +169,16 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
             />
           </div>
 
+          <div>
+            <Label htmlFor="gym_name" className="text-foreground">Gimnasio/Academia</Label>
+            <Input
+              id="gym_name"
+              value={formData.gym_name}
+              onChange={(e) => handleChange('gym_name', e.target.value)}
+              placeholder="Ej: Gracie Barra"
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="weight_class" className="text-foreground">División *</Label>
@@ -190,13 +200,13 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
             </div>
             
             <div>
-              <Label htmlFor="fighting_style" className="text-foreground">Estilo de Pelea</Label>
+              <Label htmlFor="fighting_style" className="text-foreground">¿Qué tipo de peleador eres?</Label>
               <Select
                 value={formData.fighting_style}
                 onValueChange={(value) => handleChange('fighting_style', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un estilo" />
+                  <SelectValue placeholder="Selecciona tu tipo" />
                 </SelectTrigger>
                 <SelectContent>
                   {FIGHTING_STYLES.map(style => (

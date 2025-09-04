@@ -673,6 +673,7 @@ export type Database = {
           elo_rating: number | null
           fighting_style: string | null
           first_name: string
+          gym_name: string | null
           height_cm: number | null
           id: string
           last_name: string
@@ -704,6 +705,7 @@ export type Database = {
           elo_rating?: number | null
           fighting_style?: string | null
           first_name: string
+          gym_name?: string | null
           height_cm?: number | null
           id?: string
           last_name: string
@@ -735,6 +737,7 @@ export type Database = {
           elo_rating?: number | null
           fighting_style?: string | null
           first_name?: string
+          gym_name?: string | null
           height_cm?: number | null
           id?: string
           last_name?: string

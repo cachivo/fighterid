@@ -16,8 +16,14 @@ const WEIGHT_CLASSES = [
 ];
 
 const FIGHTING_STYLES = [
-  'Boxing', 'Muay Thai', 'Brazilian Jiu-Jitsu', 'Wrestling', 'Kickboxing',
-  'Karate', 'Taekwondo', 'Judo', 'Mixed Martial Arts', 'Sambo'
+  'Peleador Técnico',
+  'Brawler/Agresivo',
+  'Contra-Atacador',
+  'Finalizador',
+  'Grappler',
+  'Striker',
+  'Híbrido',
+  'Defensivo',
 ];
 
 interface FighterEditModalProps {
@@ -39,6 +45,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     weight_kg: undefined,
     reach_cm: undefined,
     fighting_style: '',
+    gym_name: '',
     bio: '',
     avatar_url: '',
     record_wins: 0,
@@ -59,6 +66,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         weight_kg: fighter.weight_kg,
         reach_cm: fighter.reach_cm,
         fighting_style: fighter.fighting_style || '',
+        gym_name: fighter.gym_name || '',
         bio: fighter.bio || '',
         avatar_url: fighter.avatar_url || '',
         record_wins: fighter.record_wins,
@@ -144,6 +152,16 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                 </div>
 
                 <div>
+                  <Label htmlFor="gym_name">Gimnasio/Academia</Label>
+                  <Input
+                    id="gym_name"
+                    value={formData.gym_name}
+                    onChange={(e) => handleChange('gym_name', e.target.value)}
+                    placeholder="Ej: Gracie Barra"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="country">País</Label>
                   <Input
                     id="country"
@@ -211,13 +229,13 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                 </div>
 
                 <div>
-                  <Label htmlFor="fighting_style">Estilo de Pelea</Label>
+                  <Label htmlFor="fighting_style">¿Qué tipo de peleador eres?</Label>
                   <Select 
                     value={formData.fighting_style} 
                     onValueChange={(value) => handleChange('fighting_style', value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar estilo" />
+                      <SelectValue placeholder="Seleccionar tipo" />
                     </SelectTrigger>
                     <SelectContent>
                       {FIGHTING_STYLES.map(style => (

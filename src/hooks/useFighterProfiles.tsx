@@ -15,6 +15,7 @@ export interface FighterProfile {
   weight_kg?: number;
   reach_cm?: number;
   fighting_style?: string;
+  gym_name?: string;
   record_wins: number;
   record_losses: number;
   record_draws: number;
@@ -43,6 +44,7 @@ export interface FighterProfileData {
   weight_kg?: number;
   reach_cm?: number;
   fighting_style?: string;
+  gym_name?: string;
   bio?: string;
   avatar_url?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
@@ -60,6 +62,7 @@ export interface AdminFighterFormData {
   weight_kg?: number;
   reach_cm?: number;
   fighting_style?: string;
+  gym_name?: string;
   bio?: string;
   avatar_url?: string;
   record_wins?: number;

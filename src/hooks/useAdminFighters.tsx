@@ -13,6 +13,7 @@ export interface AdminFighterProfile {
   weight_kg?: number;
   reach_cm?: number;
   fighting_style?: string;
+  gym_name?: string;
   bio?: string;
   avatar_url?: string;
   record_wins: number;
@@ -35,6 +36,7 @@ export interface AdminFighterFormData {
   weight_kg?: number;
   reach_cm?: number;
   fighting_style?: string;
+  gym_name?: string;
   bio?: string;
   avatar_url?: string;
   record_wins?: number;
