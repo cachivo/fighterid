@@ -40,7 +40,8 @@ export default function ValidacionLicencias() {
         .from('fighter_licenses')
         .select(`
           *,
-          fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url)
+          fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url),
+          license_documents(id, file_path, document_type)
         `)
         .order('created_at', { ascending: false });
 
@@ -402,26 +403,32 @@ export default function ValidacionLicencias() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {licenses?.map(license => {
-                  // Use optimistic update if available, otherwise use actual status
-                  const displayStatus = optimisticUpdates[license.id] || license.status;
-                  
-                  return (
-                    <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card/50">
-                      {/* Fighter Avatar */}
-                      <div className="flex-shrink-0">
-                        <OptimizedImage
-                          src={license.fighter?.avatar_url || ''}
-                          alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
-                          className="w-12 h-12 rounded-full border-2 border-border"
-                          fallbackIcon={
-                            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                              <User className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                          }
-                          priority={false}
-                        />
-                      </div>
+              {licenses?.map(license => {
+                // Use optimistic update if available, otherwise use actual status
+                const displayStatus = optimisticUpdates[license.id] || license.status;
+                
+                // Get the fighter photo from license documents (priority) or fighter profile avatar
+                const fighterPhoto = license.license_documents?.find(doc => doc.document_type === 'photo');
+                const photoUrl = fighterPhoto ? 
+                  supabase.storage.from('fighter-photos').getPublicUrl(fighterPhoto.file_path).data.publicUrl :
+                  license.fighter?.avatar_url;
+                
+                return (
+                  <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card/50">
+                    {/* Fighter Avatar */}
+                    <div className="flex-shrink-0">
+                      <OptimizedImage
+                        src={photoUrl || ''}
+                        alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
+                        className="w-12 h-12 rounded-full border-2 border-border object-cover"
+                        fallbackIcon={
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                            <User className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        }
+                        priority={false}
+                      />
+                    </div>
                       
                       {/* License Information */}
                       <div className="space-y-1 flex-1">
