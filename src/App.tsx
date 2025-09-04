@@ -30,6 +30,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
 import EventosDigitales from "./pages/admin/EventosDigitales";
 import Servicios from "./pages/admin/Servicios";
+import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
 import Ranking from "./pages/admin/Ranking";
 import Comunidad from "./pages/admin/Comunidad";
 import Configuracion from "./pages/admin/Configuracion";
@@ -110,6 +111,7 @@ const App = () => (
                       <Route path="/eventos-deportivos" element={<EventosDeportivos />} />
                       <Route path="/eventos-digitales" element={<EventosDigitales />} />
                       <Route path="/servicios" element={<Servicios />} />
+                      <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/votaciones" element={<Votaciones />} />
                       <Route path="/betting" element={<Betting />} />

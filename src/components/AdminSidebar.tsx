@@ -10,7 +10,8 @@ import {
   Vote,
   DollarSign,
   LogOut,
-  Shield
+  Shield,
+  HandHeart
 } from 'lucide-react';
 import {
   Sidebar,
@@ -33,6 +34,7 @@ const adminItems = [
   { title: 'Eventos Deportivos', url: '/admin/eventos-deportivos', icon: Calendar },
   { title: 'Eventos Digitales', url: '/admin/eventos-digitales', icon: Monitor },
   { title: 'Servicios', url: '/admin/servicios', icon: Briefcase },
+  { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Ranking', url: '/admin/ranking', icon: TrendingUp },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
