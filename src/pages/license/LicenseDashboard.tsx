@@ -29,11 +29,11 @@ export default function LicenseDashboard() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500';
-      case 'SUSPENDED': return 'bg-red-500';
-      case 'PENDING_REVIEW': return 'bg-orange-500';
-      case 'EXPIRED': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'ACTIVE': return 'bg-fighter-success text-white';
+      case 'SUSPENDED': return 'bg-fighter-danger text-white';
+      case 'PENDING_REVIEW': return 'bg-fighter-warning text-black';
+      case 'EXPIRED': return 'bg-fighter-accent text-white';
+      default: return 'bg-fighter-accent text-white';
     }
   };
 
@@ -49,10 +49,10 @@ export default function LicenseDashboard() {
 
   const getLevelColor = (level: string) => {
     switch (level) {
-      case 'AMATEUR': return 'bg-blue-500';
-      case 'SEMI_PRO': return 'bg-purple-500';
-      case 'PROFESSIONAL': return 'bg-gold-500';
-      default: return 'bg-gray-500';
+      case 'AMATEUR': return 'bg-fighter-info text-white';
+      case 'SEMI_PRO': return 'bg-fighter-secondary text-white';
+      case 'PROFESSIONAL': return 'bg-amber-600 text-white';
+      default: return 'bg-fighter-accent text-white';
     }
   };
 
@@ -77,7 +77,7 @@ export default function LicenseDashboard() {
             Gestiona tu identidad como peleador
           </p>
         </div>
-        <Button asChild variant="outline" className="border-purple-neon-primary text-purple-neon-primary">
+        <Button asChild variant="outline" className="border-fighter-accent text-fighter-accent hover:bg-fighter-accent hover:text-fighter-accent-foreground">
           <Link to="/license/qr">
             <QrCode className="h-4 w-4 mr-2" />
             Ver Código QR
@@ -86,35 +86,35 @@ export default function LicenseDashboard() {
       </div>
 
       {/* License Card */}
-      <Card className="border-2 border-purple-neon-primary/20 bg-gradient-to-r from-purple-neon-primary/5 to-purple-neon-secondary/5">
+      <Card className="border-2 border-fighter-border bg-fighter-card">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-purple-neon-primary">
-                <AvatarFallback className="bg-purple-neon-primary text-white text-xl">
+              <Avatar className="h-16 w-16 border-2 border-fighter-accent">
+                <AvatarFallback className="bg-fighter-primary text-fighter-primary-foreground text-xl font-bold">
                   {fighterProfile?.first_name?.charAt(0) || 'U'}
                   {fighterProfile?.last_name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-2xl">
+                <CardTitle className="text-2xl text-fighter-primary-foreground">
                   {fighterProfile?.first_name || 'Usuario'} {fighterProfile?.last_name || ''}
                 </CardTitle>
                 {fighterProfile?.nickname && (
-                  <CardDescription className="text-lg font-medium">
+                  <CardDescription className="text-lg font-medium text-fighter-accent">
                     "{fighterProfile.nickname}"
                   </CardDescription>
                 )}
                 <div className="mt-2 flex items-center gap-2">
                   <Badge 
                     variant="outline" 
-                    className={`${getStatusColor(licenseData.status)} text-white border-0`}
+                    className={`${getStatusColor(licenseData.status)} border-0 font-medium`}
                   >
                     {getStatusText(licenseData.status)}
                   </Badge>
                   <Badge 
                     variant="outline" 
-                    className={`${getLevelColor(licenseData.license_level)} text-white border-0`}
+                    className={`${getLevelColor(licenseData.license_level)} border-0 font-medium`}
                   >
                     {licenseData.license_level}
                   </Badge>
@@ -122,8 +122,8 @@ export default function LicenseDashboard() {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Número de Licencia</p>
-              <p className="text-2xl font-bold text-purple-neon-primary">
+              <p className="text-sm text-fighter-accent">Número de Licencia</p>
+              <p className="text-2xl font-bold text-fighter-info tracking-wider">
                 {licenseData.license_number}
               </p>
             </div>

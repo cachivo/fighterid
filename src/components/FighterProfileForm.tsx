@@ -270,7 +270,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary hover:opacity-90"
+              className="flex-1 bg-fighter-primary hover:bg-fighter-secondary text-fighter-primary-foreground font-semibold"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {existingProfile ? 'Actualizar Perfil' : 'Crear Perfil'}
@@ -282,6 +282,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
                 variant="outline"
                 onClick={onCancel}
                 disabled={isSubmitting}
+                className="border-fighter-border hover:bg-fighter-accent hover:text-fighter-accent-foreground"
               >
                 Cancelar
               </Button>

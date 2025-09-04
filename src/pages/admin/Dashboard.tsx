@@ -2,35 +2,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Calendar, Monitor, Briefcase, TrendingUp, Users, Settings, Download } from 'lucide-react';
-
-const stats = [
-  {
-    title: 'Eventos Deportivos',
-    value: '8',
-    description: 'Tipos de eventos activos',
-    icon: Calendar,
-  },
-  {
-    title: 'Eventos Digitales',
-    value: '6',
-    description: 'Servicios digitales disponibles',
-    icon: Monitor,
-  },
-  {
-    title: 'Servicios',
-    value: '4',
-    description: 'Servicios principales',
-    icon: Briefcase,
-  },
-  {
-    title: 'Estadísticas',
-    value: '4',
-    description: 'Métricas en el ranking',
-    icon: TrendingUp,
-  },
-];
+import { useSystemStats } from '@/hooks/useSystemStats';
+import { useSystemStatus } from '@/hooks/useSystemStatus';
 
 export default function Dashboard() {
+  const { stats, isLoading } = useSystemStats();
+  const { dbConnected, authActive, lastUpdate } = useSystemStatus();
+
+  const statsConfig = [
+    {
+      title: 'Eventos Deportivos',
+      value: stats?.eventosDeportivos?.toString() || '0',
+      description: 'Tipos de eventos activos',
+      icon: Calendar,
+    },
+    {
+      title: 'Eventos Digitales',
+      value: stats?.eventosDigitales?.toString() || '0',
+      description: 'Servicios digitales disponibles',
+      icon: Monitor,
+    },
+    {
+      title: 'Servicios',
+      value: stats?.servicios?.toString() || '0',
+      description: 'Servicios principales',
+      icon: Briefcase,
+    },
+    {
+      title: 'Estadísticas',
+      value: stats?.estadisticas?.toString() || '0',
+      description: 'Métricas en el ranking',
+      icon: TrendingUp,
+    },
+  ];
   return (
     <div className="space-y-6">
       <div>
@@ -41,7 +45,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
+        {statsConfig.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -50,7 +54,9 @@ export default function Dashboard() {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold">
+                {isLoading ? '...' : stat.value}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {stat.description}
               </p>
@@ -92,6 +98,9 @@ export default function Dashboard() {
                   Añadir, editar o eliminar tipos de eventos
                 </p>
               </div>
+              <Button asChild size="sm">
+                <Link to="/admin/eventos-deportivos">Gestionar</Link>
+              </Button>
             </div>
             <div className="flex items-center space-x-4 rounded-md border p-4">
               <Monitor className="h-5 w-5" />
@@ -103,6 +112,9 @@ export default function Dashboard() {
                   Configurar eventos y servicios digitales
                 </p>
               </div>
+              <Button asChild size="sm">
+                <Link to="/admin/eventos-digitales">Configurar</Link>
+              </Button>
             </div>
             <div className="flex items-center space-x-4 rounded-md border p-4">
               <TrendingUp className="h-5 w-5" />
@@ -114,6 +126,9 @@ export default function Dashboard() {
                   Modificar estadísticas y eventos destacados
                 </p>
               </div>
+              <Button asChild size="sm">
+                <Link to="/admin/ranking">Actualizar</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -128,15 +143,25 @@ export default function Dashboard() {
           <CardContent className="space-y-4">
             <div className="flex justify-between">
               <span className="text-sm">Base de Datos</span>
-              <span className="text-sm text-green-600">Conectada</span>
+              <span className={`text-sm ${
+                dbConnected === null 
+                  ? 'text-yellow-600' 
+                  : dbConnected 
+                    ? 'text-green-600' 
+                    : 'text-red-600'
+              }`}>
+                {dbConnected === null ? 'Verificando...' : dbConnected ? 'Conectada' : 'Desconectada'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Autenticación</span>
-              <span className="text-sm text-green-600">Activa</span>
+              <span className={`text-sm ${authActive ? 'text-green-600' : 'text-red-600'}`}>
+                {authActive ? 'Activa' : 'Inactiva'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Última actualización</span>
-              <span className="text-sm text-muted-foreground">Hace 2 min</span>
+              <span className="text-sm text-muted-foreground">{lastUpdate}</span>
             </div>
           </CardContent>
         </Card>

@@ -241,11 +241,11 @@ export default function ValidacionLicencias() {
 
   const getLicenseStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500/20 text-green-700 border-green-500/30';
-      case 'SUSPENDED': return 'bg-red-500/20 text-red-700 border-red-500/30';
-      case 'EXPIRED': return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
-      case 'PENDING_REVIEW': return 'bg-yellow-500/20 text-yellow-700 border-yellow-500/30';
-      default: return 'bg-gray-500/20 text-gray-700 border-gray-500/30';
+      case 'ACTIVE': return 'bg-fighter-success/20 text-fighter-success border-fighter-success/30 font-medium';
+      case 'SUSPENDED': return 'bg-fighter-danger/20 text-fighter-danger border-fighter-danger/30 font-medium';
+      case 'EXPIRED': return 'bg-fighter-accent/20 text-fighter-accent border-fighter-accent/30 font-medium';
+      case 'PENDING_REVIEW': return 'bg-fighter-warning/20 text-amber-700 border-fighter-warning/30 font-medium';
+      default: return 'bg-fighter-accent/20 text-fighter-accent border-fighter-accent/30 font-medium';
     }
   };
 

@@ -61,6 +61,21 @@ export default {
 				'purple-neon-glow': 'hsl(var(--purple-neon-glow))',
 				'vote-active': 'hsl(var(--vote-active))',
 				'vote-inactive': 'hsl(var(--vote-inactive))',
+				
+				// Professional Fighter Theme - Sober and masculine
+				'fighter-primary': 'hsl(var(--fighter-primary))',
+				'fighter-primary-foreground': 'hsl(var(--fighter-primary-foreground))',
+				'fighter-secondary': 'hsl(var(--fighter-secondary))',
+				'fighter-secondary-foreground': 'hsl(var(--fighter-secondary-foreground))',
+				'fighter-accent': 'hsl(var(--fighter-accent))',
+				'fighter-accent-foreground': 'hsl(var(--fighter-accent-foreground))',
+				'fighter-background': 'hsl(var(--fighter-background))',
+				'fighter-card': 'hsl(var(--fighter-card))',
+				'fighter-border': 'hsl(var(--fighter-border))',
+				'fighter-success': 'hsl(var(--fighter-success))',
+				'fighter-warning': 'hsl(var(--fighter-warning))',
+				'fighter-danger': 'hsl(var(--fighter-danger))',
+				'fighter-info': 'hsl(var(--fighter-info))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
