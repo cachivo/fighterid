@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Edit, User } from 'lucide-react';
+import { Search, Edit, User, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { FighterEditModal } from '@/components/admin/FighterEditModal';
+import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 
 const WEIGHT_CLASSES = [
@@ -20,6 +21,7 @@ export default function Fighters() {
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('elo');
   const [editingFighter, setEditingFighter] = useState<FighterProfile | null>(null);
+  const [deletingFighter, setDeletingFighter] = useState<FighterProfile | null>(null);
 
   // Filtrar y ordenar peleadores
   const filteredFighters = fighters
@@ -168,14 +170,24 @@ export default function Fighters() {
                       )}
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setEditingFighter(fighter)}
-                    className="h-8 w-8"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setEditingFighter(fighter)}
+                      className="h-8 w-8"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingFighter(fighter)}
+                      className="h-8 w-8 text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -225,6 +237,17 @@ export default function Fighters() {
           onClose={() => setEditingFighter(null)}
         />
       )}
+
+      {/* Delete Dialog */}
+      <DeleteFighterDialog
+        fighter={deletingFighter}
+        isOpen={!!deletingFighter}
+        onClose={() => setDeletingFighter(null)}
+        onConfirm={() => {
+          // Refresh will be handled by the dialog's onConfirm
+          setDeletingFighter(null);
+        }}
+      />
     </div>
   );
 }

@@ -251,6 +251,34 @@ export function useFighterProfiles() {
     }
   };
 
+  const deleteFighterProfile = async (fighterId: string) => {
+    try {
+      // Usar la función administrativa de base de datos
+      const { error } = await supabase.rpc('admin_delete_fighter_profile', {
+        p_fighter_id: fighterId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Éxito",
+        description: "Perfil de peleador eliminado correctamente",
+      });
+
+      // Refrescar la lista
+      await fetchFighters();
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar peleador';
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchFighters();
   }, []);
@@ -263,8 +291,9 @@ export function useFighterProfiles() {
     updateFighterProfile,
     getUserFighterProfile,
     getFighterById,
-    refreshFighters: fetchFighters,
+    fetchFighters,
     adminUpdateFighterProfile,
-    deleteLicense
+    deleteLicense,
+    deleteFighterProfile
   };
 }

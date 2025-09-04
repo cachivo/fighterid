@@ -1969,6 +1969,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_fighter_profile: {
+        Args: { p_fighter_id: string }
+        Returns: undefined
+      }
       admin_update_fighter_profile: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
