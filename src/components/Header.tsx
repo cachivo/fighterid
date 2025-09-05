@@ -76,8 +76,8 @@ const Header = () => {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList className="space-x-2">
-            {/* Fighter ID - Only show if user is not a fighter */}
-            {(!user || !hasFighterProfile) && (
+            {/* Fighter ID - Only show in central nav if user is logged in AND has fighter profile */}
+            {user && hasFighterProfile && (
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link 
@@ -139,7 +139,7 @@ const Header = () => {
 
         {/* Simplified Navigation for Medium Screens */}
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
-          {(!user || !hasFighterProfile) && (
+          {user && hasFighterProfile && (
             <Link 
               to="/license/dashboard"
               className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
@@ -289,7 +289,17 @@ const Header = () => {
           </Sheet>
 
           {/* Desktop Actions */}
-          <div className="hidden sm:flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-2">
+            {/* Fighter ID - Show in actions when not logged in OR logged in without fighter profile */}
+            {(!user || (user && !hasFighterProfile)) && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/license/dashboard" className="flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
+                  Fighter ID
+                </Link>
+              </Button>
+            )}
+            
             {isAdmin && (
               <Button variant="outline" size="sm" asChild>
                 <Link to="/admin">Admin Panel</Link>
