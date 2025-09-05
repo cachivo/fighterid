@@ -34,11 +34,13 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <img 
-            src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
-            alt="Logo" 
-            className="h-8 md:h-10 w-auto"
-          />
+          <Link to="/" className="hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
+              alt="Batalla de Gimnasios" 
+              className="h-8 md:h-10 w-auto"
+            />
+          </Link>
         </div>
         
         {/* Desktop Navigation */}
@@ -140,11 +142,17 @@ const Header = () => {
               <div className="flex flex-col h-full">
                 {/* Header del Sheet */}
                 <div className="border-b border-border p-6">
-                  <img 
-                    src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
-                    alt="Logo" 
-                    className="h-10 w-auto"
-                  />
+                  <Link 
+                    to="/" 
+                    className="hover:opacity-80 transition-opacity"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <img 
+                      src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
+                      alt="Batalla de Gimnasios" 
+                      className="h-10 w-auto"
+                    />
+                  </Link>
                 </div>
                 
                 {/* Navigation Items */}

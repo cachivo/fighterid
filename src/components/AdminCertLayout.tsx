@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Shield, Users, FileCheck, Settings, LogOut, TrendingUp } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { 
@@ -33,6 +33,13 @@ export default function AdminCertLayout() {
         {/* Header */}
         <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-4">
           <SidebarTrigger className="text-primary" />
+          <Link to="/" className="ml-4 hover:opacity-80 transition-opacity">
+            <img 
+              src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
+              alt="Batalla de Gimnasios" 
+              className="h-8 w-auto"
+            />
+          </Link>
           <div className="ml-4 flex items-center gap-3">
             <Shield className="h-6 w-6 text-professional-primary" />
             <span className="font-bold text-lg">Panel de Certificación</span>
