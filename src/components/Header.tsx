@@ -63,7 +63,7 @@ const Header = () => {
                   to="/license/dashboard"
                   className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none"
                 >
-                  <img src={fighterIdIcon} alt="Fighter ID" className="h-4 w-4" />
+                  <img src={fighterIdIcon} alt="Fighter ID" className="h-4 w-4 brightness-125 contrast-110" />
                   Mi Fighter ID
                 </Link>
               </NavigationMenuLink>
@@ -121,7 +121,7 @@ const Header = () => {
             to="/license/dashboard"
             className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
-            <img src={fighterIdIcon} alt="Fighter ID" className="h-3 w-3" />
+            <img src={fighterIdIcon} alt="Fighter ID" className="h-3 w-3 brightness-125 contrast-110" />
             Mi Fighter ID
           </Link>
           <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
@@ -144,7 +144,7 @@ const Header = () => {
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
+                <Menu className="h-5 w-5 text-accent-foreground" />
                 <span className="sr-only">Abrir menú</span>
               </Button>
             </SheetTrigger>
@@ -174,7 +174,7 @@ const Header = () => {
                       className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <img src={fighterIdIcon} alt="Fighter ID" className="h-6 w-6" />
+                      <img src={fighterIdIcon} alt="Fighter ID" className="h-6 w-6 brightness-125 contrast-110" />
                       <div>
                         <span className="font-semibold text-base">Mi Fighter ID</span>
                         <p className="text-xs opacity-90 mt-0.5">
@@ -197,7 +197,7 @@ const Header = () => {
                              className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
                              onClick={() => setMobileMenuOpen(false)}
                            >
-                             <IconComponent className="h-5 w-5 text-primary" />
+                              <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary" />
                              <span className="font-medium">{item.name}</span>
                            </a>
                          );
@@ -210,7 +210,7 @@ const Header = () => {
                            className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
                            onClick={() => setMobileMenuOpen(false)}
                          >
-                           <IconComponent className="h-5 w-5 text-primary" />
+                           <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary" />
                            <span className="font-medium">{item.name}</span>
                          </Link>
                        );
@@ -233,7 +233,7 @@ const Header = () => {
                           asChild
                         >
                           <Link to="/admin">
-                            <Shield className="h-4 w-4 mr-2" />
+                            <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90" />
                             Admin Panel
                           </Link>
                         </Button>
@@ -243,7 +243,7 @@ const Header = () => {
                         className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
                         onClick={handleLogout}
                       >
-                        <LogOut className="h-4 w-4 mr-2" />
+                        <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90" />
                         Cerrar Sesión
                       </Button>
                     </>
@@ -289,21 +289,21 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/fighter/me" className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
+                      <User className="h-4 w-4 mr-2 text-accent-foreground opacity-90" />
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center">
-                        <Shield className="h-4 w-4 mr-2" />
+                        <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90" />
                         Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
+                    <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90" />
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>
