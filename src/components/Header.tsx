@@ -62,7 +62,7 @@ const Header = () => {
                   to="/license/dashboard"
                   className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none"
                 >
-                  <Shield className="h-4 w-4" />
+                  <img src="/lovable-uploads/d1a64f73-f913-4466-b95e-01f9bd728b64.png" alt="Fighter ID" className="h-4 w-4" />
                   Mi Fighter ID
                 </Link>
               </NavigationMenuLink>
@@ -120,7 +120,7 @@ const Header = () => {
             to="/license/dashboard"
             className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
           >
-            <Shield className="h-3 w-3" />
+            <img src="/lovable-uploads/d1a64f73-f913-4466-b95e-01f9bd728b64.png" alt="Fighter ID" className="h-3 w-3" />
             Mi Fighter ID
           </Link>
           <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
@@ -173,7 +173,7 @@ const Header = () => {
                       className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      <Shield className="h-6 w-6" />
+                      <img src="/lovable-uploads/d1a64f73-f913-4466-b95e-01f9bd728b64.png" alt="Fighter ID" className="h-6 w-6" />
                       <div>
                         <span className="font-semibold text-base">Mi Fighter ID</span>
                         <p className="text-xs opacity-90 mt-0.5">
