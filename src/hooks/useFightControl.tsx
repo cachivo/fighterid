@@ -10,6 +10,17 @@ export type FightControlEvent = Database['public']['Tables']['fight_control_even
 export type FightResult = Database['public']['Tables']['fight_results']['Row'];
 export type FightStatistics = Database['public']['Tables']['fight_statistics']['Row'];
 
+// Extended types with relationships
+export interface FightOfficialWithJudge extends FightOfficial {
+  judges: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    certification_level: string;
+    email: string | null;
+  } | null;
+}
+
 export interface ScorecardInput {
   fight_id: string;
   round_number: number;
@@ -33,7 +44,7 @@ export interface ControlEventInput {
 }
 
 export function useFightOfficials(fightId: string) {
-  const [officials, setOfficials] = useState<FightOfficial[]>([]);
+  const [officials, setOfficials] = useState<FightOfficialWithJudge[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -44,7 +55,7 @@ export function useFightOfficials(fightId: string) {
         .from('fight_officials')
         .select(`
           *,
-          official:judges (
+          judges!fight_officials_official_id_fkey (
             id, first_name, last_name, certification_level, email
           )
         `)

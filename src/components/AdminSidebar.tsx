@@ -47,6 +47,12 @@ const adminItems = [
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
 ];
 
+const fightControlItems = [
+  { title: 'Jueces & Oficiales', url: '/admin/judges', icon: Gavel },
+  { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
+  { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
+];
+
 export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
@@ -76,7 +82,7 @@ export function AdminSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Gestión</SidebarGroupLabel>
+          <SidebarGroupLabel>Gestión General</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminItems.map((item) => (
@@ -85,6 +91,27 @@ export function AdminSidebar() {
                     <NavLink 
                       to={item.url} 
                       end={item.url === '/admin'}
+                      className={getNavCls(item.url)}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Control de Peleas</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {fightControlItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink 
+                      to={item.url} 
                       className={getNavCls(item.url)}
                     >
                       <item.icon className="h-4 w-4" />
