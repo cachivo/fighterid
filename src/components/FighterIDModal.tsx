@@ -44,14 +44,11 @@ export function FighterIDModal({ open, onOpenChange }: FighterIDModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30">
         <DialogHeader className="relative pb-4">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-gold-400 flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center">
-                <span className="text-black font-bold text-sm">ID</span>
-              </div>
-              Mi Fighter ID Digital
+            <DialogTitle className="text-2xl font-bold text-gold-400">
+              Global Fighter ID
             </DialogTitle>
             <Button
               variant="ghost"
@@ -110,14 +107,7 @@ export function FighterIDModal({ open, onOpenChange }: FighterIDModalProps) {
           )}
 
           {!loading && !error && fighterProfile && (
-            <div className="space-y-4">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-gold-400/20 to-gold-600/20 border border-gold-400/30">
-                  <div className="h-2 w-2 rounded-full bg-gold-400 animate-pulse" />
-                  <span className="text-gold-300 text-sm font-medium">Tu Fighter ID Digital</span>
-                </div>
-              </div>
-              
+            <div className="flex justify-center py-6">
               <DigitalFighterToken 
                 profile={fighterProfile}
               />

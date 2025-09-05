@@ -63,7 +63,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
   };
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className="relative w-full max-w-lg mx-auto">
       {/* Main Token Card */}
       <div className="relative aspect-[1.6/1] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl">
         
