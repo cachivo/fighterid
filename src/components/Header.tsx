@@ -247,28 +247,14 @@ const Header = () => {
                       </Button>
                     </>
                   ) : (
-                    <div className="space-y-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="w-full"
-                        onClick={() => setMobileMenuOpen(false)}
-                        asChild
-                      >
-                        <Link to="/license/dashboard" className="flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          Mi Fighter ID
-                        </Link>
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setMobileMenuOpen(false)}
-                        asChild
-                      >
-                        <Link to="/auth">Iniciar Sesión</Link>
-                      </Button>
-                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setMobileMenuOpen(false)}
+                      asChild
+                    >
+                      <Link to="/auth">Iniciar Sesión</Link>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -322,17 +308,9 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button variant="outline" size="sm" className="text-xs px-2 h-8" asChild>
-                  <Link to="/license/dashboard" className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    Mi Fighter ID
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth">Iniciar Sesión</Link>
-                </Button>
-              </>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Iniciar Sesión</Link>
+              </Button>
             )}
           </div>
         </div>
