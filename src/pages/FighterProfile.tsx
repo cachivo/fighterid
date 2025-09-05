@@ -100,23 +100,28 @@ export default function FighterProfile() {
                 {/* Fighter Photo & Basic Info */}
                 <div className="flex items-center gap-6">
                   <div className="relative">
-                    <Avatar className="h-32 w-32 border-4 border-professional-accent/50 shadow-professional bg-gradient-to-br from-professional-muted/20 to-transparent">
-                      <AvatarImage 
-                        src={fighter.avatar_url} 
-                        alt={`${fighter.first_name} ${fighter.last_name}`}
-                        className="object-cover"
-                        style={{ 
-                          background: 'transparent',
-                          backdropFilter: 'none'
-                        }}
-                      />
-                      <AvatarFallback className="bg-gradient-professional text-professional-primary-foreground text-4xl font-bold">
-                        {fighter.first_name?.charAt(0) || 'F'}
-                        {fighter.last_name?.charAt(0) || 'F'}
-                      </AvatarFallback>
-                    </Avatar>
-                    {/* Professional gradient background for the avatar */}
-                    <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-professional-primary/20 via-professional-accent/10 to-professional-muted/5 blur-xl"></div>
+                    {fighter.avatar_url ? (
+                      <div className="relative h-48 w-32 flex items-end justify-center">
+                        {/* Professional gradient background */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-professional-primary/20 via-professional-accent/10 to-transparent rounded-2xl blur-sm"></div>
+                        {/* Fighter image without background */}
+                        <img 
+                          src={fighter.avatar_url} 
+                          alt={`${fighter.first_name} ${fighter.last_name}`}
+                          className="relative z-10 h-full w-full object-contain drop-shadow-2xl"
+                          style={{
+                            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div className="h-48 w-32 bg-gradient-professional rounded-2xl flex items-center justify-center shadow-professional">
+                        <div className="text-6xl font-bold text-professional-primary-foreground">
+                          {fighter.first_name?.charAt(0) || 'F'}
+                          {fighter.last_name?.charAt(0) || 'F'}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-3">
