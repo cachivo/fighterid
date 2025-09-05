@@ -85,95 +85,128 @@ export default function FighterProfile() {
 
       <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
         {/* Hero Section - UFC Style */}
-        <Card className="relative overflow-hidden border-2 border-professional-border/30 bg-gradient-professional-light shadow-professional">
-          {/* Professional accent line */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-professional"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-background via-background/95 to-professional-primary/10">
+          {/* Animated background elements */}
+          <div className="absolute inset-0">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-professional-primary/5 via-transparent to-professional-accent/5"></div>
+            <div className="absolute top-20 left-20 w-96 h-96 bg-professional-primary/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 right-20 w-64 h-64 bg-professional-accent/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+          </div>
           
-          <CardContent className="p-0">
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0 bg-gradient-to-r from-professional-primary via-transparent to-professional-accent"></div>
-            </div>
-            
-            <div className="relative p-8">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
-                {/* Fighter Photo & Basic Info */}
-                <div className="flex items-center gap-6">
+          {/* Professional accent line */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-professional"></div>
+          
+          <div className="relative p-8 lg:p-16">
+            <div className="max-w-7xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Fighter Info */}
+                <div className="space-y-8 animate-fade-in">
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <Badge className={`${getStatusColor(fighter.license_status)} border-0 font-medium px-4 py-2 text-sm uppercase tracking-wider`}>
+                        {fighter.license_status === 'active' ? 'Activo' : fighter.license_status}
+                      </Badge>
+                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-professional-primary px-4 py-2 text-sm font-medium">
+                        {fighter.weight_class}
+                      </Badge>
+                    </div>
+                    
+                    {fighter.nickname && (
+                      <p className="text-xl lg:text-2xl font-medium text-professional-accent uppercase tracking-wider">
+                        "{fighter.nickname}"
+                      </p>
+                    )}
+                    
+                    <h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight">
+                      {fighter.first_name}
+                    </h1>
+                    <h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight -mt-4">
+                      {fighter.last_name}
+                    </h1>
+                    
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <MapPin className="h-5 w-5" />
+                      <span className="text-lg font-medium">{fighter.country}</span>
+                    </div>
+                  </div>
+
+                  {/* Fight Stats */}
+                  <div className="grid grid-cols-3 gap-8">
+                    <div className="text-center">
+                      <div className="text-4xl lg:text-6xl font-bold text-professional-primary font-mono mb-2">
+                        {fighter.record_wins || 0}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                        Victorias
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-4xl lg:text-6xl font-bold text-fighter-danger font-mono mb-2">
+                        {fighter.record_losses || 0}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                        Derrotas
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-4xl lg:text-6xl font-bold text-professional-accent font-mono mb-2">
+                        {fighter.record_draws || 0}
+                      </div>
+                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                        Empates
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4 text-fighter-success" />
+                      {winPercentage}% Victorias
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4 text-professional-accent" />
+                      ELO: {fighter.elo_rating || 1200}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Fighter Image */}
+                <div className="flex justify-center lg:justify-end animate-scale-in">
                   <div className="relative">
                     {fighter.avatar_url ? (
-                      <div className="relative h-48 w-32 flex items-end justify-center">
-                        {/* Professional gradient background */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-professional-primary/20 via-professional-accent/10 to-transparent rounded-2xl blur-sm"></div>
-                        {/* Fighter image without background */}
-                        <img 
-                          src={fighter.avatar_url} 
-                          alt={`${fighter.first_name} ${fighter.last_name}`}
-                          className="relative z-10 h-full w-full object-contain drop-shadow-2xl"
-                          style={{
-                            filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
-                          }}
-                        />
+                      <div className="relative">
+                        {/* Background glow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-professional-primary/30 via-professional-accent/20 to-transparent rounded-3xl blur-2xl scale-110"></div>
+                        
+                        {/* Fighter image container */}
+                        <div className="relative h-96 lg:h-[500px] w-64 lg:w-80 flex items-end justify-center">
+                          <img 
+                            src={fighter.avatar_url} 
+                            alt={`${fighter.first_name} ${fighter.last_name}`}
+                            className="h-full w-full object-contain drop-shadow-2xl hover-scale transition-all duration-500"
+                            style={{
+                              filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4)) drop-shadow(0 0 20px rgba(var(--professional-primary), 0.2))'
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Subtle accent elements */}
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-2 bg-gradient-professional rounded-full opacity-60"></div>
                       </div>
                     ) : (
-                      <div className="h-48 w-32 bg-gradient-professional rounded-2xl flex items-center justify-center shadow-professional">
-                        <div className="text-6xl font-bold text-professional-primary-foreground">
+                      <div className="h-96 lg:h-[500px] w-64 lg:w-80 bg-gradient-professional rounded-3xl flex items-center justify-center shadow-professional">
+                        <div className="text-8xl font-bold text-professional-primary-foreground">
                           {fighter.first_name?.charAt(0) || 'F'}
                           {fighter.last_name?.charAt(0) || 'F'}
                         </div>
                       </div>
                     )}
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-2">
-                        {fighter.first_name} {fighter.last_name}
-                      </h1>
-                      {fighter.nickname && (
-                        <p className="text-2xl font-medium text-professional-accent mb-3">
-                          "{fighter.nickname}"
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                      <Badge className={`${getStatusColor(fighter.license_status)} border-0 font-medium px-4 py-2 shadow-md text-lg`}>
-                        {fighter.license_status === 'active' ? 'Activo' : fighter.license_status}
-                      </Badge>
-                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-professional-primary px-4 py-2 text-lg">
-                        {fighter.weight_class}
-                      </Badge>
-                      <Badge variant="outline" className="border-2 border-professional-border/40 px-4 py-2 text-lg">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {fighter.country}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Fight Record - Prominent Display */}
-                <div className="flex-1 lg:text-right">
-                  <div className="bg-gradient-to-br from-professional-muted/20 to-professional-accent/10 p-8 rounded-2xl border border-professional-border/30">
-                    <p className="text-lg font-medium text-professional-accent uppercase tracking-wider mb-2">Record Profesional</p>
-                    <p className="text-6xl font-bold text-professional-primary tracking-tight mb-2 font-mono">
-                      {record}
-                    </p>
-                    <div className="flex justify-center lg:justify-end gap-6 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Trophy className="h-4 w-4 text-fighter-success" />
-                        {winPercentage}% victorias
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <BarChart3 className="h-4 w-4 text-professional-accent" />
-                        ELO: {fighter.elo_rating || 1200}
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Fighter Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
