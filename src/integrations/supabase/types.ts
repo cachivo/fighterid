@@ -562,6 +562,379 @@ export type Database = {
           },
         ]
       }
+      fight_control_events: {
+        Row: {
+          description: string | null
+          event_type: string
+          fight_id: string
+          fighter_affected: string | null
+          id: string
+          metadata: Json | null
+          reason: string | null
+          referee_id: string
+          round_number: number | null
+          timestamp: string
+        }
+        Insert: {
+          description?: string | null
+          event_type: string
+          fight_id: string
+          fighter_affected?: string | null
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          referee_id: string
+          round_number?: number | null
+          timestamp?: string
+        }
+        Update: {
+          description?: string | null
+          event_type?: string
+          fight_id?: string
+          fighter_affected?: string | null
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          referee_id?: string
+          round_number?: number | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_control_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fighter_affected_fkey"
+            columns: ["fighter_affected"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fighter_affected_fkey"
+            columns: ["fighter_affected"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fight_officials: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          confirmed: boolean | null
+          confirmed_at: string | null
+          fight_id: string
+          id: string
+          notes: string | null
+          official_id: string
+          role: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          fight_id: string
+          id?: string
+          notes?: string | null
+          official_id: string
+          role: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          confirmed?: boolean | null
+          confirmed_at?: string | null
+          fight_id?: string
+          id?: string
+          notes?: string | null
+          official_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_officials_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_officials_official_id_fkey"
+            columns: ["official_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fight_results: {
+        Row: {
+          confirmed_at: string | null
+          confirmed_by: string | null
+          fight_id: string
+          fight_of_night: boolean | null
+          finish_method: string | null
+          finish_round: number | null
+          finish_time: string | null
+          id: string
+          judge_1_scorecard: number[] | null
+          judge_1_total: number | null
+          judge_2_scorecard: number[] | null
+          judge_2_total: number | null
+          judge_3_scorecard: number[] | null
+          judge_3_total: number | null
+          loser_elo_after: number | null
+          loser_elo_before: number | null
+          performance_bonus: boolean | null
+          result_type: string
+          winner_elo_after: number | null
+          winner_elo_before: number | null
+          winner_id: string | null
+        }
+        Insert: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          fight_id: string
+          fight_of_night?: boolean | null
+          finish_method?: string | null
+          finish_round?: number | null
+          finish_time?: string | null
+          id?: string
+          judge_1_scorecard?: number[] | null
+          judge_1_total?: number | null
+          judge_2_scorecard?: number[] | null
+          judge_2_total?: number | null
+          judge_3_scorecard?: number[] | null
+          judge_3_total?: number | null
+          loser_elo_after?: number | null
+          loser_elo_before?: number | null
+          performance_bonus?: boolean | null
+          result_type: string
+          winner_elo_after?: number | null
+          winner_elo_before?: number | null
+          winner_id?: string | null
+        }
+        Update: {
+          confirmed_at?: string | null
+          confirmed_by?: string | null
+          fight_id?: string
+          fight_of_night?: boolean | null
+          finish_method?: string | null
+          finish_round?: number | null
+          finish_time?: string | null
+          id?: string
+          judge_1_scorecard?: number[] | null
+          judge_1_total?: number | null
+          judge_2_scorecard?: number[] | null
+          judge_2_total?: number | null
+          judge_3_scorecard?: number[] | null
+          judge_3_total?: number | null
+          loser_elo_after?: number | null
+          loser_elo_before?: number | null
+          performance_bonus?: boolean | null
+          result_type?: string
+          winner_elo_after?: number | null
+          winner_elo_before?: number | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_results_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: true
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_results_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_results_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fight_scorecards: {
+        Row: {
+          fight_id: string
+          fighter_a_score: number
+          fighter_b_score: number
+          id: string
+          judge_id: string
+          knockdown_fighter_a: number | null
+          knockdown_fighter_b: number | null
+          notes: string | null
+          point_deduction_a: number | null
+          point_deduction_b: number | null
+          round_end_time: string | null
+          round_number: number
+          round_start_time: string | null
+          submitted_at: string
+        }
+        Insert: {
+          fight_id: string
+          fighter_a_score: number
+          fighter_b_score: number
+          id?: string
+          judge_id: string
+          knockdown_fighter_a?: number | null
+          knockdown_fighter_b?: number | null
+          notes?: string | null
+          point_deduction_a?: number | null
+          point_deduction_b?: number | null
+          round_end_time?: string | null
+          round_number: number
+          round_start_time?: string | null
+          submitted_at?: string
+        }
+        Update: {
+          fight_id?: string
+          fighter_a_score?: number
+          fighter_b_score?: number
+          id?: string
+          judge_id?: string
+          knockdown_fighter_a?: number | null
+          knockdown_fighter_b?: number | null
+          notes?: string | null
+          point_deduction_a?: number | null
+          point_deduction_b?: number | null
+          round_end_time?: string | null
+          round_number?: number
+          round_start_time?: string | null
+          submitted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_scorecards_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_scorecards_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fight_statistics: {
+        Row: {
+          aggression_score: number | null
+          body_strikes_landed: number | null
+          cage_control_time: number | null
+          fight_id: string
+          fighter_id: string
+          ground_control_time: number | null
+          head_strikes_landed: number | null
+          id: string
+          knockdowns: number | null
+          leg_strikes_landed: number | null
+          recorded_at: string
+          recorded_by: string | null
+          round_number: number
+          significant_strikes_landed: number | null
+          significant_strikes_thrown: number | null
+          strikes_landed: number | null
+          strikes_thrown: number | null
+          submission_attempts: number | null
+          takedown_attempts: number | null
+          takedown_defense: number | null
+          takedowns_successful: number | null
+        }
+        Insert: {
+          aggression_score?: number | null
+          body_strikes_landed?: number | null
+          cage_control_time?: number | null
+          fight_id: string
+          fighter_id: string
+          ground_control_time?: number | null
+          head_strikes_landed?: number | null
+          id?: string
+          knockdowns?: number | null
+          leg_strikes_landed?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+          round_number: number
+          significant_strikes_landed?: number | null
+          significant_strikes_thrown?: number | null
+          strikes_landed?: number | null
+          strikes_thrown?: number | null
+          submission_attempts?: number | null
+          takedown_attempts?: number | null
+          takedown_defense?: number | null
+          takedowns_successful?: number | null
+        }
+        Update: {
+          aggression_score?: number | null
+          body_strikes_landed?: number | null
+          cage_control_time?: number | null
+          fight_id?: string
+          fighter_id?: string
+          ground_control_time?: number | null
+          head_strikes_landed?: number | null
+          id?: string
+          knockdowns?: number | null
+          leg_strikes_landed?: number | null
+          recorded_at?: string
+          recorded_by?: string | null
+          round_number?: number
+          significant_strikes_landed?: number | null
+          significant_strikes_thrown?: number | null
+          strikes_landed?: number | null
+          strikes_thrown?: number | null
+          submission_attempts?: number | null
+          takedown_attempts?: number | null
+          takedown_defense?: number | null
+          takedowns_successful?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_statistics_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_licenses: {
         Row: {
           approved_at: string | null
@@ -1021,6 +1394,71 @@ export type Database = {
             columns: ["red_fighter_id"]
             isOneToOne: false
             referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      judges: {
+        Row: {
+          active: boolean
+          certification_level: string
+          certified_since: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          first_name: string
+          id: string
+          last_activity: string | null
+          last_name: string
+          license_number: string
+          organization_id: string | null
+          phone: string | null
+          specialization: string[] | null
+          total_fights_judged: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          certification_level?: string
+          certified_since?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name: string
+          id?: string
+          last_activity?: string | null
+          last_name: string
+          license_number: string
+          organization_id?: string | null
+          phone?: string | null
+          specialization?: string[] | null
+          total_fights_judged?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          certification_level?: string
+          certified_since?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_activity?: string | null
+          last_name?: string
+          license_number?: string
+          organization_id?: string | null
+          phone?: string | null
+          specialization?: string[] | null
+          total_fights_judged?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judges_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
