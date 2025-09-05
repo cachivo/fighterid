@@ -19,7 +19,7 @@ export default function Fighters() {
   const { fighters, loading, error } = useFighterProfiles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('elo');
+  const [sortBy, setSortBy] = useState<string>('name');
   const [editingFighter, setEditingFighter] = useState<FighterProfile | null>(null);
   const [deletingFighter, setDeletingFighter] = useState<FighterProfile | null>(null);
 
@@ -40,9 +40,8 @@ export default function Fighters() {
           return (a.weight_kg || 0) - (b.weight_kg || 0);
         case 'record':
           return (b.record_wins - b.record_losses) - (a.record_wins - a.record_losses);
-        case 'elo':
         default:
-          return b.elo_rating - a.elo_rating;
+          return a.first_name.localeCompare(b.first_name);
       }
     });
 
@@ -117,7 +116,6 @@ export default function Fighters() {
                 <SelectValue placeholder="Ordenar por" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="elo">ELO Rating</SelectItem>
                 <SelectItem value="name">Nombre</SelectItem>
                 <SelectItem value="weight">Peso</SelectItem>
                 <SelectItem value="record">Récord</SelectItem>
@@ -199,10 +197,6 @@ export default function Fighters() {
                     </Badge>
                   </div>
                   
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">ELO:</span>
-                    <Badge variant="outline">{fighter.elo_rating}</Badge>
-                  </div>
                   
                    <div className="flex justify-between items-center">
                      <span className="text-sm text-muted-foreground">Peso:</span>

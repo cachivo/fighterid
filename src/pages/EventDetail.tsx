@@ -247,10 +247,6 @@ const EventDetail = () => {
                               </span>
                             )}
                           </div>
-                          
-                          <div className="text-muted-foreground">
-                            ELO: {fight.fighter_a?.elo_rating || 1200}
-                          </div>
                         </div>
                       </div>
 
@@ -305,10 +301,6 @@ const EventDetail = () => {
                                 {fight.fighter_b.record_draws}D
                               </span>
                             )}
-                          </div>
-                          
-                          <div className="text-muted-foreground">
-                            ELO: {fight.fighter_b?.elo_rating || 1200}
                           </div>
                         </div>
                       </div>

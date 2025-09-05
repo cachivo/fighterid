@@ -139,10 +139,6 @@ export function FighterLicense() {
                     <span className="font-medium">Record:</span>
                     <span className="ml-2">{fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}</span>
                   </div>
-                  <div>
-                    <span className="font-medium">ELO Rating:</span>
-                    <span className="ml-2 font-mono">{fighter.elo_rating}</span>
-                  </div>
                 </div>
               </div>
             </div>

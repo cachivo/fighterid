@@ -153,8 +153,7 @@ export default function LicenseDashboard() {
                 { 
                   label: 'Record', 
                   value: `${fighterProfile?.record_wins || 0}-${fighterProfile?.record_losses || 0}-${fighterProfile?.record_draws || 0}` 
-                },
-                { label: 'Rating ELO', value: fighterProfile?.elo_rating || 1200 }
+                }
               ].map((stat, index) => (
                 <div key={index} className="text-center p-4 rounded-lg bg-gradient-to-br from-background to-professional-muted/10 border border-professional-border/20 hover:border-professional-accent/40 transition-all duration-300">
                   <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">{stat.label}</p>
