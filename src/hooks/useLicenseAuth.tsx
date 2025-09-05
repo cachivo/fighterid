@@ -85,7 +85,29 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
               record_losses,
               record_draws,
               elo_rating,
-              discipline
+              discipline,
+              document_number,
+              document_type,
+              birthdate,
+              blood_type,
+              emergency_contact_name,
+              emergency_contact_phone,
+              emergency_contact_relation,
+              medical_conditions,
+              medical_allergies,
+              height_cm,
+              weight_kg,
+              reach_cm,
+              fighting_style,
+              martial_arts,
+              gym_name,
+              bio,
+              stance,
+              gender,
+              birthplace,
+              insurance_company,
+              insurance_policy,
+              level
             )
           `)
           .eq('fighter_id', profile.id)
