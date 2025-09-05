@@ -112,13 +112,13 @@ export default function FighterProfile() {
                       <Badge className={`${getStatusColor(fighter.license_status)} border-0 font-medium px-4 py-2 text-sm uppercase tracking-wider`}>
                         {fighter.license_status === 'active' ? 'Activo' : fighter.license_status}
                       </Badge>
-                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-professional-primary px-4 py-2 text-sm font-medium">
+                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-white px-4 py-2 text-sm font-medium">
                         {fighter.weight_class}
                       </Badge>
                     </div>
                     
                     {fighter.nickname && (
-                      <p className="text-xl lg:text-2xl font-medium text-professional-accent uppercase tracking-wider">
+                      <p className="text-xl lg:text-2xl font-medium text-gray-300 uppercase tracking-wider">
                         "{fighter.nickname}"
                       </p>
                     )}
@@ -162,7 +162,7 @@ export default function FighterProfile() {
                       <div className="text-4xl lg:text-6xl font-bold text-purple-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.wins}
                       </div>
-                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-300 uppercase tracking-wider">
                         Victorias
                       </div>
                     </div>
@@ -170,7 +170,7 @@ export default function FighterProfile() {
                       <div className="text-4xl lg:text-6xl font-bold text-red-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.losses}
                       </div>
-                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-300 uppercase tracking-wider">
                         Derrotas
                       </div>
                     </div>
@@ -178,7 +178,7 @@ export default function FighterProfile() {
                       <div className="text-4xl lg:text-6xl font-bold text-yellow-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.draws}
                       </div>
-                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-300 uppercase tracking-wider">
                         Empates
                       </div>
                     </div>
@@ -263,7 +263,7 @@ export default function FighterProfile() {
                 <div className="p-3 rounded-full bg-professional-accent/20 w-fit mx-auto mb-4">
                   <stat.icon className="h-6 w-6 text-professional-primary" />
                 </div>
-                <p className="text-sm font-medium text-gray-400 uppercase tracking-wide mb-2">{stat.label}</p>
+                <p className="text-sm font-medium text-gray-300 uppercase tracking-wide mb-2">{stat.label}</p>
                 <p className="text-2xl font-bold text-white">{stat.value}</p>
               </CardContent>
             </Card>
@@ -299,12 +299,12 @@ export default function FighterProfile() {
                     <div className="flex flex-wrap gap-2">
                       {fighter.martial_arts && fighter.martial_arts.length > 0 ? (
                         fighter.martial_arts.map((art) => (
-                          <Badge key={art} variant="outline" className="border-professional-accent/40 text-professional-primary">
+                          <Badge key={art} variant="outline" className="border-professional-accent/40 text-white">
                             {art}
                           </Badge>
                         ))
                       ) : (
-                        <Badge variant="outline" className="border-professional-accent/40 text-professional-primary">
+                        <Badge variant="outline" className="border-professional-accent/40 text-white">
                           {fighter.discipline || 'N/A'}
                         </Badge>
                       )}
@@ -358,7 +358,7 @@ export default function FighterProfile() {
                 {fighter.level && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-300">Nivel</span>
-                    <Badge variant="outline" className="border-professional-accent/40 text-professional-primary">
+                    <Badge variant="outline" className="border-professional-accent/40 text-white">
                       {fighter.level}
                     </Badge>
                   </div>
