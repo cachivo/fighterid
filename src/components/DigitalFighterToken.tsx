@@ -5,7 +5,7 @@ import { Shield, Award, MapPin, Calendar, CheckCircle2 } from 'lucide-react';
 
 interface FighterProfile {
   id: string;
-  full_name: string;
+  full_name?: string;
   nickname?: string;
   country?: string;
   avatar_url?: string;
@@ -52,7 +52,8 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
     });
   };
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name) return 'ID';
     return name
       .split(' ')
       .map(n => n[0])
@@ -102,7 +103,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-0.5">
                   <h2 className="text-white font-bold text-lg leading-tight truncate">
-                    {profile.full_name}
+                    {profile.full_name || 'Nombre no disponible'}
                   </h2>
                   {profile.country && (
                     <span className="text-lg opacity-60">
