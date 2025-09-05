@@ -2,7 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
+import { useFighterHistory, RecordType } from '@/hooks/useFighterHistory';
+import { useState } from 'react';
 import { 
   User, 
   Calendar, 
@@ -25,6 +28,8 @@ interface EnhancedFighterIDProps {
 }
 
 export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = false }: EnhancedFighterIDProps) {
+  const { calculateRecord } = useFighterHistory(profile.id);
+  const [recordType, setRecordType] = useState<RecordType>('AMATEUR');
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'active':
@@ -103,24 +108,65 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="space-y-6">
+          {/* Record Type Toggle */}
+          <div className="mb-4">
+            <Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
+              <TabsList className="bg-card/95 border border-professional-border/40 w-full shadow-xl backdrop-blur-sm">
+                <TabsTrigger 
+                  value="AMATEUR" 
+                  className="flex-1 data-[state=active]:bg-professional-accent data-[state=active]:text-professional-accent-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-professional-accent/30 bg-transparent text-muted-foreground hover:bg-professional-accent/10 transition-all duration-300 font-medium"
+                >
+                  Amateur
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="PROFESSIONAL" 
+                  className="flex-1 data-[state=active]:bg-professional-accent data-[state=active]:text-professional-accent-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-professional-accent/30 bg-transparent text-muted-foreground hover:bg-professional-accent/10 transition-all duration-300 font-medium"
+                >
+                  Profesional
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Enhanced Fight Stats */}
+          <div className="grid grid-cols-3 gap-6 mb-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-professional-primary">{profile.record_wins}</div>
-              <div className="text-sm text-professional-accent">Victorias</div>
+              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                {calculateRecord(recordType).wins}
+              </div>
+              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+                Victorias
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-professional-primary">{profile.record_losses}</div>
-              <div className="text-sm text-professional-accent">Derrotas</div>
+              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+                {calculateRecord(recordType).losses}
+              </div>
+              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+                Derrotas
+              </div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-professional-primary">{profile.record_draws}</div>
-              <div className="text-sm text-professional-accent">Empates</div>
+              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-professional-muted font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                {calculateRecord(recordType).draws}
+              </div>
+              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+                Empates
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-professional-primary">{profile.elo_rating}</div>
-              <div className="text-sm text-professional-accent">ELO Rating</div>
-            </div>
+          </div>
+
+          {/* Additional Stats */}
+          <div className="flex items-center justify-center gap-6 text-sm text-professional-accent mb-4">
+            <span className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-hsl(142,76%,50%)" />
+              {calculateRecord(recordType).winPercentage}% Victorias
+            </span>
+            <span className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-professional-accent" />
+              ELO: {profile.elo_rating || 1200}
+            </span>
           </div>
 
           {profile.martial_arts && profile.martial_arts.length > 0 && (
