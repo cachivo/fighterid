@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Shield, QrCode, Calendar, FileText, LogOut, Menu } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { FighterIDModal } from '@/components/FighterIDModal';
 import { 
   SidebarProvider, 
   Sidebar, 
@@ -20,7 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 
 const navigation = [
-  { name: 'Mi Fighter ID', href: '/license/dashboard', icon: Shield },
+  { name: 'Mi Fighter ID', action: 'modal', icon: Shield },
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
   { name: 'Próximas Peleas', href: '/license/fights', icon: Calendar },
   { name: 'Historial', href: '/license/history', icon: FileText },
@@ -28,6 +30,7 @@ const navigation = [
 
 export default function LicenseLayout() {
   const { user, licenseData, signOut } = useLicenseAuth();
+  const [showFighterIDModal, setShowFighterIDModal] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -116,19 +119,29 @@ export default function LicenseLayout() {
                   {navigation.map((item) => (
                     <SidebarMenuItem key={item.name}>
                       <SidebarMenuButton asChild>
-                        <NavLink 
-                          to={item.href}
-                          className={({ isActive }) =>
-                            `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                              isActive 
-                                ? 'bg-professional-primary/10 text-professional-primary border-l-2 border-professional-accent' 
-                                : 'hover:bg-muted/50'
-                            }`
-                          }
-                        >
-                          <item.icon className="h-5 w-5" />
-                          <span>{item.name}</span>
-                        </NavLink>
+                        {item.action === 'modal' ? (
+                          <button
+                            onClick={() => setShowFighterIDModal(true)}
+                            className="flex w-full items-center gap-3 px-3 py-2 rounded-lg transition-colors hover:bg-muted/50 text-left"
+                          >
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.name}</span>
+                          </button>
+                        ) : (
+                          <NavLink 
+                            to={item.href}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                                isActive 
+                                  ? 'bg-professional-primary/10 text-professional-primary border-l-2 border-professional-accent' 
+                                  : 'hover:bg-muted/50'
+                              }`
+                            }
+                          >
+                            <item.icon className="h-5 w-5" />
+                            <span>{item.name}</span>
+                          </NavLink>
+                        )}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
@@ -145,6 +158,12 @@ export default function LicenseLayout() {
           </div>
         </main>
       </div>
+
+      {/* Fighter ID Modal */}
+      <FighterIDModal 
+        open={showFighterIDModal} 
+        onOpenChange={setShowFighterIDModal} 
+      />
     </SidebarProvider>
   );
 }
