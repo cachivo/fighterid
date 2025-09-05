@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -16,6 +17,7 @@ import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, C
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const { isAdmin } = useAdmin();
 
   const navigationItems = [
     { name: "Mi Fighter ID", href: "/license/dashboard", icon: Shield },
@@ -209,24 +211,28 @@ const Header = () => {
                 </div>
                 
                 {/* Call to Actions */}
-                <div className="border-t border-border p-6">
-                  <Button 
-                    variant="outline" 
-                    className="w-full"
-                    onClick={() => setMobileMenuOpen(false)}
-                    asChild
-                  >
-                    <Link to="/auth">Admin Panel</Link>
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="border-t border-border p-6">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setMobileMenuOpen(false)}
+                      asChild
+                    >
+                      <Link to="/auth">Admin Panel</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
 
           {/* Desktop Actions */}
-          <Button variant="outline" size="sm" className="hidden sm:flex" asChild>
-            <Link to="/auth">Admin Panel</Link>
-          </Button>
+          {isAdmin && (
+            <Button variant="outline" size="sm" className="hidden sm:flex" asChild>
+              <Link to="/auth">Admin Panel</Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
