@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
-import { useOrganizations } from '@/hooks/useLicenses';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,6 @@ import { FileUpload } from '@/components/ui/file-upload';
 
 export default function LicenseOnboarding() {
   const { user, refreshLicense } = useLicenseAuth();
-  const { organizations } = useOrganizations();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
@@ -31,7 +29,6 @@ export default function LicenseOnboarding() {
     weightKg: '',
     discipline: '' as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' | '',
     gymName: '',
-    organizationId: '',
     fightingStyle: '',
     bio: '',
     phone: ''
@@ -176,7 +173,6 @@ export default function LicenseOnboarding() {
         weight_kg: parseFloat(formData.weightKg),
         discipline: formData.discipline || null,
         gym_name: formData.gymName || null,
-        organization_id: formData.organizationId || null,
         fighting_style: formData.fightingStyle || null,
         bio: formData.bio || null
       };
@@ -211,7 +207,6 @@ export default function LicenseOnboarding() {
       const licenseData = {
         fighter_id: profile.id,
         discipline: formData.discipline || null,
-        organization_id: formData.organizationId || null,
         license_level: 'AMATEUR' as const,
         status: 'PENDING_REVIEW' as const,
         is_primary: true,
@@ -465,25 +460,6 @@ export default function LicenseOnboarding() {
                   />
                   <p className="text-sm text-muted-foreground mt-1">
                     Opcional - Nombre de tu gimnasio o academia de entrenamiento
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="organizationId">Organización</Label>
-                  <Select value={formData.organizationId} onValueChange={(value) => setFormData({...formData, organizationId: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona una organización (opcional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {organizations?.data?.map((org) => (
-                        <SelectItem key={org.id} value={org.id}>
-                          {org.name} {org.country && `(${org.country})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Opcional - Organización deportiva a la que perteneces
                   </p>
                 </div>
 
