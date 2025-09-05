@@ -1046,6 +1046,7 @@ export type Database = {
           elo_rating: number | null
           fighting_style: string | null
           first_name: string
+          gender: string | null
           gym_name: string | null
           height_cm: number | null
           id: string
@@ -1062,7 +1063,9 @@ export type Database = {
           record_draws: number | null
           record_losses: number | null
           record_wins: number | null
+          sherdog_url: string | null
           stance: string | null
+          tapology_url: string | null
           updated_at: string | null
           user_id: string | null
           weight_class: string
@@ -1078,6 +1081,7 @@ export type Database = {
           elo_rating?: number | null
           fighting_style?: string | null
           first_name: string
+          gender?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
@@ -1094,7 +1098,9 @@ export type Database = {
           record_draws?: number | null
           record_losses?: number | null
           record_wins?: number | null
+          sherdog_url?: string | null
           stance?: string | null
+          tapology_url?: string | null
           updated_at?: string | null
           user_id?: string | null
           weight_class: string
@@ -1110,6 +1116,7 @@ export type Database = {
           elo_rating?: number | null
           fighting_style?: string | null
           first_name?: string
+          gender?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
@@ -1126,7 +1133,9 @@ export type Database = {
           record_draws?: number | null
           record_losses?: number | null
           record_wins?: number | null
+          sherdog_url?: string | null
           stance?: string | null
+          tapology_url?: string | null
           updated_at?: string | null
           user_id?: string | null
           weight_class?: string

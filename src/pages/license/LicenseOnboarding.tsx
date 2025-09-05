@@ -27,11 +27,21 @@ export default function LicenseOnboarding() {
     weightClass: '',
     heightCm: '',
     weightKg: '',
+    reachCm: '',
     discipline: '' as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' | '',
     gymName: '',
     fightingStyle: '',
+    stance: '' as 'Ortodoxo' | 'Zurdo' | 'Switch' | '',
+    level: '' as 'Amateur' | 'Semi-profesional' | 'Profesional' | '',
     bio: '',
-    phone: ''
+    phone: '',
+    birthdate: '',
+    gender: '' as 'M' | 'F' | 'Otro' | '',
+    recordWins: '',
+    recordLosses: '',
+    recordDraws: '',
+    sherdogUrl: '',
+    tapologyUrl: ''
   });
 
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
@@ -147,6 +157,7 @@ export default function LicenseOnboarding() {
             auth_user_id: user.id,
             email: user.email,
             phone: formData.phone,
+            birthdate: formData.birthdate || null,
             handle: `${formData.firstName}_${formData.lastName}_${Date.now()}`.toLowerCase().replace(/\s+/g, '_')
           })
           .select('id')
@@ -158,6 +169,20 @@ export default function LicenseOnboarding() {
         }
         userId = newAppUser.id;
         console.log('Created app_user with ID:', userId);
+      } else {
+        // Update existing app_user with new fields
+        const { error: appUserUpdateError } = await supabase
+          .from('app_user')
+          .update({
+            phone: formData.phone,
+            birthdate: formData.birthdate || null
+          })
+          .eq('id', userId);
+
+        if (appUserUpdateError) {
+          console.error('Error updating app_user:', appUserUpdateError);
+          // Don't throw, this is not critical
+        }
       }
 
       // Create fighter profile
@@ -171,9 +196,18 @@ export default function LicenseOnboarding() {
         weight_class: formData.weightClass,
         height_cm: parseInt(formData.heightCm),
         weight_kg: parseFloat(formData.weightKg),
+        reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
         discipline: formData.discipline || null,
         gym_name: formData.gymName || null,
         fighting_style: formData.fightingStyle || null,
+        stance: formData.stance || null,
+        level: formData.level || null,
+        record_wins: formData.recordWins ? parseInt(formData.recordWins) : 0,
+        record_losses: formData.recordLosses ? parseInt(formData.recordLosses) : 0,
+        record_draws: formData.recordDraws ? parseInt(formData.recordDraws) : 0,
+        gender: formData.gender || null,
+        sherdog_url: formData.sherdogUrl || null,
+        tapology_url: formData.tapologyUrl || null,
         bio: formData.bio || null
       };
       
@@ -412,42 +446,84 @@ export default function LicenseOnboarding() {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="nickname">Apodo (Opcional)</Label>
-                  <Input
-                    id="nickname"
-                    value={formData.nickname}
-                    onChange={(e) => setFormData({...formData, nickname: e.target.value})}
-                    placeholder="Ej: El Tigre"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nickname">Apodo (Opcional)</Label>
+                    <Input
+                      id="nickname"
+                      value={formData.nickname}
+                      onChange={(e) => setFormData({...formData, nickname: e.target.value})}
+                      placeholder="Ej: El Tigre"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Género *</Label>
+                    <Select value={formData.gender} onValueChange={(value) => setFormData({...formData, gender: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu género" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">Masculino</SelectItem>
+                        <SelectItem value="F">Femenino</SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="phone">Teléfono *</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="+504 9999-9999"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="phone">Teléfono *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="+504 9999-9999"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="birthdate">Fecha de Nacimiento *</Label>
+                    <Input
+                      id="birthdate"
+                      type="date"
+                      value={formData.birthdate}
+                      onChange={(e) => setFormData({...formData, birthdate: e.target.value})}
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="discipline">Disciplina *</Label>
-                  <Select value={formData.discipline} onValueChange={(value) => setFormData({...formData, discipline: value as any})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu disciplina" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {disciplines.map((discipline) => (
-                        <SelectItem key={discipline} value={discipline}>
-                          {discipline}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="discipline">Disciplina *</Label>
+                    <Select value={formData.discipline} onValueChange={(value) => setFormData({...formData, discipline: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu disciplina" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {disciplines.map((discipline) => (
+                          <SelectItem key={discipline} value={discipline}>
+                            {discipline}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="level">Nivel *</Label>
+                    <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu nivel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Amateur">Amateur</SelectItem>
+                        <SelectItem value="Semi-profesional">Semi-profesional</SelectItem>
+                        <SelectItem value="Profesional">Profesional</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div>
@@ -463,7 +539,7 @@ export default function LicenseOnboarding() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="heightCm">Altura (cm) *</Label>
                     <Input
@@ -487,29 +563,54 @@ export default function LicenseOnboarding() {
                       required
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="reachCm">Alcance (cm)</Label>
+                    <Input
+                      id="reachCm"
+                      type="number"
+                      value={formData.reachCm}
+                      onChange={(e) => setFormData({...formData, reachCm: e.target.value})}
+                      placeholder="175"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="weightClass">Categoría de Peso *</Label>
-                  <Select value={formData.weightClass} onValueChange={(value) => setFormData({...formData, weightClass: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona tu categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {weightClasses.map((weightClass) => (
-                        <SelectItem key={weightClass} value={weightClass}>
-                          {weightClass}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="weightClass">Categoría de Peso *</Label>
+                    <Select value={formData.weightClass} onValueChange={(value) => setFormData({...formData, weightClass: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weightClasses.map((weightClass) => (
+                          <SelectItem key={weightClass} value={weightClass}>
+                            {weightClass}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="stance">Stance</Label>
+                    <Select value={formData.stance} onValueChange={(value) => setFormData({...formData, stance: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona tu stance" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Ortodoxo">Ortodoxo</SelectItem>
+                        <SelectItem value="Zurdo">Zurdo</SelectItem>
+                        <SelectItem value="Switch">Switch</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="flex justify-end">
                   <Button 
                     type="button" 
                     onClick={() => setStep(2)}
-                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone || !formData.discipline}
+                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone || !formData.discipline || !formData.gender || !formData.birthdate || !formData.level}
                   >
                     Continuar
                   </Button>
@@ -562,6 +663,75 @@ export default function LicenseOnboarding() {
                     loading={uploading}
                     className="mb-4"
                   />
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Récord de Peleas</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="recordWins">Victorias</Label>
+                      <Input
+                        id="recordWins"
+                        type="number"
+                        min="0"
+                        value={formData.recordWins}
+                        onChange={(e) => setFormData({...formData, recordWins: e.target.value})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="recordLosses">Derrotas</Label>
+                      <Input
+                        id="recordLosses"
+                        type="number"
+                        min="0"
+                        value={formData.recordLosses}
+                        onChange={(e) => setFormData({...formData, recordLosses: e.target.value})}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="recordDraws">Empates</Label>
+                      <Input
+                        id="recordDraws"
+                        type="number"
+                        min="0"
+                        value={formData.recordDraws}
+                        onChange={(e) => setFormData({...formData, recordDraws: e.target.value})}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Enlaces de Verificación (Opcional)</h4>
+                  <div>
+                    <Label htmlFor="sherdogUrl">Perfil Sherdog</Label>
+                    <Input
+                      id="sherdogUrl"
+                      type="url"
+                      value={formData.sherdogUrl}
+                      onChange={(e) => setFormData({...formData, sherdogUrl: e.target.value})}
+                      placeholder="https://www.sherdog.com/fighter/..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enlace a tu perfil en Sherdog para verificar tu récord
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="tapologyUrl">Perfil Tapology</Label>
+                    <Input
+                      id="tapologyUrl"
+                      type="url"
+                      value={formData.tapologyUrl}
+                      onChange={(e) => setFormData({...formData, tapologyUrl: e.target.value})}
+                      placeholder="https://www.tapology.com/fightcenter/fighters/..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enlace a tu perfil en Tapology para verificar tu récord
+                    </p>
+                  </div>
                 </div>
 
                 <div>
