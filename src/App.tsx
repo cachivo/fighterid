@@ -17,6 +17,13 @@ import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFighters from './pages/admin/Fighters';
 import JudgesManagement from './pages/admin/JudgesManagement';
 import LiveEventsControl from './pages/admin/LiveEventsControl';
+import { lazy, Suspense } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+
+// Lazy loaded components
+const FightResults = lazy(() => import('./pages/admin/FightResults'));
+const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
+const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
 import LicenseAuth from './pages/license/LicenseAuth';
 import LicenseDashboard from './pages/license/LicenseDashboard';
 import LicensePending from './pages/license/LicensePending';
@@ -132,7 +139,11 @@ const App = () => (
                       <Route path="/fighters" element={<AdminFighters />} />
                       <Route path="/judges" element={<JudgesManagement />} />
                       <Route path="/live-events" element={<LiveEventsControl />} />
-                      <Route path="/fight-results" element={<div>Fight Results (Coming Soon)</div>} />
+                      <Route path="/fight-results" element={
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <FightResults />
+                        </Suspense>
+                      } />
                       <Route path="/ranking" element={<Ranking />} />
                       <Route path="/votaciones" element={<Votaciones />} />
                       <Route path="/betting" element={<Betting />} />
@@ -142,6 +153,18 @@ const App = () => (
                     </Routes>
                   </AdminLayout>
                 </ProtectedRoute>
+              } />
+
+              {/* Judge and Referee Routes */}
+              <Route path="/judge/scorecard/:fightId" element={
+                <Suspense fallback={<LoadingSpinner />}>
+                  <DigitalScorecard />
+                </Suspense>
+              } />
+              <Route path="/referee/control/:fightId" element={
+                <Suspense fallback={<LoadingSpinner />}>
+                  <RefereeControlRoom />
+                </Suspense>
               } />
 
               <Route path="*" element={<NotFound />} />
