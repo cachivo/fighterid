@@ -158,7 +158,7 @@ export default function FighterProfile() {
                   {/* Fight Stats */}
                   <div className="grid grid-cols-3 gap-8">
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-professional-accent font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                      <div className="text-4xl lg:text-6xl font-bold text-green-600 font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                         {currentRecord.wins}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -166,7 +166,7 @@ export default function FighterProfile() {
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-foreground font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+                      <div className="text-4xl lg:text-6xl font-bold text-red-600 font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
                         {currentRecord.losses}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
@@ -210,7 +210,7 @@ export default function FighterProfile() {
                             alt={`${fighter.first_name} ${fighter.last_name}`}
                             className="h-full w-full object-contain hover-scale transition-all duration-500"
                             style={{
-                              filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 15px 30px rgba(0,0,0,0.3)) drop-shadow(0 5px 15px rgba(0,0,0,0.2))'
+                              filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.1))'
                             }}
                           />
                         </div>
