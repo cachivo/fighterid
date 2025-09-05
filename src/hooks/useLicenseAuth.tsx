@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 
 interface LicenseAuthContextType {
   user: User | null;
@@ -24,6 +25,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [hasActiveLicense, setHasActiveLicense] = useState(false);
   const [licenseData, setLicenseData] = useState<any>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const checkLicenseStatus = async (userId: string) => {
     try {
@@ -261,6 +263,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    navigate('/');
   };
 
   const value = {
