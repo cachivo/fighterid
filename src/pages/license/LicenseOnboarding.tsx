@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
+import { useOrganizations } from '@/hooks/useLicenses';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 
 export default function LicenseOnboarding() {
   const { user, refreshLicense } = useLicenseAuth();
+  const { organizations } = useOrganizations();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
@@ -27,7 +29,9 @@ export default function LicenseOnboarding() {
     weightClass: '',
     heightCm: '',
     weightKg: '',
-    discipline: 'MMA' as const,
+    discipline: '' as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' | '',
+    gymName: '',
+    organizationId: '',
     fightingStyle: '',
     bio: '',
     phone: ''
@@ -42,6 +46,10 @@ export default function LicenseOnboarding() {
   const weightClasses = [
     'Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight',
     'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
+  ];
+
+  const disciplines = [
+    'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
   ];
 
   // Check if user already has a profile
@@ -166,7 +174,9 @@ export default function LicenseOnboarding() {
         weight_class: formData.weightClass,
         height_cm: parseInt(formData.heightCm),
         weight_kg: parseFloat(formData.weightKg),
-        discipline: formData.discipline,
+        discipline: formData.discipline || null,
+        gym_name: formData.gymName || null,
+        organization_id: formData.organizationId || null,
         fighting_style: formData.fightingStyle || null,
         bio: formData.bio || null
       };
@@ -200,7 +210,8 @@ export default function LicenseOnboarding() {
 
       const licenseData = {
         fighter_id: profile.id,
-        discipline: formData.discipline,
+        discipline: formData.discipline || null,
+        organization_id: formData.organizationId || null,
         license_level: 'AMATEUR' as const,
         status: 'PENDING_REVIEW' as const,
         is_primary: true,
@@ -428,6 +439,55 @@ export default function LicenseOnboarding() {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="discipline">Disciplina *</Label>
+                  <Select value={formData.discipline} onValueChange={(value) => setFormData({...formData, discipline: value as any})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tu disciplina" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {disciplines.map((discipline) => (
+                        <SelectItem key={discipline} value={discipline}>
+                          {discipline}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="gymName">Gimnasio/Academia</Label>
+                  <Input
+                    id="gymName"
+                    value={formData.gymName}
+                    onChange={(e) => setFormData({...formData, gymName: e.target.value})}
+                    placeholder="Ej: Team Alpha, Gimnasio Central"
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Opcional - Nombre de tu gimnasio o academia de entrenamiento
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="organizationId">Organización</Label>
+                  <Select value={formData.organizationId} onValueChange={(value) => setFormData({...formData, organizationId: value})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona una organización (opcional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Ninguna</SelectItem>
+                      {organizations?.data?.map((org) => (
+                        <SelectItem key={org.id} value={org.id}>
+                          {org.name} {org.country && `(${org.country})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Opcional - Organización deportiva a la que perteneces
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="heightCm">Altura (cm) *</Label>
@@ -474,7 +534,7 @@ export default function LicenseOnboarding() {
                   <Button 
                     type="button" 
                     onClick={() => setStep(2)}
-                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone}
+                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone || !formData.discipline}
                   >
                     Continuar
                   </Button>
