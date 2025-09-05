@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { useLicenseAuth } from "@/hooks/useLicenseAuth";
+import { useFighterProfiles } from "@/hooks/useFighterProfiles";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -19,14 +19,33 @@ import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, C
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hasFighterProfile, setHasFighterProfile] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
-  const { hasActiveLicense } = useLicenseAuth();
+  const { getUserFighterProfile } = useFighterProfiles();
 
   const handleLogout = async () => {
     await signOut();
     setMobileMenuOpen(false);
   };
+
+  // Check if user has fighter profile
+  useEffect(() => {
+    const checkFighterProfile = async () => {
+      if (user) {
+        try {
+          const profile = await getUserFighterProfile();
+          setHasFighterProfile(!!profile);
+        } catch {
+          setHasFighterProfile(false);
+        }
+      } else {
+        setHasFighterProfile(false);
+      }
+    };
+
+    checkFighterProfile();
+  }, [user, getUserFighterProfile]);
 
   const navigationItems = [
     { name: "Mi Perfil", href: "/fighter/me", icon: Shield },
@@ -58,7 +77,7 @@ const Header = () => {
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList className="space-x-2">
             {/* Fighter ID - Only show if user is not a fighter */}
-            {(!user || !hasActiveLicense) && (
+            {(!user || !hasFighterProfile) && (
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link 
@@ -120,7 +139,7 @@ const Header = () => {
 
         {/* Simplified Navigation for Medium Screens */}
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
-          {(!user || !hasActiveLicense) && (
+          {(!user || !hasFighterProfile) && (
             <Link 
               to="/license/dashboard"
               className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
@@ -173,7 +192,7 @@ const Header = () => {
                 {/* Navigation Items */}
                 <div className="flex-1 py-2">
                   {/* Featured Fighter ID - Only for non-fighters */}
-                  {(!user || !hasActiveLicense) && (
+                  {(!user || !hasFighterProfile) && (
                     <div className="px-4 pb-4">
                       <Link
                         to="/license/dashboard"
