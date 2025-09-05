@@ -40,7 +40,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     record_wins: 0,
     record_losses: 0,
     record_draws: 0,
-    elo_rating: 1200,
   });
 
   useEffect(() => {
@@ -56,7 +55,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         record_wins: fighter.record_wins,
         record_losses: fighter.record_losses,
         record_draws: fighter.record_draws,
-        elo_rating: fighter.elo_rating,
       });
     }
   }, [fighter]);
@@ -278,7 +276,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                 <CardTitle className="text-lg">Récord y Estadísticas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
                     <Label htmlFor="record_wins">Victorias</Label>
                     <Input
@@ -307,17 +305,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                       min="0"
                       value={formData.record_draws}
                       onChange={(e) => handleChange('record_draws', parseInt(e.target.value) || 0)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="elo_rating">ELO Rating</Label>
-                    <Input
-                      id="elo_rating"
-                      type="number"
-                      min="800"
-                      max="2000"
-                      value={formData.elo_rating}
-                      onChange={(e) => handleChange('elo_rating', parseInt(e.target.value) || 1200)}
                     />
                   </div>
                 </div>

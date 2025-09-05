@@ -25,7 +25,7 @@ const WEIGHT_CLASSES = [
 export default function Fighters() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState('Todos');
-  const [sortBy, setSortBy] = useState('elo_rating');
+  const [sortBy, setSortBy] = useState('name');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedFighter, setSelectedFighter] = useState<FighterProfile | null>(null);
   const [userProfile, setUserProfile] = useState<FighterProfile | null>(null);
@@ -53,8 +53,6 @@ export default function Fighters() {
     })
     .sort((a, b) => {
       switch (sortBy) {
-        case 'elo_rating':
-          return b.elo_rating - a.elo_rating;
         case 'name':
           return a.first_name.localeCompare(b.first_name);
         case 'wins':
@@ -156,7 +154,7 @@ export default function Fighters() {
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="elo_rating">ELO Rating</SelectItem>
+              
               <SelectItem value="name">Nombre</SelectItem>
               <SelectItem value="wins">Victorias</SelectItem>
             </SelectContent>
@@ -227,12 +225,6 @@ export default function Fighters() {
                           <p className="text-muted-foreground">Record</p>
                           <p className="font-semibold text-foreground">
                             {selectedFighter.record_wins}-{selectedFighter.record_losses}-{selectedFighter.record_draws}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-muted-foreground">ELO Rating</p>
-                          <p className="font-semibold text-purple-neon-primary">
-                            {selectedFighter.elo_rating}
                           </p>
                         </div>
                       </div>

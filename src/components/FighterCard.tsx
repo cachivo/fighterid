@@ -73,12 +73,6 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
               {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground">ELO Rating</p>
-            <p className="font-semibold text-purple-neon-primary">
-              {fighter.elo_rating}
-            </p>
-          </div>
           {fighter.fighting_style && (
             <div className="col-span-2">
               <p className="text-muted-foreground">Estilo</p>
