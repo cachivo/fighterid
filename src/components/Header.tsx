@@ -59,7 +59,7 @@ const Header = () => {
               <NavigationMenuLink asChild>
                 <Link 
                   to="/eventos" 
-                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
                   Eventos
                 </Link>
@@ -70,7 +70,7 @@ const Header = () => {
               <NavigationMenuLink asChild>
                 <Link 
                   to="/fighters" 
-                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
                   Fighters
                 </Link>
@@ -81,7 +81,7 @@ const Header = () => {
               <NavigationMenuLink asChild>
                 <Link 
                   to="/predicciones" 
-                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
                   Predicciones
                 </Link>
@@ -92,7 +92,7 @@ const Header = () => {
               <NavigationMenuLink asChild>
                 <a 
                   href="#ranking" 
-                  className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none"
+                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
                   Ranking
                 </a>
