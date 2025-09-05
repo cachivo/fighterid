@@ -8,9 +8,44 @@ export async function uploadFighterAvatar(
   fighterProfileId: string,
   currentAvatarUrl?: string
 ): Promise<string | null> {
+  console.log('uploadFighterAvatar called with:', {
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type,
+    userId,
+    fighterProfileId,
+    hasCurrentAvatar: !!currentAvatarUrl
+  });
+
   try {
+    // Input validation
+    if (!file) {
+      console.error('No file provided');
+      toast.error('Error: No se proporcionó archivo');
+      return null;
+    }
+
+    if (!userId) {
+      console.error('No userId provided');
+      toast.error('Error: ID de usuario no válido');
+      return null;
+    }
+
+    if (!fighterProfileId) {
+      console.error('No fighterProfileId provided');
+      toast.error('Error: ID de perfil de peleador no válido');
+      return null;
+    }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      console.error('File too large:', file.size);
+      toast.error('Error: El archivo es demasiado grande (máximo 10MB)');
+      return null;
+    }
+
     // Clean up old avatar if exists
     if (currentAvatarUrl) {
+      console.log('Cleaning up old avatar:', currentAvatarUrl);
       await cleanupOldAvatar(currentAvatarUrl);
     }
 
@@ -41,6 +76,7 @@ export async function uploadFighterAvatar(
 
     // Upload processed photo
     const photoFileName = `${userId}/photo-${Date.now()}.png`;
+    console.log('Starting upload to storage:', photoFileName);
     
     const { error: uploadError } = await supabase.storage
       .from('fighter-photos')
@@ -51,13 +87,18 @@ export async function uploadFighterAvatar(
 
     if (uploadError) {
       console.error('Error uploading photo:', uploadError);
+      toast.error(`Error subiendo foto: ${uploadError.message}`);
       return null;
     }
+
+    console.log('Photo uploaded successfully to storage');
 
     // Get public URL
     const { data: publicUrl } = supabase.storage
       .from('fighter-photos')
       .getPublicUrl(photoFileName);
+
+    console.log('Generated public URL:', publicUrl.publicUrl);
 
     // Update fighter profile with new avatar URL
     const { error: updateError } = await supabase
@@ -67,12 +108,17 @@ export async function uploadFighterAvatar(
 
     if (updateError) {
       console.error('Error updating avatar URL:', updateError);
+      toast.error(`Error actualizando perfil: ${updateError.message}`);
       return null;
     }
 
+    console.log('Fighter profile updated successfully with new avatar URL');
+    toast.success('Avatar actualizado correctamente');
     return publicUrl.publicUrl;
   } catch (error) {
     console.error('Error in uploadFighterAvatar:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    toast.error(`Error procesando avatar: ${errorMessage}`);
     return null;
   }
 }

@@ -101,6 +101,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Enhanced validation
     if (!formData.first_name.trim() || !formData.last_name.trim()) {
       toast({
         title: "Error de validación",
@@ -110,6 +111,22 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
       return;
     }
 
+    if (!fighter.id) {
+      toast({
+        title: "Error de validación",
+        description: "ID del peleador no válido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log('Iniciando actualización de perfil:', {
+      fighterId: fighter.id,
+      fighterUserId: fighter.user_id,
+      hasAvatarFile: !!(formData as any)._avatarFile,
+      formData: { ...formData, _avatarFile: undefined }
+    });
+
     setIsSubmitting(true);
     
     try {
@@ -117,16 +134,45 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
       let finalFormData = { ...formData };
       
       if ((formData as any)._avatarFile) {
-        const { uploadFighterAvatar } = await import('@/lib/photoUtils');
-        const avatarUrl = await uploadFighterAvatar(
-          (formData as any)._avatarFile, 
-          fighter.user_id, 
-          fighter.id,
-          fighter.avatar_url
-        );
+        console.log('Procesando subida de avatar...');
         
-        if (avatarUrl) {
-          finalFormData.avatar_url = avatarUrl;
+        // Validate user_id before avatar upload
+        if (!fighter.user_id) {
+          console.warn('fighter.user_id is null/undefined, skipping avatar upload');
+          toast({
+            title: "Advertencia",
+            description: "No se puede subir avatar: usuario no válido. Se actualizarán los demás datos.",
+            variant: "destructive",
+          });
+        } else {
+          try {
+            const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+            const avatarUrl = await uploadFighterAvatar(
+              (formData as any)._avatarFile, 
+              fighter.user_id, 
+              fighter.id,
+              fighter.avatar_url
+            );
+            
+            if (avatarUrl) {
+              console.log('Avatar subido exitosamente:', avatarUrl);
+              finalFormData.avatar_url = avatarUrl;
+            } else {
+              console.error('uploadFighterAvatar returned null');
+              toast({
+                title: "Error de imagen",
+                description: "No se pudo subir la imagen. Se actualizarán los demás datos.",
+                variant: "destructive",
+              });
+            }
+          } catch (avatarError) {
+            console.error('Error durante la subida del avatar:', avatarError);
+            toast({
+              title: "Error de imagen",
+              description: "Error al subir la imagen. Se actualizarán los demás datos.",
+              variant: "destructive",
+            });
+          }
         }
         
         // Clean up temporary properties
@@ -153,12 +199,19 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
           description: "El perfil del peleador ha sido actualizado correctamente.",
         });
         onClose();
+      } else {
+        toast({
+          title: "Error en la actualización",
+          description: "Hubo un problema al actualizar el perfil. Revisa los logs para más detalles.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error en handleSubmit:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
       toast({
         title: "Error inesperado",
-        description: "Ocurrió un error inesperado. Por favor intenta de nuevo.",
+        description: `Ocurrió un error inesperado: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
