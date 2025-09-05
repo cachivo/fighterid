@@ -32,6 +32,7 @@ const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom
 import LicenseAuth from './pages/license/LicenseAuth';
 import LicenseDashboard from './pages/license/LicenseDashboard';
 import LicensePending from './pages/license/LicensePending';
+import LicenseSuspended from './pages/license/LicenseSuspended';
 import LicenseOnboarding from './pages/license/LicenseOnboarding';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -101,6 +102,11 @@ const App = () => (
               <Route path="/license/pending" element={
                 <LicenseProtectedRoute>
                   <LicensePending />
+                </LicenseProtectedRoute>
+              } />
+              <Route path="/license/suspended" element={
+                <LicenseProtectedRoute>
+                  <LicenseSuspended />
                 </LicenseProtectedRoute>
               } />
               

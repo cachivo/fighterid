@@ -12,7 +12,7 @@ export default function LicenseProtectedRoute({
   children, 
   requireActiveLicense = false 
 }: LicenseProtectedRouteProps) {
-  const { user, loading, hasActiveLicense } = useLicenseAuth();
+  const { user, loading, hasActiveLicense, licenseData } = useLicenseAuth();
   const [showTimeout, setShowTimeout] = useState(false);
 
   useEffect(() => {
@@ -52,7 +52,16 @@ export default function LicenseProtectedRoute({
   }
 
   if (requireActiveLicense && !hasActiveLicense) {
-    return <Navigate to="/license/onboarding" replace />;
+    // Handle different license states appropriately
+    const licenseStatus = licenseData?.status;
+    
+    if (licenseStatus === 'SUSPENDED') {
+      return <Navigate to="/license/suspended" replace />;
+    } else if (licenseStatus === 'PENDING_REVIEW' || licenseStatus === 'APPLIED') {
+      return <Navigate to="/license/pending" replace />;
+    } else {
+      return <Navigate to="/license/onboarding" replace />;
+    }
   }
 
   return <>{children}</>;

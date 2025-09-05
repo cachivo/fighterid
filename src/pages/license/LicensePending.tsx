@@ -17,6 +17,12 @@ export default function LicensePending() {
   const getStatusSteps = () => {
     const currentStatus = licenseData?.status;
     
+    // If license is suspended, redirect to suspended page
+    if (currentStatus === 'SUSPENDED') {
+      setTimeout(() => navigate('/license/suspended', { replace: true }), 100);
+      return [];
+    }
+    
     return [
       {
         id: 'APPLIED',
