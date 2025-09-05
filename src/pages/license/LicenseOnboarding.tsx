@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +30,7 @@ export default function LicenseOnboarding() {
     heightCm: '',
     weightKg: '',
     reachCm: '',
-    discipline: '' as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' | '',
+    martialArts: [] as string[],
     gymName: '',
     fightingStyle: '',
     stance: '' as 'Ortodoxo' | 'Zurdo' | 'Switch' | '',
@@ -55,9 +57,17 @@ export default function LicenseOnboarding() {
     'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
   ];
 
-  const disciplines = [
+  const martialArts = [
     'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
   ];
+
+  const handleMartialArtsChange = (art: string, checked: boolean) => {
+    if (checked) {
+      setFormData({...formData, martialArts: [...formData.martialArts, art]});
+    } else {
+      setFormData({...formData, martialArts: formData.martialArts.filter(a => a !== art)});
+    }
+  };
 
   // Check if user already has a profile
   useEffect(() => {
@@ -197,7 +207,8 @@ export default function LicenseOnboarding() {
         height_cm: parseInt(formData.heightCm),
         weight_kg: parseFloat(formData.weightKg),
         reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
-        discipline: formData.discipline || null,
+        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
+        martial_arts: formData.martialArts,
         gym_name: formData.gymName || null,
         fighting_style: formData.fightingStyle || null,
         stance: formData.stance || null,
@@ -240,7 +251,7 @@ export default function LicenseOnboarding() {
 
       const licenseData = {
         fighter_id: profile.id,
-        discipline: formData.discipline || null,
+        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
         license_level: 'AMATEUR' as const,
         status: 'PENDING_REVIEW' as const,
         is_primary: true,
@@ -495,35 +506,47 @@ export default function LicenseOnboarding() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="discipline">Disciplina *</Label>
-                    <Select value={formData.discipline} onValueChange={(value) => setFormData({...formData, discipline: value as any})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona tu disciplina" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {disciplines.map((discipline) => (
-                          <SelectItem key={discipline} value={discipline}>
-                            {discipline}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div>
+                  <Label>Artes Marciales / Estilos de Pelea *</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Selecciona todas las artes marciales que practicas
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {martialArts.map((art) => (
+                      <div key={art} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={art}
+                          checked={formData.martialArts.includes(art)}
+                          onCheckedChange={(checked) => handleMartialArtsChange(art, checked as boolean)}
+                        />
+                        <Label htmlFor={art} className="text-sm font-normal cursor-pointer">
+                          {art}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <Label htmlFor="level">Nivel *</Label>
-                    <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value as any})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona tu nivel" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Amateur">Amateur</SelectItem>
-                        <SelectItem value="Semi-profesional">Semi-profesional</SelectItem>
-                        <SelectItem value="Profesional">Profesional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {formData.martialArts.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {formData.martialArts.map((art) => (
+                        <Badge key={art} variant="secondary" className="text-xs">
+                          {art}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <Label htmlFor="level">Nivel *</Label>
+                  <Select value={formData.level} onValueChange={(value) => setFormData({...formData, level: value as any})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona tu nivel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Amateur">Amateur</SelectItem>
+                      <SelectItem value="Semi-profesional">Semi-profesional</SelectItem>
+                      <SelectItem value="Profesional">Profesional</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -610,7 +633,7 @@ export default function LicenseOnboarding() {
                   <Button 
                     type="button" 
                     onClick={() => setStep(2)}
-                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone || !formData.discipline || !formData.gender || !formData.birthdate || !formData.level}
+                    disabled={!formData.firstName || !formData.lastName || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.phone || !formData.martialArts.length || !formData.gender || !formData.birthdate || !formData.level}
                   >
                     Continuar
                   </Button>

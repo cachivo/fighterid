@@ -1056,6 +1056,7 @@ export type Database = {
           license_issued_date: string | null
           license_number: string | null
           license_status: string | null
+          martial_arts: string[] | null
           nickname: string | null
           organization_id: string | null
           primary_license_id: string | null
@@ -1091,6 +1092,7 @@ export type Database = {
           license_issued_date?: string | null
           license_number?: string | null
           license_status?: string | null
+          martial_arts?: string[] | null
           nickname?: string | null
           organization_id?: string | null
           primary_license_id?: string | null
@@ -1126,6 +1128,7 @@ export type Database = {
           license_issued_date?: string | null
           license_number?: string | null
           license_status?: string | null
+          martial_arts?: string[] | null
           nickname?: string | null
           organization_id?: string | null
           primary_license_id?: string | null
