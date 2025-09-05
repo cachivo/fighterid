@@ -13,6 +13,8 @@ import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
 import { FighterLicense } from './pages/FighterLicense';
 import FighterMe from './pages/FighterMe';
+import MyProfile from './pages/MyProfile';
+import FighterProfile from './pages/FighterProfile';
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFighters from './pages/admin/Fighters';
@@ -81,6 +83,7 @@ const App = () => (
               <Route path="/eventos" element={<Events />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
+              <Route path="/fighter/:id" element={<FighterProfile />} />
               <Route path="/verify/license/:licenseNumber" element={<VerifyLicense />} />
               <Route path="/import-event" element={<ImportEvent />} />
               <Route path="/predicciones" element={<Predicciones />} />
@@ -109,6 +112,13 @@ const App = () => (
                 <Route path="dashboard" element={<LicenseDashboard />} />
               </Route>
 
+              {/* Fighter Profile Routes */}
+              <Route path="/fighter/me" element={
+                <ProtectedRoute>
+                  <MyProfile />
+                </ProtectedRoute>
+              } />
+              
               {/* Legacy Fighter Routes (maintained for compatibility) */}
               <Route path="/fighters/me" element={
                 <ProtectedRoute>

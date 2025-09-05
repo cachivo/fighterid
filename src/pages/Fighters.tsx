@@ -72,7 +72,8 @@ export default function Fighters() {
   };
 
   const handleFighterClick = (fighter: FighterProfile) => {
-    setSelectedFighter(fighter);
+    // Navigate to public fighter profile instead of dialog
+    window.location.href = `/fighter/${fighter.id}`;
   };
 
   if (loading) {
@@ -192,84 +193,7 @@ export default function Fighters() {
           </div>
         )}
 
-        {/* Fighter Detail Dialog */}
-        <Dialog open={!!selectedFighter} onOpenChange={() => setSelectedFighter(null)}>
-          <DialogContent className="max-w-2xl">
-            {selectedFighter && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">
-                    {selectedFighter.first_name} {selectedFighter.last_name}
-                    {selectedFighter.nickname && (
-                      <span className="text-purple-neon-primary ml-2">
-                        "{selectedFighter.nickname}"
-                      </span>
-                    )}
-                  </DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    {selectedFighter.avatar_url ? (
-                      <img 
-                        src={selectedFighter.avatar_url} 
-                        alt={`${selectedFighter.first_name} ${selectedFighter.last_name}`}
-                        className="w-24 h-24 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 rounded-full bg-urban-gray flex items-center justify-center">
-                        <span className="text-2xl font-bold text-foreground">
-                          {selectedFighter.first_name[0]}{selectedFighter.last_name[0]}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p className="text-muted-foreground">Record</p>
-                          <p className="font-semibold text-foreground">
-                            {selectedFighter.record_wins}-{selectedFighter.record_losses}-{selectedFighter.record_draws}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-muted-foreground text-sm">División</p>
-                      <p className="font-medium">{selectedFighter.weight_class}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground text-sm">País</p>
-                      <p className="font-medium">{selectedFighter.country}</p>
-                    </div>
-                    {selectedFighter.fighting_style && (
-                      <div>
-                        <p className="text-muted-foreground text-sm">Estilo</p>
-                        <p className="font-medium">{selectedFighter.fighting_style}</p>
-                      </div>
-                    )}
-                    {selectedFighter.height_cm && (
-                      <div>
-                        <p className="text-muted-foreground text-sm">Altura</p>
-                        <p className="font-medium">{selectedFighter.height_cm} cm</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {selectedFighter.bio && (
-                    <div>
-                      <p className="text-muted-foreground text-sm mb-2">Biografía</p>
-                      <p className="text-foreground">{selectedFighter.bio}</p>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Remove the dialog since we now navigate directly to the profile page */}
       </div>
       <Footer />
     </div>

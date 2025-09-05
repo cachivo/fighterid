@@ -12,15 +12,22 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
 
+  const handleLogout = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
+
   const navigationItems = [
-    { name: "Mi Fighter ID", href: "/license/dashboard", icon: Shield },
+    { name: "Mi Perfil", href: "/fighter/me", icon: Shield },
     { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
@@ -211,28 +218,101 @@ const Header = () => {
                 </div>
                 
                 {/* Call to Actions */}
-                {isAdmin && (
-                  <div className="border-t border-border p-6">
+                <div className="border-t border-border p-6 space-y-3">
+                  {user ? (
+                    <>
+                      <div className="text-center mb-4">
+                        <p className="text-sm font-medium text-foreground">{user.email}</p>
+                      </div>
+                      {isAdmin && (
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setMobileMenuOpen(false)}
+                          asChild
+                        >
+                          <Link to="/admin">
+                            <Shield className="h-4 w-4 mr-2" />
+                            Admin Panel
+                          </Link>
+                        </Button>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        onClick={handleLogout}
+                      >
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Cerrar Sesión
+                      </Button>
+                    </>
+                  ) : (
                     <Button 
                       variant="outline" 
                       className="w-full"
                       onClick={() => setMobileMenuOpen(false)}
                       asChild
                     >
-                      <Link to="/auth">Admin Panel</Link>
+                      <Link to="/auth">Iniciar Sesión</Link>
                     </Button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
 
           {/* Desktop Actions */}
-          {isAdmin && (
-            <Button variant="outline" size="sm" className="hidden sm:flex" asChild>
-              <Link to="/auth">Admin Panel</Link>
-            </Button>
-          )}
+          <div className="hidden sm:flex items-center gap-3">
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">Admin Panel</Link>
+              </Button>
+            )}
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src="" alt={user.email || 'Usuario'} />
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {user.email?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user.email}</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/fighter/me" className="flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      Mi Perfil
+                    </Link>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="flex items-center">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Iniciar Sesión</Link>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </header>
