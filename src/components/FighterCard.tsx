@@ -14,36 +14,11 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
   const navigate = useNavigate();
 
   const getLicenseStatusColor = (status: string) => {
-    const normalizedStatus = status?.toUpperCase();
-    switch (normalizedStatus) {
-      case 'ACTIVE': 
-      case 'ACTIVA': 
-        return 'bg-fighter-success';
-      case 'SUSPENDED': 
-      case 'SUSPENDIDA': 
-        return 'bg-fighter-danger';
-      case 'PENDING_REVIEW': 
-      case 'EN_REVISION': 
-        return 'bg-fighter-warning';
-      case 'EXPIRED': 
-      case 'EXPIRADA': 
-        return 'bg-fighter-accent';
-      default: return 'bg-fighter-accent';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    const normalizedStatus = status?.toUpperCase();
-    switch (normalizedStatus) {
-      case 'ACTIVE': return 'ACTIVA';
-      case 'ACTIVA': return 'ACTIVA';
-      case 'SUSPENDED': return 'SUSPENDIDA';
-      case 'SUSPENDIDA': return 'SUSPENDIDA';
-      case 'PENDING_REVIEW': return 'EN REVISIÓN';
-      case 'EN_REVISION': return 'EN REVISIÓN';
-      case 'EXPIRED': return 'EXPIRADA';
-      case 'EXPIRADA': return 'EXPIRADA';
-      default: return status || 'ACTIVA';
+    switch (status) {
+      case 'active': return 'bg-green-500';
+      case 'suspended': return 'bg-red-500';
+      case 'expired': return 'bg-gray-500';
+      default: return 'bg-gray-500';
     }
   };
   const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
@@ -143,8 +118,8 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             <Shield className="h-5 w-5 text-white" />
             <span className="text-sm font-medium">{fighter.license_number}</span>
           </div>
-          <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs font-semibold`}>
-            {getStatusText(fighter.license_status)}
+          <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs`}>
+            {fighter.license_status?.toUpperCase() || 'ACTIVA'}
           </Badge>
         </div>
 
