@@ -212,6 +212,37 @@ export function useFighterProfiles() {
     try {
       console.log('Actualizando peleador:', fighterId, profileData);
       
+      // Verificar autenticación antes de proceder
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Estado de sesión:', {
+        hasSession: !!session,
+        userId: session?.user?.id,
+        email: session?.user?.email,
+        accessToken: session?.access_token ? 'presente' : 'ausente'
+      });
+      
+      if (!session) {
+        throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
+      }
+
+      // Verificar si el usuario es admin consultando directamente
+      const { data: adminCheck, error: adminError } = await supabase
+        .from('app_user')
+        .select('is_admin, id')
+        .eq('auth_user_id', session.user.id)
+        .single();
+
+      if (adminError) {
+        console.error('Error verificando permisos de admin:', adminError);
+        throw new Error('Error verificando permisos de administrador');
+      }
+
+      if (!adminCheck?.is_admin) {
+        throw new Error('No tienes permisos de administrador para realizar esta acción');
+      }
+
+      console.log('Usuario verificado como admin:', adminCheck);
+      
       // Usar la función administrativa de base de datos
       const { error } = await supabase.rpc('admin_update_fighter_profile', {
         p_fighter_id: fighterId,
@@ -225,7 +256,7 @@ export function useFighterProfiles() {
 
       toast({
         title: "Éxito",
-        description: "Perfil de peleador actualizado correctamente. Los cambios se sincronizarán automáticamente con el Fighter ID.",
+        description: "Perfil de peleador actualizado correctamente.",
       });
 
       // Refrescar la lista para mostrar los cambios
