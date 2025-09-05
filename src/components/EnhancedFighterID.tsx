@@ -28,13 +28,13 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-300';
+        return 'bg-professional-accent/10 text-professional-primary border-professional-accent/30';
       case 'suspended':
-        return 'bg-red-100 text-red-800 border-red-300';
+        return 'bg-professional-danger/10 text-professional-danger border-professional-danger/30';
       case 'expired':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+        return 'bg-professional-muted/20 text-professional-foreground border-professional-border';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
+        return 'bg-professional-muted/10 text-professional-foreground border-professional-border';
     }
   };
 
@@ -42,19 +42,19 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
     switch (level?.toLowerCase()) {
       case 'professional':
       case 'profesional':
-        return 'bg-gold-100 text-gold-800 border-gold-300';
+        return 'bg-professional-primary/15 text-professional-primary border-professional-primary/30';
       case 'semi-professional':
       case 'semi-profesional':
-        return 'bg-silver-100 text-silver-800 border-silver-300';
+        return 'bg-professional-accent/15 text-professional-accent border-professional-accent/30';
       default:
-        return 'bg-bronze-100 text-bronze-800 border-bronze-300';
+        return 'bg-professional-muted/15 text-professional-foreground border-professional-border';
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Main Fighter ID Card */}
-      <Card className="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white border-purple-500/30">
+      <Card className="bg-gradient-professional border-professional-border/30 shadow-professional">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -62,7 +62,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
                 <img
                   src={profile.avatar_url || '/placeholder-avatar.png'}
                   alt={`${profile.first_name} ${profile.last_name}`}
-                  className="h-20 w-20 rounded-xl object-cover border-2 border-purple-400"
+                  className="h-20 w-20 rounded-xl object-cover border-2 border-professional-accent/40"
                 />
                 <Badge 
                   className={`absolute -bottom-2 -right-2 ${getStatusColor(profile.license_status)}`}
@@ -71,31 +71,30 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
                 </Badge>
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold">
+                <h2 className="text-2xl font-bold text-professional-primary">
                   {profile.first_name} {profile.last_name}
                 </h2>
                 {profile.nickname && (
-                  <p className="text-purple-300 text-lg">"{profile.nickname}"</p>
+                  <p className="text-professional-accent text-lg">"{profile.nickname}"</p>
                 )}
                 <div className="flex items-center gap-2">
                   <Badge className={getLevelColor(profile.level)}>
                     {profile.level || 'Amateur'}
                   </Badge>
-                  <Badge variant="outline" className="text-white border-white/30">
+                  <Badge variant="professional-outline">
                     {profile.weight_class}
                   </Badge>
                 </div>
               </div>
             </div>
             <div className="text-right space-y-1">
-              <p className="text-sm text-purple-300">License #</p>
-              <p className="font-mono text-lg">{profile.license_number}</p>
+              <p className="text-sm text-professional-accent">License #</p>
+              <p className="font-mono text-lg text-professional-primary">{profile.license_number}</p>
               {onGenerateQR && (
                 <Button 
-                  variant="outline" 
+                  variant="professional" 
                   size="sm"
                   onClick={onGenerateQR}
-                  className="border-white/30 text-white hover:bg-white/10"
                 >
                   QR Code
                 </Button>
@@ -107,29 +106,29 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-400">{profile.record_wins}</div>
-              <div className="text-sm text-purple-300">Victorias</div>
+              <div className="text-2xl font-bold text-professional-primary">{profile.record_wins}</div>
+              <div className="text-sm text-professional-accent">Victorias</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-400">{profile.record_losses}</div>
-              <div className="text-sm text-purple-300">Derrotas</div>
+              <div className="text-2xl font-bold text-professional-primary">{profile.record_losses}</div>
+              <div className="text-sm text-professional-accent">Derrotas</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-400">{profile.record_draws}</div>
-              <div className="text-sm text-purple-300">Empates</div>
+              <div className="text-2xl font-bold text-professional-primary">{profile.record_draws}</div>
+              <div className="text-sm text-professional-accent">Empates</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-400">{profile.elo_rating}</div>
-              <div className="text-sm text-purple-300">ELO Rating</div>
+              <div className="text-2xl font-bold text-professional-primary">{profile.elo_rating}</div>
+              <div className="text-sm text-professional-accent">ELO Rating</div>
             </div>
           </div>
 
           {profile.martial_arts && profile.martial_arts.length > 0 && (
             <div>
-              <p className="text-sm text-purple-300 mb-2">Artes Marciales:</p>
+              <p className="text-sm text-professional-accent mb-2">Artes Marciales:</p>
               <div className="flex flex-wrap gap-1">
                 {profile.martial_arts.map((art, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
+                  <Badge key={index} variant="professional" className="text-xs">
                     {art}
                   </Badge>
                 ))}
@@ -140,9 +139,9 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
       </Card>
 
       {/* Critical Safety Information */}
-      <Card className="border-red-200 bg-red-50/50">
+      <Card className="border-professional-danger/20 bg-professional-danger/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-800">
+          <CardTitle className="flex items-center gap-2 text-professional-danger">
             <AlertTriangle className="h-5 w-5" />
             Información Crítica de Seguridad
           </CardTitle>
@@ -151,7 +150,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Personal Information */}
             <div className="space-y-3">
-              <h4 className="font-semibold flex items-center gap-2 text-red-700">
+              <h4 className="font-semibold flex items-center gap-2 text-professional-danger">
                 <User className="h-4 w-4" />
                 Información Personal
               </h4>
@@ -185,7 +184,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
 
             {/* Emergency Contact */}
             <div className="space-y-3">
-              <h4 className="font-semibold flex items-center gap-2 text-red-700">
+              <h4 className="font-semibold flex items-center gap-2 text-professional-danger">
                 <Phone className="h-4 w-4" />
                 Contacto de Emergencia
               </h4>
@@ -216,7 +215,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
 
           {/* Medical Information */}
           <div className="space-y-3">
-            <h4 className="font-semibold flex items-center gap-2 text-red-700">
+            <h4 className="font-semibold flex items-center gap-2 text-professional-danger">
               <Heart className="h-4 w-4" />
               Información Médica
             </h4>
@@ -224,13 +223,13 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
               {profile.medical_allergies && (
                 <div>
                   <span className="text-muted-foreground font-medium">Alergias:</span>
-                  <p className="mt-1 text-red-600">{profile.medical_allergies}</p>
+                  <p className="mt-1 text-professional-danger">{profile.medical_allergies}</p>
                 </div>
               )}
               {profile.medical_conditions && (
                 <div>
                   <span className="text-muted-foreground font-medium">Condiciones Médicas:</span>
-                  <p className="mt-1 text-orange-600">{profile.medical_conditions}</p>
+                  <p className="mt-1 text-professional-danger">{profile.medical_conditions}</p>
                 </div>
               )}
             </div>
@@ -240,11 +239,11 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           {(profile.insurance_company || profile.insurance_policy) && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h4 className="font-semibold flex items-center gap-2 text-red-700">
-                  <Shield className="h-4 w-4" />
-                  Seguro Médico
-                </h4>
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2 text-professional-danger">
+                    <Shield className="h-4 w-4" />
+                    Seguro Médico
+                  </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   {profile.insurance_company && (
                     <div className="flex justify-between">
@@ -368,10 +367,10 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
 
       {/* Admin Actions */}
       {showAdmin && onEdit && (
-        <Card className="border-blue-200 bg-blue-50/50">
+        <Card className="border-professional-accent/20 bg-professional-accent/5">
           <CardContent className="pt-6">
             <div className="flex justify-center">
-              <Button onClick={onEdit} className="bg-blue-600 hover:bg-blue-700">
+              <Button onClick={onEdit} variant="professional">
                 Editar Información
               </Button>
             </div>

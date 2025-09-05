@@ -15,17 +15,17 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
 
   const getLicenseStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500';
-      case 'suspended': return 'bg-red-500';
-      case 'expired': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'active': return 'bg-professional-accent';
+      case 'suspended': return 'bg-professional-danger';
+      case 'expired': return 'bg-professional-muted';
+      default: return 'bg-professional-muted';
     }
   };
   const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
   
   return (
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-card border-border hover:border-purple-neon-primary/30"
+      className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-card border-border hover:border-professional-accent/30"
       onClick={onClick}
     >
       <CardHeader className="pb-3">
@@ -37,8 +37,8 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
               className="w-16 h-16 rounded-full object-cover"
             />
           ) : (
-            <div className="w-16 h-16 rounded-full bg-urban-gray flex items-center justify-center">
-              <span className="text-xl font-bold text-foreground">
+            <div className="w-16 h-16 rounded-full bg-professional-muted flex items-center justify-center">
+              <span className="text-xl font-bold text-professional-primary">
                 {fighter.first_name[0]}{fighter.last_name[0]}
               </span>
             </div>
@@ -49,7 +49,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
               {fighter.first_name} {fighter.last_name}
             </h3>
             {fighter.nickname && (
-              <p className="text-sm text-purple-neon-primary font-medium">
+              <p className="text-sm text-professional-accent font-medium">
                 "{fighter.nickname}"
               </p>
             )}
@@ -115,7 +115,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
         {/* License Info */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t">
           <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-white" />
+            <Shield className="h-5 w-5 text-professional-accent" />
             <span className="text-sm font-medium">{fighter.license_number}</span>
           </div>
           <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs`}>
@@ -125,7 +125,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
 
         {/* License Button */}
         <Button 
-          variant="outline" 
+          variant="professional-outline" 
           size="sm" 
           className="w-full mt-3"
           onClick={(e) => {
@@ -133,7 +133,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             navigate(`/fighters/license/${fighter.id}`);
           }}
         >
-          <CreditCard className="h-5 w-5 mr-2 text-white" />
+          <CreditCard className="h-5 w-5 mr-2 text-professional-accent" />
           Ver Licencia
         </Button>
       </CardContent>
