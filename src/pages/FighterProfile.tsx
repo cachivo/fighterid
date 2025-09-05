@@ -368,7 +368,7 @@ export default function FighterProfile() {
             </Card>
 
             {/* External Links */}
-            {(fighter.sherdog_url || fighter.tapology_url) && (
+            {(fighter.boxrec_url || fighter.tapology_url) && (
               <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3">
@@ -379,11 +379,11 @@ export default function FighterProfile() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {fighter.sherdog_url && (
+                  {fighter.boxrec_url && (
                     <Button variant="outline" asChild className="w-full border-professional-accent/40 hover:bg-professional-accent/10">
-                      <a href={fighter.sherdog_url} target="_blank" rel="noopener noreferrer">
+                      <a href={fighter.boxrec_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-4 w-4 mr-2" />
-                        Ver en Sherdog
+                        Ver en BoxRec
                       </a>
                     </Button>
                   )}

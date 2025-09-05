@@ -33,8 +33,9 @@ export interface FighterProfile {
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
-  sherdog_url?: string;
+  boxrec_url?: string;
   tapology_url?: string;
+  record_type?: string;
   stance?: string;
   level?: string;
   // Phase 1: Critical Safety Information
@@ -69,8 +70,9 @@ export interface FighterProfileData {
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
-  sherdog_url?: string;
+  boxrec_url?: string;
   tapology_url?: string;
+  record_type?: string;
   stance?: string;
   level?: string;
   // Phase 1: Critical Safety Information
@@ -102,8 +104,9 @@ export interface AdminFighterFormData {
   record_draws?: number;
   elo_rating?: number;
   gender?: string;
-  sherdog_url?: string;
+  boxrec_url?: string;
   tapology_url?: string;
+  record_type?: string;
   stance?: string;
   level?: string;
 }

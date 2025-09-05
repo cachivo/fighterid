@@ -41,10 +41,11 @@ export default function EnhancedLicenseOnboarding() {
     phone: '',
     birthdate: '',
     gender: '' as 'M' | 'F' | 'Otro' | '',
+    recordType: '' as 'Amateur' | 'Profesional' | '',
     recordWins: '',
     recordLosses: '',
     recordDraws: '',
-    sherdogUrl: '',
+    boxrecUrl: '',
     tapologyUrl: '',
     
     // Phase 1: Critical Safety Information
@@ -209,7 +210,7 @@ export default function EnhancedLicenseOnboarding() {
         record_losses: formData.recordLosses ? parseInt(formData.recordLosses) : 0,
         record_draws: formData.recordDraws ? parseInt(formData.recordDraws) : 0,
         gender: formData.gender || null,
-        sherdog_url: formData.sherdogUrl || null,
+        boxrec_url: formData.boxrecUrl || null,
         tapology_url: formData.tapologyUrl || null,
         bio: formData.bio || null,
         
@@ -764,13 +765,13 @@ export default function EnhancedLicenseOnboarding() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="sherdogUrl">Perfil Sherdog (URL)</Label>
+                        <Label htmlFor="boxrecUrl">Perfil BoxRec (URL)</Label>
                         <Input
-                          id="sherdogUrl"
+                          id="boxrecUrl"
                           type="url"
-                          value={formData.sherdogUrl}
-                          onChange={(e) => setFormData({...formData, sherdogUrl: e.target.value})}
-                          placeholder="https://sherdog.com/..."
+                          value={formData.boxrecUrl}
+                          onChange={(e) => setFormData({...formData, boxrecUrl: e.target.value})}
+                          placeholder="https://boxrec.com/..."
                         />
                       </div>
                       <div>

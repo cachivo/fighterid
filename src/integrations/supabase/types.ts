@@ -1091,6 +1091,7 @@ export type Database = {
           birthdate: string | null
           birthplace: string | null
           blood_type: string | null
+          boxrec_url: string | null
           country: string | null
           created_at: string | null
           discipline: Database["public"]["Enums"]["discipline"] | null
@@ -1123,8 +1124,8 @@ export type Database = {
           reach_cm: number | null
           record_draws: number | null
           record_losses: number | null
+          record_type: string | null
           record_wins: number | null
-          sherdog_url: string | null
           stance: string | null
           tapology_url: string | null
           updated_at: string | null
@@ -1139,6 +1140,7 @@ export type Database = {
           birthdate?: string | null
           birthplace?: string | null
           blood_type?: string | null
+          boxrec_url?: string | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
@@ -1171,8 +1173,8 @@ export type Database = {
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
+          record_type?: string | null
           record_wins?: number | null
-          sherdog_url?: string | null
           stance?: string | null
           tapology_url?: string | null
           updated_at?: string | null
@@ -1187,6 +1189,7 @@ export type Database = {
           birthdate?: string | null
           birthplace?: string | null
           blood_type?: string | null
+          boxrec_url?: string | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
@@ -1219,8 +1222,8 @@ export type Database = {
           reach_cm?: number | null
           record_draws?: number | null
           record_losses?: number | null
+          record_type?: string | null
           record_wins?: number | null
-          sherdog_url?: string | null
           stance?: string | null
           tapology_url?: string | null
           updated_at?: string | null

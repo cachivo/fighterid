@@ -303,16 +303,16 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
             </>
           )}
 
-          {(profile.sherdog_url || profile.tapology_url) && (
+          {(profile.boxrec_url || profile.tapology_url) && (
             <>
               <Separator />
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Links Profesionales:</p>
                 <div className="flex gap-2">
-                  {profile.sherdog_url && (
+                  {profile.boxrec_url && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={profile.sherdog_url} target="_blank" rel="noopener noreferrer">
-                        Sherdog
+                      <a href={profile.boxrec_url} target="_blank" rel="noopener noreferrer">
+                        BoxRec
                       </a>
                     </Button>
                   )}

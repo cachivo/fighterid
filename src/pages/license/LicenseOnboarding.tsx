@@ -39,10 +39,11 @@ export default function LicenseOnboarding() {
     phone: '',
     birthdate: '',
     gender: '' as 'M' | 'F' | 'Otro' | '',
+    recordType: '' as 'Amateur' | 'Profesional' | '',
     recordWins: '',
     recordLosses: '',
     recordDraws: '',
-    sherdogUrl: '',
+    boxrecUrl: '',
     tapologyUrl: ''
   });
 
@@ -216,8 +217,9 @@ export default function LicenseOnboarding() {
         record_wins: formData.recordWins ? parseInt(formData.recordWins) : 0,
         record_losses: formData.recordLosses ? parseInt(formData.recordLosses) : 0,
         record_draws: formData.recordDraws ? parseInt(formData.recordDraws) : 0,
+        record_type: formData.recordType || null,
         gender: formData.gender || null,
-        sherdog_url: formData.sherdogUrl || null,
+        boxrec_url: formData.boxrecUrl || null,
         tapology_url: formData.tapologyUrl || null,
         bio: formData.bio || null
       };
@@ -689,6 +691,22 @@ export default function LicenseOnboarding() {
                 </div>
 
                 <div className="space-y-4">
+                  <h4 className="font-medium text-sm">Tipo de Récord</h4>
+                  <div>
+                    <Label htmlFor="recordType">Categoría de Récord *</Label>
+                    <Select value={formData.recordType} onValueChange={(value) => setFormData({...formData, recordType: value as any})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el tipo de récord" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Amateur">Amateur</SelectItem>
+                        <SelectItem value="Profesional">Profesional</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
                   <h4 className="font-medium text-sm">Récord de Peleas</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
@@ -730,16 +748,16 @@ export default function LicenseOnboarding() {
                 <div className="space-y-4">
                   <h4 className="font-medium text-sm">Enlaces de Verificación (Opcional)</h4>
                   <div>
-                    <Label htmlFor="sherdogUrl">Perfil Sherdog</Label>
+                    <Label htmlFor="boxrecUrl">Perfil BoxRec</Label>
                     <Input
-                      id="sherdogUrl"
+                      id="boxrecUrl"
                       type="url"
-                      value={formData.sherdogUrl}
-                      onChange={(e) => setFormData({...formData, sherdogUrl: e.target.value})}
-                      placeholder="https://www.sherdog.com/fighter/..."
+                      value={formData.boxrecUrl}
+                      onChange={(e) => setFormData({...formData, boxrecUrl: e.target.value})}
+                      placeholder="https://boxrec.com/..."
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Enlace a tu perfil en Sherdog para verificar tu récord
+                      Enlace a tu perfil en BoxRec para verificar tu récord profesional
                     </p>
                   </div>
                   <div>
