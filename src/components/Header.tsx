@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
-import { FighterIDModal } from "@/components/FighterIDModal";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User, Coins } from "lucide-react";
+import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -56,15 +55,16 @@ const Header = () => {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList className="space-x-2">
-            {/* Mi ID - Always visible and prominent */}
+            {/* Mi Fighter ID - Always visible and prominent */}
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
-                <FighterIDModal>
-                  <div className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none cursor-pointer">
-                    <Coins className="h-4 w-4 text-amber-400" />
-                    Mi ID
-                  </div>
-                </FighterIDModal>
+                <Link 
+                  to="/license/dashboard"
+                  className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none"
+                >
+                  <Shield className="h-4 w-4" />
+                  Mi Fighter ID
+                </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
 
@@ -116,12 +116,13 @@ const Header = () => {
 
         {/* Simplified Navigation for Medium Screens */}
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
-          <FighterIDModal>
-            <div className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors cursor-pointer">
-              <Coins className="h-3 w-3 text-amber-400" />
-              Mi ID
-            </div>
-          </FighterIDModal>
+          <Link 
+            to="/license/dashboard"
+            className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Shield className="h-3 w-3" />
+            Mi Fighter ID
+          </Link>
           <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
             Eventos
           </Link>
@@ -165,22 +166,21 @@ const Header = () => {
                 
                 {/* Navigation Items */}
                 <div className="flex-1 py-2">
-                  {/* Featured Mi ID */}
+                  {/* Featured Mi Fighter ID */}
                   <div className="px-4 pb-4">
-                    <FighterIDModal>
-                      <div
-                        className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20 cursor-pointer"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Coins className="h-6 w-6 text-amber-400" />
-                        <div>
-                          <span className="font-semibold text-base">Mi ID</span>
-                          <p className="text-xs opacity-90 mt-0.5">
-                            Ver tu ID digital
-                          </p>
-                        </div>
+                    <Link
+                      to="/license/dashboard"
+                      className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Shield className="h-6 w-6" />
+                      <div>
+                        <span className="font-semibold text-base">Mi Fighter ID</span>
+                        <p className="text-xs opacity-90 mt-0.5">
+                          Gestiona tu Fighter ID
+                        </p>
                       </div>
-                    </FighterIDModal>
+                    </Link>
                   </div>
                   
                   <nav className="space-y-1 px-4">
