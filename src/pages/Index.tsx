@@ -51,7 +51,7 @@ const Index = () => {
   }, [queryClient]);
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black urban-home">
       <UrbanDecorations />
       <Header />
       <Hero />

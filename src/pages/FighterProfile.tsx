@@ -75,12 +75,11 @@ export default function FighterProfile() {
   const winPercentage = currentRecord.winPercentage;
 
   return (
-    <div className="min-h-screen bg-black">
-      <UrbanDecorations />
+    <div className="min-h-screen bg-background">
       {/* Header Navigation */}
-      <div className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-purple-500/30">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <Button asChild className="bg-purple-500 text-white hover:bg-purple-600">
+          <Button asChild>
             <Link to="/fighters">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver a Fighters
@@ -90,13 +89,13 @@ export default function FighterProfile() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
-        {/* Hero Section - UFC Style */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
-          {/* Animated background elements */}
+        {/* Hero Section - Professional Style */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-card via-background to-muted">
+          {/* Elegant background elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-500/5 via-transparent to-purple-400/5"></div>
-            <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-20 w-64 h-64 bg-purple-400/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+            <div className="absolute top-20 left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-20 right-20 w-64 h-64 bg-accent/5 rounded-full blur-2xl"></div>
           </div>
           
           {/* Professional accent line */}

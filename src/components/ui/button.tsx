@@ -18,10 +18,13 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Urban variants - Monochrome
-        hero: "bg-gradient-to-r from-accent to-street-accent text-accent-foreground hover:shadow-accent font-semibold tracking-wide transition-all duration-300 hover:scale-105",
-        urban: "bg-urban-gray text-white hover:bg-primary border-2 border-transparent hover:border-accent transition-all duration-200",
-        vote: "bg-vote-inactive hover:bg-vote-active text-white font-medium transition-all duration-200 hover:shadow-md",
+        // Professional variants for sober, elegant look
+        professional: "bg-professional-primary text-professional-primary-foreground hover:bg-professional-primary/90 shadow-professional",
+        "professional-outline": "border border-professional-border bg-transparent text-professional-primary hover:bg-professional-primary hover:text-professional-primary-foreground",
+        // Urban variants for home page only - these preserve neon colors
+        hero: "bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary text-white hover:shadow-purple-neon transition-all duration-300 font-semibold border border-purple-neon-primary/20",
+        urban: "bg-transparent border border-purple-neon-primary text-purple-neon-primary hover:bg-purple-neon-primary hover:text-black transition-all duration-300 font-medium backdrop-blur-sm",
+        vote: "bg-vote-inactive text-white hover:bg-vote-active transition-all duration-200 font-medium border border-vote-inactive hover:border-vote-active"
       },
       size: {
         default: "h-10 px-4 py-2",
