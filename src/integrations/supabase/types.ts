@@ -1040,16 +1040,26 @@ export type Database = {
           active: boolean | null
           avatar_url: string | null
           bio: string | null
+          birthdate: string | null
+          birthplace: string | null
+          blood_type: string | null
           country: string | null
           created_at: string | null
           discipline: Database["public"]["Enums"]["discipline"] | null
+          document_number: string | null
+          document_type: string | null
           elo_rating: number | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
           fighting_style: string | null
           first_name: string
           gender: string | null
           gym_name: string | null
           height_cm: number | null
           id: string
+          insurance_company: string | null
+          insurance_policy: string | null
           last_name: string
           level: string | null
           license_expires_date: string | null
@@ -1057,6 +1067,8 @@ export type Database = {
           license_number: string | null
           license_status: string | null
           martial_arts: string[] | null
+          medical_allergies: string | null
+          medical_conditions: string | null
           nickname: string | null
           organization_id: string | null
           primary_license_id: string | null
@@ -1076,16 +1088,26 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          birthdate?: string | null
+          birthplace?: string | null
+          blood_type?: string | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
+          document_number?: string | null
+          document_type?: string | null
           elo_rating?: number | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           fighting_style?: string | null
           first_name: string
           gender?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
+          insurance_company?: string | null
+          insurance_policy?: string | null
           last_name: string
           level?: string | null
           license_expires_date?: string | null
@@ -1093,6 +1115,8 @@ export type Database = {
           license_number?: string | null
           license_status?: string | null
           martial_arts?: string[] | null
+          medical_allergies?: string | null
+          medical_conditions?: string | null
           nickname?: string | null
           organization_id?: string | null
           primary_license_id?: string | null
@@ -1112,16 +1136,26 @@ export type Database = {
           active?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          birthdate?: string | null
+          birthplace?: string | null
+          blood_type?: string | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
+          document_number?: string | null
+          document_type?: string | null
           elo_rating?: number | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
           fighting_style?: string | null
           first_name?: string
           gender?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
+          insurance_company?: string | null
+          insurance_policy?: string | null
           last_name?: string
           level?: string | null
           license_expires_date?: string | null
@@ -1129,6 +1163,8 @@ export type Database = {
           license_number?: string | null
           license_status?: string | null
           martial_arts?: string[] | null
+          medical_allergies?: string | null
+          medical_conditions?: string | null
           nickname?: string | null
           organization_id?: string | null
           primary_license_id?: string | null

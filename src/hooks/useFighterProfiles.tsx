@@ -37,6 +37,19 @@ export interface FighterProfile {
   tapology_url?: string;
   stance?: string;
   level?: string;
+  // Phase 1: Critical Safety Information
+  document_type?: string;
+  document_number?: string;
+  birthdate?: string;
+  birthplace?: string;
+  blood_type?: string;
+  emergency_contact_name?: string;
+  emergency_contact_relation?: string;
+  emergency_contact_phone?: string;
+  medical_allergies?: string;
+  medical_conditions?: string;
+  insurance_company?: string;
+  insurance_policy?: string;
 }
 
 export interface FighterProfileData {
@@ -60,6 +73,19 @@ export interface FighterProfileData {
   tapology_url?: string;
   stance?: string;
   level?: string;
+  // Phase 1: Critical Safety Information
+  document_type?: string;
+  document_number?: string;
+  birthdate?: string;
+  birthplace?: string;
+  blood_type?: string;
+  emergency_contact_name?: string;
+  emergency_contact_relation?: string;
+  emergency_contact_phone?: string;
+  medical_allergies?: string;
+  medical_conditions?: string;
+  insurance_company?: string;
+  insurance_policy?: string;
 }
 
 export interface AdminFighterFormData {
