@@ -99,17 +99,25 @@ export default function FighterProfile() {
               <div className="flex flex-col lg:flex-row items-start lg:items-center gap-8">
                 {/* Fighter Photo & Basic Info */}
                 <div className="flex items-center gap-6">
-                  <Avatar className="h-32 w-32 border-4 border-professional-accent/50 shadow-professional">
-                    <AvatarImage 
-                      src={fighter.avatar_url} 
-                      alt={`${fighter.first_name} ${fighter.last_name}`}
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-gradient-professional text-professional-primary-foreground text-4xl font-bold">
-                      {fighter.first_name?.charAt(0) || 'F'}
-                      {fighter.last_name?.charAt(0) || 'F'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative">
+                    <Avatar className="h-32 w-32 border-4 border-professional-accent/50 shadow-professional bg-gradient-to-br from-professional-muted/20 to-transparent">
+                      <AvatarImage 
+                        src={fighter.avatar_url} 
+                        alt={`${fighter.first_name} ${fighter.last_name}`}
+                        className="object-cover"
+                        style={{ 
+                          background: 'transparent',
+                          backdropFilter: 'none'
+                        }}
+                      />
+                      <AvatarFallback className="bg-gradient-professional text-professional-primary-foreground text-4xl font-bold">
+                        {fighter.first_name?.charAt(0) || 'F'}
+                        {fighter.last_name?.charAt(0) || 'F'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Professional gradient background for the avatar */}
+                    <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-professional-primary/20 via-professional-accent/10 to-professional-muted/5 blur-xl"></div>
+                  </div>
                   
                   <div className="space-y-3">
                     <div>

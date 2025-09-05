@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import { removeBackground, loadImage } from './backgroundRemoval';
+import { toast } from 'sonner';
 
 export async function uploadFighterAvatar(
   file: File, 
@@ -12,13 +14,38 @@ export async function uploadFighterAvatar(
       await cleanupOldAvatar(currentAvatarUrl);
     }
 
-    // Upload new photo
-    const photoFileName = `${userId}/photo-${Date.now()}.${file.type.split('/')[1]}`;
+    let processedFile = file;
+
+    // Apply background removal for image files
+    if (file.type.startsWith('image/')) {
+      try {
+        toast.info('Procesando imagen, removiendo fondo...');
+        
+        // Load image and remove background
+        const imageElement = await loadImage(file);
+        const processedBlob = await removeBackground(imageElement);
+        
+        // Convert blob to file
+        processedFile = new File([processedBlob], file.name, {
+          type: 'image/png',
+          lastModified: Date.now()
+        });
+        
+        toast.success('Fondo removido exitosamente');
+      } catch (bgError) {
+        console.warn('Background removal failed, using original image:', bgError);
+        toast.warning('No se pudo remover el fondo, usando imagen original');
+        // Continue with original file if background removal fails
+      }
+    }
+
+    // Upload processed photo
+    const photoFileName = `${userId}/photo-${Date.now()}.png`;
     
     const { error: uploadError } = await supabase.storage
       .from('fighter-photos')
-      .upload(photoFileName, file, {
-        contentType: file.type,
+      .upload(photoFileName, processedFile, {
+        contentType: processedFile.type,
         upsert: false
       });
 
