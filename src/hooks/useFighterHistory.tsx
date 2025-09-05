@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export type RecordType = 'TOTAL' | 'AMATEUR' | 'PROFESSIONAL';
+export type RecordType = 'AMATEUR' | 'PROFESSIONAL';
 
 export interface FighterRecord {
   wins: number;
@@ -54,7 +54,6 @@ export function useFighterHistory(fighterId: string | null) {
         return professionalOrgs.some(org => eventName.includes(org));
       });
     }
-    // TOTAL uses all fights (no filtering)
 
     let wins = 0;
     let losses = 0;
@@ -101,7 +100,6 @@ export function useFighterHistory(fighterId: string | null) {
     error,
     calculateRecord,
     // Helper methods for each record type
-    getTotalRecord: () => calculateRecord('TOTAL'),
     getAmateurRecord: () => calculateRecord('AMATEUR'),
     getProfessionalRecord: () => calculateRecord('PROFESSIONAL'),
   };

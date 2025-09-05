@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft, Shield, Trophy, Calendar, MapPin, Users, BarChart3, ExternalLink } from 'lucide-react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import UrbanDecorations from '@/components/UrbanDecorations';
 
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +18,7 @@ export default function FighterProfile() {
   const { calculateRecord } = useFighterHistory(id || null);
   const [fighter, setFighter] = useState<FighterProfileType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recordType, setRecordType] = useState<RecordType>('TOTAL');
+  const [recordType, setRecordType] = useState<RecordType>('AMATEUR');
 
   useEffect(() => {
     if (id) {
@@ -74,11 +75,12 @@ export default function FighterProfile() {
   const winPercentage = currentRecord.winPercentage;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20">
+    <div className="min-h-screen bg-black">
+      <UrbanDecorations />
       {/* Header Navigation */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-professional-border/30">
+      <div className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-purple-500/30">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <Button variant="ghost" asChild className="hover:bg-professional-muted/20">
+          <Button variant="ghost" asChild className="hover:bg-purple-500/20">
             <Link to="/fighters">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver a Fighters
@@ -89,16 +91,16 @@ export default function FighterProfile() {
 
       <div className="max-w-7xl mx-auto p-6 space-y-8 animate-fade-in">
         {/* Hero Section - UFC Style */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-background via-background/95 to-professional-primary/10">
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-900">
           {/* Animated background elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-professional-primary/5 via-transparent to-professional-accent/5"></div>
-            <div className="absolute top-20 left-20 w-96 h-96 bg-professional-primary/10 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-20 w-64 h-64 bg-professional-accent/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-purple-500/5 via-transparent to-purple-400/5"></div>
+            <div className="absolute top-20 left-20 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 right-20 w-64 h-64 bg-purple-400/10 rounded-full blur-2xl animate-pulse delay-1000"></div>
           </div>
           
           {/* Professional accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-professional"></div>
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
           
           <div className="relative p-8 lg:p-16">
             <div className="max-w-7xl mx-auto">
@@ -137,22 +139,16 @@ export default function FighterProfile() {
                   {/* Record Type Toggle */}
                   <div className="mb-6">
                     <Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
-                      <TabsList className="bg-background/50 border border-professional-border/30 w-full">
-                        <TabsTrigger 
-                          value="TOTAL" 
-                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
-                        >
-                          Total
-                        </TabsTrigger>
+                      <TabsList className="bg-gray-900/90 border border-purple-500/30 w-full shadow-lg shadow-purple-500/20">
                         <TabsTrigger 
                           value="AMATEUR" 
-                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
+                          className="flex-1 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/50 bg-transparent text-gray-300 hover:bg-purple-500/20 transition-all duration-300"
                         >
                           Amateur
                         </TabsTrigger>
                         <TabsTrigger 
                           value="PROFESSIONAL" 
-                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
+                          className="flex-1 data-[state=active]:bg-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/50 bg-transparent text-gray-300 hover:bg-purple-500/20 transition-all duration-300"
                         >
                           Profesional
                         </TabsTrigger>
@@ -163,26 +159,26 @@ export default function FighterProfile() {
                   {/* Fight Stats */}
                   <div className="grid grid-cols-3 gap-8">
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-professional-primary font-mono mb-2">
+                      <div className="text-4xl lg:text-6xl font-bold text-purple-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.wins}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                         Victorias
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-fighter-danger font-mono mb-2">
+                      <div className="text-4xl lg:text-6xl font-bold text-red-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.losses}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                         Derrotas
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-professional-accent font-mono mb-2">
+                      <div className="text-4xl lg:text-6xl font-bold text-yellow-400 font-mono mb-2 drop-shadow-lg">
                         {currentRecord.draws}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                         Empates
                       </div>
                     </div>
