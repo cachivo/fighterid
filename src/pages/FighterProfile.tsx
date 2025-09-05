@@ -1,19 +1,23 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useFighterProfiles, FighterProfile as FighterProfileType } from '@/hooks/useFighterProfiles';
+import { useFighterHistory, RecordType } from '@/hooks/useFighterHistory';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft, Shield, Trophy, Calendar, MapPin, Users, BarChart3, ExternalLink } from 'lucide-react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
   const { getFighterById } = useFighterProfiles();
+  const { calculateRecord } = useFighterHistory(id || null);
   const [fighter, setFighter] = useState<FighterProfileType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recordType, setRecordType] = useState<RecordType>('TOTAL');
 
   useEffect(() => {
     if (id) {
@@ -64,10 +68,10 @@ export default function FighterProfile() {
     }
   };
 
-  const record = `${fighter.record_wins || 0}-${fighter.record_losses || 0}-${fighter.record_draws || 0}`;
-  const winPercentage = fighter.record_wins && (fighter.record_wins + fighter.record_losses + fighter.record_draws) > 0 
-    ? Math.round((fighter.record_wins / (fighter.record_wins + fighter.record_losses + fighter.record_draws)) * 100)
-    : 0;
+  // Calculate record based on selected type
+  const currentRecord = calculateRecord(recordType);
+  const record = `${currentRecord.wins}-${currentRecord.losses}-${currentRecord.draws}`;
+  const winPercentage = currentRecord.winPercentage;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20">
@@ -130,11 +134,37 @@ export default function FighterProfile() {
                     </div>
                   </div>
 
+                  {/* Record Type Toggle */}
+                  <div className="mb-6">
+                    <Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
+                      <TabsList className="bg-background/50 border border-professional-border/30 w-full">
+                        <TabsTrigger 
+                          value="TOTAL" 
+                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
+                        >
+                          Total
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="AMATEUR" 
+                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
+                        >
+                          Amateur
+                        </TabsTrigger>
+                        <TabsTrigger 
+                          value="PROFESSIONAL" 
+                          className="flex-1 data-[state=active]:bg-professional-primary data-[state=active]:text-white"
+                        >
+                          Profesional
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  </div>
+
                   {/* Fight Stats */}
                   <div className="grid grid-cols-3 gap-8">
                     <div className="text-center">
                       <div className="text-4xl lg:text-6xl font-bold text-professional-primary font-mono mb-2">
-                        {fighter.record_wins || 0}
+                        {currentRecord.wins}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Victorias
@@ -142,7 +172,7 @@ export default function FighterProfile() {
                     </div>
                     <div className="text-center">
                       <div className="text-4xl lg:text-6xl font-bold text-fighter-danger font-mono mb-2">
-                        {fighter.record_losses || 0}
+                        {currentRecord.losses}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Derrotas
@@ -150,7 +180,7 @@ export default function FighterProfile() {
                     </div>
                     <div className="text-center">
                       <div className="text-4xl lg:text-6xl font-bold text-professional-accent font-mono mb-2">
-                        {fighter.record_draws || 0}
+                        {currentRecord.draws}
                       </div>
                       <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Empates
