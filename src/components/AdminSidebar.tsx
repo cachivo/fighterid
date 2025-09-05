@@ -11,7 +11,10 @@ import {
   DollarSign,
   LogOut,
   Shield,
-  HandHeart
+  HandHeart,
+  Gavel,
+  Radio,
+  Trophy
 } from 'lucide-react';
 import {
   Sidebar,

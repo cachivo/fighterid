@@ -2446,6 +2446,10 @@ export type Database = {
         Args: { p_license_id: string }
         Returns: string
       }
+      get_current_user_judge_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       import_fighter_data: {
         Args: {
           p_academy?: string
@@ -2463,6 +2467,14 @@ export type Database = {
       }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_assigned_judge: {
+        Args: { p_fight_id: string }
+        Returns: boolean
+      }
+      is_assigned_referee: {
+        Args: { p_fight_id: string }
         Returns: boolean
       }
       process_bet_transaction: {
