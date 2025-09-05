@@ -125,7 +125,9 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
             {/* Level Badge */}
             <Badge 
               variant={getLevelVariant(profile.level)}
-              className="bg-slate-800/80 text-purple-300 border-purple-500/30 px-2 py-1 text-xs font-medium"
+              className={`bg-slate-800/80 border-purple-500/30 px-2 py-1 text-xs font-medium ${
+                profile.level ? 'text-purple-300' : 'text-green-400'
+              }`}
             >
               <Award className="h-3 w-3 mr-1" />
               {profile.level || 'Active'}
