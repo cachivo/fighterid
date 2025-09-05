@@ -475,7 +475,6 @@ export default function LicenseOnboarding() {
                       <SelectValue placeholder="Selecciona una organización (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Ninguna</SelectItem>
                       {organizations?.data?.map((org) => (
                         <SelectItem key={org.id} value={org.id}>
                           {org.name} {org.country && `(${org.country})`}
