@@ -142,10 +142,10 @@ export function useFighterProfiles() {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchFighters = async () => {
+  const fetchFighters = async (includeInactive = false) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('fighter_profiles')
         .select(`
           *,
@@ -154,12 +154,59 @@ export function useFighterProfiles() {
           license_issued_date,
           license_expires_date,
           license_status
-        `)
-        .eq('active', true)
-        .order('elo_rating', { ascending: false });
+        `);
+      
+      if (!includeInactive) {
+        query = query.eq('active', true);
+      }
+      
+      const { data, error } = await query.order('elo_rating', { ascending: false });
 
       if (error) throw error;
       setFighters(data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFightersWithReadyStatus = async (includeInactive = false) => {
+    try {
+      setLoading(true);
+      let query = supabase
+        .from('fighter_profiles')
+        .select(`
+          *,
+          martial_arts,
+          license_number,
+          license_issued_date,
+          license_expires_date,
+          license_status,
+          fighter_status_updates!inner(
+            ready_to_fight,
+            created_at
+          )
+        `);
+      
+      if (!includeInactive) {
+        query = query.eq('active', true);
+      }
+      
+      const { data, error } = await query.order('elo_rating', { ascending: false });
+
+      if (error) throw error;
+      
+      // Process data to get latest ready_to_fight status
+      const processedData = data?.map(fighter => {
+        const latestStatus = fighter.fighter_status_updates?.[0];
+        return {
+          ...fighter,
+          ready_to_fight: latestStatus?.ready_to_fight || false
+        };
+      }) || [];
+      
+      setFighters(processedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -412,6 +459,7 @@ export function useFighterProfiles() {
     getUserFighterProfile,
     getFighterById,
     fetchFighters,
+    fetchFightersWithReadyStatus,
     adminUpdateFighterProfile,
     deleteLicense,
     deleteFighterProfile,

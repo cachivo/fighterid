@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { FighterEditModal } from '@/components/admin/FighterEditModal';
 import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
-import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
+import { useAdminFighters, AdminFighterProfile } from '@/hooks/useAdminFighters';
+import { FighterProfile } from '@/hooks/useFighterProfiles';
 
 const WEIGHT_CLASSES = [
   'Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight', 
@@ -16,12 +17,12 @@ const WEIGHT_CLASSES = [
 ];
 
 export default function Fighters() {
-  const { fighters, loading, error } = useFighterProfiles();
+  const { fighters, loading, error } = useAdminFighters();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
-  const [editingFighter, setEditingFighter] = useState<FighterProfile | null>(null);
-  const [deletingFighter, setDeletingFighter] = useState<FighterProfile | null>(null);
+  const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
+  const [deletingFighter, setDeletingFighter] = useState<AdminFighterProfile | null>(null);
 
   // Filtrar y ordenar peleadores
   const filteredFighters = fighters
@@ -236,7 +237,7 @@ export default function Fighters() {
       {/* Edit Modal */}
       {editingFighter && (
         <FighterEditModal
-          fighter={editingFighter}
+          fighter={editingFighter as FighterProfile}
           open={!!editingFighter}
           onClose={() => setEditingFighter(null)}
         />
@@ -244,7 +245,7 @@ export default function Fighters() {
 
       {/* Delete Dialog */}
       <DeleteFighterDialog
-        fighter={deletingFighter}
+        fighter={deletingFighter as FighterProfile}
         isOpen={!!deletingFighter}
         onClose={() => setDeletingFighter(null)}
         onConfirm={() => {
