@@ -109,6 +109,29 @@ export interface AdminFighterFormData {
   record_type?: string;
   stance?: string;
   level?: string;
+  // Physical attributes
+  height_cm?: number;
+  weight_kg?: number;
+  reach_cm?: number;
+  // Bio and background
+  bio?: string;
+  fighting_style?: string;
+  gym_name?: string;
+  birthdate?: string;
+  birthplace?: string;
+  // Medical and emergency
+  blood_type?: string;
+  medical_allergies?: string;
+  medical_conditions?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  emergency_contact_relation?: string;
+  // Insurance
+  insurance_company?: string;
+  insurance_policy?: string;
+  // Documents
+  document_type?: string;
+  document_number?: string;
 }
 
 export function useFighterProfiles() {
