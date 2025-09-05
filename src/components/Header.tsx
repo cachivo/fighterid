@@ -196,7 +196,7 @@ const Header = () => {
                              className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
                              onClick={() => setMobileMenuOpen(false)}
                            >
-                             <IconComponent className="h-5 w-5 text-primary" />
+                            <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary" />
                              <span className="font-medium">{item.name}</span>
                            </a>
                          );
@@ -209,7 +209,7 @@ const Header = () => {
                            className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
                            onClick={() => setMobileMenuOpen(false)}
                          >
-                           <IconComponent className="h-5 w-5 text-primary" />
+                           <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary" />
                            <span className="font-medium">{item.name}</span>
                          </Link>
                        );
@@ -232,7 +232,7 @@ const Header = () => {
                           asChild
                         >
                           <Link to="/admin">
-                            <Shield className="h-4 w-4 mr-2" />
+                            <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                             Admin Panel
                           </Link>
                         </Button>
@@ -242,7 +242,7 @@ const Header = () => {
                         className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
                         onClick={handleLogout}
                       >
-                        <LogOut className="h-4 w-4 mr-2" />
+                        <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                         Cerrar Sesión
                       </Button>
                     </>
@@ -288,21 +288,21 @@ const Header = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/fighter/me" className="flex items-center">
-                      <User className="h-4 w-4 mr-2" />
+                      <User className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="flex items-center">
-                        <Shield className="h-4 w-4 mr-2" />
+                        <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                         Admin Panel
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
+                    <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>

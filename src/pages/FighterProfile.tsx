@@ -80,7 +80,7 @@ export default function FighterProfile() {
       {/* Header Navigation */}
       <div className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-purple-500/30">
         <div className="max-w-7xl mx-auto px-6 py-4">
-          <Button variant="ghost" asChild className="hover:bg-purple-500/20">
+          <Button asChild className="bg-purple-500 text-white hover:bg-purple-600">
             <Link to="/fighters">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Volver a Fighters
