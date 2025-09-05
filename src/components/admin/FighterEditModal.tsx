@@ -108,9 +108,10 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
       // Prepare form data with proper null handling for empty/undefined values
       const sanitizedData = {
         ...finalFormData,
-        // Convert undefined to null for proper database handling
+        // Convert undefined to null for proper database handling (discipline enum can't be empty string)
         discipline: finalFormData.discipline === undefined ? null : finalFormData.discipline,
-        nickname: finalFormData.nickname === '' ? null : finalFormData.nickname,
+        nickname: finalFormData.nickname === '' || finalFormData.nickname === undefined ? null : finalFormData.nickname,
+        country: finalFormData.country === '' || finalFormData.country === undefined ? null : finalFormData.country,
       };
       
       console.log('Datos sanitizados enviados a la BD:', sanitizedData);
