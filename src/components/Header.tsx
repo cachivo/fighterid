@@ -55,19 +55,6 @@ const Header = () => {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList className="space-x-2">
-            {/* Mi Fighter ID - Always visible and prominent */}
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link 
-                  to="/license/dashboard"
-                  className="group inline-flex h-10 w-max items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 focus:bg-primary/90 focus:outline-none"
-                >
-                  <Shield className="h-4 w-4" />
-                  Mi Fighter ID
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
@@ -308,9 +295,17 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/auth">Iniciar Sesión</Link>
-              </Button>
+              <>
+                <Button variant="outline" size="sm" className="text-xs px-2 h-8" asChild>
+                  <Link to="/license/dashboard" className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Fighter ID
+                  </Link>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/auth">Iniciar Sesión</Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
