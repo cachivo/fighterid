@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { useEvents } from '@/hooks/useEvents';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const Events = () => {
   const { events, loading } = useEvents();
@@ -40,7 +42,8 @@ const Events = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
+        <Header />
+        <div className="container mx-auto px-4 py-8 pt-20">
           <div className="space-y-6">
             <div className="text-center">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
@@ -63,14 +66,17 @@ const Events = () => {
             </div>
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
+      
       {/* Hero Section */}
-      <section className="relative py-20 bg-gradient-to-b from-background via-background/95 to-background">
+      <section className="relative py-20 pt-32 bg-gradient-to-b from-background via-background/95 to-background">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
             Eventos de Combate
@@ -149,6 +155,8 @@ const Events = () => {
           )}
         </div>
       </section>
+      
+      <Footer />
     </div>
   );
 };

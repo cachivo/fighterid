@@ -9,6 +9,8 @@ import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Plus, Filter } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const WEIGHT_CLASSES = [
   'Todos',
@@ -75,8 +77,9 @@ export default function Fighters() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="max-w-7xl mx-auto p-6 pt-20">
           <div className="flex justify-between items-center mb-8">
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-10 w-32" />
@@ -88,13 +91,15 @@ export default function Fighters() {
             ))}
           </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto p-6">
+      <Header />
+      <div className="max-w-7xl mx-auto p-6 pt-20">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
@@ -266,6 +271,7 @@ export default function Fighters() {
           </DialogContent>
         </Dialog>
       </div>
+      <Footer />
     </div>
   );
 }
