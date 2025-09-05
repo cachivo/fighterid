@@ -306,16 +306,21 @@ export function useFighterProfiles() {
         throw new Error('No tienes permisos de administrador para realizar esta acción');
       }
 
+      // Validate discipline before sending if present
+      if (profileData.discipline && !['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'].includes(profileData.discipline)) {
+        throw new Error(`Disciplina inválida: ${profileData.discipline}`);
+      }
+
       console.log('Usuario verificado como admin:', adminCheck);
       
-      // Usar la función administrativa de base de datos
-      const { error } = await supabase.rpc('admin_update_fighter_profile', {
+      // Usar la función administrativa de base de datos v3 con mejor manejo de tipos
+      const { error } = await supabase.rpc('admin_update_fighter_profile_v3', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });
 
       if (error) {
-        console.error('Error en RPC admin_update_fighter_profile:', error);
+        console.error('Error en RPC admin_update_fighter_profile_v3:', error);
         throw error;
       }
 
