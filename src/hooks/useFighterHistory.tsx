@@ -21,9 +21,13 @@ export function useFighterHistory(fighterId: string | null) {
       if (!fighterId) return [];
       
       const { data, error } = await supabase
-        .from('fights_history')
-        .select('*')
-        .or(`red_fighter_id.eq.${fighterId},blue_fighter_id.eq.${fighterId}`);
+        .from('fights')
+        .select(`
+          *,
+          event:bdg_event(name)
+        `)
+        .or(`fighter_a_id.eq.${fighterId},fighter_b_id.eq.${fighterId}`)
+        .eq('status', 'finished');
       
       if (error) throw error;
       return data || [];
@@ -35,24 +39,13 @@ export function useFighterHistory(fighterId: string | null) {
       return { wins: 0, losses: 0, draws: 0, totalFights: 0, winPercentage: 0 };
     }
 
-    // For now, we'll use a simple heuristic to determine fight type based on organization
-    // Professional organizations might contain these keywords
-    const professionalOrgs = ['ufc', 'bellator', 'one', 'pfl', 'strikeforce', 'pride', 'wec'];
-    
+    // Filter fights by type
     let filteredFights = fightHistory;
     
     if (recordType === 'AMATEUR') {
-      // Filter amateur fights (not in professional orgs)
-      filteredFights = fightHistory.filter(fight => {
-        const eventName = fight.event_name?.toLowerCase() || '';
-        return !professionalOrgs.some(org => eventName.includes(org));
-      });
+      filteredFights = fightHistory.filter(fight => fight.fight_type === 'AMATEUR');
     } else if (recordType === 'PROFESSIONAL') {
-      // Filter professional fights (in professional orgs or explicitly marked)
-      filteredFights = fightHistory.filter(fight => {
-        const eventName = fight.event_name?.toLowerCase() || '';
-        return professionalOrgs.some(org => eventName.includes(org));
-      });
+      filteredFights = fightHistory.filter(fight => fight.fight_type === 'PROFESSIONAL');
     }
 
     let wins = 0;
@@ -60,25 +53,17 @@ export function useFighterHistory(fighterId: string | null) {
     let draws = 0;
 
     filteredFights.forEach(fight => {
-      if (fight.result === 'red_win') {
-        // Red fighter won
-        if (fight.red_fighter_id === fighterId) {
-          wins++;
-        } else if (fight.blue_fighter_id === fighterId) {
+      if (fight.winner_id === fighterId) {
+        // This fighter won
+        wins++;
+      } else if (fight.winner_id && fight.winner_id !== fighterId) {
+        // Another fighter won
+        if (fight.fighter_a_id === fighterId || fight.fighter_b_id === fighterId) {
           losses++;
         }
-      } else if (fight.result === 'blue_win') {
-        // Blue fighter won
-        if (fight.blue_fighter_id === fighterId) {
-          wins++;
-        } else if (fight.red_fighter_id === fighterId) {
-          losses++;
-        }
-      } else if (fight.result === 'draw') {
-        // Both fighters get a draw
-        if ((fight.red_fighter_id === fighterId) || (fight.blue_fighter_id === fighterId)) {
-          draws++;
-        }
+      } else if (!fight.winner_id && (fight.fighter_a_id === fighterId || fight.fighter_b_id === fighterId)) {
+        // No winner means draw (only if this fighter participated)
+        draws++;
       }
     });
 
