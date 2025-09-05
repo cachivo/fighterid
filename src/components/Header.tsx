@@ -296,7 +296,7 @@ const Header = () => {
               </DropdownMenu>
             ) : (
               <>
-                <Button variant="outline" size="sm" className="text-xs px-2 h-8" asChild>
+                <Button variant="default" size="sm" className="text-xs px-2 h-8" asChild>
                   <Link to="/license/dashboard" className="flex items-center gap-1">
                     <Shield className="h-3 w-3" />
                     Fighter ID
