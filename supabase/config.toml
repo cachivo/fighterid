@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.populate-batalla-gimnasios]
 verify_jwt = false
+
+[functions.admin-ai-assistant]
+verify_jwt = false
