@@ -71,6 +71,13 @@ export default function Fighters() {
   const { fighters, loading, loadingUserProfile, getUserFighterProfile, fetchFighters, fetchFightersWithReadyStatus } = useFighterProfiles();
   const { user } = useAuth();
 
+  const handleCreateSuccess = useCallback(() => {
+    setIsCreateDialogOpen(false);
+    if (user) {
+      getUserFighterProfile().then(setUserProfile);
+    }
+  }, [user, getUserFighterProfile]);
+
   useEffect(() => {
     if (user) {
       getUserFighterProfile().then(setUserProfile);
@@ -122,13 +129,6 @@ export default function Fighters() {
           return 0;
       }
     });
-
-  const handleCreateSuccess = useCallback(() => {
-    setIsCreateDialogOpen(false);
-    if (user) {
-      getUserFighterProfile().then(setUserProfile);
-    }
-  }, [user, getUserFighterProfile]);
 
   const handleFighterClick = (fighter: FighterProfile) => {
     // Navigate to public fighter profile instead of dialog
