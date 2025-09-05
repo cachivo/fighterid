@@ -22,6 +22,14 @@ const MARTIAL_ARTS = [
   'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
 ];
 
+const FIGHTER_LEVELS = [
+  { value: 'AMATEUR', label: 'Amateur' },
+  { value: 'SEMI_PRO', label: 'Semi-Profesional' },
+  { value: 'PROFESSIONAL', label: 'Profesional' },
+  { value: 'SUSPENDED', label: 'Suspendido' },
+  { value: 'RETIRED', label: 'Retirado' }
+];
+
 interface FighterEditModalProps {
   fighter: FighterProfile;
   open: boolean;
@@ -43,6 +51,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     record_wins: 0,
     record_losses: 0,
     record_draws: 0,
+    level: 'AMATEUR',
   });
 
   useEffect(() => {
@@ -59,6 +68,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         record_wins: fighter.record_wins,
         record_losses: fighter.record_losses,
         record_draws: fighter.record_draws,
+        level: fighter.level || 'AMATEUR',
       });
     }
   }, [fighter]);
@@ -211,6 +221,25 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     value={formData.country}
                     onChange={(e) => handleChange('country', e.target.value)}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="level">Nivel Profesional</Label>
+                  <Select 
+                    value={formData.level || 'AMATEUR'} 
+                    onValueChange={(value) => handleChange('level', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FIGHTER_LEVELS.map(level => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
