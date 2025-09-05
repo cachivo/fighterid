@@ -60,11 +60,17 @@ export function ProfileCompletionPrompt({ profile, className }: ProfileCompletio
               </div>
             </div>
 
+            <div className="bg-blue-950/30 border border-blue-600/30 rounded-lg p-3 mb-3">
+              <p className="text-sm text-blue-200">
+                <strong>Nota importante:</strong> Puedes solicitar cambios a tu información, pero requerirán aprobación administrativa antes de ser aplicados.
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button asChild className="bg-yellow-600 hover:bg-yellow-700 text-white">
-                <Link to="/license/onboarding" className="flex items-center gap-2">
+                <Link to="/profile/request-changes" className="flex items-center gap-2">
                   <UserCheck className="h-4 w-4" />
-                  Completar Información
+                  Solicitar Cambios
                 </Link>
               </Button>
               

@@ -222,6 +222,54 @@ export type Database = {
           },
         ]
       }
+      change_request_audit: {
+        Row: {
+          action: string
+          id: string
+          new_status: string | null
+          notes: string | null
+          old_status: string | null
+          performed_at: string
+          performed_by: string | null
+          request_id: string
+        }
+        Insert: {
+          action: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          request_id: string
+        }
+        Update: {
+          action?: string
+          id?: string
+          new_status?: string | null
+          notes?: string | null
+          old_status?: string | null
+          performed_at?: string
+          performed_by?: string | null
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_request_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_request_audit_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "profile_change_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracion_sitio: {
         Row: {
           clave: string
@@ -1902,6 +1950,74 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      profile_change_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          fighter_profile_id: string
+          id: string
+          requested_changes: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          fighter_profile_id: string
+          id?: string
+          requested_changes?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          fighter_profile_id?: string
+          id?: string
+          requested_changes?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_fighter_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       round_contestants: {
         Row: {

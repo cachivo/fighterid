@@ -20,6 +20,8 @@ import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFighters from './pages/admin/Fighters';
 import JudgesManagement from './pages/admin/JudgesManagement';
 import LiveEventsControl from './pages/admin/LiveEventsControl';
+import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
+import ProfileChangeRequest from './pages/ProfileChangeRequest';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -112,6 +114,13 @@ const App = () => (
                 <Route path="dashboard" element={<LicenseDashboard />} />
               </Route>
 
+              {/* Profile Change Request Route */}
+              <Route path="/profile/request-changes" element={
+                <ProtectedRoute>
+                  <ProfileChangeRequest />
+                </ProtectedRoute>
+              } />
+
               {/* Fighter Profile Routes */}
               <Route path="/fighter/me" element={
                 <ProtectedRoute>
@@ -162,6 +171,7 @@ const App = () => (
                       <Route path="/comunidad" element={<Comunidad />} />
                       <Route path="/configuracion" element={<Configuracion />} />
                       <Route path="/licencias" element={<ValidacionLicencias />} />
+                      <Route path="/profile-requests" element={<ProfileChangeRequests />} />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>
