@@ -167,38 +167,83 @@ export function useProfileChangeRequests() {
     adminNotes?: string
   ) => {
     try {
+      setLoading(true);
+      
+      // Get the request data first
+      const { data: requestData, error: fetchError } = await supabase
+        .from('profile_change_requests')
+        .select('fighter_profile_id, requested_changes')
+        .eq('id', requestId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Get current user's app_user record to get the actual user ID (not auth_user_id)
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
+      const { data: appUser, error: appUserError } = await supabase
+        .from('app_user')
+        .select('id')
+        .eq('auth_user_id', userData.user.id)
+        .single();
+
+      if (appUserError) throw appUserError;
+
+      // Update the request status
       const { error } = await supabase
         .from('profile_change_requests')
         .update({
           status,
           admin_notes: adminNotes,
           reviewed_at: new Date().toISOString(),
-          reviewed_by: (await supabase.from('app_user').select('id').eq('auth_user_id', user?.id).single()).data?.id
+          reviewed_by: appUser.id
         })
         .eq('id', requestId);
 
-      if (error) {
-        console.error('Error updating request status:', error);
-        throw new Error('Error al actualizar el estado de la solicitud');
-      }
+      if (error) throw error;
 
-      // If approved, apply the changes to the fighter profile
+      // If approved, apply the changes using the fixed RPC function
       if (status === 'APPROVED') {
-        const request = requests.find(r => r.id === requestId);
-        if (request) {
-          await applyProfileChanges(request.fighter_profile_id, request.requested_changes);
-        }
-      }
+        const { error: rpcError } = await supabase.rpc('admin_update_fighter_profile_v2', {
+          p_fighter_id: requestData.fighter_profile_id,
+          p_profile_data: requestData.requested_changes,
+          p_admin_user_id: appUser.id
+        });
 
-      toast({
-        title: "Solicitud actualizada",
-        description: `La solicitud ha sido ${status === 'APPROVED' ? 'aprobada' : status === 'REJECTED' ? 'rechazada' : 'marcada como requiere información'}.`,
-      });
+        if (rpcError) {
+          console.error('RPC Error:', rpcError);
+          throw new Error(`Error aplicando cambios: ${rpcError.message}`);
+        }
+
+        // Mark as applied
+        await supabase
+          .from('profile_change_requests')
+          .update({ status: 'APPLIED' })
+          .eq('id', requestId);
+
+        toast({
+          title: "Solicitud aprobada y aplicada",
+          description: "Los cambios han sido aplicados al perfil del peleador.",
+        });
+      } else {
+        toast({
+          title: "Solicitud actualizada",
+          description: `La solicitud ha sido ${status === 'REJECTED' ? 'rechazada' : 'marcada como requiere información'}.`,
+        });
+      }
 
       await fetchAllRequests(); // Refresh the list
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error in updateRequestStatus:', err);
+      toast({
+        title: "Error",
+        description: `No se pudo actualizar la solicitud: ${err.message}`,
+        variant: "destructive",
+      });
       throw err;
+    } finally {
+      setLoading(false);
     }
   };
 

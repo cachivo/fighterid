@@ -2662,6 +2662,10 @@ export type Database = {
         Args: { p_reason: string; p_ticket_id: string }
         Returns: undefined
       }
+      reprocess_approved_profile_changes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       settle_market_payouts: {
         Args: { p_market_id: string; p_winning_outcome_id: string }
         Returns: undefined

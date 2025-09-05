@@ -196,6 +196,7 @@ export function useFighterProfiles() {
     if (!user) return null;
 
     try {
+      setLoading(true);
       // Get user_id from app_user table
       const { data: appUser, error: userError } = await supabase
         .from('app_user')
@@ -207,8 +208,12 @@ export function useFighterProfiles() {
 
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select('*')
+        .select(`
+          *,
+          primary_license:fighter_licenses!primary_license_id(*)
+        `)
         .eq('user_id', appUser.id)
+        .eq('active', true)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
@@ -216,7 +221,14 @@ export function useFighterProfiles() {
     } catch (err) {
       console.error('Error fetching user fighter profile:', err);
       return null;
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Add function to refresh current user profile
+  const refreshUserProfile = async () => {
+    return await getUserFighterProfile();
   };
 
   const getFighterById = async (id: string) => {
@@ -369,6 +381,7 @@ export function useFighterProfiles() {
     fetchFighters,
     adminUpdateFighterProfile,
     deleteLicense,
-    deleteFighterProfile
+    deleteFighterProfile,
+    refreshUserProfile
   };
 }

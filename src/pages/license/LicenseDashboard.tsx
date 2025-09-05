@@ -1,6 +1,7 @@
-import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit } from 'lucide-react';
+import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
+import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,13 +12,39 @@ import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 export default function LicenseDashboard() {
   const { user, licenseData } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
+  const { refreshUserProfile } = useFighterProfiles();
+  const [refreshingProfile, setRefreshingProfile] = useState(false);
 
   console.log('Dashboard - licenseData:', licenseData);
   console.log('Dashboard - license:', license);
+
+  const handleRefreshProfile = async () => {
+    setRefreshingProfile(true);
+    try {
+      await refreshUserProfile();
+      // Force a page reload to refresh all license data
+      window.location.reload();
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    } finally {
+      setRefreshingProfile(false);
+    }
+  };
+
+  // Auto-refresh every 30 seconds to catch applied changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Silent refresh - just reload the page to get latest data
+      window.location.reload();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!licenseData) {
     return (
@@ -83,6 +110,16 @@ export default function LicenseDashboard() {
             </p>
           </div>
           <div className="flex gap-3">
+            <Button 
+              onClick={handleRefreshProfile}
+              disabled={refreshingProfile}
+              variant="outline" 
+              size="sm"
+              className="border-2 border-professional-accent/60 text-professional-primary hover:bg-professional-primary hover:text-professional-primary-foreground"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshingProfile ? 'animate-spin' : ''}`} />
+              {refreshingProfile ? 'Actualizando...' : 'Actualizar'}
+            </Button>
             <Button 
               asChild 
               variant="outline" 
