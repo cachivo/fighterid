@@ -34,7 +34,7 @@ export default function ValidacionLicencias() {
   const [notes, setNotes] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
 
-  // Fetch all licenses for admin view
+  // Fetch licenses with Fighter IDs (ACTIVE and SUSPENDED only)
   const { data: licenses, refetch, isLoading } = useQuery({
     queryKey: ['admin_licenses', searchTerm],
     queryFn: async () => {
@@ -45,6 +45,7 @@ export default function ValidacionLicencias() {
           fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url),
           license_documents(id, file_path, document_type)
         `)
+        .in('status', ['ACTIVE', 'SUSPENDED'])
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -57,14 +58,18 @@ export default function ValidacionLicencias() {
     },
   });
 
-  // Fetch fighters for dropdown
+  // Fetch only fighters with active licenses for dropdown
   const { data: fighters } = useQuery({
-    queryKey: ['fighters_list'],
+    queryKey: ['fighters_with_licenses'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select('id, first_name, last_name, nickname')
+        .select(`
+          id, first_name, last_name, nickname,
+          fighter_licenses!inner(status)
+        `)
         .eq('active', true)
+        .in('fighter_licenses.status', ['ACTIVE', 'SUSPENDED'])
         .order('first_name');
       if (error) throw error;
       return data || [];
@@ -269,7 +274,7 @@ export default function ValidacionLicencias() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center gap-3 mb-6">
         <Shield className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold">Gestión de Licencias</h1>
+        <h1 className="text-2xl font-bold">Peleadores con Fighter ID</h1>
         {!isAdmin && (
           <Badge variant="destructive" className="ml-2">
             <AlertCircle className="h-3 w-3 mr-1" />
@@ -390,7 +395,7 @@ export default function ValidacionLicencias() {
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="h-5 w-5" />
-                  Licencias Existentes
+                  Licencias con Fighter ID
                 </CardTitle>
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
