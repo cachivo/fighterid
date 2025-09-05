@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useLicenseAuth } from "@/hooks/useLicenseAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -20,6 +21,7 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { isAdmin } = useAdmin();
+  const { hasActiveLicense } = useLicenseAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -55,6 +57,21 @@ const Header = () => {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList className="space-x-2">
+            {/* Fighter ID - Only show if user is not a fighter */}
+            {(!user || !hasActiveLicense) && (
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link 
+                    to="/license/dashboard" 
+                    className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Fighter ID
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            )}
+
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
@@ -103,13 +120,15 @@ const Header = () => {
 
         {/* Simplified Navigation for Medium Screens */}
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
-          <Link 
-            to="/license/dashboard"
-            className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
-          >
-            <Shield className="h-3 w-3" />
-            Mi Fighter ID
-          </Link>
+          {(!user || !hasActiveLicense) && (
+            <Link 
+              to="/license/dashboard"
+              className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
+            >
+              <Shield className="h-3 w-3" />
+              Fighter ID
+            </Link>
+          )}
           <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
             Eventos
           </Link>
@@ -153,22 +172,24 @@ const Header = () => {
                 
                 {/* Navigation Items */}
                 <div className="flex-1 py-2">
-                  {/* Featured Mi Fighter ID */}
-                  <div className="px-4 pb-4">
-                    <Link
-                      to="/license/dashboard"
-                      className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Shield className="h-6 w-6" />
-                      <div>
-                        <span className="font-semibold text-base">Mi Fighter ID</span>
-                        <p className="text-xs opacity-90 mt-0.5">
-                          Gestiona tu Fighter ID
-                        </p>
-                      </div>
-                    </Link>
-                  </div>
+                  {/* Featured Fighter ID - Only for non-fighters */}
+                  {(!user || !hasActiveLicense) && (
+                    <div className="px-4 pb-4">
+                      <Link
+                        to="/license/dashboard"
+                        className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Shield className="h-6 w-6" />
+                        <div>
+                          <span className="font-semibold text-base">Fighter ID</span>
+                          <p className="text-xs opacity-90 mt-0.5">
+                            Obtén tu licencia de peleador
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
                   
                   <nav className="space-y-1 px-4">
                      {navigationItems.slice(1).map((item) => {
@@ -295,17 +316,9 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
-                <Button variant="default" size="sm" className="text-xs px-2 h-8" asChild>
-                  <Link to="/license/dashboard" className="flex items-center gap-1">
-                    <Shield className="h-3 w-3" />
-                    Fighter ID
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/auth">Iniciar Sesión</Link>
-                </Button>
-              </>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/auth">Iniciar Sesión</Link>
+              </Button>
             )}
           </div>
         </div>
