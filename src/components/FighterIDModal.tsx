@@ -44,21 +44,11 @@ export function FighterIDModal({ open, onOpenChange }: FighterIDModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30 [&>[data-dialog-close]]:text-gold-400 [&>[data-dialog-close]]:hover:text-gold-300 [&>[data-dialog-close]]:hover:bg-gold-400/10 [&>[data-dialog-close]]:opacity-100">
         <DialogHeader className="relative pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold text-gold-400">
-              Global Fighter ID
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-              className="text-gold-400 hover:text-gold-300 hover:bg-gold-400/10"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+          <DialogTitle className="text-2xl font-bold text-gold-400">
+            Global Fighter ID
+          </DialogTitle>
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-400/30 to-transparent" />
         </DialogHeader>
 
