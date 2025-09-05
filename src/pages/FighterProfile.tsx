@@ -326,6 +326,49 @@ export default function FighterProfile() {
                     </div>
                   </>
                 )}
+
+                {/* Critical Safety Information */}
+                {(fighter.emergency_contact_name || fighter.blood_type || fighter.medical_allergies) && (
+                  <>
+                    <Separator className="bg-gradient-to-r from-transparent via-professional-accent/40 to-transparent" />
+                    <div>
+                      <h3 className="font-semibold text-lg mb-3 text-white flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-red-500" />
+                        Información de Seguridad
+                      </h3>
+                      <div className="grid grid-cols-1 gap-4">
+                        {fighter.emergency_contact_name && (
+                          <div className="p-3 rounded-lg bg-red-950/30 border border-red-800/30">
+                            <p className="text-sm font-medium text-red-300 mb-1">Contacto de Emergencia</p>
+                            <p className="text-white font-medium">{fighter.emergency_contact_name}</p>
+                            {fighter.emergency_contact_relation && (
+                              <p className="text-sm text-gray-300">({fighter.emergency_contact_relation})</p>
+                            )}
+                            {fighter.emergency_contact_phone && (
+                              <p className="text-sm text-gray-300">{fighter.emergency_contact_phone}</p>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          {fighter.blood_type && (
+                            <div className="p-3 rounded-lg bg-yellow-950/30 border border-yellow-800/30">
+                              <p className="text-sm font-medium text-yellow-300 mb-1">Tipo de Sangre</p>
+                              <p className="text-white font-bold text-lg">{fighter.blood_type}</p>
+                            </div>
+                          )}
+                          
+                          {fighter.medical_allergies && (
+                            <div className="p-3 rounded-lg bg-orange-950/30 border border-orange-800/30">
+                              <p className="text-sm font-medium text-orange-300 mb-1">Alergias</p>
+                              <p className="text-white text-sm">{fighter.medical_allergies}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -4,6 +4,7 @@ import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useStatusUpdates } from '@/hooks/useStatusUpdates';
 import { useSparring } from '@/hooks/useSparring';
 import { useFighterLicenses, useOrganizations } from '@/hooks/useLicenses';
+import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Activity, Users, Plus } from 'lucide-react';
+import { Shield, Activity, Users, Plus, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
@@ -21,17 +23,17 @@ export default function FighterMe() {
   const { toast } = useToast();
   const { getUserFighterProfile } = useFighterProfiles();
   const { organizations } = useOrganizations();
-  const [profile, setProfile] = useState<FighterProfile | null>(null);
+  const [fighterProfile, setFighterProfile] = useState<FighterProfile | null>(null);
 
   useEffect(() => { 
-    getUserFighterProfile().then(setProfile); 
+    getUserFighterProfile().then(setFighterProfile); 
   }, [getUserFighterProfile]);
 
-  const { updates, addUpdate } = useStatusUpdates(profile?.id ?? null);
-  const { inbox, createRequest, updateStatus } = useSparring(profile?.id ?? null);
-  const { licenses } = useFighterLicenses(profile?.id ?? null);
+  const { updates, addUpdate } = useStatusUpdates(fighterProfile?.id ?? null);
+  const { inbox, createRequest, updateStatus } = useSparring(fighterProfile?.id ?? null);
+  const { licenses } = useFighterLicenses(fighterProfile?.id ?? null);
 
-  if (!profile) {
+  if (!fighterProfile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -45,11 +47,11 @@ export default function FighterMe() {
 
   const addStatus = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile) return;
+    if (!fighterProfile) return;
     const fd = new FormData(e.currentTarget);
     try {
       await addUpdate.mutateAsync({
-        fighter_id: profile.id,
+        fighter_id: fighterProfile.id,
         weight_kg: Number(fd.get('weight_kg') || 0) || undefined,
         bodyfat_pct: Number(fd.get('bodyfat_pct') || 0) || undefined,
         injuries: String(fd.get('injuries') || '') || undefined,
@@ -65,11 +67,11 @@ export default function FighterMe() {
 
   const sendSparring = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!profile) return;
+    if (!fighterProfile) return;
     const fd = new FormData(e.currentTarget);
     try {
       await createRequest.mutateAsync({
-        from_fighter_id: profile.id,
+        from_fighter_id: fighterProfile.id,
         to_fighter_id: String(fd.get('to_fighter_id') || '') || null,
         discipline: String(fd.get('sp_discipline') || 'MMA') as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro',
         weight_range: String(fd.get('weight_range') || '') || undefined,
@@ -95,13 +97,16 @@ export default function FighterMe() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
-      <div className="flex items-center gap-3 mb-8">
-        <Shield className="h-8 w-8 text-professional-primary" />
-        <h1 className="text-3xl font-bold text-professional-primary">
-          Mi Fighter ID
-        </h1>
+    <div className="container mx-auto p-6 space-y-8">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil de Peleador</h1>
+        <p className="text-gray-400">Gestiona tu información, estado físico y sparring</p>
       </div>
+
+      {/* Profile Completion Prompt */}
+      {fighterProfile && (
+        <ProfileCompletionPrompt profile={fighterProfile} />
+      )}
 
       <Card className="border-border/50 shadow-lg">
         <CardHeader>
@@ -111,47 +116,150 @@ export default function FighterMe() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-4 mb-6">
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Artes Marciales / Estilos</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {profile.martial_arts && profile.martial_arts.length > 0 
-                  ? profile.martial_arts.join(', ')
-                  : profile.discipline || 'No especificada'
-                }
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">País</label>
+                    <p className="text-white">{fighterProfile?.country || 'No especificado'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Disciplina Principal</label>
+                    <p className="text-white">{fighterProfile?.discipline || 'No especificado'}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Categoría de Peso</label>
+                    <p className="text-white">{fighterProfile?.weight_class || 'No especificado'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Estilo de Pelea</label>
+                    <p className="text-white">{fighterProfile?.fighting_style || 'No especificado'}</p>
+                  </div>
+                </div>
+
+                {/* Critical Safety Information */}
+                <div className="border-t border-gray-700 pt-4">
+                  <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-red-500" />
+                    Información Crítica de Seguridad
+                  </h4>
+                  
+                  {/* Check if critical info is missing */}
+                  {(!fighterProfile?.emergency_contact_name || !fighterProfile?.blood_type || !fighterProfile?.document_number) && (
+                    <div className="mb-4 p-3 bg-yellow-950/30 border border-yellow-600 rounded-lg">
+                      <div className="flex items-center gap-2 text-yellow-400 mb-2">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="font-medium">Información Incompleta</span>
+                      </div>
+                      <p className="text-sm text-yellow-200 mb-3">
+                        Tu perfil necesita información crítica de seguridad para cumplir con los estándares de licencia.
+                      </p>
+                      <Button asChild size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                        <Link to="/license/onboarding">Completar Información</Link>
+                      </Button>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-300">Documento de Identidad</label>
+                      <p className="text-white">{fighterProfile?.document_number || 'No especificado'}</p>
+                      {fighterProfile?.document_type && (
+                        <p className="text-xs text-gray-400">({fighterProfile.document_type})</p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-gray-300">Fecha de Nacimiento</label>
+                      <p className="text-white">
+                        {fighterProfile?.birthdate ? new Date(fighterProfile.birthdate).toLocaleDateString() : 'No especificado'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-300">Tipo de Sangre</label>
+                      <p className="text-white font-bold text-lg">{fighterProfile?.blood_type || 'No especificado'}</p>
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium text-gray-300">Lugar de Nacimiento</label>
+                      <p className="text-white">{fighterProfile?.birthplace || 'No especificado'}</p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-300">Contacto de Emergencia</label>
+                      {fighterProfile?.emergency_contact_name ? (
+                        <div className="text-white">
+                          <p className="font-medium">{fighterProfile.emergency_contact_name}</p>
+                          {fighterProfile.emergency_contact_relation && (
+                            <p className="text-sm text-gray-400">({fighterProfile.emergency_contact_relation})</p>
+                          )}
+                          {fighterProfile.emergency_contact_phone && (
+                            <p className="text-sm">{fighterProfile.emergency_contact_phone}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-white">No especificado</p>
+                      )}
+                    </div>
+
+                    {(fighterProfile?.medical_allergies || fighterProfile?.medical_conditions) && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-300">Información Médica</label>
+                        <div className="text-white text-sm space-y-1">
+                          {fighterProfile?.medical_allergies && (
+                            <p><span className="text-red-400">Alergias:</span> {fighterProfile.medical_allergies}</p>
+                          )}
+                          {fighterProfile?.medical_conditions && (
+                            <p><span className="text-orange-400">Condiciones:</span> {fighterProfile.medical_conditions}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {(fighterProfile?.insurance_company || fighterProfile?.insurance_policy) && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium text-gray-300">Seguro Médico</label>
+                        <div className="text-white text-sm">
+                          {fighterProfile?.insurance_company && (
+                            <p><span className="text-gray-400">Compañía:</span> {fighterProfile.insurance_company}</p>
+                          )}
+                          {fighterProfile?.insurance_policy && (
+                            <p><span className="text-gray-400">Póliza:</span> {fighterProfile.insurance_policy}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {fighterProfile?.martial_arts && fighterProfile.martial_arts.length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Artes Marciales</label>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {fighterProfile.martial_arts.map((art) => (
+                        <Badge key={art} variant="outline">{art}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {fighterProfile?.organization_id && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Organización</label>
+                    <p className="text-white">{organizations.data?.find(org => org.id === fighterProfile.organization_id)?.name || 'Sin organización'}</p>
+                  </div>
+                )}
+
+                {fighterProfile?.bio && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-300">Biografía</label>
+                    <p className="text-white text-sm">{fighterProfile.bio}</p>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Organización</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {organizations.data?.find(org => org.id === profile.organization_id)?.name || 'Sin organización'}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">División (peso)</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {profile.weight_class}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">Estilo</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {profile.fighting_style || 'No especificado'}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-muted-foreground">País</Label>
-              <div className="p-2 bg-muted/50 rounded border">
-                {profile.country}
-              </div>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label className="text-muted-foreground">Biografía</Label>
-              <div className="p-2 bg-muted/50 rounded border min-h-[80px]">
-                {profile.bio || 'No hay biografía disponible'}
-              </div>
-            </div>
-          </div>
           
           <div className="bg-muted/30 border border-border/50 rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -347,7 +455,7 @@ export default function FighterMe() {
                     {r.status}
                   </Badge>
                 </div>
-                {r.status === 'pending' && r.to_fighter_id === profile.id && (
+                {r.status === 'pending' && r.to_fighter_id === fighterProfile.id && (
                   <div className="flex gap-2">
                     <Button 
                       size="sm" 
