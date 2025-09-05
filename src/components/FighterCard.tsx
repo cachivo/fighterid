@@ -115,7 +115,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
         {/* License Info */}
         <div className="flex items-center justify-between pt-3 mt-3 border-t">
           <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-primary" />
+            <Shield className="h-5 w-5 text-white" />
             <span className="text-sm font-medium">{fighter.license_number}</span>
           </div>
           <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs`}>
@@ -133,7 +133,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             navigate(`/fighters/license/${fighter.id}`);
           }}
         >
-          <CreditCard className="h-4 w-4 mr-2" />
+          <CreditCard className="h-5 w-5 mr-2 text-white" />
           Ver Licencia
         </Button>
       </CardContent>

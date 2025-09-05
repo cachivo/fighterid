@@ -7,7 +7,7 @@ import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Plus, Filter } from 'lucide-react';
+import { Search, Plus, Filter, ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -157,6 +157,7 @@ export default function Fighters() {
           
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger>
+              <ArrowUpDown className="mr-2 h-4 w-4 text-white" />
               <SelectValue placeholder="Ordenar por" />
             </SelectTrigger>
             <SelectContent>
