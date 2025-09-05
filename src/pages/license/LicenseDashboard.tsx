@@ -142,7 +142,11 @@ export default function LicenseDashboard() {
 
         {/* Profile Completion Prompt */}
         {fighterProfile && (
-          <ProfileCompletionPrompt profile={fighterProfile} className="mb-6" />
+          <ProfileCompletionPrompt 
+            profile={fighterProfile} 
+            className="mb-6"
+            onRefreshProfile={handleRefreshProfile}
+          />
         )}
 
         {/* Enhanced Fighter ID */}

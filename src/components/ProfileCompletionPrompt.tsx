@@ -8,9 +8,10 @@ import { FighterProfile } from '@/hooks/useFighterProfiles';
 interface ProfileCompletionPromptProps {
   profile: FighterProfile;
   className?: string;
+  onRefreshProfile?: () => void;
 }
 
-export function ProfileCompletionPrompt({ profile, className }: ProfileCompletionPromptProps) {
+export function ProfileCompletionPrompt({ profile, className, onRefreshProfile }: ProfileCompletionPromptProps) {
   // Check which critical information is missing
   const missingFields = [];
   
@@ -74,8 +75,13 @@ export function ProfileCompletionPrompt({ profile, className }: ProfileCompletio
                 </Link>
               </Button>
               
-              <Button variant="outline" size="sm" className="text-gray-300 border-gray-600 hover:bg-gray-800">
-                Recordar más tarde
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-gray-300 border-gray-600 hover:bg-gray-800"
+                onClick={onRefreshProfile}
+              >
+                Actualizar Estado
               </Button>
             </div>
           </div>
