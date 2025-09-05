@@ -112,7 +112,7 @@ export default function Fighters() {
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary hover:opacity-90">
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 h-4 w-4 text-white" />
                   Crear Mi Perfil
                 </Button>
               </DialogTrigger>
@@ -132,7 +132,7 @@ export default function Fighters() {
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white h-4 w-4" />
             <Input
               placeholder="Buscar peleadores..."
               value={searchTerm}
@@ -143,7 +143,7 @@ export default function Fighters() {
           
           <Select value={selectedWeightClass} onValueChange={setSelectedWeightClass}>
             <SelectTrigger>
-              <Filter className="mr-2 h-4 w-4" />
+              <Filter className="mr-2 h-4 w-4 text-white" />
               <SelectValue placeholder="División" />
             </SelectTrigger>
             <SelectContent>
