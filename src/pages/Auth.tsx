@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ type AuthFormData = z.infer<typeof authSchema>;
 
 export default function Auth() {
   const { user, signIn, signUp } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -33,8 +35,12 @@ export default function Auth() {
   });
 
   // Redirect if already authenticated
-  if (user) {
-    return <Navigate to="/admin" replace />;
+  if (user && !adminLoading) {
+    if (isAdmin === true) {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (isAdmin === false) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   const handleSignIn = async (data: AuthFormData) => {

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { LicenseAuthProvider } from "@/hooks/useLicenseAuth";
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import LicenseProtectedRoute from '@/components/LicenseProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 import LicenseLayout from '@/components/LicenseLayout';
@@ -47,6 +48,7 @@ import Configuracion from "./pages/admin/Configuracion";
 import Votaciones from "./pages/admin/Votaciones";
 import Betting from "./pages/admin/Betting";
 import NotFound from "./pages/NotFound";
+import AccessDenied from "./pages/AccessDenied";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,14 +123,14 @@ const App = () => (
 
               {/* Admin Certification Panel Routes */}
               <Route path="/admin-cert/*" element={
-                <ProtectedRoute>
+                <AdminProtectedRoute>
                   <AdminCertLayout />
-                </ProtectedRoute>
+                </AdminProtectedRoute>
               } />
 
               {/* General Admin Routes */}
               <Route path="/admin/*" element={
-                <ProtectedRoute>
+                <AdminProtectedRoute>
                   <AdminLayout>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
@@ -152,7 +154,7 @@ const App = () => (
                       <Route path="/licencias" element={<ValidacionLicencias />} />
                     </Routes>
                   </AdminLayout>
-                </ProtectedRoute>
+                </AdminProtectedRoute>
               } />
 
               {/* Judge and Referee Routes */}
@@ -166,6 +168,9 @@ const App = () => (
                   <RefereeControlRoom />
                 </Suspense>
               } />
+
+              {/* Access Denied Route */}
+              <Route path="/access-denied" element={<AccessDenied />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>
