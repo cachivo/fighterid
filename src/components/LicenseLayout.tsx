@@ -34,11 +34,11 @@ export default function LicenseLayout() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-500';
-      case 'SUSPENDED': return 'bg-red-500';
-      case 'PENDING_REVIEW': return 'bg-orange-500';
-      case 'EXPIRED': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'ACTIVE': return 'bg-fighter-success';
+      case 'SUSPENDED': return 'bg-fighter-danger';
+      case 'PENDING_REVIEW': return 'bg-fighter-warning';
+      case 'EXPIRED': return 'bg-muted';
+      default: return 'bg-muted';
     }
   };
 
