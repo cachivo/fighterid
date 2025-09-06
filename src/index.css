@@ -65,7 +65,7 @@ All colors MUST be HSL.
     --fighter-border: 210 8% 85%; /* Light border */
     
     /* Fighter status colors - readable in light mode */
-    --fighter-success: 142 76% 36%; /* Military green */
+    --fighter-success: 142 76% 45%; /* Vibrant emerald green */
     --fighter-warning: 43 74% 49%; /* Amber */
     --fighter-danger: 0 63% 31%; /* Brick red */
     --fighter-info: 210 100% 45%; /* Steel blue */

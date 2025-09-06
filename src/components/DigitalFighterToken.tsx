@@ -95,7 +95,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
                 </Avatar>
                 
                 {/* Status indicator */}
-                <div className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full ${getStatusColor(profile.license_state)} border-2 border-slate-900`}>
+                <div className={`absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full ${getStatusColor(profile.license_state)} border-2 border-slate-900 shadow-lg ${profile.license_state?.toLowerCase() === 'active' ? 'ring-2 ring-green-400/30 shadow-green-400/20' : ''}`}>
                   <CheckCircle2 className="h-2.5 w-2.5 text-white absolute top-0.5 left-0.5" />
                 </div>
               </div>
