@@ -60,29 +60,29 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
     <div className="space-y-6">
       {/* Main Fighter ID Card */}
       <Card className="bg-gradient-professional border-professional-border/30 shadow-professional">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <CardHeader className="pb-3 md:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               <div className="relative">
                 <img
                   src={profile.avatar_url || '/placeholder-avatar.png'}
                   alt={`${profile.first_name} ${profile.last_name}`}
-                  className="h-20 w-20 rounded-xl object-cover border-2 border-professional-accent/40"
+                  className="h-16 w-16 md:h-20 md:w-20 rounded-xl object-cover border-2 border-professional-accent/40"
                 />
                 <Badge 
-                  className={`absolute -bottom-2 -right-2 ${getStatusColor(profile.license_status)}`}
+                  className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-xs ${getStatusColor(profile.license_status)}`}
                 >
                   {profile.license_status?.toUpperCase() || 'ACTIVE'}
                 </Badge>
               </div>
               <div className="space-y-1">
-                <h2 className="text-2xl font-bold text-professional-primary">
+                <h2 className="text-xl md:text-2xl font-bold text-professional-primary">
                   {profile.first_name} {profile.last_name}
                 </h2>
                 {profile.nickname && (
-                  <p className="text-professional-accent text-lg">"{profile.nickname}"</p>
+                  <p className="text-professional-accent text-base md:text-lg">"{profile.nickname}"</p>
                 )}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge className={getLevelColor(profile.level)}>
                     {profile.level || 'Amateur'}
                   </Badge>
@@ -92,14 +92,15 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
                 </div>
               </div>
             </div>
-            <div className="text-right space-y-1">
+            <div className="text-left sm:text-right space-y-1">
               <p className="text-sm text-professional-accent">License #</p>
-              <p className="font-mono text-lg text-professional-primary">{profile.license_number}</p>
+              <p className="font-mono text-base md:text-lg text-professional-primary">{profile.license_number}</p>
               {onGenerateQR && (
                 <Button 
                   variant="professional" 
                   size="sm"
                   onClick={onGenerateQR}
+                  className="w-full sm:w-auto"
                 >
                   QR Code
                 </Button>
@@ -130,35 +131,35 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </div>
 
           {/* Enhanced Fight Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-4 md:mb-6">
             <div className="text-center">
-              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                 {calculateRecord(recordType).wins}
               </div>
-              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Victorias
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
                 {calculateRecord(recordType).losses}
               </div>
-              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Derrotas
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-professional-muted font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-professional-muted font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                 {calculateRecord(recordType).draws}
               </div>
-              <div className="text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Empates
               </div>
             </div>
           </div>
 
           {/* Additional Stats */}
-          <div className="flex items-center justify-center gap-6 text-sm text-professional-accent mb-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 lg:gap-6 text-sm text-professional-accent mb-3 md:mb-4">
             <span className="flex items-center gap-2">
               <Star className="h-4 w-4 text-hsl(142,76%,50%)" />
               {calculateRecord(recordType).winPercentage}% Victorias
@@ -193,7 +194,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             {/* Personal Information */}
             <div className="space-y-3">
               <h4 className="font-semibold flex items-center gap-2 text-professional-danger">
@@ -319,7 +320,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Gimnasio/Academia:</p>
               <p className="font-medium">{profile.gym_name || 'No especificado'}</p>
@@ -384,7 +385,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {profile.license_issued_date && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">Fecha de Emisión:</p>

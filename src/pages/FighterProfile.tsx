@@ -94,44 +94,44 @@ export default function FighterProfile() {
           {/* Elegant background elements */}
           <div className="absolute inset-0">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
-            <div className="absolute top-20 left-20 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
-            <div className="absolute bottom-20 right-20 w-64 h-64 bg-accent/5 rounded-full blur-2xl"></div>
+            <div className="absolute top-10 left-10 md:top-20 md:left-20 w-48 h-48 md:w-96 md:h-96 bg-primary/5 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-10 right-10 md:bottom-20 md:right-20 w-32 h-32 md:w-64 md:h-64 bg-accent/5 rounded-full blur-2xl"></div>
           </div>
           
           {/* Professional accent line */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-professional-accent/60 to-transparent shadow-sm"></div>
           
-          <div className="relative p-8 lg:p-16">
+          <div className="relative p-4 md:p-8 lg:p-16">
             <div className="max-w-7xl mx-auto">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12 items-center">
                 {/* Fighter Info */}
-                <div className="space-y-8 animate-fade-in">
-                  <div className="space-y-4">
-                    <div className="flex flex-wrap gap-3 mb-4">
-                      <Badge className={`${getStatusColor(fighter.license_status)} border-0 font-medium px-4 py-2 text-sm uppercase tracking-wider`}>
+                <div className="space-y-4 md:space-y-6 lg:space-y-8 animate-fade-in">
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex flex-wrap gap-2 md:gap-3 mb-3 md:mb-4">
+                      <Badge className={`${getStatusColor(fighter.license_status)} border-0 font-medium px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm uppercase tracking-wider`}>
                         {fighter.license_status === 'active' ? 'Activo' : fighter.license_status}
                       </Badge>
-                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-foreground px-4 py-2 text-sm font-medium">
+                      <Badge variant="outline" className="border-2 border-professional-accent/40 text-foreground px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium">
                         {fighter.weight_class}
                       </Badge>
                     </div>
                     
                     {fighter.nickname && (
-                      <p className="text-xl lg:text-2xl font-medium text-muted-foreground uppercase tracking-wider">
+                      <p className="text-lg md:text-xl lg:text-2xl font-medium text-muted-foreground uppercase tracking-wider">
                         "{fighter.nickname}"
                       </p>
                     )}
                     
-                    <h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight">
+                    <h1 className="text-3xl md:text-4xl lg:text-7xl font-bold text-foreground tracking-tight">
                       {fighter.first_name}
                     </h1>
-                    <h1 className="text-5xl lg:text-7xl font-bold text-foreground tracking-tight -mt-4">
+                    <h1 className="text-3xl md:text-4xl lg:text-7xl font-bold text-foreground tracking-tight -mt-2 md:-mt-3 lg:-mt-4">
                       {fighter.last_name}
                     </h1>
                     
                     <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-5 w-5" />
-                      <span className="text-lg font-medium">{fighter.country}</span>
+                      <MapPin className="h-4 w-4 md:h-5 md:w-5" />
+                      <span className="text-base md:text-lg font-medium">{fighter.country}</span>
                     </div>
                   </div>
 
@@ -156,28 +156,28 @@ export default function FighterProfile() {
                   </div>
 
                   {/* Fight Stats */}
-                  <div className="grid grid-cols-3 gap-8">
+                  <div className="grid grid-cols-3 gap-3 md:gap-6 lg:gap-8">
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-green-600 font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                      <div className="text-2xl md:text-4xl lg:text-6xl font-bold text-green-600 font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                         {currentRecord.wins}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Victorias
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-red-600 font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+                      <div className="text-2xl md:text-4xl lg:text-6xl font-bold text-red-600 font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
                         {currentRecord.losses}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Derrotas
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="text-4xl lg:text-6xl font-bold text-muted-foreground font-mono mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                      <div className="text-2xl md:text-4xl lg:text-6xl font-bold text-muted-foreground font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                         {currentRecord.draws}
                       </div>
-                      <div className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                      <div className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider">
                         Empates
                       </div>
                     </div>
@@ -204,7 +204,7 @@ export default function FighterProfile() {
                         <div className="absolute inset-0 bg-gradient-to-t from-professional-accent/10 via-muted/5 to-transparent rounded-3xl blur-xl scale-105"></div>
                         
                         {/* Fighter image container with UFC-style presentation */}
-                        <div className="relative h-96 lg:h-[500px] w-64 lg:w-80 flex items-end justify-center">
+                        <div className="relative h-64 md:h-80 lg:h-[500px] w-48 md:w-60 lg:w-80 flex items-end justify-center">
                           <img 
                             src={fighter.avatar_url} 
                             alt={`${fighter.first_name} ${fighter.last_name}`}
@@ -216,12 +216,12 @@ export default function FighterProfile() {
                         </div>
                         
                         {/* Professional base accent */}
-                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-professional-accent/40 to-transparent rounded-full shadow-lg"></div>
-                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-20 h-0.5 bg-professional-accent/60 rounded-full"></div>
+                        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 md:w-40 h-1 bg-gradient-to-r from-transparent via-professional-accent/40 to-transparent rounded-full shadow-lg"></div>
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-12 md:w-20 h-0.5 bg-professional-accent/60 rounded-full"></div>
                       </div>
                     ) : (
-                      <div className="h-96 lg:h-[500px] w-64 lg:w-80 bg-gradient-to-b from-muted/50 to-card/80 rounded-3xl flex items-center justify-center shadow-2xl border border-professional-border/20">
-                        <div className="text-8xl font-bold text-foreground/80" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+                      <div className="h-64 md:h-80 lg:h-[500px] w-48 md:w-60 lg:w-80 bg-gradient-to-b from-muted/50 to-card/80 rounded-3xl flex items-center justify-center shadow-2xl border border-professional-border/20">
+                        <div className="text-6xl md:text-8xl font-bold text-foreground/80" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                           {fighter.first_name?.charAt(0) || 'F'}
                           {fighter.last_name?.charAt(0) || 'F'}
                         </div>
@@ -235,7 +235,7 @@ export default function FighterProfile() {
         </div>
 
         {/* Fighter Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6 animate-slide-up">
           {[
             { 
               label: 'Altura', 
@@ -259,19 +259,19 @@ export default function FighterProfile() {
             }
           ].map((stat, index) => (
             <Card key={index} className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
-              <CardContent className="p-6 text-center">
-                <div className="p-3 rounded-full bg-professional-accent/20 w-fit mx-auto mb-4">
-                  <stat.icon className="h-6 w-6 text-professional-primary" />
+              <CardContent className="p-3 md:p-4 lg:p-6 text-center">
+                <div className="p-2 md:p-3 rounded-full bg-professional-accent/20 w-fit mx-auto mb-2 md:mb-4">
+                  <stat.icon className="h-4 w-4 md:h-5 md:w-5 lg:h-6 lg:w-6 text-professional-primary" />
                 </div>
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-2">{stat.label}</p>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1 md:mb-2">{stat.label}</p>
+                <p className="text-lg md:text-xl lg:text-2xl font-bold text-foreground">{stat.value}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Fighter Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 animate-slide-up">
           {/* Bio & Background */}
           <div className="lg:col-span-2">
             <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional">
@@ -293,7 +293,7 @@ export default function FighterProfile() {
                 
                 <Separator className="bg-gradient-to-r from-transparent via-professional-accent/40 to-transparent" />
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div>
                     <h3 className="font-semibold text-lg mb-3 text-foreground">Disciplinas</h3>
                     <div className="flex flex-wrap gap-2">
