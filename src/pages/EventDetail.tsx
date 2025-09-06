@@ -4,7 +4,9 @@ import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight } from 'lucide-react
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useEvents, useFights } from '@/hooks/useEvents';
+import { FighterMiniature } from '@/components/FighterMiniature';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -222,19 +224,28 @@ const EventDetail = () => {
                       {/* Fighter A */}
                       <div className="text-center">
                         <div className="mb-3">
-                          {fight.fighter_a?.avatar_url ? (
-                            <img 
-                              src={fight.fighter_a.avatar_url} 
-                              alt={`${fight.fighter_a.first_name} ${fight.fighter_a.last_name}`}
-                              className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border">
-                              <span className="text-xl font-bold text-muted-foreground">
-                                {fight.fighter_a?.first_name?.[0]}{fight.fighter_a?.last_name?.[0]}
-                              </span>
-                            </div>
-                          )}
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div className="cursor-pointer">
+                                {fight.fighter_a?.avatar_url ? (
+                                  <img 
+                                    src={fight.fighter_a.avatar_url} 
+                                    alt={`${fight.fighter_a.first_name} ${fight.fighter_a.last_name}`}
+                                    className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
+                                    <span className="text-xl font-bold text-muted-foreground">
+                                      {fight.fighter_a?.first_name?.[0]}{fight.fighter_a?.last_name?.[0]}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-80">
+                              {fight.fighter_a && <FighterMiniature fighter={fight.fighter_a} />}
+                            </HoverCardContent>
+                          </HoverCard>
                         </div>
                         
                         <h3 className="font-bold text-lg">
@@ -277,19 +288,28 @@ const EventDetail = () => {
                       {/* Fighter B */}
                       <div className="text-center">
                         <div className="mb-3">
-                          {fight.fighter_b?.avatar_url ? (
-                            <img 
-                              src={fight.fighter_b.avatar_url} 
-                              alt={`${fight.fighter_b.first_name} ${fight.fighter_b.last_name}`}
-                              className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border">
-                              <span className="text-xl font-bold text-muted-foreground">
-                                {fight.fighter_b?.first_name?.[0]}{fight.fighter_b?.last_name?.[0]}
-                              </span>
-                            </div>
-                          )}
+                          <HoverCard>
+                            <HoverCardTrigger asChild>
+                              <div className="cursor-pointer">
+                                {fight.fighter_b?.avatar_url ? (
+                                  <img 
+                                    src={fight.fighter_b.avatar_url} 
+                                    alt={`${fight.fighter_b.first_name} ${fight.fighter_b.last_name}`}
+                                    className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
+                                    <span className="text-xl font-bold text-muted-foreground">
+                                      {fight.fighter_b?.first_name?.[0]}{fight.fighter_b?.last_name?.[0]}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </HoverCardTrigger>
+                            <HoverCardContent className="w-80">
+                              {fight.fighter_b && <FighterMiniature fighter={fight.fighter_b} />}
+                            </HoverCardContent>
+                          </HoverCard>
                         </div>
                         
                         <h3 className="font-bold text-lg">
