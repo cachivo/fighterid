@@ -71,22 +71,20 @@ export function useEvents() {
     if (!user) throw new Error('Usuario no autenticado');
 
     try {
-      // Get user_id from app_user table
-      const { data: appUser, error: userError } = await supabase
-        .from('app_user')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
-
-      if (userError) throw userError;
-      if (!appUser) throw new Error('Perfil de usuario no encontrado');
+      // Prepare data with proper timestamp handling
+      const insertData = {
+        name: eventData.name,
+        description: eventData.description || null,
+        discipline: eventData.discipline,
+        venue: eventData.venue || null,
+        start_time: eventData.start_time ? new Date(eventData.start_time).toISOString() : null,
+        end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
+        created_by: user.id // Use auth.uid() directly for RLS policy
+      };
 
       const { data, error } = await supabase
         .from('bdg_event')
-        .insert({
-          ...eventData,
-          created_by: appUser.id
-        })
+        .insert(insertData)
         .select()
         .single();
 
