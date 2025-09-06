@@ -155,6 +155,16 @@ export default function EventosPelea() {
   };
 
   const handleCreateFight = async () => {
+    // Verificar autenticación
+    if (!user) {
+      toast({
+        title: 'Error de autenticación',
+        description: 'Debes iniciar sesión para crear peleas',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!selectedEvent || !fightData.fighter_a_id || !fightData.fighter_b_id || !fightData.weight_class) {
       toast({
         title: 'Error',
@@ -165,6 +175,15 @@ export default function EventosPelea() {
     }
 
     try {
+      // Convertir scheduled_time a timestamp completo si se proporciona
+      let scheduledDateTime = null;
+      if (fightData.scheduled_time && selectedEvent.start_time) {
+        const eventDate = new Date(selectedEvent.start_time);
+        const [hours, minutes] = fightData.scheduled_time.split(':');
+        eventDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+        scheduledDateTime = eventDate.toISOString();
+      }
+
       const { data, error } = await supabase
         .from('fights')
         .insert({
@@ -174,11 +193,14 @@ export default function EventosPelea() {
           fighter_a_id: fightData.fighter_a_id,
           fighter_b_id: fightData.fighter_b_id,
           weight_class: fightData.weight_class,
-          scheduled_time: fightData.scheduled_time || null,
+          scheduled_time: scheduledDateTime,
           status: 'scheduled'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating fight:', error);
+        throw error;
+      }
 
       setFightData({
         fight_number: fightData.fight_number + 1,
@@ -194,10 +216,23 @@ export default function EventosPelea() {
         description: 'Pelea creada correctamente',
       });
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Fight creation error:', error);
+      let errorMessage = 'No se pudo crear la pelea';
+      
+      if (error?.message) {
+        if (error.message.includes('permission denied') || error.message.includes('RLS')) {
+          errorMessage = 'No tienes permisos para crear peleas. Verifica tu autenticación.';
+        } else if (error.message.includes('violates foreign key')) {
+          errorMessage = 'Los peleadores seleccionados no son válidos.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
       toast({
         title: 'Error',
-        description: 'No se pudo crear la pelea',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
