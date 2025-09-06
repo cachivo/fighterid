@@ -44,6 +44,7 @@ import Fighters from "./pages/Fighters";
 import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
+import EventosPelea from "./pages/admin/EventosPelea";
 import EventosDigitales from "./pages/admin/EventosDigitales";
 import Servicios from "./pages/admin/Servicios";
 import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
@@ -160,6 +161,7 @@ const App = () => (
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
                       <Route path="/eventos-deportivos" element={<EventosDeportivos />} />
+                      <Route path="/eventos-pelea" element={<EventosPelea />} />
                       <Route path="/eventos-digitales" element={<EventosDigitales />} />
                       <Route path="/servicios" element={<Servicios />} />
                       <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
