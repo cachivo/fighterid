@@ -80,7 +80,7 @@ export function useAdminFighters() {
       console.log('🔧 Profile data being sent:', profileData);
       
       // Usar la nueva función administrativa de base de datos
-      const { error } = await supabase.rpc('admin_update_fighter_profile_v4', {
+      const { error } = await supabase.rpc('admin_update_fighter_profile_v5', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });
@@ -96,6 +96,9 @@ export function useAdminFighters() {
         title: "Éxito",
         description: "Perfil de peleador actualizado correctamente",
       });
+
+      // Trigger custom event to refresh public fighters
+      window.dispatchEvent(new CustomEvent('admin-fighter-updated'));
 
       // Refrescar la lista
       await fetchFighters();

@@ -457,6 +457,20 @@ export function useFighterProfiles() {
     fetchFighters();
   }, []);
 
+  // Add a window listener to refresh public fighters when admin makes changes
+  useEffect(() => {
+    const handleAdminUpdate = () => {
+      console.log('📋 Admin update detected, refreshing public fighters...');
+      setTimeout(() => fetchFighters(), 1000); // Delay to ensure DB update is complete
+    };
+    
+    window.addEventListener('admin-fighter-updated', handleAdminUpdate);
+    
+    return () => {
+      window.removeEventListener('admin-fighter-updated', handleAdminUpdate);
+    };
+  }, [fetchFighters]);
+
   return {
     fighters,
     loading,
