@@ -288,6 +288,11 @@ serve(async (req) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('OpenAI API Error:', errorData);
+      
+      if (errorData.error?.code === 'insufficient_quota') {
+        throw new Error('La cuota de OpenAI se ha agotado. Por favor, actualiza tu plan de OpenAI o verifica tu cuenta.');
+      }
+      
       throw new Error(`OpenAI API Error: ${errorData.error?.message || 'Unknown error'}`);
     }
 
@@ -348,9 +353,15 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in admin-ai-assistant:', error);
     
-    const errorMessage = error.message.includes('language') 
-      ? (error.message.includes('es') ? 'Error procesando solicitud' : 'Error processing request')
-      : 'An unexpected error occurred';
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.message.includes('cuota de OpenAI') || error.message.includes('insufficient_quota')) {
+      errorMessage = 'La cuota de OpenAI se ha agotado. Por favor, actualiza la API key.';
+    } else if (error.message.includes('language')) {
+      errorMessage = error.message.includes('es') ? 'Error procesando solicitud' : 'Error processing request';
+    } else if (error.message.includes('OpenAI')) {
+      errorMessage = 'Error de conexión con OpenAI. Verifica la configuración de la API key.';
+    }
     
     return new Response(JSON.stringify({ 
       error: errorMessage,
