@@ -76,8 +76,8 @@ export function useAdminFighters() {
 
   const updateFighterProfile = async (fighterId: string, profileData: AdminFighterFormData) => {
     try {
-      // Usar la función administrativa de base de datos
-      const { error } = await supabase.rpc('admin_update_fighter_profile', {
+      // Usar la nueva función administrativa de base de datos
+      const { error } = await supabase.rpc('admin_update_fighter_profile_v4', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });

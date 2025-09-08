@@ -360,7 +360,7 @@ export function useFighterProfiles() {
       console.log('Usuario verificado como admin:', adminCheck);
       
       // Usar la función administrativa de base de datos v3 con mejor manejo de tipos
-      const { error } = await supabase.rpc('admin_update_fighter_profile_v3', {
+      const { error } = await supabase.rpc('admin_update_fighter_profile_v4', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });

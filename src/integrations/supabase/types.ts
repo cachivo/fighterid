@@ -2438,19 +2438,7 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: undefined
       }
-      admin_update_fighter_profile: {
-        Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: undefined
-      }
-      admin_update_fighter_profile_v2: {
-        Args: {
-          p_admin_user_id: string
-          p_fighter_id: string
-          p_profile_data: Json
-        }
-        Returns: undefined
-      }
-      admin_update_fighter_profile_v3: {
+      admin_update_fighter_profile_v4: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
       }
