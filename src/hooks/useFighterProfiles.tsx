@@ -153,12 +153,20 @@ export function useFighterProfiles() {
           license_number,
           license_issued_date,
           license_expires_date,
-          license_status
+          license_status,
+          fighter_licenses!inner(
+            license_number,
+            status,
+            is_primary
+          )
         `);
       
       if (!includeInactive) {
         query = query.eq('active', true);
       }
+      
+      // Always filter by primary license
+      query = query.eq('fighter_licenses.is_primary', true);
       
       const { data, error } = await query.order('created_at', { ascending: false });
 

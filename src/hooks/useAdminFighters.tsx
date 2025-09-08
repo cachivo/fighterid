@@ -56,7 +56,16 @@ export function useAdminFighters() {
       setLoading(true);
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select('*')
+        .select(`
+          *,
+          fighter_licenses!inner(
+            license_number,
+            status,
+            is_primary
+          )
+        `)
+        .eq('active', true)
+        .eq('fighter_licenses.is_primary', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
