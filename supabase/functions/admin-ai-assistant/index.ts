@@ -352,23 +352,49 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in admin-ai-assistant:', error);
+    const language = detectLanguage(error.message || 'en');
     
-    let errorMessage = 'An unexpected error occurred';
-    
+    // Provide fallback responses when OpenAI is unavailable
     if (error.message.includes('cuota de OpenAI') || error.message.includes('insufficient_quota')) {
-      errorMessage = 'La cuota de OpenAI se ha agotado. Por favor, actualiza la API key.';
-    } else if (error.message.includes('language')) {
-      errorMessage = error.message.includes('es') ? 'Error procesando solicitud' : 'Error processing request';
-    } else if (error.message.includes('OpenAI')) {
-      errorMessage = 'Error de conexión con OpenAI. Verifica la configuración de la API key.';
+      const fallbackResponse = language === 'es' 
+        ? 'Lo siento, el servicio de OpenAI no está disponible temporalmente debido a límites de cuota. Mientras tanto, puedo ayudarte con consultas básicas:\n\n• Para buscar peleadores, utiliza la búsqueda en la sección de Peleadores\n• Para ver estadísticas del sistema, revisa el Dashboard\n• Para gestionar licencias, ve a Validación de Licencias\n• Para crear torneos, usa la sección de Eventos\n\nPor favor, contacta al administrador para actualizar la configuración de OpenAI.'
+        : 'Sorry, OpenAI service is temporarily unavailable due to quota limits. Meanwhile, I can help with basic queries:\n\n• To search fighters, use the search in Fighters section\n• To view system stats, check the Dashboard\n• To manage licenses, go to License Validation\n• To create tournaments, use the Events section\n\nPlease contact the administrator to update OpenAI configuration.';
+      
+      return new Response(JSON.stringify({ 
+        response: fallbackResponse,
+        language: language,
+        isOfflineMode: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
+    
+    // Handle other OpenAI errors
+    if (error.message.includes('OpenAI') || error.message.includes('API')) {
+      const fallbackResponse = language === 'es'
+        ? 'Hay un problema de conectividad con OpenAI. Puedes usar las funciones del sistema directamente desde el menú de administración.'
+        : 'There is a connectivity issue with OpenAI. You can use system functions directly from the admin menu.';
+      
+      return new Response(JSON.stringify({ 
+        response: fallbackResponse,
+        language: language,
+        isOfflineMode: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Generic error fallback
+    const errorMessage = language === 'es' 
+      ? 'Error procesando solicitud. Intenta nuevamente o usa las funciones del sistema directamente.'
+      : 'Error processing request. Try again or use system functions directly.';
     
     return new Response(JSON.stringify({ 
       error: errorMessage,
-      details: error.message 
+      language: language
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });

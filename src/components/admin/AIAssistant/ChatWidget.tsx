@@ -110,6 +110,11 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
         function_called: data.function_called
       };
 
+      // Add indicator for offline mode
+      if (data.isOfflineMode) {
+        assistantMessage.content = `🔌 ${assistantMessage.content}`;
+      }
+
       setMessages(prev => [...prev, assistantMessage]);
       
       if (data.conversation_id && !conversationId) {
