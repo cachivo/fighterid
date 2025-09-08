@@ -79,8 +79,8 @@ export function useAdminFighters() {
       console.log('🔧 Admin updating fighter:', fighterId);
       console.log('🔧 Profile data being sent:', profileData);
       
-      // Usar la nueva función administrativa de base de datos
-      const { error } = await supabase.rpc('admin_update_fighter_profile_v7', {
+      // Usar la nueva función administrativa de base de datos mejorada
+      const { error } = await supabase.rpc('admin_update_fighter_profile_v8', {
         p_fighter_id: fighterId,
         p_profile_data: profileData as any
       });
