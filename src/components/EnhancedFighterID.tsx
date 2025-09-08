@@ -164,10 +164,6 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
               <Star className="h-4 w-4 text-hsl(142,76%,50%)" />
               {calculateRecord(recordType).winPercentage}% Victorias
             </span>
-            <span className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-professional-accent" />
-              ELO: {profile.elo_rating || 1200}
-            </span>
           </div>
 
           {profile.martial_arts && profile.martial_arts.length > 0 && (

@@ -232,7 +232,6 @@ export default function MyProfile() {
                 <p className="text-3xl font-bold text-professional-primary tracking-wider mt-2 font-mono">
                   {profile.record_wins || 0}-{profile.record_losses || 0}-{profile.record_draws || 0}
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">ELO: {profile.elo_rating || 1200}</p>
               </div>
             </div>
 

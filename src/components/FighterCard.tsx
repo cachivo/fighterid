@@ -73,12 +73,6 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
               {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
             </p>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs sm:text-sm">ELO Rating</p>
-            <p className="font-semibold text-foreground text-sm sm:text-base">
-              {fighter.elo_rating}
-            </p>
-          </div>
           {(fighter.martial_arts && fighter.martial_arts.length > 0) || fighter.discipline ? (
             <div className="col-span-2">
               <p className="text-muted-foreground">Artes Marciales</p>

@@ -130,8 +130,6 @@ export default function Fighters() {
           return a.first_name.localeCompare(b.first_name);
         case 'wins':
           return b.record_wins - a.record_wins;
-        case 'elo':
-          return b.elo_rating - a.elo_rating;
         default:
           return 0;
       }

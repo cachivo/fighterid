@@ -22,8 +22,7 @@ export function useLicenseData(licenseId: string | null) {
             avatar_url,
             record_wins,
             record_losses,
-            record_draws,
-            elo_rating
+            record_draws
           ),
           organizations(name, short_code)
         `)

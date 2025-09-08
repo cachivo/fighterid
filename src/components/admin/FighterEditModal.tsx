@@ -89,7 +89,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     record_losses: 0,
     record_draws: 0,
     level: 'AMATEUR',
-    elo_rating: 1200,
     gender: '',
     height_cm: 0,
     weight_kg: 0,
@@ -133,7 +132,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         record_losses: fighter.record_losses,
         record_draws: fighter.record_draws,
         level: fighter.level || 'AMATEUR',
-        elo_rating: fighter.elo_rating || 1200,
         gender: fighter.gender || '',
         height_cm: fighter.height_cm || 0,
         weight_kg: Number(fighter.weight_kg) || 0,
@@ -280,7 +278,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         height_cm: finalFormData.height_cm === 0 ? null : finalFormData.height_cm,
         weight_kg: finalFormData.weight_kg === 0 ? null : finalFormData.weight_kg,
         reach_cm: finalFormData.reach_cm === 0 ? null : finalFormData.reach_cm,
-        elo_rating: finalFormData.elo_rating || 1200,
       };
       
       const success = await adminUpdateFighterProfile(fighter.id, sanitizedData);
@@ -734,18 +731,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                           onChange={(e) => handleChange('record_draws', parseInt(e.target.value) || 0)}
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="elo_rating">ELO Rating</Label>
-                      <Input
-                        id="elo_rating"
-                        type="number"
-                        min="800"
-                        max="3000"
-                        value={formData.elo_rating}
-                        onChange={(e) => handleChange('elo_rating', parseInt(e.target.value) || 1200)}
-                      />
                     </div>
 
                     <div>

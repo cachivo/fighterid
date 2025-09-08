@@ -663,13 +663,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fight_control_events_fighter_affected_fkey"
-            columns: ["fighter_affected"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fight_control_events_referee_id_fkey"
             columns: ["referee_id"]
             isOneToOne: false
@@ -745,12 +738,8 @@ export type Database = {
           judge_2_total: number | null
           judge_3_scorecard: number[] | null
           judge_3_total: number | null
-          loser_elo_after: number | null
-          loser_elo_before: number | null
           performance_bonus: boolean | null
           result_type: string
-          winner_elo_after: number | null
-          winner_elo_before: number | null
           winner_id: string | null
         }
         Insert: {
@@ -768,12 +757,8 @@ export type Database = {
           judge_2_total?: number | null
           judge_3_scorecard?: number[] | null
           judge_3_total?: number | null
-          loser_elo_after?: number | null
-          loser_elo_before?: number | null
           performance_bonus?: boolean | null
           result_type: string
-          winner_elo_after?: number | null
-          winner_elo_before?: number | null
           winner_id?: string | null
         }
         Update: {
@@ -791,12 +776,8 @@ export type Database = {
           judge_2_total?: number | null
           judge_3_scorecard?: number[] | null
           judge_3_total?: number | null
-          loser_elo_after?: number | null
-          loser_elo_before?: number | null
           performance_bonus?: boolean | null
           result_type?: string
-          winner_elo_after?: number | null
-          winner_elo_before?: number | null
           winner_id?: string | null
         }
         Relationships: [
@@ -812,13 +793,6 @@ export type Database = {
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fight_results_winner_id_fkey"
-            columns: ["winner_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -974,13 +948,6 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fight_statistics_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
         ]
       }
       fighter_licenses: {
@@ -1068,13 +1035,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fighter_licenses_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fighter_licenses_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1097,7 +1057,6 @@ export type Database = {
           discipline: Database["public"]["Enums"]["discipline"] | null
           document_number: string | null
           document_type: string | null
-          elo_rating: number | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relation: string | null
@@ -1146,7 +1105,6 @@ export type Database = {
           discipline?: Database["public"]["Enums"]["discipline"] | null
           document_number?: string | null
           document_type?: string | null
-          elo_rating?: number | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
@@ -1195,7 +1153,6 @@ export type Database = {
           discipline?: Database["public"]["Enums"]["discipline"] | null
           document_number?: string | null
           document_type?: string | null
-          elo_rating?: number | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
@@ -1297,13 +1254,6 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
         ]
       }
       fights: {
@@ -1374,29 +1324,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fights_fighter_a_id_fkey"
-            columns: ["fighter_a_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fights_fighter_b_id_fkey"
             columns: ["fighter_b_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_fighter_b_id_fkey"
-            columns: ["fighter_b_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_winner_id_fkey"
-            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
@@ -1405,7 +1334,7 @@ export type Database = {
             foreignKeyName: "fights_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "public_fighter_profile"
+            referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1468,13 +1397,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fights_history_blue_fighter_id_fkey"
-            columns: ["blue_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fights_history_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1486,13 +1408,6 @@ export type Database = {
             columns: ["red_fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_history_red_fighter_id_fkey"
-            columns: ["red_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -2000,13 +1915,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
-            columns: ["fighter_profile_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "profile_change_requests_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
@@ -2302,24 +2210,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
-            columns: ["from_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "sparring_requests_to_fighter_id_fkey"
             columns: ["to_fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
-            columns: ["to_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "public_fighter_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -2527,40 +2421,6 @@ export type Database = {
       }
     }
     Views: {
-      public_fighter_profile: {
-        Row: {
-          active: boolean | null
-          avatar_url: string | null
-          bio: string | null
-          country: string | null
-          discipline: Database["public"]["Enums"]["discipline"] | null
-          elo_rating: number | null
-          fighting_style: string | null
-          first_name: string | null
-          height_cm: number | null
-          id: string | null
-          last_name: string | null
-          level: string | null
-          nickname: string | null
-          organization_id: string | null
-          organization_name: string | null
-          reach_cm: number | null
-          record_draws: number | null
-          record_losses: number | null
-          record_wins: number | null
-          weight_class: string | null
-          weight_kg: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fighter_profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       vw_round_leaderboard: {
         Row: {
           contestant_id: string | null

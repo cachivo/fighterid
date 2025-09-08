@@ -19,7 +19,6 @@ export interface AdminFighterProfile {
   record_wins: number;
   record_losses: number;
   record_draws: number;
-  elo_rating: number;
   active: boolean;
   created_at: string;
   updated_at: string;
@@ -43,7 +42,7 @@ export interface AdminFighterFormData {
   record_wins?: number;
   record_losses?: number;
   record_draws?: number;
-  elo_rating?: number;
+  
 }
 
 export function useAdminFighters() {
@@ -58,7 +57,7 @@ export function useAdminFighters() {
       const { data, error } = await supabase
         .from('fighter_profiles')
         .select('*')
-        .order('elo_rating', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setFighters(data || []);

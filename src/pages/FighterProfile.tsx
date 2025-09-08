@@ -188,10 +188,6 @@ export default function FighterProfile() {
                       <Trophy className="h-4 w-4 text-fighter-success" />
                       {winPercentage}% Victorias
                     </span>
-                    <span className="flex items-center gap-2">
-                      <BarChart3 className="h-4 w-4 text-professional-accent" />
-                      ELO: {fighter.elo_rating || 1200}
-                    </span>
                   </div>
                 </div>
 

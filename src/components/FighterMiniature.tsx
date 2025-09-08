@@ -14,7 +14,7 @@ interface FighterMiniatureProps {
     record_wins?: number;
     record_losses?: number;
     record_draws?: number;
-    elo_rating?: number;
+    
     martial_arts?: string[];
     fighting_style?: string;
     boxrec_url?: string;
@@ -75,13 +75,6 @@ export const FighterMiniature = ({ fighter }: FighterMiniatureProps) => {
                   </span>
                 )}
               </div>
-              
-              {fighter.elo_rating && (
-                <Badge variant="secondary" className="text-sm px-3 py-1 bg-primary/10 hover:bg-primary/20 transition-colors">
-                  <Trophy className="w-4 h-4 mr-1.5" />
-                  {fighter.elo_rating}
-                </Badge>
-              )}
             </div>
 
             {/* Additional Info */}

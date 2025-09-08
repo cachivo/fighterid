@@ -19,7 +19,6 @@ export interface FighterProfile {
   record_wins: number;
   record_losses: number;
   record_draws: number;
-  elo_rating: number;
   avatar_url?: string;
   bio?: string;
   active: boolean;
@@ -102,7 +101,7 @@ export interface AdminFighterFormData {
   record_wins?: number;
   record_losses?: number;
   record_draws?: number;
-  elo_rating?: number;
+  
   gender?: string;
   boxrec_url?: string;
   tapology_url?: string;
@@ -160,7 +159,7 @@ export function useFighterProfiles() {
         query = query.eq('active', true);
       }
       
-      const { data, error } = await query.order('elo_rating', { ascending: false });
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       setFighters(data || []);
@@ -193,7 +192,7 @@ export function useFighterProfiles() {
         query = query.eq('active', true);
       }
       
-      const { data, error } = await query.order('elo_rating', { ascending: false });
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
       
