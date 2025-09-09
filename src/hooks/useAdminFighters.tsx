@@ -58,7 +58,7 @@ export function useAdminFighters() {
         .from('fighter_profiles')
         .select(`
           *,
-          fighter_licenses!inner(
+          fighter_licenses!fighter_licenses_fighter_id_fkey!inner(
             license_number,
             status,
             is_primary
