@@ -9,7 +9,9 @@ import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "@/components/ui/dynamic-icon";
+import { Trophy } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -86,7 +88,7 @@ export default function EventosDeportivos() {
     defaultValues: {
       titulo: '',
       descripcion: '',
-      icono: '🏆',
+      icono: 'Trophy',
       orden: 0,
       activo: true,
     },
@@ -130,7 +132,7 @@ export default function EventosDeportivos() {
         .update({
           titulo: editForm.titulo,
           descripcion: editForm.descripcion,
-          icono: editForm.icono || '🏆',
+          icono: editForm.icono || 'Trophy',
           activo: editForm.activo,
           orden: editForm.orden,
         })
@@ -373,9 +375,9 @@ export default function EventosDeportivos() {
                   name="icono"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Icono (Emoji)</FormLabel>
+                      <FormLabel>Icono</FormLabel>
                       <FormControl>
-                        <EmojiPicker
+                        <IconPicker
                           value={field.value}
                           onSelect={field.onChange}
                           placeholder="Seleccionar icono de evento deportivo"
@@ -459,13 +461,15 @@ export default function EventosDeportivos() {
                 <TableRow key={evento.id}>
                   <TableCell>
                     {editingId === evento.id ? (
-                      <EmojiPicker
+                      <IconPicker
                         value={editForm.icono || ''}
-                        onSelect={(emoji) => setEditForm({...editForm, icono: emoji})}
-                        placeholder="🏆"
+                        onSelect={(iconName) => setEditForm({...editForm, icono: iconName})}
+                        placeholder="Trophy"
                       />
                     ) : (
-                      <span className="text-2xl">{evento.icono}</span>
+                      <div className="flex items-center">
+                        <DynamicIcon name={evento.icono} className="h-5 w-5" />
+                      </div>
                     )}
                   </TableCell>
                   <TableCell>

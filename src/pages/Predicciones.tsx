@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, MapPin, Users, TrendingUp, Clock, DollarSign, Trophy } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { Gamepad2, Mic, Sword, Zap } from "lucide-react";
 
 interface BDGEvent {
   id: string;
@@ -105,13 +106,13 @@ export default function Predicciones() {
     }
   };
 
-  const getDisciplineEmoji = (discipline: string) => {
+  const getDisciplineIcon = (discipline: string) => {
     switch (discipline.toLowerCase()) {
-      case 'boxing': return '🥊';
-      case 'rap': return '🎤';
-      case 'chess': return '♟️';
-      case 'esports': return '🎮';
-      default: return '🏆';
+      case 'boxing': return <Sword className="h-5 w-5" />;
+      case 'rap': return <Mic className="h-5 w-5" />;
+      case 'chess': return <Zap className="h-5 w-5" />;
+      case 'esports': return <Gamepad2 className="h-5 w-5" />;
+      default: return <Trophy className="h-5 w-5" />;
     }
   };
 
@@ -210,7 +211,7 @@ export default function Predicciones() {
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl">{getDisciplineEmoji(event.discipline)}</span>
+                      {getDisciplineIcon(event.discipline)}
                       <Badge className={getStateColor(event.state)}>
                         {stateBadge.icon}
                         <span className="ml-1">{stateBadge.text}</span>

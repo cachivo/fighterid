@@ -15,7 +15,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "@/components/ui/dynamic-icon";
 
 const formSchema = z.object({
   titulo: z.string().min(1, "El título es requerido"),
@@ -285,9 +286,9 @@ const EventosDigitales = () => {
                       name="icono"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Icono (Emoji)</FormLabel>
+                          <FormLabel>Icono</FormLabel>
                           <FormControl>
-                            <EmojiPicker
+                            <IconPicker
                               value={field.value}
                               onSelect={field.onChange}
                               placeholder="Seleccionar icono de evento digital"
@@ -343,7 +344,9 @@ const EventosDigitales = () => {
             <TableBody>
               {filteredEventos.map((evento) => (
                 <TableRow key={evento.id}>
-                  <TableCell className="text-2xl">{evento.icono}</TableCell>
+                  <TableCell>
+                    <DynamicIcon name={evento.icono} className="h-5 w-5" />
+                  </TableCell>
                   <TableCell className="font-medium">{evento.titulo}</TableCell>
                   <TableCell className="max-w-md truncate">{evento.descripcion}</TableCell>
                   <TableCell>{evento.orden}</TableCell>
@@ -454,9 +457,9 @@ const EventosDigitales = () => {
                 name="icono"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icono (Emoji)</FormLabel>
+                    <FormLabel>Icono</FormLabel>
                     <FormControl>
-                      <EmojiPicker
+                      <IconPicker
                         value={field.value}
                         onSelect={field.onChange}
                         placeholder="Seleccionar icono de evento digital"

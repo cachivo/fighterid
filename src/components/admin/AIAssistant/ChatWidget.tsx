@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, X, Send, Bot, User, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Minimize2, Maximize2, Trophy, Shield, FileText, BarChart3, Search, Trash2, WifiOff, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -55,7 +55,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       const welcomeMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: '¡Hola! Soy tu asistente AI administrativo. Puedo ayudarte con:\n\n🥊 **Gestión de Torneos** - Crear, programar eventos\n🆔 **Fighter IDs** - Buscar, validar peleadores\n📋 **Licencias** - Revisar, aprobar licencias\n📊 **Reportes** - Generar estadísticas\n\n¿En qué puedo ayudarte hoy?',
+        content: '¡Hola! Soy tu asistente AI administrativo. Puedo ayudarte con:\n\n**Gestión de Torneos** - Crear, programar eventos\n**Fighter IDs** - Buscar, validar peleadores\n**Licencias** - Revisar, aprobar licencias\n**Reportes** - Generar estadísticas\n\n¿En qué puedo ayudarte hoy?',
         timestamp: new Date(),
         language: 'es'
       };
@@ -112,7 +112,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
 
       // Add indicator for offline mode
       if (data.isOfflineMode) {
-        assistantMessage.content = `🔌 ${assistantMessage.content}`;
+        assistantMessage.content = `[MODO OFFLINE] ${assistantMessage.content}`;
       }
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -136,7 +136,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `❌ Error: ${error instanceof Error ? error.message : 'Conexión fallida'}. Por favor, inténtalo de nuevo.`,
+        content: `Error: ${error instanceof Error ? error.message : 'Conexión fallida'}. Por favor, inténtalo de nuevo.`,
         timestamp: new Date()
       };
       
@@ -255,9 +255,9 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={clearConversation}
-                className="h-6 w-6 p-0 text-xs"
+                className="h-6 w-6 p-0"
               >
-                🗑️
+                <Trash2 className="h-3 w-3" />
               </Button>
               <Button
                 variant="ghost"
@@ -346,7 +346,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               onClick={() => setInput('Buscar peleadores activos')}
               className="text-xs h-6"
             >
-              🔍 Buscar peleadores
+              <Search className="mr-1 h-3 w-3" />
+              Buscar peleadores
             </Button>
             <Button
               variant="outline"
@@ -354,7 +355,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               onClick={() => setInput('Estadísticas del sistema')}
               className="text-xs h-6"
             >
-              📊 Estadísticas
+              <BarChart3 className="mr-1 h-3 w-3" />
+              Estadísticas
             </Button>
             <Button
               variant="outline"
@@ -362,7 +364,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
               onClick={() => setInput('Licencias pendientes')}
               className="text-xs h-6"
             >
-              📋 Licencias
+              <FileText className="mr-1 h-3 w-3" />
+              Licencias
             </Button>
           </div>
         </CardContent>

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { StrategicAlliesSkeleton } from "@/components/ui/strategic-allies-skeleton";
+import { Dumbbell, Trophy } from "lucide-react";
 
 const StrategicAllies = () => {
   const { data: partners, isLoading, error } = useQuery({
@@ -60,14 +61,20 @@ const StrategicAllies = () => {
                         className="w-16 h-16 sm:w-20 sm:h-20 object-contain transition-all duration-300"
                         priority={index < 3} // Prioritize first 3 images
                         fallbackIcon={
-                          <div className="text-xl sm:text-2xl text-purple-neon-primary">
-                            {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
+                          <div className="text-purple-neon-primary">
+                            {partner.tipo === "Gimnasio" ? 
+                              <Dumbbell className="h-8 w-8 sm:h-10 sm:w-10" /> : 
+                              <Trophy className="h-8 w-8 sm:h-10 sm:w-10" />
+                            }
                           </div>
                         }
                       />
                     ) : (
-                      <div className="text-2xl text-purple-neon-primary">
-                        {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
+                      <div className="text-purple-neon-primary">
+                        {partner.tipo === "Gimnasio" ? 
+                          <Dumbbell className="h-8 w-8 sm:h-10 sm:w-10" /> : 
+                          <Trophy className="h-8 w-8 sm:h-10 sm:w-10" />
+                        }
                       </div>
                     )}
                   </div>

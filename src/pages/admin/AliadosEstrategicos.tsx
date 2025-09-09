@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Trophy, Dumbbell } from "lucide-react";
 import { FileUpload } from '@/components/ui/file-upload';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Eye, EyeOff, Trash2, Upload } from 'lucide-react';
@@ -378,8 +379,11 @@ export default function AliadosEstrategicos() {
                           className="w-10 h-10 object-contain rounded"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-muted rounded flex items-center justify-center text-lg">
-                          {partner.tipo === "Gimnasio" ? "🥊" : "🏆"}
+                        <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                          {partner.tipo === "Gimnasio" ? 
+                            <Dumbbell className="h-5 w-5" /> : 
+                            <Trophy className="h-5 w-5" />
+                          }
                         </div>
                       )}
                     </TableCell>

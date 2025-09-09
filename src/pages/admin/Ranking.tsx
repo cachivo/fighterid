@@ -14,7 +14,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { EmojiPicker } from "@/components/ui/emoji-picker";
+import { IconPicker } from "@/components/ui/icon-picker";
+import { DynamicIcon } from "@/components/ui/dynamic-icon";
 
 const formSchema = z.object({
   numero: z.string().min(1, "El número es requerido"),
@@ -284,9 +285,9 @@ const Ranking = () => {
                       name="icono"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Icono (Emoji)</FormLabel>
+                          <FormLabel>Icono</FormLabel>
                           <FormControl>
-                            <EmojiPicker
+                            <IconPicker
                               value={field.value}
                               onSelect={field.onChange}
                               placeholder="Seleccionar icono de estadística"
@@ -342,7 +343,9 @@ const Ranking = () => {
             <TableBody>
               {filteredEstadisticas.map((estadistica) => (
                 <TableRow key={estadistica.id}>
-                  <TableCell className="text-2xl">{estadistica.icono}</TableCell>
+                  <TableCell>
+                    <DynamicIcon name={estadistica.icono} className="h-5 w-5" />
+                  </TableCell>
                   <TableCell className="font-bold text-xl">{estadistica.numero}</TableCell>
                   <TableCell className="max-w-md">{estadistica.descripcion}</TableCell>
                   <TableCell>{estadistica.orden}</TableCell>
@@ -453,9 +456,9 @@ const Ranking = () => {
                 name="icono"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Icono (Emoji)</FormLabel>
+                    <FormLabel>Icono</FormLabel>
                     <FormControl>
-                      <EmojiPicker
+                      <IconPicker
                         value={field.value}
                         onSelect={field.onChange}
                         placeholder="Seleccionar icono de estadística"

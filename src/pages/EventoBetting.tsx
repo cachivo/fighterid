@@ -300,13 +300,13 @@ export default function EventoBetting() {
     }
   };
 
-  const getDisciplineEmoji = (discipline: string) => {
+  const getDisciplineIcon = (discipline: string) => {
     switch (discipline?.toLowerCase()) {
-      case 'boxing': return '🥊';
-      case 'rap': return '🎤';
-      case 'chess': return '♟️';
-      case 'esports': return '🎮';
-      default: return '🏆';
+      case 'boxing': return <Swords className="h-4 w-4" />;
+      case 'rap': return <Mic2 className="h-4 w-4" />;
+      case 'chess': return <Zap className="h-4 w-4" />;
+      case 'esports': return <Gamepad2 className="h-4 w-4" />;
+      default: return <Trophy className="h-4 w-4" />;
     }
   };
 
@@ -353,9 +353,9 @@ export default function EventoBetting() {
         {/* Event Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">{getDisciplineEmoji(event.discipline)}</span>
-              <div>
+              <div className="flex items-center gap-4">
+                {getDisciplineIcon(event.discipline)}
+                <div>
                 <h1 className="text-3xl font-bold text-white">{event.name}</h1>
                 <p className="text-gray-400">{event.discipline} • {event.venue}</p>
               </div>

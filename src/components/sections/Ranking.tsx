@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const Ranking = () => {
@@ -102,8 +103,9 @@ const Ranking = () => {
                           <span>{evento.audiencia}</span>
                         </div>
                       </div>
-                      <div className="bg-purple-neon-primary text-black px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base self-start sm:self-center">
-                        🏆 {evento.lugar}
+                      <div className="bg-purple-neon-primary text-black px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base self-start sm:self-center flex items-center gap-2">
+                        <Trophy className="h-4 w-4" />
+                        {evento.lugar}
                       </div>
                     </div>
                   </div>

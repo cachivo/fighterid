@@ -1,102 +1,122 @@
 import * as React from "react";
 import { useState } from "react";
-import { Search, Smile, Heart, Star, Zap, Target, Users, Gamepad2, Music, Camera } from "lucide-react";
+import { Search, Trophy, Target, Zap, Settings, Users, Activity, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import * as LucideIcons from "lucide-react";
 
-interface EmojiPickerProps {
+interface IconPickerProps {
   value?: string;
-  onSelect: (emoji: string) => void;
+  onSelect: (iconName: string) => void;
   placeholder?: string;
   className?: string;
 }
 
-// Categorías de emojis organizadas por tipo
-const emojiCategories = {
+// Categorías de iconos organizadas por tipo profesional
+const iconCategories = {
   deportes: {
     name: "Deportes",
-    icon: Gamepad2,
-    emojis: [
-      "🏆", "⚽", "🏀", "🎾", "🏐", "🏈", "⚾", "🥊", "🏋️‍♂️", "🤸‍♂️",
-      "🏃‍♂️", "🚴‍♂️", "🏊‍♂️", "🏄‍♂️", "⛷️", "🏒", "🏓", "🏸", "🥅", "🎯"
+    icon: Trophy,
+    icons: [
+      "Trophy", "Target", "Zap", "Shield", "Award", "Medal", 
+      "Sword", "Crown", "Star", "Flame", "Bolt", "Activity",
+      "TrendingUp", "BarChart3", "CircleDot", "Crosshair", 
+      "Flag", "MapPin", "Navigation", "Compass"
     ]
   },
   medios: {
     name: "Medios",
-    icon: Camera,
-    emojis: [
-      "📹", "🎬", "🎥", "📺", "🎙️", "🎧", "📻", "🔴", "📱", "💻",
-      "🖥️", "⌨️", "🖱️", "📡", "📢", "📯", "🔊", "🎵", "🎶", "🎤"
+    icon: Activity,
+    icons: [
+      "Camera", "Video", "Mic", "Radio", "Monitor", "Smartphone",
+      "Tv", "Speaker", "Headphones", "Volume2", "PlayCircle", "Youtube",
+      "Instagram", "Facebook", "Twitter", "Wifi", "Broadcast", 
+      "Signal", "Podcast", "FileVideo"
     ]
   },
   estadisticas: {
-    name: "Estadísticas",
-    icon: Target,
-    emojis: [
-      "📊", "📈", "📉", "🔢", "🏆", "🥇", "🥈", "🥉", "⭐", "📋",
-      "📌", "📍", "🎯", "💯", "🔥", "⚡", "💪", "🚀", "✨", "💎"
+    name: "Estadísticas", 
+    icon: BarChart3,
+    icons: [
+      "BarChart3", "TrendingUp", "TrendingDown", "PieChart", "Activity", "Users",
+      "Database", "FileSpreadsheet", "Calculator", "Hash", "Percent", "DollarSign",
+      "Calendar", "Clock", "Timer", "Gauge", "ChartArea", "ChartBar",
+      "ChartLine", "ChartPie"
     ]
   },
   servicios: {
     name: "Servicios",
-    icon: Zap,
-    emojis: [
-      "🎬", "🛠️", "⚙️", "🔧", "📝", "📂", "💼", "🎯", "🚀", "✨",
-      "💡", "🎨", "🖌️", "✏️", "📐", "📏", "🔍", "🔎", "⚗️", "🧪"
+    icon: Settings,
+    icons: [
+      "Settings", "Wrench", "FileText", "Briefcase", "Lightbulb", "Search",
+      "Cog", "Tool", "HardHat", "Package", "Box", "Archive",
+      "FolderOpen", "File", "FileCheck", "Clipboard", "CheckSquare", 
+      "Square", "Circle", "Diamond"
     ]
   },
   comunidad: {
     name: "Comunidad",
     icon: Users,
-    emojis: [
-      "👥", "🤝", "💬", "📢", "🌟", "🎉", "🔥", "❤️", "👍", "🙌",
-      "👏", "💪", "🎊", "🎈", "🎁", "🌈", "☀️", "⭐", "✨", "💖"
+    icons: [
+      "Users", "MessageSquare", "Handshake", "Star", "ThumbsUp", "Heart",
+      "UserCheck", "UserPlus", "UsersRound", "MessageCircle", "Mail", "Bell",
+      "Bookmark", "Share", "Link", "Globe", "Map", "Building",
+      "Home", "Coffee"
     ]
   },
   populares: {
     name: "Populares",
-    icon: Star,
-    emojis: [
-      "🎉", "🚀", "⭐", "🔥", "💎", "🏆", "👍", "❤️", "💯", "✨",
-      "🎯", "💪", "🌟", "⚡", "🎊", "🙌", "👏", "💖", "🎁", "🌈"
+    icon: Zap,
+    icons: [
+      "Trophy", "Zap", "Star", "Flame", "Crown", "Award",
+      "ThumbsUp", "Heart", "Target", "Rocket", "Sparkles", "Diamond",
+      "CheckCircle", "Play", "Pause", "Volume2", "Camera", "Eye",
+      "Lock", "Unlock"
     ]
   }
 };
 
-// Emojis frecuentemente usados (se puede hacer dinámico más adelante)
-const frequentEmojis = ["🎬", "🏆", "📊", "🎯", "🚀", "⭐", "🔥", "💎"];
+// Iconos frecuentemente usados (profesionales y minimalistas)
+const frequentIcons = ["Trophy", "BarChart3", "Target", "Zap", "Users", "Star", "Flame", "Award"];
 
-export function EmojiPicker({ value, onSelect, placeholder = "Seleccionar emoji", className }: EmojiPickerProps) {
+export function IconPicker({ value, onSelect, placeholder = "Seleccionar icono", className }: IconPickerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  // Filtrar emojis basado en la búsqueda
+  // Filtrar iconos basado en la búsqueda
   const filteredCategories = React.useMemo(() => {
-    if (!searchTerm) return emojiCategories;
+    if (!searchTerm) return iconCategories;
     
-    const filtered: Partial<typeof emojiCategories> = {};
-    Object.entries(emojiCategories).forEach(([key, category]) => {
-      const filteredEmojis = category.emojis.filter(emoji => 
-        emoji.includes(searchTerm) || 
+    const filtered: Partial<typeof iconCategories> = {};
+    Object.entries(iconCategories).forEach(([key, category]) => {
+      const filteredIcons = category.icons.filter(iconName => 
+        iconName.toLowerCase().includes(searchTerm.toLowerCase()) || 
         category.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      if (filteredEmojis.length > 0) {
-        filtered[key as keyof typeof emojiCategories] = {
+      if (filteredIcons.length > 0) {
+        filtered[key as keyof typeof iconCategories] = {
           ...category,
-          emojis: filteredEmojis
+          icons: filteredIcons
         };
       }
     });
     return filtered;
   }, [searchTerm]);
 
-  const handleEmojiSelect = (emoji: string) => {
-    onSelect(emoji);
+  const handleIconSelect = (iconName: string) => {
+    onSelect(iconName);
     setIsOpen(false);
     setSearchTerm("");
+  };
+
+  // Renderizar icono dinámicamente
+  const renderIcon = (iconName: string, className?: string) => {
+    const IconComponent = (LucideIcons as any)[iconName];
+    if (!IconComponent) return null;
+    return <IconComponent className={className} />;
   };
 
   return (
@@ -113,12 +133,12 @@ export function EmojiPicker({ value, onSelect, placeholder = "Seleccionar emoji"
           <div className="flex items-center gap-2">
             {value ? (
               <>
-                <span className="text-lg">{value}</span>
+                {renderIcon(value, "h-4 w-4")}
                 <span className="text-sm opacity-70">({value})</span>
               </>
             ) : (
               <>
-                <Smile className="h-4 w-4" />
+                <Settings className="h-4 w-4" />
                 <span>{placeholder}</span>
               </>
             )}
@@ -131,27 +151,27 @@ export function EmojiPicker({ value, onSelect, placeholder = "Seleccionar emoji"
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar emojis..."
+              placeholder="Buscar iconos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
           </div>
 
-          {/* Emojis frecuentes (solo si no hay búsqueda) */}
+          {/* Iconos frecuentes (solo si no hay búsqueda) */}
           {!searchTerm && (
             <div className="mb-4">
               <h4 className="text-sm font-medium mb-2 text-muted-foreground">Frecuentes</h4>
               <div className="grid grid-cols-8 gap-1">
-                {frequentEmojis.map((emoji) => (
+                {frequentIcons.map((iconName) => (
                   <Button
-                    key={emoji}
+                    key={iconName}
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 hover:bg-muted text-lg"
-                    onClick={() => handleEmojiSelect(emoji)}
+                    className="h-8 w-8 p-0 hover:bg-muted"
+                    onClick={() => handleIconSelect(iconName)}
                   >
-                    {emoji}
+                    {renderIcon(iconName, "h-4 w-4")}
                   </Button>
                 ))}
               </div>
@@ -180,16 +200,16 @@ export function EmojiPicker({ value, onSelect, placeholder = "Seleccionar emoji"
               <TabsContent key={key} value={key} className="mt-4">
                 <div className="max-h-48 overflow-y-auto">
                   <div className="grid grid-cols-8 gap-1">
-                    {category.emojis.map((emoji, index) => (
+                    {category.icons.map((iconName, index) => (
                       <Button
-                        key={`${emoji}-${index}`}
+                        key={`${iconName}-${index}`}
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 hover:bg-muted text-lg transition-colors"
-                        onClick={() => handleEmojiSelect(emoji)}
-                        title={emoji}
+                        className="h-8 w-8 p-0 hover:bg-muted transition-colors"
+                        onClick={() => handleIconSelect(iconName)}
+                        title={iconName}
                       >
-                        {emoji}
+                        {renderIcon(iconName, "h-4 w-4")}
                       </Button>
                     ))}
                   </div>
@@ -201,7 +221,7 @@ export function EmojiPicker({ value, onSelect, placeholder = "Seleccionar emoji"
           {/* Mensaje cuando no hay resultados */}
           {searchTerm && Object.keys(filteredCategories).length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-sm">
-              No se encontraron emojis que coincidan con "{searchTerm}"
+              No se encontraron iconos que coincidan con "{searchTerm}"
             </div>
           )}
         </div>

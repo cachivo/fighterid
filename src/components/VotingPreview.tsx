@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Zap } from "lucide-react";
 import batallaPoster from "@/assets/batalla-poster.jpg";
 
 const VotingPreview = () => {
@@ -94,8 +95,9 @@ const VotingPreview = () => {
             <p className="relative text-gray-400 mb-4">
               Total de votos: <span className="font-bold text-purple-neon-primary">526</span>
             </p>
-            <p className="relative text-sm text-gray-500">
-              <span className="text-purple-neon-primary">⚡</span> Los votos se actualizan en tiempo real
+            <p className="relative text-sm text-gray-500 flex items-center justify-center gap-1">
+              <Zap className="h-3 w-3 text-purple-neon-primary" />
+              Los votos se actualizan en tiempo real
             </p>
           </div>
         </div>
