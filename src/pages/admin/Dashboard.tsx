@@ -7,6 +7,7 @@ import { Calendar, Monitor, Briefcase, TrendingUp, Users, Settings, Download,
 import { useSystemStats } from '@/hooks/useSystemStats';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
+import AdminAnalytics from '@/components/AdminAnalytics';
 
 export default function Dashboard() {
   const { stats, isLoading } = useSystemStats();
@@ -166,6 +167,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Advanced Analytics Section */}
+        <AdminAnalytics />
 
         {/* System Status and Recent Activity */}
         <div className="grid gap-6 md:grid-cols-2">

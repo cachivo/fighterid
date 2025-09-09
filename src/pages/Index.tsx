@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import RealTimeStats from "@/components/RealTimeStats";
 import StrategicAllies from "@/components/StrategicAllies";
 import Ranking from "@/components/sections/Ranking";
 import Footer from "@/components/Footer";
@@ -55,6 +56,7 @@ const Index = () => {
       <UrbanDecorations />
       <Header />
       <Hero />
+      <RealTimeStats />
       <StrategicAllies />
       <Ranking />
       <Footer />

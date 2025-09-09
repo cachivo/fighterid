@@ -5,6 +5,7 @@ import { useStatusUpdates } from '@/hooks/useStatusUpdates';
 import { useSparring } from '@/hooks/useSparring';
 import { useFighterLicenses, useOrganizations } from '@/hooks/useLicenses';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
+import FighterPersonalStats from '@/components/FighterPersonalStats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,6 +107,11 @@ export default function FighterMe() {
       {/* Profile Completion Prompt */}
       {fighterProfile && (
         <ProfileCompletionPrompt profile={fighterProfile} />
+      )}
+
+      {/* Personal Statistics Dashboard */}
+      {fighterProfile && (
+        <FighterPersonalStats fighterId={fighterProfile.id} />
       )}
 
       <Card className="border-border/50 shadow-lg">

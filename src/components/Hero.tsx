@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
+import { useRealTimeStats } from '@/hooks/useRealTimeStats';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Zap } from 'lucide-react';
 import batallaPoster from "@/assets/batalla-poster.jpg";
 
 const Hero = () => {
+  const { stats } = useRealTimeStats();
+  
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Dark gradient background */}
@@ -35,12 +40,23 @@ const Hero = () => {
           </Button>
         </div>
         
-        {/* Live indicator with cinematic style */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-2 text-purple-neon-primary font-semibold">
-          <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
-          <span className="text-sm sm:text-base md:text-lg tracking-wider text-center">
-            PRÓXIMO EVENTO: 25 ENE 2025
-          </span>
+        {/* Live indicator with cinematic style and dynamic data */}
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-purple-neon-primary font-semibold">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
+            <span className="text-sm sm:text-base md:text-lg tracking-wider text-center">
+              {stats?.liveEvents && stats.liveEvents.length > 0 
+                ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO` 
+                : 'PRÓXIMO EVENTO: 25 ENE 2025'
+              }
+            </span>
+          </div>
+          
+          {/* Dynamic fighter count */}
+          <div className="flex items-center gap-2 text-sm bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+            <Zap className="h-4 w-4" />
+            <span>{stats?.totalFighters || 0} Peleadores Registrados</span>
+          </div>
         </div>
       </div>
       
