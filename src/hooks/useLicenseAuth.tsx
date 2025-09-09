@@ -127,19 +127,21 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('Latest license found:', primaryLicense);
 
       if (primaryLicense) {
+        console.log('Primary license status:', primaryLicense.status);
+        console.log('Primary license data:', primaryLicense);
+        
         setLicenseData({
           ...primaryLicense,
           fighter_profiles: primaryLicense.fighter_profiles
         });
         const isActive = primaryLicense.status === 'ACTIVE';
+        console.log('License is active:', isActive);
         setHasActiveLicense(isActive);
         
         // Invalidate relevant queries when license status changes
-        if (isActive) {
-          queryClient.invalidateQueries({ queryKey: ['license'] });
-          queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
-          queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
-        }
+        queryClient.invalidateQueries({ queryKey: ['license'] });
+        queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+        queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
       } else {
         console.log('No licenses found');
         setLicenseData(null);
@@ -158,6 +160,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (user) {
       console.log('Manually refreshing license status...');
       setLoading(true);
+      
+      // Clear all cache first
+      queryClient.clear();
+      
+      // Force fresh data fetch
       await checkLicenseStatus(user.id);
       
       // Also invalidate all license-related queries
