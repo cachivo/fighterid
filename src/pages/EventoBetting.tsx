@@ -15,7 +15,8 @@ import { useWallet } from '@/hooks/useWallet';
 import { useRealtimeBetting } from '@/hooks/useRealtimeBetting';
 import { 
   TrendingUp, Clock, DollarSign, Users, AlertTriangle, 
-  Trophy, MapPin, Calendar, Zap, Timer, Target, ArrowLeft
+  Trophy, MapPin, Calendar, Zap, Timer, Target, ArrowLeft,
+  Shield, Mic, Gamepad
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -302,10 +303,10 @@ export default function EventoBetting() {
 
   const getDisciplineIcon = (discipline: string) => {
     switch (discipline?.toLowerCase()) {
-      case 'boxing': return <Swords className="h-4 w-4" />;
-      case 'rap': return <Mic2 className="h-4 w-4" />;
+      case 'boxing': return <Shield className="h-4 w-4" />;
+      case 'rap': return <Mic className="h-4 w-4" />;
       case 'chess': return <Zap className="h-4 w-4" />;
-      case 'esports': return <Gamepad2 className="h-4 w-4" />;
+      case 'esports': return <Gamepad className="h-4 w-4" />;
       default: return <Trophy className="h-4 w-4" />;
     }
   };
