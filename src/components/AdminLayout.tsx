@@ -16,8 +16,8 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <SidebarTrigger className="mr-4" />
             <Link to="/" className="mr-4 hover:opacity-80 transition-opacity">
               <img 
-                src="/lovable-uploads/07f90240-de72-4763-ba2b-eb451fe8473c.png" 
-                alt="Batalla de Gimnasios" 
+                src="/lovable-uploads/047f0269-860f-4365-9dc4-8e1343a62359.png" 
+                alt="Fighter ID" 
                 className="h-8 w-auto"
               />
             </Link>
