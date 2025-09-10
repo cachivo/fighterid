@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function LicensePending() {
-  const { user, licenseData, signOut, refreshLicense } = useLicenseAuth();
+  const { user, licenseData, signOut, refreshLicense, hasActiveLicense } = useLicenseAuth();
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -22,6 +22,53 @@ export default function LicensePending() {
       return;
     }
   }, [licenseData?.status, navigate]);
+
+  // Direct license verification as fallback
+  useEffect(() => {
+    const directLicenseCheck = async () => {
+      if (!user || hasActiveLicense) return;
+      
+      try {
+        console.log('Direct license verification for user:', user.id);
+        
+        // Get user's app_user record
+        const { data: appUser } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .single();
+
+        if (!appUser) return;
+
+        // Check for active license directly
+        const { data: license } = await supabase
+          .from('fighter_licenses')
+          .select(`
+            id,
+            status,
+            license_number,
+            fighter_profiles!inner (
+              user_id
+            )
+          `)
+          .eq('fighter_profiles.user_id', appUser.id)
+          .eq('status', 'ACTIVE')
+          .eq('is_primary', true)
+          .maybeSingle();
+
+        if (license) {
+          console.log('Direct check found ACTIVE license, redirecting...');
+          navigate('/license/dashboard', { replace: true });
+        }
+      } catch (error) {
+        console.error('Direct license check failed:', error);
+      }
+    };
+
+    // Run direct check after a short delay if still on pending page
+    const timer = setTimeout(directLicenseCheck, 2000);
+    return () => clearTimeout(timer);
+  }, [user, hasActiveLicense, navigate]);
 
   const getStatusSteps = () => {
     const currentStatus = licenseData?.status;
