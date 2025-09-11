@@ -145,44 +145,50 @@ export function useFighterProfiles() {
     try {
       setLoading(true);
       console.log('📋 Fetching public fighters...');
+      
+      // Simplified query - first get all active fighters
       let query = supabase
         .from('fighter_profiles')
-        .select(`
-          *,
-          martial_arts,
-          license_number,
-          license_issued_date,
-          license_expires_date,
-          license_status,
-          fighter_licenses!fighter_licenses_fighter_id_fkey!inner(
-            license_number,
-            status,
-            is_primary
-          )
-        `);
+        .select('*');
       
       if (!includeInactive) {
         query = query.eq('active', true);
       }
       
-      // Always filter by primary license and show ACTIVE or PENDING licenses
-      query = query.eq('fighter_licenses.is_primary', true)
-                   .in('fighter_licenses.status', ['ACTIVE', 'PENDING_REVIEW']);
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data: fightersData, error: fightersError } = await query.order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (fightersError) {
+        console.error('📋 Fighters query error:', fightersError);
+        throw fightersError;
+      }
       
-      console.log('📋 Public fighters fetched:', data?.length, 'fighters');
-      const moises = data?.find(f => f.first_name === 'Moises' && f.last_name === 'Cardenas');
+      console.log('📋 Raw fighters fetched:', fightersData?.length, 'fighters');
+      
+      if (!fightersData || fightersData.length === 0) {
+        console.log('📋 No fighters found in database');
+        setFighters([]);
+        return;
+      }
+
+      // Optional: Get licenses separately if needed (for now just use the data we have)
+      const fightersWithLicenses = fightersData.map(fighter => ({
+        ...fighter,
+        // Use existing license fields from fighter_profiles table
+        martial_arts: fighter.martial_arts || [],
+      }));
+      
+      console.log('📋 Processed fighters:', fightersWithLicenses.length, 'fighters');
+      const moises = fightersWithLicenses.find(f => f.first_name === 'Moises' && f.last_name === 'Cardenas');
       if (moises) {
         console.log('📋 Moises record:', { wins: moises.record_wins, losses: moises.record_losses, draws: moises.record_draws });
       }
       
-      setFighters(data || []);
+      setFighters(fightersWithLicenses);
     } catch (err) {
       console.error('📋 Public fighters fetch error:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
+      // Set empty array on error so UI shows "no fighters" instead of loading forever
+      setFighters([]);
     } finally {
       setLoading(false);
     }
