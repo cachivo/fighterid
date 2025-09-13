@@ -54,22 +54,18 @@ export function useAdminFighters() {
   const fetchFighters = async () => {
     try {
       setLoading(true);
+      console.log('🔧 Admin fetching fighters...');
+      
+      // Simplified query - get all active fighters directly
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select(`
-          *,
-          fighter_licenses!fighter_licenses_fighter_id_fkey!inner(
-            license_number,
-            status,
-            is_primary
-          )
-        `)
+        .select('*')
         .eq('active', true)
-        .eq('fighter_licenses.is_primary', true)
-        .in('fighter_licenses.status', ['ACTIVE', 'PENDING_REVIEW'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('🔧 Admin fighters fetched:', data?.length, 'fighters');
       setFighters(data || []);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar peleadores';
