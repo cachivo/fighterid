@@ -39,10 +39,14 @@ export default function LicenseOnboarding() {
     phone: '',
     birthdate: '',
     gender: '' as 'M' | 'F' | 'Otro' | '',
-    recordType: '' as 'Amateur' | 'Profesional' | '',
-    recordWins: '',
-    recordLosses: '',
-    recordDraws: '',
+    // Amateur record
+    amateurWins: '',
+    amateurLosses: '',
+    amateurDraws: '',
+    // Professional record  
+    proWins: '',
+    proLosses: '',
+    proDraws: '',
     boxrecUrl: '',
     tapologyUrl: ''
   });
@@ -236,10 +240,17 @@ export default function LicenseOnboarding() {
         fighting_style: formData.fightingStyle || null,
         stance: formData.stance || null,
         level: formData.level || null,
-        record_wins: formData.recordWins ? parseInt(formData.recordWins) : 0,
-        record_losses: formData.recordLosses ? parseInt(formData.recordLosses) : 0,
-        record_draws: formData.recordDraws ? parseInt(formData.recordDraws) : 0,
-        record_type: formData.recordType || null,
+        // Use the appropriate record based on the fighter level
+        record_wins: formData.level === 'Profesional' 
+          ? (formData.proWins ? parseInt(formData.proWins) : 0)
+          : (formData.amateurWins ? parseInt(formData.amateurWins) : 0),
+        record_losses: formData.level === 'Profesional'
+          ? (formData.proLosses ? parseInt(formData.proLosses) : 0) 
+          : (formData.amateurLosses ? parseInt(formData.amateurLosses) : 0),
+        record_draws: formData.level === 'Profesional'
+          ? (formData.proDraws ? parseInt(formData.proDraws) : 0)
+          : (formData.amateurDraws ? parseInt(formData.amateurDraws) : 0),
+        record_type: formData.level === 'Profesional' ? 'PROFESSIONAL' : 'AMATEUR',
         gender: formData.gender || null,
         boxrec_url: formData.boxrecUrl || null,
         tapology_url: formData.tapologyUrl || null,
@@ -712,57 +723,86 @@ export default function LicenseOnboarding() {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Tipo de Récord</h4>
-                  <div>
-                    <Label htmlFor="recordType">Categoría de Récord *</Label>
-                    <Select value={formData.recordType} onValueChange={(value) => setFormData({...formData, recordType: value as any})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona el tipo de récord" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Amateur">Amateur</SelectItem>
-                        <SelectItem value="Profesional">Profesional</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <div className="space-y-6">
+                  <h4 className="font-medium text-sm text-center">Récord de Peleas</h4>
+                  
+                  {/* Amateur Record Section */}
+                  <div className="border rounded-lg p-4 bg-card">
+                    <h5 className="font-medium text-sm mb-3 text-primary">Récord Amateur</h5>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label htmlFor="amateurWins">Victorias</Label>
+                        <Input
+                          id="amateurWins"
+                          type="number"
+                          min="0"
+                          value={formData.amateurWins}
+                          onChange={(e) => setFormData({...formData, amateurWins: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="amateurLosses">Derrotas</Label>
+                        <Input
+                          id="amateurLosses"
+                          type="number"
+                          min="0"
+                          value={formData.amateurLosses}
+                          onChange={(e) => setFormData({...formData, amateurLosses: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="amateurDraws">Empates</Label>
+                        <Input
+                          id="amateurDraws"
+                          type="number"
+                          min="0"
+                          value={formData.amateurDraws}
+                          onChange={(e) => setFormData({...formData, amateurDraws: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Récord de Peleas</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="recordWins">Victorias</Label>
-                      <Input
-                        id="recordWins"
-                        type="number"
-                        min="0"
-                        value={formData.recordWins}
-                        onChange={(e) => setFormData({...formData, recordWins: e.target.value})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="recordLosses">Derrotas</Label>
-                      <Input
-                        id="recordLosses"
-                        type="number"
-                        min="0"
-                        value={formData.recordLosses}
-                        onChange={(e) => setFormData({...formData, recordLosses: e.target.value})}
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="recordDraws">Empates</Label>
-                      <Input
-                        id="recordDraws"
-                        type="number"
-                        min="0"
-                        value={formData.recordDraws}
-                        onChange={(e) => setFormData({...formData, recordDraws: e.target.value})}
-                        placeholder="0"
-                      />
+                  {/* Professional Record Section */}
+                  <div className="border rounded-lg p-4 bg-card">
+                    <h5 className="font-medium text-sm mb-3 text-primary">Récord Profesional</h5>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <Label htmlFor="proWins">Victorias</Label>
+                        <Input
+                          id="proWins"
+                          type="number"
+                          min="0"
+                          value={formData.proWins}
+                          onChange={(e) => setFormData({...formData, proWins: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="proLosses">Derrotas</Label>
+                        <Input
+                          id="proLosses"
+                          type="number"
+                          min="0"
+                          value={formData.proLosses}
+                          onChange={(e) => setFormData({...formData, proLosses: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="proDraws">Empates</Label>
+                        <Input
+                          id="proDraws"
+                          type="number"
+                          min="0"
+                          value={formData.proDraws}
+                          onChange={(e) => setFormData({...formData, proDraws: e.target.value})}
+                          placeholder="0"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
