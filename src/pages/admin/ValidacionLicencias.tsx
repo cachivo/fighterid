@@ -34,6 +34,30 @@ export default function ValidacionLicencias() {
   const [notes, setNotes] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
 
+  // Fetch pending license requests
+  const { data: pendingLicenses, refetch: refetchPending, isLoading: isLoadingPending } = useQuery({
+    queryKey: ['pending_licenses', searchTerm],
+    queryFn: async () => {
+      let query = supabase
+        .from('fighter_licenses')
+        .select(`
+          *,
+          fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url),
+          license_documents(id, file_path, document_type)
+        `)
+        .eq('status', 'PENDING_REVIEW')
+        .order('created_at', { ascending: false });
+
+      if (searchTerm) {
+        query = query.or(`license_number.ilike.%${searchTerm}%,fighter.first_name.ilike.%${searchTerm}%,fighter.last_name.ilike.%${searchTerm}%`);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Fetch licenses with Fighter IDs (ACTIVE and SUSPENDED only)
   const { data: licenses, refetch, isLoading } = useQuery({
     queryKey: ['admin_licenses', searchTerm],
@@ -123,7 +147,9 @@ export default function ValidacionLicencias() {
           console.log('License change detected:', payload);
           // Invalidate and refetch the licenses query
           queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
+          queryClient.invalidateQueries({ queryKey: ['pending_licenses'] });
           refetch();
+          refetchPending();
         }
       )
       .subscribe();
@@ -164,6 +190,7 @@ export default function ValidacionLicencias() {
       setExpiresAt('');
       
       refetch();
+      refetchPending();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
@@ -208,8 +235,9 @@ export default function ValidacionLicencias() {
       
       // Force a refetch and invalidate related queries
       await refetch();
+      await refetchPending();
       queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
-      queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
+      queryClient.invalidateQueries({ queryKey: ['pending_licenses'] });
       
     } catch (error: any) {
       console.error('Error updating license:', error);
@@ -389,13 +417,124 @@ export default function ValidacionLicencias() {
             </CardContent>
           </Card>
 
-          {/* Search and List */}
+          {/* Pending License Requests */}
+          <Card className="border-amber-200 bg-amber-50/50 shadow-lg">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-amber-700">
+                  <AlertCircle className="h-5 w-5" />
+                  Solicitudes de Licencia Pendientes ({pendingLicenses?.length || 0})
+                </CardTitle>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar solicitudes..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoadingPending ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Cargando solicitudes...</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingLicenses?.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No hay solicitudes de licencia pendientes</p>
+                    </div>
+                  ) : (
+                    pendingLicenses?.map(license => {
+                      const displayStatus = optimisticUpdates[license.id] || license.status;
+                      const fighterPhoto = license.license_documents?.find(doc => doc.document_type === 'photo');
+                      const photoUrl = fighterPhoto ? 
+                        supabase.storage.from('fighter-photos').getPublicUrl(fighterPhoto.file_path).data.publicUrl :
+                        license.fighter?.avatar_url;
+                      
+                      return (
+                        <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-amber-200 bg-white">
+                          {/* Fighter Avatar */}
+                          <div className="flex-shrink-0">
+                            <OptimizedImage
+                              src={photoUrl || ''}
+                              alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
+                              className="w-12 h-12 rounded-full border-2 border-border object-cover"
+                              fallbackIcon={
+                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                                  <User className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                              }
+                              priority={false}
+                            />
+                          </div>
+                          
+                          {/* License Information */}
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-3">
+                              <div className="font-medium">{license.license_number}</div>
+                              <Badge className={getLicenseStatusColor(displayStatus)}>
+                                PENDIENTE REVISIÓN
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <strong>Peleador:</strong> {license.fighter?.first_name} {license.fighter?.last_name}
+                              {license.fighter?.nickname ? ` "${license.fighter.nickname}"` : ''}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <strong>Categoría:</strong> {license.fighter?.weight_class} • 
+                              <strong> Disciplina:</strong> {license.discipline} • 
+                              <strong> Solicitada:</strong> {new Date(license.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex-shrink-0 flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={() => updateLicenseState(license.id, 'ACTIVE')}
+                              disabled={loadingStates[license.id] || !isAdmin}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {loadingStates[license.id] && optimisticUpdates[license.id] === 'ACTIVE' ? (
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                              ) : null}
+                              Aprobar
+                            </Button>
+                            <Button
+                              size="sm" 
+                              variant="destructive"
+                              onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
+                              disabled={loadingStates[license.id] || !isAdmin}
+                            >
+                              {loadingStates[license.id] && optimisticUpdates[license.id] === 'SUSPENDED' ? (
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                              ) : null}
+                              Rechazar
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Active and Suspended Licenses */}
           <Card className="border-border/50 shadow-lg">
             <CardHeader>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Search className="h-5 w-5" />
-                  Licencias con Fighter ID
+                  Licencias con Fighter ID ({licenses?.length || 0})
                 </CardTitle>
                 <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
