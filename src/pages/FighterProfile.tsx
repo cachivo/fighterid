@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useFighterProfiles, FighterProfile as FighterProfileType } from '@/hooks/useFighterProfiles';
-import { useFighterHistory, RecordType } from '@/hooks/useFighterHistory';
+import { RecordType } from '@/hooks/useFighterHistory';
+import { useCombinedFighterRecord } from '@/hooks/useCombinedFighterRecord';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import UrbanDecorations from '@/components/UrbanDecorations';
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
   const { getFighterById } = useFighterProfiles();
-  const { calculateRecord } = useFighterHistory(id || null);
+  const { calculateCombinedRecord, isLoading: isLoadingRecord } = useCombinedFighterRecord(id || null);
   const [fighter, setFighter] = useState<FighterProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [recordType, setRecordType] = useState<RecordType>('AMATEUR');
@@ -70,9 +71,19 @@ export default function FighterProfile() {
   };
 
   // Calculate record based on selected type
-  const currentRecord = calculateRecord(recordType);
+  const currentRecord = calculateCombinedRecord(recordType);
   const record = `${currentRecord.wins}-${currentRecord.losses}-${currentRecord.draws}`;
   const winPercentage = currentRecord.winPercentage;
+
+  // Record source indicator
+  const getRecordSourceText = () => {
+    switch (currentRecord.source) {
+      case 'manual': return 'Récord oficial';
+      case 'fights': return 'Desde peleas';
+      case 'combined': return 'Récord combinado';
+      default: return '';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -188,6 +199,11 @@ export default function FighterProfile() {
                       <Trophy className="h-4 w-4 text-fighter-success" />
                       {winPercentage}% Victorias
                     </span>
+                    {currentRecord.source && (
+                      <span className="text-xs px-2 py-1 bg-muted/50 rounded-md">
+                        {getRecordSourceText()}
+                      </span>
+                    )}
                   </div>
                 </div>
 
