@@ -111,7 +111,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     stance: '',
     boxrec_url: '',
     tapology_url: '',
-    record_type: 'AMATEUR',
+    record_type: 'Amateur',
   });
 
   useEffect(() => {
@@ -154,7 +154,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         stance: fighter.stance || '',
         boxrec_url: fighter.boxrec_url || '',
         tapology_url: fighter.tapology_url || '',
-        record_type: fighter.record_type || 'AMATEUR',
+        record_type: fighter.record_type || 'Amateur',
       });
     }
   }, [fighter]);
@@ -740,9 +740,9 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                           <SelectValue placeholder="Seleccionar tipo" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="AMATEUR">Amateur</SelectItem>
-                          <SelectItem value="PROFESSIONAL">Profesional</SelectItem>
-                          <SelectItem value="MIXED">Mixto</SelectItem>
+                          <SelectItem value="Amateur">Amateur</SelectItem>
+                          <SelectItem value="Profesional">Profesional</SelectItem>
+                          <SelectItem value="Mixto">Mixto</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
