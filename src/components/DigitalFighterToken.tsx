@@ -5,7 +5,8 @@ import { Shield, Award, MapPin, Calendar, CheckCircle2 } from 'lucide-react';
 
 interface FighterProfile {
   id: string;
-  full_name?: string;
+  first_name: string;
+  last_name: string;
   nickname?: string;
   country?: string;
   avatar_url?: string;
@@ -19,6 +20,7 @@ interface FighterProfile {
   license_issue_date?: string;
   license_expiry_date?: string;
   license_state?: string;
+  active?: boolean;
 }
 
 interface DigitalFighterTokenProps {
@@ -52,14 +54,19 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
     });
   };
 
-  const getInitials = (name?: string) => {
-    if (!name) return 'ID';
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const getInitials = (firstName?: string, lastName?: string) => {
+    if (!firstName && !lastName) return 'ID';
+    const initials = [];
+    if (firstName) initials.push(firstName[0]);
+    if (lastName) initials.push(lastName[0]);
+    return initials.join('').toUpperCase().slice(0, 2);
+  };
+
+  const getFullName = (firstName?: string, lastName?: string) => {
+    const parts = [];
+    if (firstName) parts.push(firstName);
+    if (lastName) parts.push(lastName);
+    return parts.length > 0 ? parts.join(' ') : 'Nombre no disponible';
   };
 
   return (
@@ -88,9 +95,9 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Avatar className="h-12 w-12 border-2 border-slate-600/50 ring-2 ring-purple-500/20">
-                  <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                  <AvatarImage src={profile.avatar_url} alt={getFullName(profile.first_name, profile.last_name)} />
                   <AvatarFallback className="bg-slate-700 text-slate-200 font-semibold">
-                    {getInitials(profile.full_name)}
+                    {getInitials(profile.first_name, profile.last_name)}
                   </AvatarFallback>
                 </Avatar>
                 
@@ -103,7 +110,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-0.5">
                   <h2 className="text-white font-bold text-lg leading-tight truncate">
-                    {profile.full_name || 'Nombre no disponible'}
+                    {getFullName(profile.first_name, profile.last_name)}
                   </h2>
                   {profile.country && (
                     <span className="text-lg opacity-60">
@@ -122,15 +129,15 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
               </div>
             </div>
 
-            {/* Level Badge */}
+            {/* Active Status Badge */}
             <Badge 
-              variant={getLevelVariant(profile.level)}
-              className={`bg-slate-800/80 border-purple-500/30 px-2 py-1 text-xs font-medium ${
-                profile.level ? 'text-purple-300' : 'text-green-400'
+              variant={profile.active ? 'default' : 'secondary'}
+              className={`bg-slate-800/80 border-green-500/30 px-2 py-1 text-xs font-medium ${
+                profile.active ? 'text-green-400' : 'text-gray-400'
               }`}
             >
-              <Award className="h-3 w-3 mr-1" />
-              {profile.level || 'Active'}
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              {profile.active ? 'Active' : 'Inactive'}
             </Badge>
           </div>
 
@@ -160,8 +167,14 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
               </div>
             </div>
 
-            {/* Weight & Discipline */}
+            {/* Weight, Discipline & Level */}
             <div className="text-right">
+              {profile.level && (
+                <div className="text-purple-300 text-sm font-medium mb-1">
+                  <Award className="h-3 w-3 inline mr-1" />
+                  {profile.level}
+                </div>
+              )}
               {profile.weight_class && (
                 <div className="text-slate-300 text-sm font-medium">
                   {profile.weight_class}
