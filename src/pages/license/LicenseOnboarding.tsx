@@ -46,9 +46,7 @@ export default function LicenseOnboarding() {
     // Professional record  
     proWins: '',
     proLosses: '',
-    proDraws: '',
-    boxrecUrl: '',
-    tapologyUrl: ''
+    proDraws: ''
   });
 
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
@@ -334,8 +332,6 @@ export default function LicenseOnboarding() {
           : (formData.amateurDraws ? parseInt(formData.amateurDraws) : 0),
         record_type: formData.level === 'Profesional' ? 'Profesional' : 'Amateur',
         gender: formData.gender || null,
-        boxrec_url: formData.boxrecUrl || null,
-        tapology_url: formData.tapologyUrl || null,
         bio: formData.bio || null
       };
       
@@ -821,35 +817,6 @@ export default function LicenseOnboarding() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium text-sm">Enlaces de Verificación (Opcional)</h4>
-                  <div>
-                    <Label htmlFor="boxrecUrl">Perfil BoxRec</Label>
-                    <Input
-                      id="boxrecUrl"
-                      type="url"
-                      value={formData.boxrecUrl}
-                      onChange={(e) => setFormData({...formData, boxrecUrl: e.target.value})}
-                      placeholder="https://boxrec.com/..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enlace a tu perfil en BoxRec para verificar tu récord profesional
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="tapologyUrl">Perfil Tapology</Label>
-                    <Input
-                      id="tapologyUrl"
-                      type="url"
-                      value={formData.tapologyUrl}
-                      onChange={(e) => setFormData({...formData, tapologyUrl: e.target.value})}
-                      placeholder="https://www.tapology.com/fightcenter/fighters/..."
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Enlace a tu perfil en Tapology para verificar tu récord
-                    </p>
-                  </div>
-                </div>
 
                 <div>
                   <Label htmlFor="fightingStyle">Estilo de Pelea</Label>
