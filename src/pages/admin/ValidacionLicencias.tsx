@@ -51,7 +51,7 @@ export default function ValidacionLicencias() {
             *,
             user:user_id(email, phone, birthdate, country)
           ),
-          license_documents(id, file_path, document_type, file_name, created_at)
+          license_documents!license_documents_license_id_fkey(id, file_path, document_type, file_name, created_at, mime_type)
         `)
         .eq('status', 'PENDING_REVIEW')
         .order('created_at', { ascending: false });
@@ -75,7 +75,7 @@ export default function ValidacionLicencias() {
         .select(`
           *,
           fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url),
-          license_documents(id, file_path, document_type)
+          license_documents!license_documents_license_id_fkey(id, file_path, document_type)
         `)
         .in('status', ['ACTIVE', 'SUSPENDED'])
         .order('created_at', { ascending: false });
@@ -98,7 +98,7 @@ export default function ValidacionLicencias() {
         .from('fighter_profiles')
         .select(`
           id, first_name, last_name, nickname,
-          fighter_licenses!inner(status)
+          fighter_licenses!fighter_licenses_fighter_id_fkey!inner(status)
         `)
         .eq('active', true)
         .in('fighter_licenses.status', ['ACTIVE', 'SUSPENDED'])
@@ -946,7 +946,7 @@ export default function ValidacionLicencias() {
                                   </p>
                                 </div>
                               </div>
-                              <Button 
+                               <Button 
                                 size="sm" 
                                 variant="outline"
                                 onClick={() => {
@@ -954,10 +954,21 @@ export default function ValidacionLicencias() {
                                   const { data } = supabase.storage.from(bucketName).getPublicUrl(doc.file_path);
                                   window.open(data.publicUrl, '_blank');
                                 }}
-                              >
-                                <Download className="h-3 w-3 mr-1" />
-                                Ver
-                              </Button>
+                               >
+                                 <Download className="h-3 w-3 mr-1" />
+                                 Ver
+                               </Button>
+                               
+                               {/* Show image preview for image documents */}
+                               {doc.mime_type && doc.mime_type.startsWith('image/') && (
+                                 <div className="mt-2">
+                                   <OptimizedImage
+                                     src={supabase.storage.from(doc.document_type === 'photo' ? 'fighter-photos' : 'license-documents').getPublicUrl(doc.file_path).data.publicUrl}
+                                     alt={`${doc.document_type} document`}
+                                     className="w-32 h-32 object-cover rounded border"
+                                   />
+                                 </div>
+                               )}
                             </div>
                           ))}
                         </div>
