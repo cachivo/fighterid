@@ -64,7 +64,7 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.6)] touch-manipulation cursor-pointer">
+          <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer">
             <img 
               src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
               alt="Fighter ID" 
@@ -178,7 +178,7 @@ const Header = () => {
                 <div className="border-b border-border p-4 sm:p-6">
                   <Link 
                     to="/" 
-                    className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg hover:drop-shadow-[0_0_8px_rgba(147,51,234,0.6)] touch-manipulation cursor-pointer"
+                    className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <img 
