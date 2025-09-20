@@ -11,12 +11,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 export default function LicenseDashboard() {
   const { user, licenseData } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
+  const navigate = useNavigate();
 
   console.log('Dashboard - licenseData:', licenseData);
   console.log('Dashboard - license:', license);
@@ -30,6 +31,36 @@ export default function LicenseDashboard() {
       </div>
     );
   }
+
+  // Function to detect missing critical information 
+  const getMissingFields = (profile: any) => {
+    const requiredFields = [
+      { key: 'birthdate', label: 'Fecha de Nacimiento' },
+      { key: 'document_type', label: 'Tipo de Documento' },
+      { key: 'document_number', label: 'Número de Documento' },
+      { key: 'blood_type', label: 'Tipo de Sangre' },
+      { key: 'height_cm', label: 'Altura' },
+      { key: 'weight_kg', label: 'Peso' },
+      { key: 'emergency_contact_name', label: 'Contacto de Emergencia' },
+      { key: 'emergency_contact_phone', label: 'Teléfono de Emergencia' },
+      { key: 'insurance_company', label: 'Compañía de Seguro' }
+    ];
+    
+    return requiredFields.filter(field => 
+      !profile?.[field.key] || 
+      profile[field.key] === 'No especificado' ||
+      profile[field.key] === 'No especificada'
+    );
+  };
+
+  const handleUpdateInfo = () => {
+    navigate('/profile-change-request', { 
+      state: { 
+        fighterProfileId: licenseData?.fighter_profiles?.id,
+        returnTo: '/license/dashboard'
+      } 
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -70,6 +101,7 @@ export default function LicenseDashboard() {
 
   // Get fighter profile from license data
   const fighterProfile = licenseData?.fighter_profiles;
+  const missingFields = getMissingFields(fighterProfile);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-4">
@@ -86,13 +118,31 @@ export default function LicenseDashboard() {
                 Vista completa de licencia {licenseData.license_number}
               </p>
             </div>
-            <div className="text-right space-y-1">
-              <Badge className={getStatusColor(licenseData.status)}>
-                {getStatusText(licenseData.status)}
-              </Badge>
-              <Badge className={getLevelColor(licenseData.license_level)} variant="outline">
-                {licenseData.license_level}
-              </Badge>
+            <div className="flex items-center gap-3">
+              {missingFields.length > 0 && (
+                <div className="text-right">
+                  <Button 
+                    onClick={handleUpdateInfo}
+                    variant="professional"
+                    size="sm"
+                    className="mb-2"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Actualizar Información
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    {missingFields.length} campo{missingFields.length > 1 ? 's' : ''} faltante{missingFields.length > 1 ? 's' : ''}
+                  </div>
+                </div>
+              )}
+              <div className="text-right space-y-1">
+                <Badge className={getStatusColor(licenseData.status)}>
+                  {getStatusText(licenseData.status)}
+                </Badge>
+                <Badge className={getLevelColor(licenseData.license_level)} variant="outline">
+                  {licenseData.license_level}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
