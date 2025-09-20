@@ -61,7 +61,7 @@ export default function Fighters() {
   const [selectedDiscipline, setSelectedDiscipline] = useState('Todas');
   const [selectedFightingStyle, setSelectedFightingStyle] = useState('Todos');
   const [selectedRecordType, setSelectedRecordType] = useState('Todos');
-  const [includeInactive, setIncludeInactive] = useState(true);
+  const [includeInactive, setIncludeInactive] = useState(false);
   const [readyToFightOnly, setReadyToFightOnly] = useState(false);
   const [sortBy, setSortBy] = useState('name');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function Fighters() {
 
   // Initial load - only once
   useEffect(() => {
-    fetchFighters(true);
+    fetchFighters(false);
   }, []);
 
   // Only reload when toggles change
