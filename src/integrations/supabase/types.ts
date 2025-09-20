@@ -2413,6 +2413,10 @@ export type Database = {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
       }
+      admin_update_fighter_profile_v9: {
+        Args: { p_fighter_id: string; p_profile_data: Json }
+        Returns: undefined
+      }
       approve_license: {
         Args: {
           p_level?: Database["public"]["Enums"]["license_level"]
