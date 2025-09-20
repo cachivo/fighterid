@@ -17,34 +17,9 @@ import { useEffect, useState } from 'react';
 export default function LicenseDashboard() {
   const { user, licenseData } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
-  const { refreshUserProfile } = useFighterProfiles();
-  const [refreshingProfile, setRefreshingProfile] = useState(false);
 
   console.log('Dashboard - licenseData:', licenseData);
   console.log('Dashboard - license:', license);
-
-  const handleRefreshProfile = async () => {
-    setRefreshingProfile(true);
-    try {
-      await refreshUserProfile();
-      // Force a page reload to refresh all license data
-      window.location.reload();
-    } catch (error) {
-      console.error('Error refreshing profile:', error);
-    } finally {
-      setRefreshingProfile(false);
-    }
-  };
-
-  // Auto-refresh every 30 seconds to catch applied changes
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // Silent refresh - just reload the page to get latest data
-      window.location.reload();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   if (!licenseData) {
     return (
@@ -97,212 +72,271 @@ export default function LicenseDashboard() {
   const fighterProfile = licenseData?.fighter_profiles;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">
-      <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-professional-primary">
-              Fighter ID Dashboard
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Información completa de licencia y seguridad
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button 
-              onClick={handleRefreshProfile}
-              disabled={refreshingProfile}
-              variant="outline" 
-              size="sm"
-              className="border-2 border-professional-accent/60 text-professional-primary hover:bg-professional-primary hover:text-professional-primary-foreground"
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshingProfile ? 'animate-spin' : ''}`} />
-              {refreshingProfile ? 'Actualizando...' : 'Actualizar'}
-            </Button>
-            <Button 
-              asChild 
-              variant="outline" 
-              size="sm"
-              className="border-2 border-professional-accent/60 text-professional-primary hover:bg-professional-primary hover:text-professional-primary-foreground"
-            >
-              <Link to="/license/qr">
-                <QrCode className="h-4 w-4 mr-2" />
-                Ver QR
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/license/onboarding" className="flex items-center gap-2">
-                <Edit className="h-4 w-4" />
-                Completar Info
-              </Link>
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Admin Header */}
+        <div className="bg-card border rounded-lg p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                <Shield className="h-6 w-6 text-primary" />
+                Fighter ID - Información Administrativa
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                Vista completa de licencia {licenseData.license_number}
+              </p>
+            </div>
+            <div className="text-right space-y-1">
+              <Badge className={getStatusColor(licenseData.status)}>
+                {getStatusText(licenseData.status)}
+              </Badge>
+              <Badge className={getLevelColor(licenseData.license_level)} variant="outline">
+                {licenseData.license_level}
+              </Badge>
+            </div>
           </div>
         </div>
 
-        {/* Profile Completion Prompt */}
-        {fighterProfile && (
-          <ProfileCompletionPrompt 
-            profile={fighterProfile} 
-            className="mb-6"
-            onRefreshProfile={handleRefreshProfile}
-          />
-        )}
-
-        {/* Enhanced Fighter ID */}
-        <EnhancedFighterID 
-          profile={fighterProfile}
-          showAdmin={false}
-        />
-
-        {/* Status Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-slide-up">
-          {/* Status Overview */}
-          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-professional-accent/20">
-                  <Shield className="h-5 w-5 text-professional-primary" />
+        {/* Fighter Profile Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={fighterProfile?.avatar_url} />
+                <AvatarFallback>
+                  {fighterProfile?.first_name?.[0]}{fighterProfile?.last_name?.[0]}
+                </AvatarFallback>
+              </Avatar>
+              Información del Peleador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
+                  <p className="font-semibold">{fighterProfile?.first_name} {fighterProfile?.last_name}</p>
+                  {fighterProfile?.nickname && (
+                    <p className="text-sm text-muted-foreground">"{fighterProfile.nickname}"</p>
+                  )}
                 </div>
-                Estado de Licencia
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 border border-border">
-                <span className="font-medium text-foreground">Estado Médico</span>
-                {licenseData.medical_cleared ? (
-                  <CheckCircle className="h-5 w-5 text-fighter-success" />
-                ) : (
-                  <AlertTriangle className="h-5 w-5 text-fighter-warning" />
-                )}
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">País</p>
+                  <p>{fighterProfile?.country || 'No especificado'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Categoría de Peso</p>
+                  <p>{fighterProfile?.weight_class}</p>
+                </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-background/50 border border-border">
-                <span className="font-medium text-foreground">Estado Físico</span>
-                {licenseData.physical_cleared ? (
-                  <CheckCircle className="h-5 w-5 text-fighter-success" />
-                ) : (
-                  <AlertTriangle className="h-5 w-5 text-fighter-warning" />
-                )}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Récord Profesional</p>
+                  <p className="font-mono text-lg">
+                    {fighterProfile?.record_wins || 0}-{fighterProfile?.record_losses || 0}-{fighterProfile?.record_draws || 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Disciplina</p>
+                  <p>{fighterProfile?.discipline || licenseData.discipline || 'No especificada'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Gimnasio</p>
+                  <p>{fighterProfile?.gym_name || 'No especificado'}</p>
+                </div>
               </div>
-              {licenseData.expires_at && (
-                <div className="p-3 rounded-lg bg-professional-muted/10 border border-professional-border/30">
-                  <p className="text-sm font-medium text-professional-accent uppercase tracking-wide">Expira</p>
-                  <p className="font-bold text-foreground mt-1">
-                    {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
-                  </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Licencia Creada</p>
+                  <p>{licenseData.created_at ? format(new Date(licenseData.created_at), 'PP', { locale: es }) : 'N/A'}</p>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Última Actualización</p>
+                  <p>{fighterProfile?.updated_at ? format(new Date(fighterProfile.updated_at), 'PP', { locale: es }) : 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Versión</p>
+                  <p>v{licenseData.version || 1}</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Medical Certification */}
-          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-professional-accent/20">
-                  <CheckCircle className="h-5 w-5 text-professional-primary" />
-                </div>
-                Certificación Médica
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {validMedicalCert ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-fighter-success/10 border border-fighter-success/20">
-                    <CheckCircle className="h-5 w-5 text-fighter-success" />
-                    <span className="font-bold text-fighter-success">Vigente</span>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Emitido por: <span className="text-foreground font-semibold">{validMedicalCert.issued_by}</span>
-                    </p>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      Expira: <span className="text-foreground font-semibold">{format(new Date(validMedicalCert.expires_date), 'PP', { locale: es })}</span>
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-fighter-warning/10 border border-fighter-warning/20">
-                    <AlertTriangle className="h-5 w-5 text-fighter-warning" />
-                    <span className="font-bold text-fighter-warning">Requerida</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Necesitas una certificación médica válida para mantener tu Fighter ID activo
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Next Fight */}
-          <Card className="border border-professional-border/30 bg-gradient-professional-light shadow-professional hover:shadow-professional-light transition-all duration-300 hover-scale">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-lg">
-                <div className="p-2 rounded-lg bg-professional-accent/20">
-                  <Calendar className="h-5 w-5 text-professional-primary" />
-                </div>
-                Próxima Pelea
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {upcomingFights.length > 0 ? (
-                <div className="space-y-3">
-                  <div className="p-4 rounded-lg bg-gradient-to-br from-professional-muted/15 to-professional-accent/10 border border-professional-border/30">
-                    <p className="font-bold text-foreground text-lg">{upcomingFights[0].event_name}</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {format(new Date(upcomingFights[0].scheduled_date), 'PPP', { locale: es })}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {upcomingFights[0].venue}
-                    </p>
-                    <Badge variant="outline" className="mt-2 border-professional-accent/60 text-professional-primary">
-                      {upcomingFights[0].weight_class}
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="p-4 rounded-full bg-muted/20 w-fit mx-auto mb-4">
-                    <Clock className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground font-medium">
-                    No tienes peleas programadas
-                  </p>
-                  <p className="text-sm text-muted-foreground/80 mt-1">
-                    Mantén tu Fighter ID activo para futuras oportunidades
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Suspension Notice */}
-        {licenseData.status === 'SUSPENDED' && (
-          <Card className="border-2 border-fighter-danger/20 bg-gradient-to-br from-fighter-danger/5 to-fighter-danger/10 shadow-professional">
+        {/* Information Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* License Status Details */}
+          <Card>
             <CardHeader>
-              <CardTitle className="text-fighter-danger flex items-center gap-3 text-xl">
-                <div className="p-2 rounded-lg bg-fighter-danger/10">
-                  <AlertTriangle className="h-6 w-6" />
-                </div>
-                Licencia Suspendida
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Estado de Validaciones
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 rounded-lg bg-fighter-danger/10 border border-fighter-danger/20">
-                <p className="text-fighter-danger font-semibold mb-2">
-                  Razón: {licenseData.suspension_reason}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 rounded-lg border bg-muted/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    {licenseData.medical_cleared ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    )}
+                    <span className="text-sm font-medium">Médico</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {licenseData.medical_cleared ? 'Autorizado' : 'Pendiente'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-lg border bg-muted/20">
+                  <div className="flex items-center gap-2 mb-2">
+                    {licenseData.physical_cleared ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                    )}
+                    <span className="text-sm font-medium">Físico</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {licenseData.physical_cleared ? 'Autorizado' : 'Pendiente'}
+                  </p>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Emitida:</span>
+                  <span>{licenseData.issued_at ? format(new Date(licenseData.issued_at), 'PP', { locale: es }) : 'N/A'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Expira:</span>
+                  <span className={new Date(licenseData.expires_at) < new Date() ? 'text-red-600 font-medium' : ''}>
+                    {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
+                  </span>
+                </div>
+                {licenseData.approved_at && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Aprobada:</span>
+                    <span>{format(new Date(licenseData.approved_at), 'PP', { locale: es })}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Medical Certifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Certificaciones Médicas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {medicalCerts?.data?.length > 0 ? (
+                <div className="space-y-3">
+                  {medicalCerts.data.slice(0, 2).map((cert: any) => (
+                    <div key={cert.id} className="p-3 rounded-lg border bg-muted/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium">{cert.certification_type}</span>
+                        <Badge variant={cert.cleared && new Date(cert.expires_date) > new Date() ? 'default' : 'secondary'}>
+                          {cert.cleared && new Date(cert.expires_date) > new Date() ? 'Vigente' : 'Expirada'}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>Emitido por: {cert.issued_by}</p>
+                        <p>Expira: {format(new Date(cert.expires_date), 'PP', { locale: es })}</p>
+                        {cert.medical_number && <p>Número: {cert.medical_number}</p>}
+                      </div>
+                    </div>
+                  ))}
+                  {medicalCerts.data.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Sin certificaciones médicas registradas
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Sin certificaciones médicas registradas
                 </p>
-                {licenseData.suspension_until && (
-                  <p className="text-sm text-fighter-danger/80">
-                    Suspensión hasta: {format(new Date(licenseData.suspension_until), 'PPP', { locale: es })}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Fight History/Bookings */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Actividad de Peleas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="text-center p-4 bg-muted/20 rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{(fighterProfile?.record_wins || 0) + (fighterProfile?.record_losses || 0) + (fighterProfile?.record_draws || 0)}</p>
+                  <p className="text-sm text-muted-foreground">Peleas Totales</p>
+                </div>
+                
+                {upcomingFights.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium mb-2">Próximas Peleas:</p>
+                    <div className="space-y-2">
+                      {upcomingFights.slice(0, 2).map((fight: any, index: number) => (
+                        <div key={index} className="p-2 rounded border text-xs">
+                          <p className="font-medium">{fight.event_name}</p>
+                          <p className="text-muted-foreground">{format(new Date(fight.scheduled_date), 'PP', { locale: es })}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Administrative Notes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Observaciones Administrativas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {licenseData.notes && (
+                  <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-1">Notas de Licencia:</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">{licenseData.notes}</p>
+                  </div>
+                )}
+                
+                {licenseData.suspension_reason && (
+                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
+                    <p className="text-xs font-medium text-red-800 dark:text-red-200 mb-1">Razón de Suspensión:</p>
+                    <p className="text-sm text-red-700 dark:text-red-300">{licenseData.suspension_reason}</p>
+                    {licenseData.suspension_until && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        Hasta: {format(new Date(licenseData.suspension_until), 'PP', { locale: es })}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {!licenseData.notes && !licenseData.suspension_reason && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Sin observaciones administrativas
                   </p>
                 )}
               </div>
             </CardContent>
           </Card>
-        )}
+        </div>
+
       </div>
     </div>
   );
