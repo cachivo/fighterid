@@ -186,14 +186,16 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await checkLicenseStatus(session.user.id);
+          setTimeout(() => {
+            checkLicenseStatus(session.user.id);
+          }, 0);
         } else {
           setHasActiveLicense(false);
           setLicenseData(null);
@@ -203,14 +205,16 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!mounted) return;
       
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await checkLicenseStatus(session.user.id);
+        setTimeout(() => {
+          checkLicenseStatus(session.user.id);
+        }, 0);
       } else {
         setLoading(false);
       }

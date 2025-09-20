@@ -72,8 +72,23 @@ export default function LicenseOnboarding() {
 
   // Check if user already has a profile
   useEffect(() => {
+    let cancelled = false;
+    
+    // Safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (!cancelled) {
+        console.log('Safety timeout triggered, stopping check');
+        setCheckingExisting(false);
+      }
+    }, 8000);
+
     const checkExistingProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('No user available, redirecting to auth...');
+        setCheckingExisting(false);
+        navigate('/license/auth', { replace: true });
+        return;
+      }
 
       try {
         console.log('Checking for existing profile...');
@@ -107,11 +122,18 @@ export default function LicenseOnboarding() {
       } catch (error) {
         console.error('Error checking existing profile:', error);
       } finally {
-        setCheckingExisting(false);
+        if (!cancelled) {
+          setCheckingExisting(false);
+        }
       }
     };
 
     checkExistingProfile();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(safetyTimeout);
+    };
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
