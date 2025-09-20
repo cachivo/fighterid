@@ -332,7 +332,8 @@ export default function LicenseOnboarding() {
           : (formData.amateurDraws ? parseInt(formData.amateurDraws) : 0),
         record_type: formData.level === 'Profesional' ? 'PROFESIONAL' : 'AMATEUR',
         gender: formData.gender || null,
-        bio: formData.bio || null
+        bio: formData.bio || null,
+        birthdate: formData.birthdate || null
       };
       
       const { data: profile, error: profileError } = await withTimeout(

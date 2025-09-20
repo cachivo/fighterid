@@ -746,106 +746,118 @@ export default function ValidacionLicencias() {
 
                       <Separator />
 
-                      {/* Personal Details Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            Teléfono
-                          </Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.user?.phone || 'No proporcionado'}
-                          </p>
-                        </div>
+                       {/* Personal Details Grid */}
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                           <Label className="flex items-center gap-2">
+                             <Calendar className="h-4 w-4" />
+                             Fecha de Nacimiento
+                           </Label>
+                           <p className="text-sm bg-muted/50 p-2 rounded">
+                             {reviewingLicense.fighter?.birthdate ? 
+                               new Date(reviewingLicense.fighter.birthdate).toLocaleDateString() : 
+                               reviewingLicense.fighter?.user?.birthdate ? 
+                                 new Date(reviewingLicense.fighter.user.birthdate).toLocaleDateString() : 
+                                 'No proporcionado'
+                             }
+                           </p>
+                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            Fecha de Nacimiento
-                          </Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.birthdate ? 
-                              new Date(reviewingLicense.fighter.birthdate).toLocaleDateString() : 
-                              reviewingLicense.fighter?.user?.birthdate ? 
-                                new Date(reviewingLicense.fighter.user.birthdate).toLocaleDateString() : 
-                                'No proporcionado'
-                            }
-                          </p>
-                        </div>
+                         <div className="space-y-2">
+                           <Label className="flex items-center gap-2">
+                             <Phone className="h-4 w-4" />
+                             Teléfono
+                           </Label>
+                           <p className="text-sm bg-muted/50 p-2 rounded">
+                             {reviewingLicense.fighter?.user?.phone || 'No proporcionado'}
+                           </p>
+                         </div>
 
-                        <div className="space-y-2">
-                          <Label className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            País
-                          </Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.country || reviewingLicense.fighter?.user?.country || 'No proporcionado'}
-                          </p>
-                        </div>
+                         <div className="space-y-2">
+                           <Label className="flex items-center gap-2">
+                             <MapPin className="h-4 w-4" />
+                             País
+                           </Label>
+                           <p className="text-sm bg-muted/50 p-2 rounded">
+                             {reviewingLicense.fighter?.country || reviewingLicense.fighter?.user?.country || 'No proporcionado'}
+                           </p>
+                         </div>
 
-                        <div className="space-y-2">
-                          <Label>Género</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.gender || 'No proporcionado'}
-                          </p>
-                        </div>
+                         <div className="space-y-2">
+                           <Label>Género</Label>
+                           <p className="text-sm bg-muted/50 p-2 rounded">
+                             {reviewingLicense.fighter?.gender || 'No proporcionado'}
+                           </p>
+                         </div>
+                       </div>
 
-                        <div className="space-y-2">
-                          <Label>Categoría de Peso</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.weight_class}
-                          </p>
-                        </div>
+                       <Separator />
 
-                        <div className="space-y-2">
-                          <Label>Nivel</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.level || 'No proporcionado'}
-                          </p>
-                        </div>
+                       {/* Physical & Combat Information */}
+                       <div className="space-y-4">
+                         <h4 className="font-medium text-sm flex items-center gap-2">
+                           <Activity className="h-4 w-4" />
+                           Información Física y de Combate
+                         </h4>
+                       
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                             <Label>Categoría de Peso</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.weight_class}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Altura (cm)</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.height_cm || 'No proporcionado'}
-                          </p>
-                        </div>
+                           <div className="space-y-2">
+                             <Label>Nivel</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.level || 'No proporcionado'}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Peso (kg)</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.weight_kg || 'No proporcionado'}
-                          </p>
-                        </div>
+                           <div className="space-y-2">
+                             <Label>Altura (cm)</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.height_cm || 'No proporcionado'}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Alcance (cm)</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.reach_cm || 'No proporcionado'}
-                          </p>
-                        </div>
+                           <div className="space-y-2">
+                             <Label>Peso (kg)</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.weight_kg || 'No proporcionado'}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Estilo de Pelea</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.fighting_style || 'No proporcionado'}
-                          </p>
-                        </div>
+                           <div className="space-y-2">
+                             <Label>Alcance (cm)</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.reach_cm || 'No proporcionado'}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Gimnasio</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.gym_name || 'No proporcionado'}
-                          </p>
-                        </div>
+                           <div className="space-y-2">
+                             <Label>Estilo de Pelea</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.fighting_style || 'No proporcionado'}
+                             </p>
+                           </div>
 
-                        <div className="space-y-2">
-                          <Label>Stance</Label>
-                          <p className="text-sm bg-muted/50 p-2 rounded">
-                            {reviewingLicense.fighter?.stance || 'No proporcionado'}
-                          </p>
-                        </div>
-                      </div>
+                           <div className="space-y-2">
+                             <Label>Gimnasio</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.gym_name || 'No proporcionado'}
+                             </p>
+                           </div>
+
+                           <div className="space-y-2">
+                             <Label>Stance</Label>
+                             <p className="text-sm bg-muted/50 p-2 rounded">
+                               {reviewingLicense.fighter?.stance || 'No proporcionado'}
+                             </p>
+                           </div>
+                         </div>
+                       </div>
 
                       {/* Fighting Record */}
                       <Separator />
