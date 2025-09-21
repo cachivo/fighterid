@@ -115,12 +115,27 @@ export function useEvents() {
     fetchEvents();
   }, []);
 
+  const deleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from('bdg_event')
+        .delete()
+        .eq('id', eventId);
+
+      if (error) throw error;
+      await fetchEvents();
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Error desconocido');
+    }
+  };
+
   return {
     events,
     loading,
     error,
     createEvent,
     updateEventState,
+    deleteEvent,
     refreshEvents: fetchEvents
   };
 }

@@ -27,6 +27,17 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -52,7 +63,7 @@ interface FighterProfile {
 export default function EventosPelea() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { events, loading, createEvent, updateEventState, refreshEvents } = useEvents();
+  const { events, loading, createEvent, updateEventState, deleteEvent, refreshEvents } = useEvents();
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showFightersDialog, setShowFightersDialog] = useState(false);
@@ -233,6 +244,22 @@ export default function EventosPelea() {
       toast({
         title: 'Error',
         description: errorMessage,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      await deleteEvent(eventId);
+      toast({
+        title: 'Éxito',
+        description: 'Evento eliminado correctamente',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el evento',
         variant: 'destructive',
       });
     }
@@ -463,6 +490,31 @@ export default function EventosPelea() {
                         <Edit className="w-4 h-4 mr-1" />
                         Peleas
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Eliminar
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar evento?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Se eliminará permanentemente el evento "{event.name}" y todas las peleas asociadas.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleDeleteEvent(event.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                       <Select value={event.state} onValueChange={(value) => updateEventState(event.id, value)}>
                         <SelectTrigger className="w-32">
                           <SelectValue />
