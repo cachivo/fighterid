@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Plus, Filter, ArrowUpDown, Users, Target } from 'lucide-react';
+import { Search, Plus, Filter, ArrowUpDown, Users, Target, TrendingUp, Award, Zap, Eye } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -67,6 +68,8 @@ export default function Fighters() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedFighter, setSelectedFighter] = useState<FighterProfile | null>(null);
   const [userProfile, setUserProfile] = useState<FighterProfile | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0);
   
   const { fighters, loading, loadingUserProfile, getUserFighterProfile, fetchFighters, fetchFightersWithReadyStatus } = useFighterProfiles();
   const { user } = useAuth();
@@ -97,43 +100,57 @@ export default function Fighters() {
     } else {
       fetchFighters(includeInactive);
     }
+    // Trigger animation when filters change
+    setAnimationKey(prev => prev + 1);
   }, [includeInactive, readyToFightOnly]);
 
-  const filteredFighters = fighters
-    .filter(fighter => {
-      const matchesSearch = 
-        fighter.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        fighter.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (fighter.nickname && fighter.nickname.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesWeightClass = 
-        selectedWeightClass === 'Todos' || fighter.weight_class === selectedWeightClass;
-      
-      const matchesDiscipline = 
-        selectedDiscipline === 'Todas' || fighter.discipline === selectedDiscipline;
-      
-      const matchesFightingStyle = 
-        selectedFightingStyle === 'Todos' || fighter.fighting_style === selectedFightingStyle;
-      
-      const matchesRecordType = 
-        selectedRecordType === 'Todos' || fighter.record_type === selectedRecordType;
-      
-      const matchesReadyToFight = 
-        !readyToFightOnly || (fighter as any).ready_to_fight === true;
-      
-      return matchesSearch && matchesWeightClass && matchesDiscipline && 
-             matchesFightingStyle && matchesRecordType && matchesReadyToFight;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return a.first_name.localeCompare(b.first_name);
-        case 'wins':
-          return b.record_wins - a.record_wins;
-        default:
-          return 0;
-      }
-    });
+  const filteredFighters = useMemo(() => {
+    return fighters
+      .filter(fighter => {
+        const matchesSearch = 
+          fighter.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          fighter.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (fighter.nickname && fighter.nickname.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+        const matchesWeightClass = 
+          selectedWeightClass === 'Todos' || fighter.weight_class === selectedWeightClass;
+        
+        const matchesDiscipline = 
+          selectedDiscipline === 'Todas' || fighter.discipline === selectedDiscipline;
+        
+        const matchesFightingStyle = 
+          selectedFightingStyle === 'Todos' || fighter.fighting_style === selectedFightingStyle;
+        
+        const matchesRecordType = 
+          selectedRecordType === 'Todos' || fighter.record_type === selectedRecordType;
+        
+        const matchesReadyToFight = 
+          !readyToFightOnly || (fighter as any).ready_to_fight === true;
+        
+        return matchesSearch && matchesWeightClass && matchesDiscipline && 
+               matchesFightingStyle && matchesRecordType && matchesReadyToFight;
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'name':
+            return a.first_name.localeCompare(b.first_name);
+          case 'wins':
+            return b.record_wins - a.record_wins;
+          default:
+            return 0;
+        }
+      });
+  }, [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedFightingStyle, selectedRecordType, includeInactive, readyToFightOnly, sortBy]);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = filteredFighters.length;
+    const readyToFight = filteredFighters.filter(f => (f as any).ready_to_fight).length;
+    const totalWins = filteredFighters.reduce((acc, f) => acc + f.record_wins, 0);
+    const disciplines = [...new Set(filteredFighters.map(f => f.discipline).filter(Boolean))].length;
+    
+    return { total, readyToFight, totalWins, disciplines };
+  }, [filteredFighters]);
 
   const handleFighterClick = (fighter: FighterProfile) => {
     // Navigate to public fighter profile instead of dialog
@@ -146,13 +163,40 @@ export default function Fighters() {
         <Header />
         <div className="max-w-7xl mx-auto p-6 pt-20">
           <div className="flex justify-between items-center mb-8">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 w-32" />
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-48 animate-pulse" />
+              <Skeleton className="h-6 w-64 animate-pulse" />
+            </div>
+            <Skeleton className="h-10 w-32 animate-pulse" />
           </div>
           
+          {/* Animated loading cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="h-64 w-full" />
+              <div 
+                key={i} 
+                className="animate-fade-in"
+                style={{ animationDelay: `${i * 0.1}s` }}
+              >
+                <Card className="h-64 overflow-hidden">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Skeleton className="h-12 w-12 rounded-full animate-pulse" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-24 animate-pulse" />
+                          <Skeleton className="h-3 w-16 animate-pulse" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-16 w-full animate-pulse" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-3 w-full animate-pulse" />
+                        <Skeleton className="h-3 w-3/4 animate-pulse" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -165,17 +209,80 @@ export default function Fighters() {
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto p-6 pt-20">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        
+        {/* Animated Hero Section */}
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-primary/10 to-secondary/10 px-4 py-2 rounded-full mb-4 animate-scale-in">
+            <Zap className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Plataforma de Peleadores</span>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-4">
+            Descubre Talentos
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Explora perfiles de atletas élite, sus récords y estadísticas en tiempo real
+          </p>
+        </div>
+
+        {/* Animated Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-4 text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Users className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground transition-colors duration-300">
+                {stats.total}
+              </div>
+              <div className="text-xs text-muted-foreground">Peleadores</div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-4 text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Target className="h-6 w-6 text-green-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground transition-colors duration-300">
+                {stats.readyToFight}
+              </div>
+              <div className="text-xs text-muted-foreground">Listos</div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-4 text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Award className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground transition-colors duration-300">
+                {stats.totalWins}
+              </div>
+              <div className="text-xs text-muted-foreground">Victorias</div>
+            </CardContent>
+          </Card>
+
+          <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+            <CardContent className="p-4 text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <TrendingUp className="h-6 w-6 text-purple-500 mx-auto mb-2" />
+              <div className="text-2xl font-bold text-foreground transition-colors duration-300">
+                {stats.disciplines}
+              </div>
+              <div className="text-xs text-muted-foreground">Disciplinas</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Header with Create Profile */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 animate-fade-in" style={{ animationDelay: '0.4s' }}>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Peleadores</h1>
+            <h2 className="text-2xl font-bold text-foreground">Todos los Peleadores</h2>
             <p className="text-muted-foreground">Conoce a los atletas de la plataforma</p>
           </div>
           
           {user && !userProfile && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-gradient-to-r from-purple-neon-primary to-purple-neon-secondary hover:opacity-90">
+                <Button className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 group relative overflow-hidden">
+                  <div className="absolute inset-0 bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
                   <Plus className="mr-2 h-4 w-4 text-white" />
                   Crear Mi Perfil
                 </Button>
@@ -193,151 +300,192 @@ export default function Fighters() {
           )}
         </div>
 
-        {/* Filters */}
-        <div className="space-y-6 mb-8">
-          {/* Search and Status toggles */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        {/* Interactive Filters */}
+        <div className="space-y-6 mb-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          {/* Search and Mobile Filter Toggle */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="relative flex-1 group">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-primary" />
               <Input
-                placeholder="Buscar peleadores..."
+                placeholder="Buscar peleadores por nombre o apodo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 transition-all duration-300 focus:shadow-lg focus:scale-[1.02] hover:shadow-md"
               />
+              {searchTerm && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Badge variant="secondary" className="text-xs animate-scale-in">
+                    {filteredFighters.length}
+                  </Badge>
+                </div>
+              )}
             </div>
             
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-card border">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Incluir inactivos</span>
-              <Switch
-                checked={includeInactive}
-                onCheckedChange={setIncludeInactive}
-              />
-            </div>
-            
-            <div className="flex items-center space-x-3 p-3 rounded-lg bg-card border">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Solo listos para pelear</span>
-              <Switch
-                checked={readyToFightOnly}
-                onCheckedChange={setReadyToFightOnly}
-              />
-            </div>
+            <Button
+              variant="outline"
+              className="md:hidden transition-all duration-300 hover:shadow-md"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Filtros
+              {showFilters ? ' ▲' : ' ▼'}
+            </Button>
           </div>
 
-          {/* Filter dropdowns */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <Select value={selectedWeightClass} onValueChange={setSelectedWeightClass}>
-              <SelectTrigger>
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="División" />
-              </SelectTrigger>
-              <SelectContent>
-                {WEIGHT_CLASSES.map(weightClass => (
-                  <SelectItem key={weightClass} value={weightClass}>
-                    {weightClass}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
-              <SelectTrigger>
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="Disciplina" />
-              </SelectTrigger>
-              <SelectContent>
-                {DISCIPLINES.map(discipline => (
-                  <SelectItem key={discipline} value={discipline}>
-                    {discipline}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedFightingStyle} onValueChange={setSelectedFightingStyle}>
-              <SelectTrigger>
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="Estilo" />
-              </SelectTrigger>
-              <SelectContent>
-                {FIGHTING_STYLES.map(style => (
-                  <SelectItem key={style} value={style}>
-                    {style}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedRecordType} onValueChange={setSelectedRecordType}>
-              <SelectTrigger>
-                <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="Tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                {RECORD_TYPES.map(type => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Status Toggles */}
+          <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 transition-all duration-300 ${showFilters || 'hidden md:grid'}`}>
+            <Card className="group hover:shadow-md transition-all duration-300 hover:border-primary/20">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Users className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <div>
+                      <span className="text-sm font-medium">Incluir inactivos</span>
+                      <p className="text-xs text-muted-foreground">Mostrar todos los peleadores</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={includeInactive}
+                    onCheckedChange={setIncludeInactive}
+                    className="transition-transform hover:scale-110"
+                  />
+                </div>
+              </CardContent>
+            </Card>
             
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger>
-                <ArrowUpDown className="mr-2 h-4 w-4 text-muted-foreground" />
-                <SelectValue placeholder="Ordenar por" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Nombre</SelectItem>
-                <SelectItem value="wins">Victorias</SelectItem>
-                <SelectItem value="elo">Rating ELO</SelectItem>
-              </SelectContent>
-            </Select>
+            <Card className="group hover:shadow-md transition-all duration-300 hover:border-primary/20">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Target className="h-5 w-5 text-muted-foreground group-hover:text-green-500 transition-colors" />
+                    <div>
+                      <span className="text-sm font-medium">Solo listos para pelear</span>
+                      <p className="text-xs text-muted-foreground">Peleadores disponibles</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={readyToFightOnly}
+                    onCheckedChange={setReadyToFightOnly}
+                    className="transition-transform hover:scale-110"
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Results summary */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          {/* Filter dropdowns with enhanced animations */}
+          <div className={`grid grid-cols-1 md:grid-cols-5 gap-4 transition-all duration-500 ${showFilters || 'hidden md:grid'}`}>
+            {[
+              { value: selectedWeightClass, onChange: setSelectedWeightClass, options: WEIGHT_CLASSES, placeholder: "División", icon: Filter },
+              { value: selectedDiscipline, onChange: setSelectedDiscipline, options: DISCIPLINES, placeholder: "Disciplina", icon: Filter },
+              { value: selectedFightingStyle, onChange: setSelectedFightingStyle, options: FIGHTING_STYLES, placeholder: "Estilo", icon: Filter },
+              { value: selectedRecordType, onChange: setSelectedRecordType, options: RECORD_TYPES, placeholder: "Tipo", icon: Filter },
+              { value: sortBy, onChange: setSortBy, options: [{ value: 'name', label: 'Nombre' }, { value: 'wins', label: 'Victorias' }, { value: 'elo', label: 'Rating ELO' }], placeholder: "Ordenar por", icon: ArrowUpDown }
+            ].map((filter, index) => (
+              <div 
+                key={index}
+                className="animate-fade-in"
+                style={{ animationDelay: `${0.8 + index * 0.1}s` }}
+              >
+                <Select value={filter.value} onValueChange={filter.onChange}>
+                  <SelectTrigger className="transition-all duration-300 hover:shadow-md hover:border-primary/30 focus:shadow-lg focus:scale-[1.02]">
+                    <filter.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                    <SelectValue placeholder={filter.placeholder} />
+                  </SelectTrigger>
+                  <SelectContent className="animate-scale-in">
+                    {filter.options.map((option: any) => (
+                      <SelectItem 
+                        key={typeof option === 'string' ? option : option.value} 
+                        value={typeof option === 'string' ? option : option.value}
+                        className="hover:bg-primary/5 transition-colors"
+                      >
+                        {typeof option === 'string' ? option : option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ))}
+          </div>
+
+          {/* Results summary with animated badges */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '1.2s' }}>
             <div className="flex items-center gap-2">
-              <span>Total: {filteredFighters.length} peleadores</span>
+              <Eye className="h-4 w-4" />
+              <span className="font-medium">
+                Mostrando {filteredFighters.length} de {fighters.length} peleadores
+              </span>
             </div>
             {includeInactive && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs animate-scale-in bg-blue-500/10 text-blue-700 border-blue-200">
                 Incluyendo inactivos
               </Badge>
             )}
             {readyToFightOnly && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs animate-scale-in bg-green-500/10 text-green-700 border-green-200">
                 Solo listos para pelear
+              </Badge>
+            )}
+            {searchTerm && (
+              <Badge variant="outline" className="text-xs animate-scale-in bg-primary/10 text-primary border-primary/20">
+                Búsqueda: "{searchTerm}"
               </Badge>
             )}
           </div>
         </div>
 
-        {/* Fighters Grid */}
+        {/* Fighters Grid with Staggered Animation */}
         {filteredFighters.length === 0 ? (
-          <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              No se encontraron peleadores
-            </h3>
-            <p className="text-muted-foreground">
-              Intenta ajustar los filtros de búsqueda
-            </p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+                <Users className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No se encontraron peleadores
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                Intenta ajustar los filtros de búsqueda o explora diferentes categorías
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm('');
+                  setSelectedWeightClass('Todos');
+                  setSelectedDiscipline('Todas');
+                  setSelectedFightingStyle('Todos');
+                  setSelectedRecordType('Todos');
+                  setIncludeInactive(false);
+                  setReadyToFightOnly(false);
+                }}
+                className="hover:shadow-md transition-all duration-300"
+              >
+                Limpiar filtros
+              </Button>
+            </div>
           </div>
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredFighters.map(fighter => (
-            <FighterCard
-              key={fighter.id}
-              fighter={fighter}
-              onClick={() => handleFighterClick(fighter)}
-            />
-          ))}
-        </div>
+          <div 
+            key={animationKey}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          >
+            {filteredFighters.map((fighter, index) => (
+              <div
+                key={fighter.id}
+                className="animate-fade-in hover-scale"
+                style={{ 
+                  animationDelay: `${Math.min(index * 0.05, 1)}s`,
+                  animationFillMode: 'both'
+                }}
+              >
+                <FighterCard
+                  fighter={fighter}
+                  onClick={() => handleFighterClick(fighter)}
+                />
+              </div>
+            ))}
+          </div>
         )}
-
-        {/* Remove the dialog since we now navigate directly to the profile page */}
       </div>
       <Footer />
     </div>
