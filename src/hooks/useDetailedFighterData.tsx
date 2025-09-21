@@ -16,11 +16,13 @@ export const useDetailedFighterData = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDetailedData = useCallback(async (fighterId: string) => {
+    console.log('Fetching detailed data for fighter:', fighterId);
     setLoading(true);
     setError(null);
 
     try {
       // Obtener perfil principal
+      console.log('Fetching fighter profile...');
       const { data: profile, error: profileError } = await supabase
         .from('fighter_profiles')
         .select(`
@@ -35,9 +37,14 @@ export const useDetailedFighterData = () => {
         .eq('id', fighterId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
+      console.log('Profile fetched:', profile);
 
       // Obtener licencias
+      console.log('Fetching licenses...');
       const { data: licenses, error: licensesError } = await supabase
         .from('fighter_licenses')
         .select(`
@@ -51,52 +58,93 @@ export const useDetailedFighterData = () => {
         .eq('fighter_id', fighterId)
         .order('created_at', { ascending: false });
 
-      if (licensesError) throw licensesError;
+      if (licensesError) {
+        console.error('Licenses error:', licensesError);
+        throw licensesError;
+      }
+      console.log('Licenses fetched:', licenses);
 
-      // Obtener documentos
-      const { data: documents, error: documentsError } = await supabase
-        .from('license_documents')
-        .select('*')
-        .in('license_id', (licenses || []).map(l => l.id))
-        .order('created_at', { ascending: false });
+      // Obtener documentos - solo si hay licencias
+      let documents = [];
+      if (licenses && licenses.length > 0) {
+        console.log('Fetching documents...');
+        const licenseIds = licenses.map(l => l.id);
+        const { data: documentsData, error: documentsError } = await supabase
+          .from('license_documents')
+          .select('*')
+          .in('license_id', licenseIds)
+          .order('created_at', { ascending: false });
 
-      if (documentsError) throw documentsError;
+        if (documentsError) {
+          console.error('Documents error:', documentsError);
+          throw documentsError;
+        }
+        documents = documentsData || [];
+        console.log('Documents fetched:', documents);
+      } else {
+        console.log('No licenses found, skipping documents');
+      }
 
-      // Obtener certificaciones médicas
-      const { data: medicalCertifications, error: medicalError } = await supabase
-        .from('medical_certifications')
-        .select('*')
-        .in('license_id', (licenses || []).map(l => l.id))
-        .order('created_at', { ascending: false });
+      // Obtener certificaciones médicas - solo si hay licencias
+      let medicalCertifications = [];
+      if (licenses && licenses.length > 0) {
+        console.log('Fetching medical certifications...');
+        const licenseIds = licenses.map(l => l.id);
+        const { data: medicalData, error: medicalError } = await supabase
+          .from('medical_certifications')
+          .select('*')
+          .in('license_id', licenseIds)
+          .order('created_at', { ascending: false });
 
-      if (medicalError) throw medicalError;
+        if (medicalError) {
+          console.error('Medical certifications error:', medicalError);
+          throw medicalError;
+        }
+        medicalCertifications = medicalData || [];
+        console.log('Medical certifications fetched:', medicalCertifications);
+      } else {
+        console.log('No licenses found, skipping medical certifications');
+      }
 
       // Obtener actualizaciones de estado
+      console.log('Fetching status updates...');
       const { data: statusUpdates, error: statusError } = await supabase
         .from('fighter_status_updates')
         .select('*')
         .eq('fighter_id', fighterId)
         .order('created_at', { ascending: false });
 
-      if (statusError) throw statusError;
+      if (statusError) {
+        console.error('Status updates error:', statusError);
+        throw statusError;
+      }
+      console.log('Status updates fetched:', statusUpdates);
 
       // Obtener solicitudes de cambio
+      console.log('Fetching change requests...');
       const { data: changeRequests, error: changeError } = await supabase
         .from('profile_change_requests')
         .select('*')
         .eq('fighter_profile_id', fighterId)
         .order('created_at', { ascending: false });
 
-      if (changeError) throw changeError;
+      if (changeError) {
+        console.error('Change requests error:', changeError);
+        throw changeError;
+      }
+      console.log('Change requests fetched:', changeRequests);
 
-      setData({
+      const finalData = {
         profile: profile || null,
         licenses: licenses || [],
         documents: documents || [],
         medicalCertifications: medicalCertifications || [],
         statusUpdates: statusUpdates || [],
         changeRequests: changeRequests || []
-      });
+      };
+
+      console.log('Final data assembled:', finalData);
+      setData(finalData);
 
     } catch (err) {
       console.error('Error fetching detailed fighter data:', err);
