@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 export default function UserProfile() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { getUserFighterProfile } = useFighterProfiles();
   const { hasActiveLicense, licenseData } = useLicenseAuth();
   const [profile, setProfile] = useState<FighterProfile | null>(null);
@@ -36,6 +37,13 @@ export default function UserProfile() {
     };
     loadProfile();
   }, [getUserFighterProfile, user]);
+
+  // Intelligent redirection: Licensed fighters go to Fighter ID
+  useEffect(() => {
+    if (!loading && profile && hasActiveLicense) {
+      navigate('/license/dashboard');
+    }
+  }, [loading, profile, hasActiveLicense, navigate]);
 
   if (!user) {
     return (

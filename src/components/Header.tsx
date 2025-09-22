@@ -48,7 +48,7 @@ const Header = () => {
   }, [user, getUserFighterProfile]);
 
   const navigationItems = [
-    { name: "Mi Perfil", href: "/fighter/me", icon: Shield },
+    { name: "Mi Perfil", href: "/profile", icon: Shield },
     { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
@@ -324,7 +324,7 @@ const Header = () => {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/fighter/me" className="flex items-center">
+                    <Link to="/profile" className="flex items-center">
                       <User className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
                       Mi Perfil
                     </Link>
