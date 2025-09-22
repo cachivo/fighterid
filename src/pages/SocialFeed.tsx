@@ -5,13 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Heart, MessageCircle, TrendingUp, Users, Star } from 'lucide-react';
+import { Heart, MessageCircle, TrendingUp, Users, Star, ArrowLeft } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { supabase } from '@/integrations/supabase/client';
+import { Link } from 'react-router-dom';
 
 export default function SocialFeed() {
   const [activeTab, setActiveTab] = useState('all');
@@ -115,6 +116,15 @@ export default function SocialFeed() {
       </div>
 
       <div className="max-w-4xl mx-auto p-6 -mt-8 relative z-10">
+        {/* Back to Main Menu Button */}
+        <div className="mb-6">
+          <Button variant="outline" asChild className="bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card">
+            <Link to="/" className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Regresar al Menú Principal
+            </Link>
+          </Button>
+        </div>
 
         {/* Create Post Section */}
         {canCreatePost && (
