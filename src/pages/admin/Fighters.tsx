@@ -215,21 +215,19 @@ export default function Fighters() {
                     </Badge>
                   </div>
                   
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Peso:</span>
+                    <span className="text-sm font-medium">{fighter.weight_class}</span>
+                  </div>
                   
-                   <div className="flex justify-between items-center">
-                     <span className="text-sm text-muted-foreground">Peso:</span>
-                     <span className="text-sm font-medium">{fighter.weight_class}</span>
-                   </div>
-                   
-                    {fighter.discipline && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Disciplina:</span>
-                        <Badge variant="outline" className="text-xs">
-                          {fighter.discipline.toUpperCase()}
-                        </Badge>
-                      </div>
-                    )}
-                    
+                  {fighter.discipline && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Disciplina:</span>
+                      <Badge variant="outline" className="text-xs">
+                        {fighter.discipline.toUpperCase()}
+                      </Badge>
+                    </div>
+                  )}
                   
                   {fighter.country && (
                     <div className="flex justify-between items-center">
