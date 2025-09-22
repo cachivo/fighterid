@@ -230,26 +230,6 @@ export default function Fighters() {
 
       <div className="max-w-7xl mx-auto p-6">
         
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-8 relative z-10">
-          {[
-            { label: 'Total', value: stats.total, icon: Users, color: 'bg-primary' },
-            { label: 'Listos', value: stats.readyToFight, icon: Target, color: 'bg-green-500' },
-            { label: 'Victorias', value: stats.totalWins, icon: Trophy, color: 'bg-yellow-500' },
-            { label: 'Disciplinas', value: stats.disciplines, icon: Filter, color: 'bg-blue-500' }
-          ].map((stat, index) => (
-            <Card key={index} className="bg-card/80 backdrop-blur-sm border border-border/50 hover:shadow-lg transition-all duration-300 hover:scale-105 animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
-              <CardContent className="p-4 text-center">
-                <div className={`w-10 h-10 rounded-full ${stat.color} flex items-center justify-center mx-auto mb-2`}>
-                  <stat.icon className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
         {/* Header with Create Profile */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="animate-fade-in">
