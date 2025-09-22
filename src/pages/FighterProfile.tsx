@@ -223,6 +223,19 @@ export default function FighterProfile() {
           ))}
         </div>
 
+        {/* Fighter Updates Feed - Prominently placed */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Actividad del Peleador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FighterUpdatesFeed fighterId={fighter.id} />
+          </CardContent>
+        </Card>
+
         {/* Fighter Details */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Biography */}
@@ -322,18 +335,6 @@ export default function FighterProfile() {
           </div>
         </div>
 
-        {/* Fighter Updates Feed */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Actividad del Peleador
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FighterUpdatesFeed fighterId={fighter.id} />
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
