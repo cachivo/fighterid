@@ -307,12 +307,6 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
-            {isAdmin && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/admin">Admin Panel</Link>
-              </Button>
-            )}
-            
             {/* Fighter ID - Show in actions when not logged in OR logged in without fighter profile */}
             {(!user || (user && !hasFighterProfile)) && (
               <Button variant="outline" size="sm" className="h-8 px-2 text-xs" asChild>
@@ -320,6 +314,12 @@ const Header = () => {
                   <Shield className="h-3 w-3" />
                   Fighter ID
                 </Link>
+              </Button>
+            )}
+            
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">Admin Panel</Link>
               </Button>
             )}
             
