@@ -1,22 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Heart, MessageCircle, TrendingUp, Users, Star, ArrowLeft } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { MessageCircle, TrendingUp, Users, Star, Plus } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { supabase } from '@/integrations/supabase/client';
-import { Link } from 'react-router-dom';
 
 export default function SocialFeed() {
   const [activeTab, setActiveTab] = useState('all');
-  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const { posts, loading, createPost, toggleLike, deletePost, fetchPosts } = useSocialPosts();
   const { user } = useAuth();
   const { getUserFighterProfile } = useFighterProfiles();
@@ -57,12 +55,12 @@ export default function SocialFeed() {
       
       if (adminUser) {
         await createPost(postData, 'admin', adminUser.id);
-        setShowCreatePost(false);
+        setShowCreateForm(false);
       }
     } else if (userFighter) {
       // Fighter post
       await createPost(postData, 'fighter', userFighter.id);
-      setShowCreatePost(false);
+      setShowCreateForm(false);
     }
   };
 
@@ -95,136 +93,135 @@ export default function SocialFeed() {
     return null;
   };
 
+  const authorInfo = getAuthorInfo();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-primary/20 via-primary/10 to-transparent py-16">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className="text-center space-y-4">
-            <div className="flex items-center justify-center space-x-2 mb-4">
-              <Heart className="h-8 w-8 text-primary" />
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Red Social
-              </h1>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Conecta con peleadores, sigue las últimas noticias y mantente al día con la comunidad de combate
-            </p>
-          </div>
+    <div className="min-h-screen bg-background">
+      {/* Modern Feed Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="max-w-2xl mx-auto px-4 py-4">
+          <h1 className="text-xl font-semibold text-foreground">Feed</h1>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6 -mt-8 relative z-10">
-        {/* Back to Main Menu Button */}
-        <div className="mb-6">
-          <Button variant="outline" asChild className="bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card">
-            <Link to="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Regresar al Menú Principal
-            </Link>
-          </Button>
-        </div>
-
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Create Post Section */}
         {canCreatePost && (
-          <div className="mb-8">
-            {showCreatePost ? (
-            <CreatePostForm
-              onSubmit={handleCreatePost}
-              authorName={getAuthorInfo()!.name}
-              authorNickname={getAuthorInfo()!.nickname}
-              authorAvatar={getAuthorInfo()!.avatar}
-              authorType={getAuthorInfo()!.type}
-              loading={loading}
-            />
-            ) : (
-              <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-                <CardContent className="p-6">
-                  <Button
-                    onClick={() => setShowCreatePost(true)}
-                    className="w-full h-12 text-left justify-start bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground"
-                    variant="ghost"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-3" />
-                    {isAdmin ? '¿Qué novedades hay?' : '¿Cómo va tu entrenamiento?'}
+          <Card className="border-border/50">
+            <CardContent className="pt-6">
+              {showCreateForm ? (
+                <CreatePostForm
+                  onSubmit={handleCreatePost}
+                  authorName={authorInfo!.name}
+                  authorNickname={authorInfo!.nickname}
+                  authorAvatar={authorInfo!.avatar}
+                  authorType={authorInfo!.type}
+                  loading={loading}
+                />
+              ) : (
+                <div 
+                  className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
+                  onClick={() => setShowCreateForm(true)}
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={authorInfo!.avatar} alt={authorInfo!.name} />
+                    <AvatarFallback>{authorInfo!.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 text-muted-foreground">
+                    ¿Qué está pasando en el ring?
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-primary">
+                    <Plus className="h-4 w-4" />
                   </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
-        {/* Filters */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
-          <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm">
-            <TabsTrigger value="all" className="text-sm">
-              Todos
-            </TabsTrigger>
-            <TabsTrigger value="fighters" className="text-sm">
-              Peleadores
-            </TabsTrigger>
-            <TabsTrigger value="news" className="text-sm">
-              Noticias
-            </TabsTrigger>
-            <TabsTrigger value="featured" className="text-sm">
-              Destacados
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Filters Tabs */}
+        <Card className="border-border/50">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid grid-cols-4 w-full bg-muted/30">
+              <TabsTrigger value="all" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Todos
+              </TabsTrigger>
+              <TabsTrigger value="fighters" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Luchadores
+              </TabsTrigger>
+              <TabsTrigger value="news" className="flex items-center gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Noticias
+              </TabsTrigger>
+              <TabsTrigger value="featured" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Destacados
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </Card>
 
         {/* Posts Feed */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {loading && posts.length === 0 ? (
             <div className="flex justify-center py-12">
               <LoadingSpinner />
             </div>
           ) : filteredPosts.length === 0 ? (
-            <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-              <CardContent className="p-12 text-center">
-                <div className="text-6xl mb-4">📱</div>
-                <h3 className="text-xl font-semibold mb-2">No hay posts disponibles</h3>
-                <p className="text-muted-foreground mb-4">
-                  {activeTab === 'all' && 'Sé el primero en publicar algo'}
-                  {activeTab === 'fighters' && 'No hay publicaciones de peleadores aún'}
-                  {activeTab === 'news' && 'No hay noticias publicadas'}
-                  {activeTab === 'featured' && 'No hay posts destacados'}
-                </p>
-                {canCreatePost && !showCreatePost && (
-                  <Button onClick={() => setShowCreatePost(true)}>
-                    Crear primer post
-                  </Button>
-                )}
+            <Card className="border-border/50">
+              <CardContent className="py-12 text-center">
+                <div className="text-muted-foreground">
+                  <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium mb-2">No hay posts aún</p>
+                  <p className="text-sm">
+                    {activeTab === 'all' 
+                      ? '¡Sé el primero en compartir algo!'
+                      : `No hay posts en la categoría "${activeTab}"`
+                    }
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ) : (
-            filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={toggleLike}
-                onDelete={deletePost}
-                isOwner={
-                  (user && isAdmin && post.author_type === 'admin') ||
-                  (user && userFighter && post.author_id === userFighter.id)
-                }
-              />
-            ))
+            <>
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={toggleLike}
+                  onDelete={canCreatePost ? deletePost : undefined}
+                  isOwner={
+                    (user && isAdmin && post.author_type === 'admin') ||
+                    (user && userFighter && post.author_id === userFighter.id)
+                  }
+                />
+              ))}
+              
+              {/* Load More */}
+              {posts.length > 0 && (
+                <div className="flex justify-center pt-6">
+                  <Button 
+                    onClick={() => fetchPosts(10, posts.length)} 
+                    disabled={loading}
+                    variant="outline"
+                    className="bg-card/50 hover:bg-card border-border/50"
+                  >
+                    {loading ? (
+                      <>
+                        <LoadingSpinner />
+                        Cargando...
+                      </>
+                    ) : (
+                      'Cargar más posts'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
-
-        {/* Load More */}
-        {filteredPosts.length > 0 && !loading && (
-          <div className="flex justify-center mt-8">
-            <Button
-              variant="outline"
-              onClick={() => fetchPosts(20, posts.length)}
-              className="bg-card/80 backdrop-blur-sm border-border/50"
-            >
-              Cargar más posts
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

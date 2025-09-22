@@ -70,157 +70,132 @@ export default function CreatePostForm({
   const isSubmitDisabled = !content.trim() || content.length > 2000 || loading;
 
   return (
-    <Card className="w-full bg-card/80 backdrop-blur-sm border-border/50">
-      <CardHeader className="pb-4">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={authorAvatar || ''} alt={authorName} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-              {getAuthorInitials()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle className="text-lg">
-              Crear nueva publicación
-            </CardTitle>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-muted-foreground">
-                {authorName}
-              </span>
-              {authorNickname && (
-                <span className="text-sm text-muted-foreground">
-                  "{authorNickname}"
-                </span>
-              )}
-              {authorType === 'admin' && (
-                <Badge variant="secondary" className="text-xs">
-                  Oficial
-                </Badge>
-              )}
-            </div>
-          </div>
+    <div className="space-y-4">
+      {/* Author info */}
+      <div className="flex items-center gap-3">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={authorAvatar || ''} alt={authorName} />
+          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+            {getAuthorInitials()}
+          </AvatarFallback>
+        </Avatar>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-foreground">{authorName}</span>
+          {authorNickname && (
+            <span className="text-sm text-muted-foreground">"{authorNickname}"</span>
+          )}
+          {authorType === 'admin' && (
+            <Badge variant="secondary" className="text-xs">Oficial</Badge>
+          )}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Content textarea */}
-          <div className="space-y-2">
-            <Textarea
-              placeholder="¿Qué está pasando?"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[120px] resize-none border-border/50 focus:border-primary"
-              maxLength={2000}
-            />
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span>{content.length}/2000 caracteres</span>
-              {content.length > 1900 && (
-                <span className="text-yellow-500">
-                  {2000 - content.length} caracteres restantes
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Media URLs */}
-          {mediaUrls.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-foreground">Imágenes:</h4>
-              <div className="grid grid-cols-1 gap-2">
-                {mediaUrls.map((url, index) => (
-                  <div key={index} className="relative">
-                    <div className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
-                      <span className="text-sm text-muted-foreground truncate flex-1 mr-2">
-                        {url}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeImageUrl(index)}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    {/* Image preview */}
-                    <div className="mt-2">
-                      <img
-                        src={url}
-                        alt="Preview"
-                        className="w-full max-h-48 object-cover rounded-md"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Content textarea */}
+        <div className="space-y-2">
+          <Textarea
+            placeholder="¿Qué está pasando en tu entrenamiento?"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="min-h-[100px] resize-none border-0 bg-transparent text-base placeholder:text-muted-foreground focus-visible:ring-0 p-0"
+            maxLength={2000}
+          />
+          {content.length > 0 && (
+            <div className="text-xs text-muted-foreground text-right">
+              {content.length}/2000
             </div>
           )}
+        </div>
 
-          {/* Add image URL */}
-          {showImageInput ? (
-            <div className="flex space-x-2">
-              <Input
-                placeholder="URL de la imagen"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                onClick={addImageUrl}
-                size="sm"
-                disabled={!newImageUrl.trim()}
-              >
-                Agregar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowImageInput(false);
-                  setNewImageUrl('');
-                }}
-                size="sm"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
+        {/* Media URLs */}
+        {mediaUrls.length > 0 && (
+          <div className="space-y-3">
+            {mediaUrls.map((url, index) => (
+              <div key={index} className="relative rounded-lg overflow-hidden border border-border/50">
+                <img
+                  src={url}
+                  alt="Preview"
+                  className="w-full max-h-64 object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeImageUrl(index)}
+                  className="absolute top-2 right-2 h-8 w-8 p-0 bg-black/50 hover:bg-black/70 text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add image URL */}
+        {showImageInput && (
+          <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
+            <Input
+              placeholder="URL de la imagen"
+              value={newImageUrl}
+              onChange={(e) => setNewImageUrl(e.target.value)}
+              className="flex-1 border-0 bg-transparent focus-visible:ring-0"
+            />
             <Button
               type="button"
-              variant="outline"
-              onClick={() => setShowImageInput(true)}
-              className="w-full"
+              onClick={addImageUrl}
+              size="sm"
+              disabled={!newImageUrl.trim()}
+              variant="ghost"
             >
-              <Image className="h-4 w-4 mr-2" />
-              Agregar imagen
+              Agregar
             </Button>
-          )}
-
-          {/* Submit button */}
-          <div className="flex justify-end pt-4 border-t border-border/50">
             <Button
-              type="submit"
-              disabled={isSubmitDisabled}
-              className="min-w-[120px]"
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setShowImageInput(false);
+                setNewImageUrl('');
+              }}
+              size="sm"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Publicando...
-                </>
-              ) : (
-                'Publicar'
-              )}
+              <X className="h-4 w-4" />
             </Button>
           </div>
-        </form>
-      </CardContent>
-    </Card>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between pt-3 border-t border-border/30">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setShowImageInput(true)}
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Image className="h-4 w-4 mr-2" />
+            Foto
+          </Button>
+          
+          <Button
+            type="submit"
+            disabled={isSubmitDisabled}
+            size="sm"
+            className="px-6"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Publicando...
+              </>
+            ) : (
+              'Publicar'
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

@@ -40,11 +40,11 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
   };
 
   return (
-    <Card className="w-full bg-card/80 backdrop-blur-sm border-border/50 hover:shadow-lg transition-all duration-300">
+    <Card className="border-border/50 bg-card">
       <CardContent className="p-6">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 flex-1">
             <Avatar className="h-10 w-10">
               <AvatarImage 
                 src={post.author_avatar || ''} 
@@ -55,14 +55,14 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-foreground">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-foreground truncate">
                   {post.author_name}
                 </h3>
                 {post.author_nickname && (
-                  <span className="text-muted-foreground text-sm">
-                    "{post.author_nickname}"
+                  <span className="text-muted-foreground text-sm truncate">
+                    @{post.author_nickname}
                   </span>
                 )}
                 {post.author_type === 'admin' && (
@@ -71,8 +71,8 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
                   </Badge>
                 )}
                 {post.featured && (
-                  <Badge className={`text-xs ${getPostTypeColor()} text-white`}>
-                    Destacado
+                  <Badge variant="default" className="text-xs">
+                    ⭐ Destacado
                   </Badge>
                 )}
               </div>
@@ -88,7 +88,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
           {(isOwner || user) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -112,7 +112,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
         </div>
 
         {/* Content */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <p className="text-foreground leading-relaxed whitespace-pre-wrap">
             {post.content}
           </p>
@@ -124,7 +124,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
                 if (imageError.has(url)) return null;
                 
                 return (
-                  <div key={index} className="relative rounded-lg overflow-hidden">
+                  <div key={index} className="relative rounded-lg overflow-hidden border border-border/30">
                     <img
                       src={url}
                       alt={`Media ${index + 1}`}
@@ -139,13 +139,13 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50">
-          <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/30">
+          <div className="flex items-center space-x-6">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onLike(post.id)}
-              className={`flex items-center space-x-2 ${
+              className={`flex items-center space-x-2 h-8 px-2 ${
                 post.is_liked 
                   ? 'text-red-500 hover:text-red-600' 
                   : 'text-muted-foreground hover:text-foreground'
@@ -154,26 +154,24 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
               <Heart 
                 className={`h-4 w-4 ${post.is_liked ? 'fill-current' : ''}`} 
               />
-              <span>{post.likes_count}</span>
+              <span className="text-sm">{post.likes_count}</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
-              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
+              className="flex items-center space-x-2 text-muted-foreground hover:text-foreground h-8 px-2"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{post.comments_count}</span>
+              <span className="text-sm">{post.comments_count}</span>
             </Button>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Badge variant="outline" className="text-xs">
-              {post.post_type === 'news' && 'Noticia'}
-              {post.post_type === 'text' && 'Texto'}
-              {post.post_type === 'image' && 'Imagen'}
-              {post.post_type === 'video' && 'Video'}
-            </Badge>
+          <div className="text-xs text-muted-foreground">
+            {post.post_type === 'news' && '📰 Noticia'}
+            {post.post_type === 'text' && '💬 Post'}
+            {post.post_type === 'image' && '📸 Imagen'}
+            {post.post_type === 'video' && '🎥 Video'}
           </div>
         </div>
       </CardContent>
