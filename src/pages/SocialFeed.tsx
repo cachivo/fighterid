@@ -115,25 +115,6 @@ export default function SocialFeed() {
       </div>
 
       <div className="max-w-4xl mx-auto p-6 -mt-8 relative z-10">
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: 'Posts', value: posts.length, icon: MessageCircle, color: 'bg-blue-500' },
-            { label: 'Likes', value: posts.reduce((acc, p) => acc + p.likes_count, 0), icon: Heart, color: 'bg-red-500' },
-            { label: 'Destacados', value: posts.filter(p => p.featured).length, icon: Star, color: 'bg-yellow-500' },
-            { label: 'Activos', value: posts.filter(p => p.author_type === 'fighter').length, icon: Users, color: 'bg-green-500' }
-          ].map((stat, index) => (
-            <Card key={index} className="bg-card/80 backdrop-blur-sm border border-border/50 hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-4 text-center">
-                <div className={`w-10 h-10 rounded-full ${stat.color} flex items-center justify-center mx-auto mb-2`}>
-                  <stat.icon className="h-5 w-5 text-white" />
-                </div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
         {/* Create Post Section */}
         {canCreatePost && (
