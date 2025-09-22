@@ -49,8 +49,8 @@ const Header = () => {
 
   const navigationItems = [
     { name: "Mi Perfil", href: "/profile", icon: Shield },
-    { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Social", href: "/social", icon: Globe },
+    { name: "Eventos", href: "/eventos", icon: Trophy },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
     { name: "Ranking", href: "#ranking", icon: BarChart3 },
@@ -95,10 +95,11 @@ const Header = () => {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
-                  to="/eventos" 
+                  to="/social" 
                   className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
-                  Eventos
+                  <Globe className="h-4 w-4 mr-2" />
+                  Social
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -106,11 +107,10 @@ const Header = () => {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
-                  to="/social" 
+                  to="/eventos" 
                   className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
-                  <Globe className="h-4 w-4 mr-2" />
-                  Social
+                  Eventos
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -161,12 +161,12 @@ const Header = () => {
               Fighter ID
             </Link>
           )}
-          <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
-            Eventos
-          </Link>
           <Link to="/social" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1">
             <Globe className="h-3 w-3" />
             Social
+          </Link>
+          <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
+            Eventos
           </Link>
           <Link to="/fighters" className="text-sm text-foreground hover:text-primary transition-colors">
             Fighters
@@ -315,7 +315,7 @@ const Header = () => {
             
             {/* Fighter ID - Show in actions when not logged in OR logged in without fighter profile */}
             {(!user || (user && !hasFighterProfile)) && (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" className="h-8 px-2 text-xs" asChild>
                 <Link to="/license/dashboard" className="flex items-center gap-1">
                   <Shield className="h-3 w-3" />
                   Fighter ID
