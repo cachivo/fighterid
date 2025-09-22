@@ -15,12 +15,29 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 export default function LicenseDashboard() {
-  const { user, licenseData } = useLicenseAuth();
+  const { user, licenseData, refreshLicense } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
+  const { fetchFighters } = useFighterProfiles();
   const navigate = useNavigate();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   console.log('Dashboard - licenseData:', licenseData);
   console.log('Dashboard - license:', license);
+
+  const refreshData = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refreshLicense(),
+        fetchFighters(),
+        license?.refetch?.()
+      ]);
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   if (!licenseData) {
     return (
@@ -119,6 +136,16 @@ export default function LicenseDashboard() {
               </p>
             </div>
             <div className="flex items-center gap-3">
+              <Button 
+                onClick={refreshData}
+                variant="outline"
+                size="sm"
+                disabled={isRefreshing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+              </Button>
               {missingFields.length > 0 && (
                 <div className="text-right">
                   <Button 
