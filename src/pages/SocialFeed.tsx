@@ -109,10 +109,16 @@ export default function SocialFeed() {
               className="h-8 w-auto hover:scale-105 hover:opacity-90 transition-all duration-300"
             />
           </Link>
-          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
-            World
-          </h1>
+          <div className="flex flex-col items-center">
+            <div className="h-1 w-20 bg-gradient-to-r from-primary via-accent to-primary mb-2 rounded-full"></div>
+            <h1 className="text-xl font-semibold text-foreground">
+              {userFighter ? 
+                (userFighter.nickname || `${userFighter.first_name} ${userFighter.last_name}`.trim()) :
+                isAdmin ? "Batalla de Gallos" : 
+                user ? "Social" : "Social"
+              }
+            </h1>
+          </div>
         </div>
       </div>
 
