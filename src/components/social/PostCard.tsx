@@ -22,7 +22,6 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
   const { user } = useAuth();
 
   const getAuthorInitials = () => {
-    if (post.author_type === 'admin') return 'BG';
     return post.author_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
   };
 

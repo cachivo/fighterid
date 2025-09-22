@@ -63,7 +63,6 @@ export default function CreatePostForm({
   };
 
   const getAuthorInitials = () => {
-    if (authorType === 'admin') return 'BG';
     return authorName.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
   };
 

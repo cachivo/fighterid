@@ -75,19 +75,20 @@ export default function SocialFeed() {
   const canCreatePost = user && (isAdmin || userFighter);
 
   const getAuthorInfo = () => {
-    if (isAdmin) {
+    // Prioritize fighter profile data if exists, even for admins
+    if (userFighter) {
+      return {
+        name: `${userFighter.first_name} ${userFighter.last_name}`,
+        nickname: userFighter.nickname,
+        avatar: userFighter.avatar_url,
+        type: isAdmin ? 'admin' as const : 'fighter' as const
+      };
+    } else if (isAdmin) {
       return {
         name: 'Batalla de Gallos',
         nickname: undefined,
         avatar: undefined,
         type: 'admin' as const
-      };
-    } else if (userFighter) {
-      return {
-        name: `${userFighter.first_name} ${userFighter.last_name}`,
-        nickname: userFighter.nickname,
-        avatar: userFighter.avatar_url,
-        type: 'fighter' as const
       };
     }
     return null;
