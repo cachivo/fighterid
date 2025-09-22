@@ -10,7 +10,7 @@ import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye } from 'lucide-react';
+import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -206,21 +206,61 @@ export default function Fighters() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 font-inter">
       <Header />
-      <div className="max-w-7xl mx-auto p-6 pt-20">
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border-b border-border/50">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/2 via-transparent to-secondary/2 opacity-50"></div>
+        <div className="max-w-7xl mx-auto px-6 py-16 relative">
+          <div className="text-center space-y-6 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+              <Users className="h-4 w-4" />
+              {fighters.length} Atletas Registrados
+            </div>
+            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
+              Todos los Peleadores
+            </h1>
+            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Descubre y conecta con los atletas más talentosos de la plataforma. Explora perfiles, estadísticas y trayectorias profesionales.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto p-6">
         
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 -mt-8 relative z-10">
+          {[
+            { label: 'Total', value: stats.total, icon: Users, color: 'bg-primary' },
+            { label: 'Listos', value: stats.readyToFight, icon: Target, color: 'bg-green-500' },
+            { label: 'Victorias', value: stats.totalWins, icon: Trophy, color: 'bg-yellow-500' },
+            { label: 'Disciplinas', value: stats.disciplines, icon: Filter, color: 'bg-blue-500' }
+          ].map((stat, index) => (
+            <Card key={index} className="bg-card/80 backdrop-blur-sm border border-border/50 hover:shadow-lg transition-all duration-300 hover:scale-105 animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <CardContent className="p-4 text-center">
+                <div className={`w-10 h-10 rounded-full ${stat.color} flex items-center justify-center mx-auto mb-2`}>
+                  <stat.icon className="h-5 w-5 text-white" />
+                </div>
+                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Header with Create Profile */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Todos los Peleadores</h2>
-            <p className="text-muted-foreground">Conoce a los atletas de la plataforma</p>
+          <div className="animate-fade-in">
+            <h2 className="text-2xl font-bold text-foreground">Explorar Atletas</h2>
+            <p className="text-muted-foreground">Filtra y encuentra el peleador perfecto</p>
           </div>
           
           {user && !userProfile && (
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300 animate-glow">
                   <Plus className="mr-2 h-4 w-4" />
                   Crear Mi Perfil
                 </Button>
@@ -239,7 +279,7 @@ export default function Fighters() {
         </div>
 
         {/* Filters */}
-        <div className="space-y-6 mb-8">
+        <div className="space-y-6 mb-8 animate-fade-in">
           {/* Search and Mobile Filter Toggle */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
@@ -248,11 +288,11 @@ export default function Fighters() {
                 placeholder="Buscar peleadores por nombre o apodo..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-card/50 backdrop-blur-sm border-border/50 focus:bg-card focus:border-primary/50 transition-all duration-300"
               />
               {searchTerm && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-xs bg-primary/10 text-primary animate-scale-in">
                     {filteredFighters.length}
                   </Badge>
                 </div>
@@ -261,7 +301,7 @@ export default function Fighters() {
             
             <Button
               variant="outline"
-              className="md:hidden"
+              className="md:hidden bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card"
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="mr-2 h-4 w-4" />
@@ -272,11 +312,13 @@ export default function Fighters() {
 
           {/* Status Toggles */}
           <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${showFilters || 'hidden md:grid'}`}>
-            <Card>
+            <Card className="bg-card/80 backdrop-blur-sm border border-border/50 hover:shadow-md transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Users className="h-5 w-5 text-muted-foreground" />
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <Users className="h-4 w-4 text-primary" />
+                    </div>
                     <div>
                       <span className="text-sm font-medium">Incluir inactivos</span>
                       <p className="text-xs text-muted-foreground">Mostrar todos los peleadores</p>
@@ -290,11 +332,13 @@ export default function Fighters() {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="bg-card/80 backdrop-blur-sm border border-border/50 hover:shadow-md transition-all duration-300">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Target className="h-5 w-5 text-muted-foreground" />
+                    <div className="p-2 rounded-full bg-green-500/10">
+                      <Target className="h-4 w-4 text-green-600" />
+                    </div>
                     <div>
                       <span className="text-sm font-medium">Solo listos para pelear</span>
                       <p className="text-xs text-muted-foreground">Peleadores disponibles</p>
@@ -318,9 +362,9 @@ export default function Fighters() {
               { value: selectedRecordType, onChange: setSelectedRecordType, options: RECORD_TYPES, placeholder: "Tipo", icon: Filter },
               { value: sortBy, onChange: setSortBy, options: [{ value: 'name', label: 'Nombre' }, { value: 'wins', label: 'Victorias' }, { value: 'elo', label: 'Rating ELO' }], placeholder: "Ordenar por", icon: ArrowUpDown }
             ].map((filter, index) => (
-              <div key={index}>
+              <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <Select value={filter.value} onValueChange={filter.onChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300">
                     <filter.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     <SelectValue placeholder={filter.placeholder} />
                   </SelectTrigger>
@@ -340,7 +384,7 @@ export default function Fighters() {
           </div>
 
           {/* Results summary */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground bg-card/30 backdrop-blur-sm rounded-lg p-4 border border-border/50">
             <div className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               <span className="font-medium">
@@ -348,17 +392,17 @@ export default function Fighters() {
               </span>
             </div>
             {includeInactive && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs bg-secondary/50">
                 Incluyendo inactivos
               </Badge>
             )}
             {readyToFightOnly && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-green-500/50 text-green-600">
                 Solo listos para pelear
               </Badge>
             )}
             {searchTerm && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-primary/50 text-primary">
                 Búsqueda: "{searchTerm}"
               </Badge>
             )}
@@ -367,19 +411,20 @@ export default function Fighters() {
 
         {/* Fighters Grid */}
         {filteredFighters.length === 0 ? (
-          <div className="text-center py-16">
+          <div className="text-center py-16 animate-fade-in">
             <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
-                <Users className="h-8 w-8 text-muted-foreground" />
+              <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full flex items-center justify-center animate-scale-in">
+                <Users className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="text-xl font-semibold text-foreground mb-3">
                 No se encontraron peleadores
               </h3>
-              <p className="text-muted-foreground mb-4">
-                Intenta ajustar los filtros de búsqueda o explora diferentes categorías
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Intenta ajustar los filtros de búsqueda o explora diferentes categorías para encontrar atletas
               </p>
               <Button 
                 variant="outline" 
+                className="hover:scale-105 transition-transform duration-300"
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedWeightClass('Todos');
@@ -396,12 +441,17 @@ export default function Fighters() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredFighters.map((fighter) => (
-              <FighterCard
+            {filteredFighters.map((fighter, index) => (
+              <div 
                 key={fighter.id}
-                fighter={fighter}
-                onClick={() => handleFighterClick(fighter)}
-              />
+                className="animate-fade-in hover:scale-105 transition-transform duration-300"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <FighterCard
+                  fighter={fighter}
+                  onClick={() => handleFighterClick(fighter)}
+                />
+              </div>
             ))}
           </div>
         )}
