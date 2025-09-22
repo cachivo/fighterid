@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { MessageCircle, TrendingUp, Users, Star, Plus } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Star, Plus, Globe } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
@@ -109,7 +109,10 @@ export default function SocialFeed() {
               className="h-8 w-auto hover:scale-105 hover:opacity-90 transition-all duration-300"
             />
           </Link>
-          <h1 className="text-xl font-semibold text-foreground">Feed</h1>
+          <h1 className="text-xl font-semibold text-foreground flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            World
+          </h1>
         </div>
       </div>
 
