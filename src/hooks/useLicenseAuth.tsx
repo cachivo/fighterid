@@ -127,6 +127,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         };
         setLicenseData(combinedLicenseData);
         setHasActiveLicense(activeLicense.status === 'ACTIVE');
+        console.log('License state updated - hasActiveLicense:', activeLicense.status === 'ACTIVE');
       } else {
         console.log('No active license found');
         setLicenseData(null);
