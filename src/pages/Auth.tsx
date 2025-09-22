@@ -10,15 +10,25 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, Shield } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
+const signUpSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  userType: z.enum(['fighter', 'user'], {
+    required_error: 'Debes seleccionar un tipo de usuario',
+  }),
+});
+
 type AuthFormData = z.infer<typeof authSchema>;
+type SignUpFormData = z.infer<typeof signUpSchema>;
 
 export default function Auth() {
   const { user, signIn, signUp } = useAuth();
@@ -31,6 +41,15 @@ export default function Auth() {
     defaultValues: {
       email: '',
       password: '',
+    },
+  });
+
+  const signUpForm = useForm<SignUpFormData>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      userType: undefined,
     },
   });
 
@@ -62,9 +81,9 @@ export default function Auth() {
     setLoading(false);
   };
 
-  const handleSignUp = async (data: AuthFormData) => {
+  const handleSignUp = async (data: SignUpFormData) => {
     setLoading(true);
-    const { error } = await signUp(data.email, data.password);
+    const { error } = await signUp(data.email, data.password, data.userType);
     
     if (error) {
       toast({
@@ -75,7 +94,9 @@ export default function Auth() {
     } else {
       toast({
         title: 'Registro exitoso',
-        description: 'Por favor revisa tu email para confirmar tu cuenta',
+        description: data.userType === 'fighter' 
+          ? 'Por favor revisa tu email para confirmar tu cuenta. Serás redirigido al proceso de creación de tu Fighter ID.'
+          : 'Por favor revisa tu email para confirmar tu cuenta',
       });
     }
     setLoading(false);
@@ -143,10 +164,57 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSignUp)} className="space-y-4">
+              <Form {...signUpForm}>
+                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-6">
                   <FormField
-                    control={form.control}
+                    control={signUpForm.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-base font-medium">¿Qué tipo de cuenta necesitas?</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="grid grid-cols-1 gap-4"
+                          >
+                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
+                              <RadioGroupItem value="fighter" id="fighter" />
+                              <div className="flex items-center space-x-3 flex-1">
+                                <Shield className="h-5 w-5 text-primary" />
+                                <div className="grid gap-1">
+                                  <label htmlFor="fighter" className="text-sm font-medium cursor-pointer">
+                                    Soy peleador profesional
+                                  </label>
+                                  <p className="text-xs text-muted-foreground">
+                                    Crear Fighter ID y acceder a eventos y licencias
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
+                              <RadioGroupItem value="user" id="user" />
+                              <div className="flex items-center space-x-3 flex-1">
+                                <User className="h-5 w-5 text-primary" />
+                                <div className="grid gap-1">
+                                  <label htmlFor="user" className="text-sm font-medium cursor-pointer">
+                                    Usuario regular
+                                  </label>
+                                  <p className="text-xs text-muted-foreground">
+                                    Ver eventos, apostar y seguir peleadores
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={signUpForm.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
@@ -163,7 +231,7 @@ export default function Auth() {
                     )}
                   />
                   <FormField
-                    control={form.control}
+                    control={signUpForm.control}
                     name="password"
                     render={({ field }) => (
                       <FormItem>
