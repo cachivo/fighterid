@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -50,12 +50,20 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
   const { data, loading, error, fetchDetailedData, clearData } = useDetailedFighterData();
   const [activeTab, setActiveTab] = useState('personal');
 
+  // Fetch data when modal opens with a fighterId
+  useEffect(() => {
+    if (open && fighterId && !data) {
+      console.log('Modal opened, fetching data for fighter:', fighterId);
+      fetchDetailedData(fighterId);
+    } else if (!open) {
+      console.log('Modal closed, clearing data');
+      clearData();
+    }
+  }, [open, fighterId, fetchDetailedData, clearData, data]);
+
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       onClose();
-      clearData();
-    } else if (fighterId) {
-      fetchDetailedData(fighterId);
     }
   };
 

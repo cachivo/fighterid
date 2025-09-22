@@ -175,8 +175,12 @@ export default function Fighters() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setViewingFighter(fighter.id)}
-                      className="h-8 w-8"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('View button clicked for fighter:', fighter.id);
+                        setViewingFighter(fighter.id);
+                      }}
+                      className="h-8 w-8 hover:bg-muted"
                       title="Ver información completa"
                     >
                       <Eye className="h-4 w-4" />
