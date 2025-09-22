@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info } from 'lucide-react';
+import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
@@ -320,6 +321,19 @@ export default function FighterProfile() {
             </Card>
           </div>
         </div>
+
+        {/* Fighter Updates Feed */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Actividad del Peleador
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FighterUpdatesFeed fighterId={fighter.id} />
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

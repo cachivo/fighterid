@@ -1256,6 +1256,44 @@ export type Database = {
           },
         ]
       }
+      fighter_updates: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          fighter_id: string
+          id: string
+          image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          content: string
+          created_at?: string
+          fighter_id: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          fighter_id?: string
+          id?: string
+          image_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fights: {
         Row: {
           created_at: string

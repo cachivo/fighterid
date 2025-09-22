@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, User, Plus, ExternalLink, Eye, FileText, AlertCircle, Calendar, Users } from 'lucide-react';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import FighterUpdateForm from '@/components/FighterUpdateForm';
+import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -268,6 +270,36 @@ export default function UserProfile() {
 
         {/* Main Profile Section */}
         {profile ? renderFighterSection() : renderUserSection()}
+
+        {/* Fighter Updates Form - Only for fighters */}
+        {profile && (
+          <Card className="border border-professional-border/30 bg-gradient-professional-light">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Compartir Actualización
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FighterUpdateForm fighterId={profile.id} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Fighter Updates Feed - Only for fighters */}
+        {profile && (
+          <Card className="border border-professional-border/30 bg-gradient-professional-light">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Mis Actualizaciones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FighterUpdatesFeed fighterId={profile.id} isOwner={true} />
+            </CardContent>
+          </Card>
+        )}
 
         {profile && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
