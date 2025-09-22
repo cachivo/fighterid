@@ -1907,6 +1907,73 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          active: boolean
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_change_requests: {
         Row: {
           admin_notes: string | null
@@ -2173,6 +2240,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      social_posts: {
+        Row: {
+          active: boolean
+          author_id: string
+          author_type: string
+          comments_count: number
+          content: string
+          created_at: string
+          featured: boolean
+          id: string
+          likes_count: number
+          media_urls: string[] | null
+          post_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          author_id: string
+          author_type: string
+          comments_count?: number
+          content: string
+          created_at?: string
+          featured?: boolean
+          id?: string
+          likes_count?: number
+          media_urls?: string[] | null
+          post_type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          author_id?: string
+          author_type?: string
+          comments_count?: number
+          content?: string
+          created_at?: string
+          featured?: boolean
+          id?: string
+          likes_count?: number
+          media_urls?: string[] | null
+          post_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       sparring_requests: {
         Row: {

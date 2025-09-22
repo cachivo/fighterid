@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User } from "lucide-react";
+import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User, Heart } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,6 +50,7 @@ const Header = () => {
   const navigationItems = [
     { name: "Mi Perfil", href: "/profile", icon: Shield },
     { name: "Eventos", href: "/eventos", icon: Trophy },
+    { name: "Red Social", href: "/social", icon: Heart },
     { name: "Fighters", href: "/fighters", icon: Users },
     { name: "Predicciones", href: "/predicciones", icon: DollarSign },
     { name: "Ranking", href: "#ranking", icon: BarChart3 },
@@ -105,6 +106,17 @@ const Header = () => {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link 
+                  to="/social" 
+                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+                >
+                  Red Social
+                </Link>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+
+            <NavigationMenuItem>
+              <NavigationMenuLink asChild>
+                <Link 
                   to="/fighters" 
                   className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
                 >
@@ -150,6 +162,9 @@ const Header = () => {
           )}
           <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
             Eventos
+          </Link>
+          <Link to="/social" className="text-sm text-foreground hover:text-primary transition-colors">
+            Red Social
           </Link>
           <Link to="/fighters" className="text-sm text-foreground hover:text-primary transition-colors">
             Fighters
