@@ -14,6 +14,7 @@ import AdminCertLayout from '@/components/AdminCertLayout';
 import { FighterLicense } from './pages/FighterLicense';
 import FighterMe from './pages/FighterMe';
 import MyProfile from './pages/MyProfile';
+import UserProfile from './pages/UserProfile';
 import FighterProfile from './pages/FighterProfile';
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
@@ -121,6 +122,13 @@ const App = () => (
                 <Route path="dashboard" element={<LicenseDashboard />} />
               </Route>
 
+              {/* User Profile Route - General profile for all users */}
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+
               {/* Profile Change Request Route */}
               <Route path="/profile/request-changes" element={
                 <ProtectedRoute>
@@ -128,7 +136,7 @@ const App = () => (
                 </ProtectedRoute>
               } />
 
-              {/* Fighter Profile Routes */}
+              {/* Legacy Fighter Profile Routes (maintained for compatibility) */}
               <Route path="/fighter/me" element={
                 <ProtectedRoute>
                   <MyProfile />

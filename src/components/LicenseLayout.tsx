@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Shield, QrCode, Calendar, FileText, LogOut, Menu } from 'lucide-react';
+import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import {
 
 const navigation = [
   { name: 'Mi Fighter ID', action: 'modal', icon: Shield },
+  { name: 'Mi Perfil General', href: '/profile', icon: User },
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
   { name: 'Próximas Peleas', href: '/license/fights', icon: Calendar },
   { name: 'Historial', href: '/license/history', icon: FileText },
