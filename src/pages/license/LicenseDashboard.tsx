@@ -4,6 +4,8 @@ import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
+import FighterUpdateForm from '@/components/FighterUpdateForm';
+import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -615,6 +617,46 @@ export default function LicenseDashboard() {
                   </p>
                 )}
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Fighter Updates Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Crear Actualización</CardTitle>
+              <CardDescription>
+                Comparte tu progreso, entrenamientos y noticias con tus fans
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FighterUpdateForm 
+                fighterId={fighterProfile?.id} 
+                onUpdateCreated={() => {
+                  // Refresh the feed when a new update is created
+                  window.location.reload();
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tus Actualizaciones</CardTitle>
+              <CardDescription>
+                Historial de publicaciones recientes
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FighterUpdatesFeed 
+                fighterId={fighterProfile?.id}
+                isOwner={true}
+                onUpdateDeleted={() => {
+                  // Refresh when update is deleted
+                  window.location.reload();
+                }}
+              />
             </CardContent>
           </Card>
         </div>
