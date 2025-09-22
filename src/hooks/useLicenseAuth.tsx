@@ -76,22 +76,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      // Step 2: Check for fighter profile (simplified)
+      // Step 2: Check for fighter profile (complete data)
       const { data: profileData, error: profileError } = await supabase
         .from('fighter_profiles')
         .select(`
-          id,
-          first_name,
-          last_name,
-          nickname,
-          country,
-          weight_class,
-          avatar_url,
-          record_wins,
-          record_losses,
-          record_draws,
-          discipline,
-          active,
+          *,
           fighter_licenses!fighter_licenses_fighter_id_fkey (
             id,
             license_number,
