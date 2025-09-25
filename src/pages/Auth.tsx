@@ -22,7 +22,9 @@ const authSchema = z.object({
 const signUpSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  userType: z.enum(['fighter', 'user']),
+  userType: z.enum(['fighter', 'user'], {
+    required_error: 'Debes seleccionar un tipo de usuario',
+  }),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -33,7 +35,6 @@ export default function Auth() {
   const { isAdmin, loading: adminLoading } = useAdmin();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('signin');
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -97,10 +98,6 @@ export default function Auth() {
           ? 'Por favor revisa tu email para confirmar tu cuenta. Serás redirigido al proceso de creación de tu Fighter ID.'
           : 'Por favor revisa tu email para confirmar tu cuenta',
       });
-      // Cambiar automáticamente al tab de inicio de sesión
-      setActiveTab('signin');
-      // Limpiar el formulario de registro
-      signUpForm.reset();
     }
     setLoading(false);
   };
@@ -115,7 +112,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
               <TabsTrigger value="signup">Registrarse</TabsTrigger>
