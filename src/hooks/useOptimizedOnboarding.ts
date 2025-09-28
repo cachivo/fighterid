@@ -7,7 +7,7 @@ import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 interface CreateProfileResult {
   success: boolean;
   user_id: string;
-  profile_id: string;
+  fighter_id: string;
   license_id: string;
   license_number: string;
 }
@@ -56,10 +56,12 @@ export function useOptimizedOnboarding() {
     setLoading(true);
     
     try {
-      // Prepare discipline based on martial arts
-      const discipline = formData.martialArts.length > 0 
-        ? formData.martialArts[0] as any
-        : null;
+      // Prepare discipline based on martial arts - ensure it's a valid enum value
+      const validDisciplines = ['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'] as const;
+      type ValidDiscipline = typeof validDisciplines[number];
+      const discipline: ValidDiscipline = formData.martialArts.length > 0 && validDisciplines.includes(formData.martialArts[0] as ValidDiscipline)
+        ? formData.martialArts[0] as ValidDiscipline
+        : 'MMA';
 
       // Calculate record based on level
       const isProLevel = formData.level === 'Profesional';
@@ -73,11 +75,12 @@ export function useOptimizedOnboarding() {
         ? parseInt(formData.proDraws || '0') || 0
         : parseInt(formData.amateurDraws || '0') || 0;
 
+      // Convert martial arts array to comma-separated string
+      const martialArtsString = formData.martialArts.join(',');
+
       const { data: result, error } = await supabase.rpc(
         'create_fighter_profile_with_license',
         {
-          p_auth_user_id: user.id,
-          p_email: user.email || '',
           p_first_name: formData.firstName,
           p_last_name: formData.lastName,
           p_country: formData.country,
@@ -89,7 +92,7 @@ export function useOptimizedOnboarding() {
           p_nickname: formData.nickname || null,
           p_reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
           p_discipline: discipline,
-          p_martial_arts: formData.martialArts,
+          p_martial_arts: martialArtsString,
           p_gym_name: formData.gymName || null,
           p_fighting_style: formData.fightingStyle || null,
           p_stance: formData.stance || null,
@@ -124,7 +127,7 @@ export function useOptimizedOnboarding() {
 
       // Upload files in background (non-blocking)
       if (files?.identityDocument || files?.fighterPhoto) {
-        uploadFilesInBackground(result.license_id, result.profile_id, files);
+        uploadFilesInBackground(result.license_id, result.fighter_id, files);
       }
 
       // Refresh license data

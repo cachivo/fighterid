@@ -2543,6 +2543,10 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: undefined
       }
+      admin_update_fighter_profile_v10: {
+        Args: { p_fighter_id: string; p_profile_data: Json }
+        Returns: undefined
+      }
       admin_update_fighter_profile_v4: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
@@ -2647,6 +2651,30 @@ export type Database = {
               p_record_wins?: number
               p_weight_class?: string
               p_weight_kg?: number
+            }
+          | {
+              p_bio?: string
+              p_birthdate?: string
+              p_country: string
+              p_discipline?: Database["public"]["Enums"]["discipline"]
+              p_fighting_style?: string
+              p_first_name: string
+              p_gender?: string
+              p_gym_name?: string
+              p_height_cm: number
+              p_last_name: string
+              p_level?: string
+              p_martial_arts?: string
+              p_nickname?: string
+              p_phone?: string
+              p_reach_cm?: number
+              p_record_draws?: number
+              p_record_losses?: number
+              p_record_type?: string
+              p_record_wins?: number
+              p_stance?: string
+              p_weight_class: string
+              p_weight_kg: number
             }
         Returns: Json
       }
