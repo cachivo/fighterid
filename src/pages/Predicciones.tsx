@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, MapPin, Users, TrendingUp, Clock, DollarSign, Trophy } from 'lucide-react';
@@ -149,15 +150,14 @@ export default function Predicciones() {
       <Header />
       
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Hero Section */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-400 to-red-600 bg-clip-text text-transparent">
-            Predicciones BDG
-          </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Apuesta en los mejores eventos de batalla. Boxing, Rap, Chess y más.
-          </p>
-        </div>
+        {/* Optimized Hero Section */}
+        <PageHeader
+          title="Predicciones BDG"
+          subtitle="Apuesta en los mejores eventos de batalla. Boxing, Rap, Chess y más."
+          backTo="/"
+          backLabel="Volver al inicio"
+          className="text-center"
+        />
 
         {/* Filters */}
         <Card className="bg-gray-900 border-gray-800">

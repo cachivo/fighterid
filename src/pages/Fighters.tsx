@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
+import { PageHeader } from '@/components/ui/page-header';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy } from 'lucide-react';
@@ -209,29 +210,26 @@ export default function Fighters() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 font-inter">
       <Header />
       
-      {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/2 via-transparent to-secondary/2 opacity-50"></div>
-        <div className="max-w-7xl mx-auto px-6 py-16 relative">
-          <div className="text-center space-y-6 animate-fade-in-up">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
+        <div className="max-w-7xl mx-auto px-6 py-8 relative">
+          <PageHeader
+            title="Todos los Peleadores"
+            subtitle="Descubre y conecta con los atletas más talentosos de la plataforma. Explora perfiles, estadísticas y trayectorias profesionales."
+            backTo="/"
+            backLabel="Volver al inicio"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
               <Users className="h-4 w-4" />
               {fighters.length} Atletas Registrados
             </div>
-            <h1 className="text-4xl lg:text-6xl font-bold bg-gradient-to-r from-foreground via-foreground to-foreground/80 bg-clip-text text-transparent">
-              Todos los Peleadores
-            </h1>
-            <p className="text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Descubre y conecta con los atletas más talentosos de la plataforma. Explora perfiles, estadísticas y trayectorias profesionales.
-            </p>
-          </div>
+          </PageHeader>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        
-        {/* Header with Create Profile */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        {/* Optimized Header with Create Profile */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div className="animate-fade-in">
             <h2 className="text-2xl font-bold text-foreground">Explorar Atletas</h2>
             <p className="text-muted-foreground">Filtra y encuentra el peleador perfecto</p>

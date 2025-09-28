@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { BackButton } from '@/components/ui/back-button';
 import { MessageCircle, TrendingUp, Users, Star, Plus, Globe } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
@@ -99,25 +100,30 @@ export default function SocialFeed() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Modern Feed Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <img 
-              src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
-              alt="Fighter ID"
-              className="h-8 w-auto hover:scale-105 hover:opacity-90 transition-all duration-300"
-            />
-          </Link>
-          <div className="flex flex-col items-center">
-            <div className="h-1 w-20 bg-gradient-to-r from-primary via-accent to-primary mb-2 rounded-full"></div>
-            <h1 className="text-xl font-semibold text-foreground">
-              {userFighter ? 
-                (userFighter.nickname || `${userFighter.first_name} ${userFighter.last_name}`.trim()) :
-                isAdmin ? "Batalla de Gallos" : 
-                user ? "Social" : "Social"
-              }
-            </h1>
+      {/* Optimized Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <BackButton to="/" label="Inicio" className="hidden md:flex" />
+              <img 
+                src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
+                alt="Fighter ID" 
+                className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => window.location.href = '/'}
+              />
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  {userFighter ? 'Red Social de Peleadores' : 
+                   isAdmin ? 'Panel Social Administrativo' : 'Comunidad Fighter ID'}
+                </h1>
+                <p className="text-sm text-muted-foreground hidden md:block">
+                  {userFighter ? 'Conecta con otros peleadores' : 
+                   isAdmin ? 'Gestiona la comunidad' : 'Explora la comunidad'}
+                </p>
+              </div>
+            </div>
+            <BackButton to="/" label="Inicio" className="md:hidden" variant="outline" />
           </div>
         </div>
       </div>

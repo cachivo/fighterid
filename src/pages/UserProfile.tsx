@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { BackButton } from '@/components/ui/back-button';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, User, Plus, ExternalLink, Eye, FileText, AlertCircle, Calendar, Users } from 'lucide-react';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
@@ -252,20 +253,24 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">
       <div className="max-w-4xl mx-auto space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <User className="h-12 w-12 text-professional-primary" />
-            <h1 className="text-4xl font-bold text-professional-primary">Mi Perfil</h1>
+        {/* Optimized Header */}
+        <div className="space-y-6 mb-8">
+          <BackButton to="/" label="Volver al inicio" />
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <User className="h-12 w-12 text-professional-primary" />
+              <h1 className="text-4xl font-bold text-professional-primary">Mi Perfil</h1>
+            </div>
+            <p className="text-muted-foreground text-lg">
+              {profile 
+                ? hasActiveLicense 
+                  ? "Gestiona tu perfil y accede a tu Fighter ID oficial"
+                  : "Gestiona tu perfil de peleador y solicita tu licencia oficial"
+                : "Crea tu perfil de peleador para acceder a todas las funcionalidades"
+              }
+            </p>
           </div>
-          <p className="text-muted-foreground text-lg">
-            {profile 
-              ? hasActiveLicense 
-                ? "Gestiona tu perfil y accede a tu Fighter ID oficial"
-                : "Gestiona tu perfil de peleador y solicita tu licencia oficial"
-              : "Crea tu perfil de peleador para acceder a todas las funcionalidades"
-            }
-          </p>
         </div>
 
         {/* Main Profile Section */}

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PageHeader } from '@/components/ui/page-header';
 import { useEvents } from '@/hooks/useEvents';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -76,15 +77,15 @@ const Events = () => {
     <div className="min-h-screen bg-background">
       <Header />
       
-      {/* Hero Section */}
-      <section className="relative py-20 pt-32 bg-gradient-to-b from-background via-background/95 to-background">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Eventos de Combate
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Descubre los próximos eventos, peleas en vivo y resultados de las mejores batallas de MMA.
-          </p>
+      {/* Optimized Hero Section */}
+      <section className="relative py-16 pt-24 bg-gradient-to-b from-background via-background/95 to-background">
+        <div className="container mx-auto px-4">
+          <PageHeader
+            title="Eventos de Combate"
+            subtitle="Descubre los próximos eventos, peleas en vivo y resultados de las mejores batallas de MMA."
+            backTo="/"
+            backLabel="Volver al inicio"
+          />
         </div>
       </section>
 
