@@ -2574,6 +2574,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      approve_license_with_sync: {
+        Args: {
+          p_level?: Database["public"]["Enums"]["license_level"]
+          p_license_id: string
+        }
+        Returns: undefined
+      }
       calculate_parimutuel_payout: {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
@@ -2581,6 +2588,35 @@ export type Database = {
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
+      }
+      create_fighter_profile_with_license: {
+        Args: {
+          p_auth_user_id: string
+          p_bio?: string
+          p_birthdate?: string
+          p_country: string
+          p_discipline?: Database["public"]["Enums"]["discipline_type"]
+          p_email: string
+          p_fighting_style?: string
+          p_first_name: string
+          p_gender?: string
+          p_gym_name?: string
+          p_height_cm: number
+          p_last_name: string
+          p_level?: string
+          p_martial_arts?: string[]
+          p_nickname?: string
+          p_phone?: string
+          p_reach_cm?: number
+          p_record_draws?: number
+          p_record_losses?: number
+          p_record_type?: string
+          p_record_wins?: number
+          p_stance?: string
+          p_weight_class: string
+          p_weight_kg: number
+        }
+        Returns: Json
       }
       delete_fighter_license: {
         Args: { p_license_id: string }

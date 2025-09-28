@@ -1,0 +1,225 @@
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import { useLicenseAuth } from '@/hooks/useLicenseAuth';
+
+interface CreateProfileResult {
+  success: boolean;
+  user_id: string;
+  profile_id: string;
+  license_id: string;
+  license_number: string;
+}
+
+interface OnboardingData {
+  firstName: string;
+  lastName: string;
+  nickname?: string;
+  country: string;
+  weightClass: string;
+  heightCm: string;
+  weightKg: string;
+  reachCm?: string;
+  martialArts: string[];
+  gymName?: string;
+  fightingStyle?: string;
+  stance?: string;
+  level?: string;
+  bio?: string;
+  phone?: string;
+  birthdate?: string;
+  gender?: string;
+  // Records
+  amateurWins?: string;
+  amateurLosses?: string;
+  amateurDraws?: string;
+  proWins?: string;
+  proLosses?: string;
+  proDraws?: string;
+}
+
+export function useOptimizedOnboarding() {
+  const { user, refreshLicense } = useLicenseAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  
+  const createProfile = async (formData: OnboardingData, files?: {
+    identityDocument?: File;
+    fighterPhoto?: File;
+  }) => {
+    if (!user) {
+      toast.error('Usuario no autenticado');
+      return { success: false };
+    }
+
+    setLoading(true);
+    
+    try {
+      // Prepare discipline based on martial arts
+      const discipline = formData.martialArts.length > 0 
+        ? formData.martialArts[0] as any
+        : null;
+
+      // Calculate record based on level
+      const isProLevel = formData.level === 'Profesional';
+      const recordWins = isProLevel 
+        ? parseInt(formData.proWins || '0') || 0
+        : parseInt(formData.amateurWins || '0') || 0;
+      const recordLosses = isProLevel
+        ? parseInt(formData.proLosses || '0') || 0
+        : parseInt(formData.amateurLosses || '0') || 0;
+      const recordDraws = isProLevel
+        ? parseInt(formData.proDraws || '0') || 0
+        : parseInt(formData.amateurDraws || '0') || 0;
+
+      const { data: result, error } = await supabase.rpc(
+        'create_fighter_profile_with_license',
+        {
+          p_auth_user_id: user.id,
+          p_email: user.email || '',
+          p_first_name: formData.firstName,
+          p_last_name: formData.lastName,
+          p_country: formData.country,
+          p_weight_class: formData.weightClass,
+          p_height_cm: parseInt(formData.heightCm),
+          p_weight_kg: parseFloat(formData.weightKg),
+          p_phone: formData.phone || null,
+          p_birthdate: formData.birthdate || null,
+          p_nickname: formData.nickname || null,
+          p_reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
+          p_discipline: discipline,
+          p_martial_arts: formData.martialArts,
+          p_gym_name: formData.gymName || null,
+          p_fighting_style: formData.fightingStyle || null,
+          p_stance: formData.stance || null,
+          p_level: formData.level || null,
+          p_record_wins: recordWins,
+          p_record_losses: recordLosses,
+          p_record_draws: recordDraws,
+          p_record_type: isProLevel ? 'Profesional' : 'Amateur',
+          p_gender: formData.gender || null,
+          p_bio: formData.bio || null
+        }
+      ) as { data: CreateProfileResult | null; error: any };
+
+      if (error) {
+        console.error('Error creating profile:', error);
+        
+        // Handle specific error cases
+        if (error.message?.includes('already has an active fighter profile')) {
+          toast.success('Ya tienes un perfil creado. Redirigiendo...');
+          navigate('/license/pending', { replace: true });
+          return { success: true };
+        }
+        
+        throw error;
+      }
+
+      if (!result?.success) {
+        throw new Error('Error creating profile: Invalid response');
+      }
+
+      console.log('Profile created successfully:', result);
+
+      // Upload files in background (non-blocking)
+      if (files?.identityDocument || files?.fighterPhoto) {
+        uploadFilesInBackground(result.license_id, result.profile_id, files);
+      }
+
+      // Refresh license data
+      refreshLicense().catch(error => 
+        console.error('Error refreshing license (non-blocking):', error)
+      );
+
+      toast.success('¡Perfil creado exitosamente! Tu Fighter ID está pendiente de revisión.');
+      navigate('/license/pending', { replace: true });
+      
+      return { success: true, data: result };
+      
+    } catch (error: any) {
+      console.error('Profile creation error:', error);
+      
+      let errorMessage = 'Error al crear el perfil';
+      
+      if (error?.code === '23505') {
+        toast.success('Ya tienes un perfil de peleador. Redirigiendo...');
+        navigate('/license/pending', { replace: true });
+        return { success: true };
+      } else if (error?.message?.includes('Unauthorized')) {
+        errorMessage = 'Error de autorización. Inicia sesión nuevamente.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+      
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Background file upload function
+  const uploadFilesInBackground = async (
+    licenseId: string, 
+    profileId: string, 
+    files: { identityDocument?: File; fighterPhoto?: File }
+  ) => {
+    try {
+      // Upload identity document
+      if (files.identityDocument && user) {
+        const identityFileName = `${user.id}/identity-${Date.now()}.${files.identityDocument.type.split('/')[1]}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('license-documents')
+          .upload(identityFileName, files.identityDocument);
+
+        if (!uploadError) {
+          await supabase
+            .from('license_documents')
+            .insert({
+              license_id: licenseId,
+              document_type: 'identity',
+              file_path: identityFileName,
+              file_name: files.identityDocument.name,
+              file_size: files.identityDocument.size,
+              mime_type: files.identityDocument.type,
+              uploaded_by: user.id
+            });
+          
+          console.log('Identity document uploaded successfully');
+        }
+      }
+
+      // Upload fighter photo
+      if (files.fighterPhoto && user) {
+        const photoFileName = `${user.id}/photo-${Date.now()}.${files.fighterPhoto.type.split('/')[1]}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('fighter-photos')
+          .upload(photoFileName, files.fighterPhoto);
+
+        if (!uploadError) {
+          const { data: publicUrl } = supabase.storage
+            .from('fighter-photos')
+            .getPublicUrl(photoFileName);
+
+          await supabase
+            .from('fighter_profiles')
+            .update({ avatar_url: publicUrl.publicUrl })
+            .eq('id', profileId);
+            
+          console.log('Fighter photo uploaded successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Background file upload error (non-blocking):', error);
+    }
+  };
+
+  return {
+    createProfile,
+    loading
+  };
+}

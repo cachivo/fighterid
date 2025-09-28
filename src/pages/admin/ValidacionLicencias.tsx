@@ -205,7 +205,6 @@ export default function ValidacionLicencias() {
   };
 
   const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED') => {
-    // Check admin permissions first
     if (!isAdmin) {
       toast({ 
         title: "Acceso Denegado", 
@@ -215,19 +214,20 @@ export default function ValidacionLicencias() {
       return;
     }
 
-    // Optimistic update
     setOptimisticUpdates(prev => ({ ...prev, [licenseId]: newStatus }));
     setLoadingStates(prev => ({ ...prev, [licenseId]: true }));
     
     try {
       if (newStatus === 'ACTIVE') {
-        console.log('Approving license:', licenseId);
-        await approveLicense.mutateAsync({ 
-          licenseId, 
-          level: 'AMATEUR' // Default level, could be made configurable
+        // Use the new synchronized approval function
+        const { error } = await supabase.rpc('approve_license_with_sync', {
+          p_license_id: licenseId,
+          p_level: 'AMATEUR'
         });
+        
+        if (error) throw error;
+        
       } else if (newStatus === 'SUSPENDED') {
-        console.log('Suspending license:', licenseId);
         await suspendLicense.mutateAsync({ 
           licenseId, 
           reason: 'Suspendida por administrador' 
@@ -241,28 +241,27 @@ export default function ValidacionLicencias() {
         duration: 3000 
       });
       
-      // Force a refetch and invalidate related queries
-      await refetch();
-      await refetchPending();
-      queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
-      queryClient.invalidateQueries({ queryKey: ['pending_licenses'] });
+      // Force a complete refresh to ensure state consistency
+      await Promise.all([
+        refetch(),
+        refetchPending(),
+        queryClient.invalidateQueries({ queryKey: ['admin_licenses'] }),
+        queryClient.invalidateQueries({ queryKey: ['pending_licenses'] }),
+        queryClient.invalidateQueries({ queryKey: ['license'] })
+      ]);
       
     } catch (error: any) {
       console.error('Error updating license:', error);
       
-      // Revert optimistic update on error
       setOptimisticUpdates(prev => {
         const newState = { ...prev };
         delete newState[licenseId];
         return newState;
       });
       
-      // Provide more specific error messages
-      let errorMessage = error.message;
+      let errorMessage = error.message || 'Error desconocido';
       if (error.message?.includes('Unauthorized')) {
         errorMessage = 'No tienes permisos para realizar esta acción';
-      } else if (error.message?.includes('admin')) {
-        errorMessage = 'Solo los administradores pueden aprobar licencias';
       }
       
       toast({ 
@@ -273,7 +272,6 @@ export default function ValidacionLicencias() {
     } finally {
       setLoadingStates(prev => ({ ...prev, [licenseId]: false }));
       
-      // Clear optimistic update after a short delay
       setTimeout(() => {
         setOptimisticUpdates(prev => {
           const newState = { ...prev };

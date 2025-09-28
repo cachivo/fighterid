@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
+import { useOptimizedOnboarding } from '@/hooks/useOptimizedOnboarding';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,9 +16,9 @@ import { Loader2, User, Award, Upload, FileText } from 'lucide-react';
 import { FileUpload } from '@/components/ui/file-upload';
 
 export default function LicenseOnboarding() {
-  const { user, refreshLicense } = useLicenseAuth();
+  const { user } = useLicenseAuth();
+  const { createProfile, loading } = useOptimizedOnboarding();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [step, setStep] = useState(1);
   
@@ -72,57 +73,36 @@ export default function LicenseOnboarding() {
     }
   };
 
-  // Check if user already has a profile
+  // Simplified check for existing profile
   useEffect(() => {
     let cancelled = false;
-    
-    // Safety timeout to prevent infinite loading
-    const safetyTimeout = setTimeout(() => {
-      if (!cancelled) {
-        console.log('Safety timeout triggered, stopping check');
-        setCheckingExisting(false);
-      }
-    }, 8000);
 
-    const checkExistingProfile = async () => {
+    const quickProfileCheck = async () => {
       if (!user) {
-        console.log('No user available, redirecting to auth...');
         setCheckingExisting(false);
         navigate('/license/auth', { replace: true });
         return;
       }
 
       try {
-        console.log('Checking for existing profile...');
-        
-        // Check for app_user
-        const { data: appUser } = await supabase
-          .from('app_user')
-          .select('id')
-          .eq('auth_user_id', user.id)
+        // Quick check using optimized query
+        const { data: existingProfile } = await supabase
+          .from('fighter_profiles')
+          .select(`
+            id,
+            user:user_id!inner(auth_user_id)
+          `)
+          .eq('user.auth_user_id', user.id)
+          .eq('active', true)
           .maybeSingle();
 
-        if (appUser) {
-          console.log('App user found, checking for fighter profile...');
-          
-          // Check for fighter profile
-          const { data: profile } = await supabase
-            .from('fighter_profiles')
-            .select('id')
-            .eq('user_id', appUser.id)
-            .eq('active', true)
-            .maybeSingle();
-
-          if (profile) {
-            console.log('Fighter profile found, redirecting to pending...');
-            navigate('/license/pending', { replace: true });
-            return;
-          }
+        if (existingProfile && !cancelled) {
+          navigate('/license/pending', { replace: true });
+          return;
         }
-
-        console.log('No existing profile found, can proceed with onboarding');
       } catch (error) {
         console.error('Error checking existing profile:', error);
+        // Allow onboarding to continue even with errors
       } finally {
         if (!cancelled) {
           setCheckingExisting(false);
@@ -130,315 +110,29 @@ export default function LicenseOnboarding() {
       }
     };
 
-    checkExistingProfile();
+    quickProfileCheck();
 
     return () => {
       cancelled = true;
-      clearTimeout(safetyTimeout);
     };
   }, [user, navigate]);
 
-  // Helper function to add timeout to promises
-  const withTimeout = (promise: Promise<any>, timeoutMs: number): Promise<any> => {
-    return Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Operation timed out after ' + timeoutMs + 'ms')), timeoutMs)
-      )
-    ]);
-  };
-
-  // Background upload function
-  const uploadDocumentsInBackground = async (license: any, profileId: string) => {
-    try {
-      // Upload identity document
-      if (identityDocument) {
-        console.log('Background: Uploading identity document...');
-        const identityFileName = user.id + '/identity-' + Date.now() + '.' + identityDocument.type.split('/')[1];
-        
-        await withTimeout(
-          (async () => {
-            const result = await supabase.storage
-              .from('license-documents')
-              .upload(identityFileName, identityDocument, {
-                contentType: identityDocument.type,
-                upsert: false
-              });
-            return result;
-          })(),
-          15000
-        );
-
-        // Create document record
-        await supabase
-          .from('license_documents')
-          .insert({
-            license_id: license.id,
-            document_type: 'identity',
-            file_path: identityFileName,
-            file_name: identityDocument.name,
-            file_size: identityDocument.size,
-            mime_type: identityDocument.type,
-            uploaded_by: user.id
-          });
-
-        console.log('Background: Identity document uploaded successfully');
-      }
-
-      // Upload fighter photo
-      if (fighterPhoto) {
-        console.log('Background: Uploading fighter photo...');
-        const photoFileName = user.id + '/photo-' + Date.now() + '.' + fighterPhoto.type.split('/')[1];
-        
-        await withTimeout(
-          (async () => {
-            const result = await supabase.storage
-              .from('fighter-photos')
-              .upload(photoFileName, fighterPhoto, {
-                contentType: fighterPhoto.type,
-                upsert: false
-              });
-            return result;
-          })(),
-          15000
-        );
-
-        // Get public URL and update profile
-        const { data: publicUrl } = supabase.storage
-          .from('fighter-photos')
-          .getPublicUrl(photoFileName);
-
-        await supabase
-          .from('fighter_profiles')
-          .update({ avatar_url: publicUrl.publicUrl })
-          .eq('id', profileId);
-
-        console.log('Background: Fighter photo uploaded successfully');
-      }
-    } catch (error) {
-      console.error('Background upload error (non-blocking):', error);
-    }
-  };
-
+  // Optimized form submission using the new transactional function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    setLoading(true);
+    const files = {
+      identityDocument: identityDocument || undefined,
+      fighterPhoto: fighterPhoto || undefined
+    };
+
+    const result = await createProfile(formData, files);
     
-    try {
-      // Quick check if user already has a profile
-      const { data: existingAppUser } = await withTimeout(
-        (async () => {
-          const result = await supabase
-            .from('app_user')
-            .select('id')
-            .eq('auth_user_id', user.id)
-            .maybeSingle();
-          return result;
-        })(),
-        5000
-      );
-
-      if (existingAppUser) {
-        const { data: existingProfile } = await withTimeout(
-          (async () => {
-            const result = await supabase
-              .from('fighter_profiles')
-              .select('id')
-              .eq('user_id', existingAppUser.id)
-              .eq('active', true)
-              .maybeSingle();
-            return result;
-          })(),
-          5000
-        );
-
-        if (existingProfile) {
-          toast.success('Ya tienes un perfil creado. Redirigiendo...');
-          navigate('/license/pending', { replace: true });
-          return;
-        }
-      }
-
-      // Create or get app_user
-      let userId = existingAppUser?.id;
-      
-      if (!userId) {
-        console.log('Creating new app_user...');
-        const { data: newAppUser, error: appUserError } = await withTimeout(
-          (async () => {
-            const result = await supabase
-              .from('app_user')
-              .insert({
-                auth_user_id: user.id,
-                email: user.email,
-                phone: formData.phone,
-                birthdate: formData.birthdate || null,
-                handle: (formData.firstName + '_' + formData.lastName + '_' + Date.now()).toLowerCase().replace(/\s+/g, '_')
-              })
-              .select('id')
-              .single();
-            return result;
-          })(),
-          10000
-        );
-
-        if (appUserError) {
-          console.error('Error creating app_user:', appUserError);
-          throw appUserError;
-        }
-        userId = newAppUser.id;
-      } else {
-        // Update existing app_user (non-blocking)
-        supabase
-          .from('app_user')
-          .update({
-            phone: formData.phone,
-            birthdate: formData.birthdate || null
-          })
-          .eq('id', userId)
-          .then(({ error }) => {
-            if (error) console.error('Error updating app_user (non-blocking):', error);
-          });
-      }
-
-      // Create fighter profile
-      console.log('Creating fighter profile...');
-      const profileData = {
-        user_id: userId,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        nickname: formData.nickname || null,
-        country: formData.country,
-        weight_class: formData.weightClass,
-        height_cm: parseInt(formData.heightCm),
-        weight_kg: parseFloat(formData.weightKg),
-        reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
-        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
-        martial_arts: formData.martialArts,
-        gym_name: formData.gymName || null,
-        fighting_style: formData.fightingStyle || null,
-        stance: formData.stance || null,
-        level: formData.level || null,
-        record_wins: formData.level === 'Profesional' 
-          ? (formData.proWins ? parseInt(formData.proWins) : 0)
-          : (formData.amateurWins ? parseInt(formData.amateurWins) : 0),
-        record_losses: formData.level === 'Profesional'
-          ? (formData.proLosses ? parseInt(formData.proLosses) : 0) 
-          : (formData.amateurLosses ? parseInt(formData.amateurLosses) : 0),
-        record_draws: formData.level === 'Profesional'
-          ? (formData.proDraws ? parseInt(formData.proDraws) : 0)
-          : (formData.amateurDraws ? parseInt(formData.amateurDraws) : 0),
-        record_type: formData.level === 'Profesional' ? 'PROFESIONAL' : 'AMATEUR',
-        gender: formData.gender || null,
-        bio: formData.bio || null,
-        birthdate: formData.birthdate || null
-      };
-      
-      const { data: profile, error: profileError } = await withTimeout(
-        (async () => {
-          const result = await supabase
-            .from('fighter_profiles')
-            .insert(profileData)
-            .select('id')
-            .single();
-          return result;
-        })(),
-        10000
-      );
-
-      if (profileError) {
-        console.error('Error creating fighter profile:', profileError);
-        throw profileError;
-      }
-
-      // Generate license number and create license
-      console.log('Generating license and creating license record...');
-      const { data: licenseNumber, error: licenseGenError } = await withTimeout(
-        (async () => {
-          const result = await supabase.rpc('generate_license_number');
-          return result;
-        })(),
-        10000
-      );
-
-      if (licenseGenError) {
-        console.error('Error generating license number:', licenseGenError);
-        throw licenseGenError;
-      }
-
-      const licenseData = {
-        fighter_id: profile.id,
-        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
-        license_level: 'AMATEUR' as const,
-        status: 'PENDING_REVIEW' as const,
-        is_primary: true,
-        license_number: licenseNumber
-      };
-      
-      const { data: license, error: licenseError } = await withTimeout(
-        (async () => {
-          const result = await supabase
-            .from('fighter_licenses')
-            .insert(licenseData)
-            .select('id')
-            .single();
-          return result;
-        })(),
-        10000
-      );
-
-      if (licenseError) {
-        console.error('Error creating fighter license:', licenseError);
-        throw licenseError;
-      }
-
-      console.log('Profile and license created successfully!');
-
-      // Start background uploads (don't await)
-      uploadDocumentsInBackground(license, profile.id);
-
-      // Update auth context (with timeout, non-blocking)
-      refreshLicense().catch(error => 
-        console.error('Error refreshing license (non-blocking):', error)
-      );
-
-      toast.success('¡Perfil creado exitosamente! Tu Fighter ID está pendiente de revisión.');
-      
-      // Navigate immediately to prevent infinite loading
-      navigate('/license/pending', { replace: true });
-      
-    } catch (error) {
-      console.error('Error creating profile:', error);
-      
-      // Handle specific error cases
-      if (error && typeof error === 'object' && 'code' in error) {
-        const supabaseError = error as any;
-        
-        if (supabaseError.code === '23505') {
-          toast.success('Ya tienes un perfil de peleador. Redirigiendo...');
-          navigate('/license/dashboard', { replace: true });
-          return;
-        } else if (supabaseError.code === '23514') {
-          toast.error('Error en los datos del perfil. Verifica que el tipo de récord sea Amateur o Profesional.');
-          return;
-        } else if (supabaseError.code === '42501') {
-          toast.error('Tu perfil se creó pero hubo un problema con la licencia. Contacta al administrador.');
-          navigate('/license/dashboard', { replace: true });
-          return;
-        }
-      }
-      
-      // Check if it's a timeout error
-      if (error instanceof Error && error.message.includes('timed out')) {
-        toast.error('La operación está tardando más de lo normal. Por favor, revisa tu conexión y reintenta.');
-      } else {
-        toast.error('Error al crear el perfil: ' + (error instanceof Error ? error.message : 'Error desconocido'));
-      }
-    } finally {
-      setLoading(false);
-      setUploading(false);
+    if (result.success) {
+      console.log('Profile created successfully!');
+    } else {
+      console.error('Profile creation failed:', result.error);
     }
   };
 

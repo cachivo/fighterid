@@ -31,77 +31,43 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       console.log('Checking license status for user:', userId);
 
-      // Step 1: Check/create app_user
-      let { data: userData, error: userError } = await supabase
+      // Optimized single query to get user + profile + license data
+      const { data: userData, error: userError } = await supabase
         .from('app_user')
-        .select('id, email, is_admin')
+        .select(`
+          id, 
+          email, 
+          is_admin,
+          fighter_profiles!inner (
+            *,
+            fighter_licenses (
+              id,
+              license_number,
+              status,
+              license_level,
+              issued_at,
+              expires_at,
+              is_primary
+            )
+          )
+        `)
         .eq('auth_user_id', userId)
+        .eq('fighter_profiles.active', true)
         .maybeSingle();
 
-      // If no app_user exists, create one automatically
-      if (!userData && (userError?.code === 'PGRST116' || !userError)) {
-        console.log('Creating new app_user for:', userId);
-        
-        // Get user email from auth
-        const { data: authUser } = await supabase.auth.getUser();
-        
-        const { data: newUser, error: createError } = await supabase
-          .from('app_user')
-          .insert([{
-            auth_user_id: userId,
-            email: authUser.user?.email || '',
-            handle: authUser.user?.email?.split('@')[0] || `user_${Date.now()}`,
-            is_admin: false
-          }])
-          .select('id, email, is_admin')
-          .single();
-
-        if (createError) {
-          console.error('Error creating app user:', createError.message);
-          // Don't fail - allow onboarding to proceed
-          setLicenseData(null);
-          setHasActiveLicense(false);
-          setLoading(false);
-          return;
-        }
-        
-        userData = newUser;
-        console.log('New app_user created:', userData);
-      } else if (userError && userError.code !== 'PGRST116') {
-        console.error('Unexpected user query error:', userError.message);
-        // Allow onboarding to continue even with errors
+      // If no user or profile found, allow onboarding
+      if (!userData || userError) {
+        console.log('No profile found - user can proceed with onboarding');
         setLicenseData(null);
         setHasActiveLicense(false);
         setLoading(false);
         return;
       }
 
-      // Step 2: Check for fighter profile (complete data)
-      const { data: profileData, error: profileError } = await supabase
-        .from('fighter_profiles')
-        .select(`
-          *,
-          fighter_licenses!fighter_licenses_fighter_id_fkey (
-            id,
-            license_number,
-            status,
-            license_level,
-            issued_at,
-            expires_at,
-            is_primary
-          )
-        `)
-        .eq('user_id', userData?.id)
-        .eq('active', true)
-        .maybeSingle();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Profile query error:', profileError.message);
-        // Don't fail - this is normal for new users
-      }
-
+      // Extract profile and license data
+      const profileData = userData.fighter_profiles[0];
       if (!profileData) {
-        console.log('No fighter profile found - user can proceed with onboarding');
+        console.log('No fighter profile found');
         setLicenseData(null);
         setHasActiveLicense(false);
         setLoading(false);
@@ -111,12 +77,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('Fighter profile found:', profileData);
 
       // Check for active license
-      const licenses = Array.isArray(profileData.fighter_licenses) 
-        ? profileData.fighter_licenses 
-        : profileData.fighter_licenses ? [profileData.fighter_licenses] : [];
-      
+      const licenses = profileData.fighter_licenses || [];
       const activeLicense = licenses.find((license: any) => 
-        license.status === 'ACTIVE' || license.status === 'PENDING'
+        license.status === 'ACTIVE' || license.status === 'PENDING_REVIEW'
       );
 
       if (activeLicense) {
@@ -127,10 +90,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         };
         setLicenseData(combinedLicenseData);
         setHasActiveLicense(activeLicense.status === 'ACTIVE');
-        console.log('License state updated - hasActiveLicense:', activeLicense.status === 'ACTIVE');
       } else {
         console.log('No active license found');
-        setLicenseData(null);
+        setLicenseData({
+          fighter_profiles: profileData
+        });
         setHasActiveLicense(false);
       }
 
