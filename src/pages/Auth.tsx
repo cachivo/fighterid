@@ -10,9 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Shield, Clock, Zap, Trophy, Eye } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -22,9 +21,6 @@ const authSchema = z.object({
 const signUpSchema = z.object({
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  userType: z.enum(['fighter', 'user'], {
-    message: 'Debes seleccionar un tipo de usuario',
-  }),
 });
 
 type AuthFormData = z.infer<typeof authSchema>;
@@ -49,7 +45,6 @@ export default function Auth() {
     defaultValues: {
       email: '',
       password: '',
-      userType: undefined,
     },
   });
 
@@ -83,7 +78,7 @@ export default function Auth() {
 
   const handleSignUp = async (data: SignUpFormData) => {
     setLoading(true);
-    const { error } = await signUp(data.email, data.password, data.userType);
+    const { error } = await signUp(data.email, data.password);
     
     if (error) {
       toast({
@@ -94,9 +89,7 @@ export default function Auth() {
     } else {
       toast({
         title: 'Registro exitoso',
-        description: data.userType === 'fighter' 
-          ? 'Por favor revisa tu email para confirmar tu cuenta. Serás redirigido al proceso de creación de tu Fighter ID.'
-          : 'Por favor revisa tu email para confirmar tu cuenta',
+        description: 'Por favor revisa tu email para confirmar tu cuenta. Después podrás crear tu Fighter ID si deseas ser peleador.',
       });
     }
     setLoading(false);
@@ -106,9 +99,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Panel de Administración</CardTitle>
+          <CardTitle className="text-2xl font-bold">Acceso a Batalla</CardTitle>
           <CardDescription>
-            Accede a tu cuenta o crea una nueva
+            Inicia sesión o regístrate para acceder a la plataforma
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -164,55 +157,13 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
+              <div className="mb-4 p-4 bg-muted rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Después del registro podrás crear tu <strong>Fighter ID</strong> si deseas ser peleador profesional.
+                </p>
+              </div>
               <Form {...signUpForm}>
-                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-6">
-                  <FormField
-                    control={signUpForm.control}
-                    name="userType"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel className="text-base font-medium">¿Qué quieres hacer?</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            value={field.value}
-                            className="grid grid-cols-1 gap-3"
-                          >
-                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
-                              <RadioGroupItem value="fighter" id="fighter" />
-                              <div className="flex items-center space-x-3 flex-1">
-                                <Shield className="h-5 w-5 text-primary" />
-                                <div className="grid gap-1">
-                                  <label htmlFor="fighter" className="text-sm font-medium cursor-pointer">
-                                    Obtener mi Fighter ID
-                                  </label>
-                                  <p className="text-xs text-muted-foreground">
-                                    Registro completo para ser peleador profesional
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
-                              <RadioGroupItem value="user" id="user" />
-                              <div className="flex items-center space-x-3 flex-1">
-                                <User className="h-5 w-5 text-primary" />
-                                <div className="grid gap-1">
-                                  <label htmlFor="user" className="text-sm font-medium cursor-pointer">
-                                    Solo ver eventos
-                                  </label>
-                                  <p className="text-xs text-muted-foreground">
-                                    Acceso como espectador y fan
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
+                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                   <FormField
                     control={signUpForm.control}
                     name="email"
