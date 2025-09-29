@@ -15,7 +15,7 @@ export interface SportsNews {
 }
 
 export function useSportsNews(category?: string) {
-  const { data: news, isLoading, error } = useQuery({
+  const { data: news, isLoading, error, refetch } = useQuery({
     queryKey: ['sports-news', category],
     queryFn: async () => {
       let query = supabase
@@ -44,6 +44,7 @@ export function useSportsNews(category?: string) {
     featuredNews, 
     regularNews, 
     isLoading, 
-    error 
+    error,
+    refetch
   };
 }

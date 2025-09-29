@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ExternalLink, Calendar, Tag } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Calendar, Tag, RefreshCw } from "lucide-react";
 import { useSportsNews } from "@/hooks/useSportsNews";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import { supabase } from "@/integrations/supabase/client";
 
 const SportsNewsCarousel = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const { news, featuredNews, isLoading } = useSportsNews(selectedCategory);
+  const { news, featuredNews, isLoading, refetch } = useSportsNews(selectedCategory);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const categories = [
     { id: "all", name: "Todas", color: "bg-primary" },
@@ -29,6 +33,55 @@ const SportsNewsCarousel = () => {
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + displayNews.length) % displayNews.length);
   };
+
+  // Auto-play carousel
+  useEffect(() => {
+    if (!isAutoPlaying || displayNews.length <= 1) return;
+    
+    const interval = setInterval(nextSlide, 8000); // Change slide every 8 seconds
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, displayNews.length, currentIndex]);
+
+  // Auto-refresh news every 10 minutes
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      console.log('Auto-refreshing sports news...');
+      handleAutoRefresh();
+    }, 10 * 60 * 1000); // 10 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
+  // Manual refresh trigger
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Trigger the edge function to fetch new RSS data
+      await supabase.functions.invoke('fetch-sports-news');
+      // Then refetch the local data
+      await refetch();
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error refreshing news:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Auto refresh (silent)
+  const handleAutoRefresh = async () => {
+    try {
+      await supabase.functions.invoke('fetch-sports-news');
+      await refetch();
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error auto-refreshing news:', error);
+    }
+  };
+
+  // Pause auto-play on hover
+  const handleMouseEnter = () => setIsAutoPlaying(false);
+  const handleMouseLeave = () => setIsAutoPlaying(true);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -79,9 +132,24 @@ const SportsNewsCarousel = () => {
           <h2 className="text-4xl font-bold text-white mb-4 neon-text">
             Noticias del Mundo del Combate
           </h2>
-          <p className="text-urban-gray-light max-w-2xl mx-auto">
+          <p className="text-urban-gray-light max-w-2xl mx-auto mb-4">
             Mantente al día con las últimas noticias de MMA, boxeo y artes marciales
           </p>
+          <div className="flex items-center justify-center gap-4">
+            <Badge variant="outline" className="text-urban-gray-light border-urban-gray-light">
+              Actualizado: {lastUpdated.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
+              className="text-urban-gray-light hover:text-white"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+            </Button>
+          </div>
         </div>
 
         {/* Category Filter */}
@@ -109,7 +177,11 @@ const SportsNewsCarousel = () => {
           <div className="relative max-w-5xl mx-auto">
             <Card className="bg-urban-gray/90 backdrop-blur border-purple-neon-primary/20 shadow-2xl overflow-hidden">
               <CardContent className="p-0">
-                <div className="relative">
+                <div 
+                  className="relative"
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                >
                   {/* Navigation Buttons */}
                   {displayNews.length > 1 && (
                     <>
@@ -147,6 +219,16 @@ const SportsNewsCarousel = () => {
                       >
                         {displayNews[currentIndex]?.category?.toUpperCase()}
                       </Badge>
+                      {displayNews[currentIndex]?.is_featured && (
+                        <Badge className="absolute top-4 right-4 bg-yellow-500/90 text-black border-0">
+                          Destacado
+                        </Badge>
+                      )}
+                      {new Date(displayNews[currentIndex]?.published_at) > new Date(Date.now() - 6 * 60 * 60 * 1000) && (
+                        <Badge className="absolute top-16 left-4 bg-green-500/90 text-black border-0 animate-pulse">
+                          Nuevo
+                        </Badge>
+                      )}
                     </div>
 
                     {/* Content Section */}
