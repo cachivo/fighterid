@@ -40,7 +40,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           is_admin,
           fighter_profiles!inner (
             *,
-            fighter_licenses (
+            fighter_licenses!fighter_licenses_fighter_id_fkey (
               id,
               license_number,
               status,
