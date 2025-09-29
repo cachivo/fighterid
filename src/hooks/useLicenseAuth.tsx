@@ -31,42 +31,35 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       console.log('Checking license status for user:', userId);
 
-      // Optimized single query to get user + profile + license data
-      const { data: userData, error: userError } = await supabase
+      // 1) Get app_user to resolve internal user_id
+      const { data: appUser, error: appUserErr } = await supabase
         .from('app_user')
-        .select(`
-          id, 
-          email, 
-          is_admin,
-          fighter_profiles!inner (
-            *,
-            fighter_licenses!fighter_licenses_fighter_id_fkey (
-              id,
-              license_number,
-              status,
-              license_level,
-              issued_at,
-              expires_at,
-              is_primary
-            )
-          )
-        `)
+        .select('id, email')
         .eq('auth_user_id', userId)
-        .eq('fighter_profiles.active', true)
         .maybeSingle();
 
-      // If no user or profile found, allow onboarding
-      if (!userData || userError) {
-        console.log('No profile found - user can proceed with onboarding');
+      if (appUserErr) console.warn('app_user fetch error:', appUserErr);
+
+      // If no app_user, allow onboarding
+      if (!appUser?.id) {
+        console.log('No app_user row found - onboarding allowed');
         setLicenseData(null);
         setHasActiveLicense(false);
         setLoading(false);
         return;
       }
 
-      // Extract profile and license data
-      const profileData = userData.fighter_profiles[0];
-      if (!profileData) {
+      // 2) Get fighter profile for this user
+      const { data: profile, error: profileErr } = await supabase
+        .from('fighter_profiles')
+        .select('*')
+        .eq('user_id', appUser.id)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (profileErr) console.warn('fighter_profiles fetch error:', profileErr);
+
+      if (!profile?.id) {
         console.log('No fighter profile found');
         setLicenseData(null);
         setHasActiveLicense(false);
@@ -74,27 +67,55 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      console.log('Fighter profile found:', profileData);
+      console.log('Fighter profile found:', profile?.id);
 
-      // Check for active license
-      const licenses = profileData.fighter_licenses || [];
-      const activeLicense = licenses.find((license: any) => 
-        license.status === 'ACTIVE' || license.status === 'PENDING_REVIEW'
-      );
+      // 3) Resolve license with robust fallbacks (prefer ACTIVE primary)
+      const selectCols = 'id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url';
 
-      if (activeLicense) {
-        console.log('Active license found:', activeLicense);
-        const combinedLicenseData = {
-          ...activeLicense,
-          fighter_profiles: profileData
-        };
+      // Try ACTIVE primary
+      let { data: license } = await supabase
+        .from('fighter_licenses')
+        .select(selectCols)
+        .eq('fighter_id', profile.id)
+        .eq('status', 'ACTIVE')
+        .eq('is_primary', true)
+        .maybeSingle();
+
+      // Fallbacks in order of preference
+      if (!license) {
+        const res1 = await supabase
+          .from('fighter_licenses')
+          .select(selectCols)
+          .eq('fighter_id', profile.id)
+          .eq('status', 'ACTIVE')
+          .order('is_primary', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        license = res1.data ?? null;
+      }
+
+      if (!license) {
+        const res2 = await supabase
+          .from('fighter_licenses')
+          .select(selectCols)
+          .eq('fighter_id', profile.id)
+          .eq('status', 'PENDING_REVIEW')
+          .order('is_primary', { ascending: false })
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        license = res2.data ?? null;
+      }
+
+      if (license) {
+        console.log('Resolved license:', license.status, license.license_number);
+        const combinedLicenseData = { ...license, fighter_profiles: profile };
         setLicenseData(combinedLicenseData);
-        setHasActiveLicense(activeLicense.status === 'ACTIVE');
+        setHasActiveLicense(license.status === 'ACTIVE');
       } else {
-        console.log('No active license found');
-        setLicenseData({
-          fighter_profiles: profileData
-        });
+        console.log('No ACTIVE/PENDING license found');
+        setLicenseData({ fighter_profiles: profile });
         setHasActiveLicense(false);
       }
 
