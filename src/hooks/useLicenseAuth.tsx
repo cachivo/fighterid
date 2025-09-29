@@ -29,7 +29,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkLicenseStatus = async (userId: string) => {
     try {
-      console.log('Checking license status for user:', userId);
+      console.log('🔍 Checking license status for user:', userId);
 
       // 1) Get app_user to resolve internal user_id
       const { data: appUser, error: appUserErr } = await supabase
@@ -38,11 +38,19 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .eq('auth_user_id', userId)
         .maybeSingle();
 
-      if (appUserErr) console.warn('app_user fetch error:', appUserErr);
+      console.log('📧 App user result:', { appUser, appUserErr });
+
+      if (appUserErr) {
+        console.error('❌ app_user fetch error:', appUserErr);
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        setLoading(false);
+        return;
+      }
 
       // If no app_user, allow onboarding
       if (!appUser?.id) {
-        console.log('No app_user row found - onboarding allowed');
+        console.log('⚠️ No app_user row found - onboarding allowed');
         setLicenseData(null);
         setHasActiveLicense(false);
         setLoading(false);
@@ -57,29 +65,41 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .eq('active', true)
         .maybeSingle();
 
-      if (profileErr) console.warn('fighter_profiles fetch error:', profileErr);
+      console.log('👤 Fighter profile result:', { profile: profile?.id, profileErr });
 
-      if (!profile?.id) {
-        console.log('No fighter profile found');
+      if (profileErr) {
+        console.error('❌ fighter_profiles fetch error:', profileErr);
         setLicenseData(null);
         setHasActiveLicense(false);
         setLoading(false);
         return;
       }
 
-      console.log('Fighter profile found:', profile?.id);
+      if (!profile?.id) {
+        console.log('⚠️ No fighter profile found for user_id:', appUser.id);
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ Fighter profile found:', profile.id, profile.first_name, profile.last_name);
 
       // 3) Resolve license with robust fallbacks (prefer ACTIVE primary)
       const selectCols = 'id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url';
 
+      console.log('🎯 Looking for license for fighter_id:', profile.id);
+
       // Try ACTIVE primary
-      let { data: license } = await supabase
+      let { data: license, error: licenseErr } = await supabase
         .from('fighter_licenses')
         .select(selectCols)
         .eq('fighter_id', profile.id)
         .eq('status', 'ACTIVE')
         .eq('is_primary', true)
         .maybeSingle();
+
+      console.log('🏆 ACTIVE primary license search:', { license, licenseErr });
 
       // Fallbacks in order of preference
       if (!license) {
@@ -109,14 +129,16 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       if (license) {
-        console.log('Resolved license:', license.status, license.license_number);
+        console.log('✅ Resolved license:', license.status, license.license_number);
         const combinedLicenseData = { ...license, fighter_profiles: profile };
         setLicenseData(combinedLicenseData);
         setHasActiveLicense(license.status === 'ACTIVE');
+        console.log('🎉 Setting hasActiveLicense:', license.status === 'ACTIVE');
       } else {
-        console.log('No ACTIVE/PENDING license found');
+        console.log('❌ No ACTIVE/PENDING license found for fighter:', profile.id);
         setLicenseData({ fighter_profiles: profile });
         setHasActiveLicense(false);
+        console.log('⚠️ Setting hasActiveLicense: false');
       }
 
     } catch (error) {
