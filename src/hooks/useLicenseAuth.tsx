@@ -225,14 +225,32 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         emailRedirectTo: redirectUrl
       }
     });
-    return { error };
+
+    if (error) {
+      const message = /registered|exists|already/i.test(error.message)
+        ? 'Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.'
+        : error.message;
+      return { error: { message } };
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error('Error al cerrar sesión local:', e);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setHasActiveLicense(false);
+      setLicenseData(null);
+      queryClient.clear();
+      setLoading(false);
+      navigate('/', { replace: true });
+    }
   };
-
   const value = {
     user,
     session,

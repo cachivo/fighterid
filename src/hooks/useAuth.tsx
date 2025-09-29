@@ -58,14 +58,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         emailRedirectTo: redirectUrl
       }
     });
-    return { error };
+
+    if (error) {
+      const message = /registered|exists|already/i.test(error.message)
+        ? 'Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.'
+        : error.message;
+      return { error: { message } };
+    }
+
+    return { error: null };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error('Error al cerrar sesión local:', e);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setLoading(false);
+      navigate('/', { replace: true });
+    }
   };
-
   const value = {
     user,
     session,
