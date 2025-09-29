@@ -28,9 +28,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const navigate = useNavigate();
 
   const checkLicenseStatus = async (userId: string) => {
+    console.log('🔍 [LICENSE AUTH] Starting check for user:', userId);
+    
     try {
-      console.log('🔍 Checking license status for user:', userId);
-
       // 1) Get app_user to resolve internal user_id
       const { data: appUser, error: appUserErr } = await supabase
         .from('app_user')
@@ -38,22 +38,22 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .eq('auth_user_id', userId)
         .maybeSingle();
 
-      console.log('📧 App user result:', { appUser, appUserErr });
+      console.log('📧 [LICENSE AUTH] App user result:', { 
+        found: !!appUser, 
+        email: appUser?.email,
+        error: appUserErr?.message 
+      });
 
       if (appUserErr) {
-        console.error('❌ app_user fetch error:', appUserErr);
-        setLicenseData(null);
-        setHasActiveLicense(false);
-        setLoading(false);
-        return;
+        console.error('❌ [LICENSE AUTH] app_user fetch error:', appUserErr);
+        throw appUserErr;
       }
 
       // If no app_user, allow onboarding
       if (!appUser?.id) {
-        console.log('⚠️ No app_user row found - onboarding allowed');
+        console.log('⚠️ [LICENSE AUTH] No app_user - allowing onboarding');
         setLicenseData(null);
         setHasActiveLicense(false);
-        setLoading(false);
         return;
       }
 
@@ -65,88 +65,67 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .eq('active', true)
         .maybeSingle();
 
-      console.log('👤 Fighter profile result:', { profile: profile?.id, profileErr });
+      console.log('👤 [LICENSE AUTH] Fighter profile result:', { 
+        found: !!profile,
+        profileId: profile?.id,
+        name: profile ? `${profile.first_name} ${profile.last_name}` : 'N/A',
+        error: profileErr?.message 
+      });
 
       if (profileErr) {
-        console.error('❌ fighter_profiles fetch error:', profileErr);
-        setLicenseData(null);
-        setHasActiveLicense(false);
-        setLoading(false);
-        return;
+        console.error('❌ [LICENSE AUTH] fighter_profiles fetch error:', profileErr);
+        throw profileErr;
       }
 
       if (!profile?.id) {
-        console.log('⚠️ No fighter profile found for user_id:', appUser.id);
+        console.log('⚠️ [LICENSE AUTH] No fighter profile - allowing onboarding');
         setLicenseData(null);
         setHasActiveLicense(false);
-        setLoading(false);
         return;
       }
 
-      console.log('✅ Fighter profile found:', profile.id, profile.first_name, profile.last_name);
-
       // 3) Resolve license with robust fallbacks (prefer ACTIVE primary)
-      const selectCols = 'id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url';
+      console.log('🎯 [LICENSE AUTH] Looking for license for fighter_id:', profile.id);
 
-      console.log('🎯 Looking for license for fighter_id:', profile.id);
-
-      // Try ACTIVE primary
-      let { data: license, error: licenseErr } = await supabase
+      // Try ACTIVE primary first
+      const { data: license, error: licenseErr } = await supabase
         .from('fighter_licenses')
-        .select(selectCols)
+        .select('id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url')
         .eq('fighter_id', profile.id)
         .eq('status', 'ACTIVE')
         .eq('is_primary', true)
         .maybeSingle();
 
-      console.log('🏆 ACTIVE primary license search:', { license, licenseErr });
+      console.log('🏆 [LICENSE AUTH] License query result:', { 
+        found: !!license,
+        licenseNumber: license?.license_number,
+        status: license?.status,
+        isPrimary: license?.is_primary,
+        error: licenseErr?.message 
+      });
 
-      // Fallbacks in order of preference
-      if (!license) {
-        const res1 = await supabase
-          .from('fighter_licenses')
-          .select(selectCols)
-          .eq('fighter_id', profile.id)
-          .eq('status', 'ACTIVE')
-          .order('is_primary', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        license = res1.data ?? null;
-      }
-
-      if (!license) {
-        const res2 = await supabase
-          .from('fighter_licenses')
-          .select(selectCols)
-          .eq('fighter_id', profile.id)
-          .eq('status', 'PENDING_REVIEW')
-          .order('is_primary', { ascending: false })
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        license = res2.data ?? null;
+      if (licenseErr) {
+        console.error('❌ [LICENSE AUTH] License fetch error:', licenseErr);
+        throw licenseErr;
       }
 
       if (license) {
-        console.log('✅ Resolved license:', license.status, license.license_number);
+        console.log('✅ [LICENSE AUTH] ACTIVE license found!');
         const combinedLicenseData = { ...license, fighter_profiles: profile };
         setLicenseData(combinedLicenseData);
-        setHasActiveLicense(license.status === 'ACTIVE');
-        console.log('🎉 Setting hasActiveLicense:', license.status === 'ACTIVE');
+        setHasActiveLicense(true);
       } else {
-        console.log('❌ No ACTIVE/PENDING license found for fighter:', profile.id);
+        console.log('⚠️ [LICENSE AUTH] No ACTIVE license found');
         setLicenseData({ fighter_profiles: profile });
         setHasActiveLicense(false);
-        console.log('⚠️ Setting hasActiveLicense: false');
       }
 
     } catch (error) {
-      console.error('Error checking license status:', error);
-      // Don't block onboarding process
+      console.error('💥 [LICENSE AUTH] Fatal error:', error);
       setHasActiveLicense(false);
       setLicenseData(null);
     } finally {
+      console.log('🏁 [LICENSE AUTH] Check complete. Setting loading to false.');
       setLoading(false);
     }
   };
