@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Zap, Calendar, TrendingUp, Activity } from 'lucide-react';
+import { Users, Zap, Calendar, TrendingUp, Activity, MapPin } from 'lucide-react';
 
 export default function RealTimeStats() {
   const { stats, isLoading } = useRealTimeStats();
@@ -123,7 +123,8 @@ export default function RealTimeStats() {
                         {event.discipline}
                       </p>
                       <p className="text-sm text-gray-300">
-                        📍 {event.venue || 'Venue TBD'}
+                        <MapPin className="inline h-4 w-4 mr-1" />
+                        {event.venue || 'Venue TBD'}
                       </p>
                       <Badge variant="destructive" className="text-xs">
                         EN VIVO

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Edit, Trash2, ImageIcon } from 'lucide-react';
+import { Clock, Edit, Trash2, ImageIcon, FileText } from 'lucide-react';
 import { useFighterUpdates } from '@/hooks/useFighterUpdates';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -62,7 +62,7 @@ export default function FighterUpdatesFeed({
       <Card>
         <CardContent className="p-8 text-center text-muted-foreground">
           <div className="space-y-2">
-            <div className="text-4xl">📝</div>
+            <FileText className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-lg font-medium">
               {isOwner ? 'Aún no has publicado actualizaciones' : 'No hay actualizaciones disponibles'}
             </p>

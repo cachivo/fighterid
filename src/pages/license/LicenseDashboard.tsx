@@ -1,4 +1,4 @@
-import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw } from 'lucide-react';
+import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw, MapPin, Dumbbell, Target } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
@@ -293,19 +293,19 @@ export default function LicenseDashboard() {
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
                     {fighterProfile?.country && (
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">📍</span>
+                        <MapPin className="h-3 w-3" />
                         <span>{fighterProfile.country}</span>
                       </div>
                     )}
                     {fighterProfile?.gym_name && (
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">🥋</span>
+                        <Dumbbell className="h-3 w-3" />
                         <span>{fighterProfile.gym_name}</span>
                       </div>
                     )}
                     {fighterProfile?.stance && (
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">🥊</span>
+                        <Target className="h-3 w-3" />
                         <span>{fighterProfile.stance}</span>
                       </div>
                     )}
