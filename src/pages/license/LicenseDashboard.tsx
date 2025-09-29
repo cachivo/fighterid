@@ -1,4 +1,4 @@
-import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw, MapPin, Dumbbell, Target } from 'lucide-react';
+import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw, MapPin, Dumbbell, Target, User, Zap, Heart, FileText, Activity } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
@@ -329,46 +329,29 @@ export default function LicenseDashboard() {
           </CardContent>
         </Card>
 
-        {/* Fighter Profile Card - Información Personal Completa */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={fighterProfile?.avatar_url} />
-                <AvatarFallback>
-                  {fighterProfile?.first_name?.[0]}{fighterProfile?.last_name?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              Información Personal Completa
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nombre Completo</p>
-                  <p className="font-semibold">{fighterProfile?.first_name} {fighterProfile?.last_name}</p>
-                  {fighterProfile?.nickname && (
-                    <p className="text-sm text-muted-foreground">"{fighterProfile.nickname}"</p>
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Género</p>
-                  <p>{fighterProfile?.gender || 'No especificado'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">País</p>
-                  <p>{fighterProfile?.country || 'No especificado'}</p>
-                </div>
+        {/* Reorganized Information Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Información Personal - Solo datos únicos de identificación */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Información Personal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Fecha de Nacimiento</p>
                   <p>{fighterProfile?.birthdate ? format(new Date(fighterProfile.birthdate), 'PP', { locale: es }) : 'No especificada'}</p>
                 </div>
-              </div>
-              <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Lugar de Nacimiento</p>
                   <p>{fighterProfile?.birthplace || 'No especificado'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Género</p>
+                  <p>{fighterProfile?.gender || 'No especificado'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Tipo de Documento</p>
@@ -383,56 +366,31 @@ export default function LicenseDashboard() {
                   <p>{fighterProfile?.blood_type || 'No especificado'}</p>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Licencia Creada</p>
-                  <p>{licenseData.created_at ? format(new Date(licenseData.created_at), 'PP', { locale: es }) : 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Última Actualización</p>
-                  <p>{fighterProfile?.updated_at ? format(new Date(fighterProfile.updated_at), 'PP', { locale: es }) : 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Versión</p>
-                  <p>v{licenseData.version || 1}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nivel</p>
-                  <p>{fighterProfile?.level || 'No especificado'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Información Física */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Física</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="space-y-3">
+          {/* Información Física - Solo medidas físicas */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Información Física
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-3">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Categoría de Peso</p>
-                  <p className="font-semibold">{fighterProfile?.weight_class}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Peso (kg)</p>
-                  <p>{fighterProfile?.weight_kg ? `${fighterProfile.weight_kg} kg` : 'No especificado'}</p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Altura (cm)</p>
+                  <p className="text-sm font-medium text-muted-foreground">Altura</p>
                   <p>{fighterProfile?.height_cm ? `${fighterProfile.height_cm} cm` : 'No especificado'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Alcance (cm)</p>
+                  <p className="text-sm font-medium text-muted-foreground">Peso</p>
+                  <p>{fighterProfile?.weight_kg ? `${fighterProfile.weight_kg} kg` : 'No especificado'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Alcance</p>
                   <p>{fighterProfile?.reach_cm ? `${fighterProfile.reach_cm} cm` : 'No especificado'}</p>
                 </div>
-              </div>
-              <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Postura</p>
                   <p>{fighterProfile?.stance || 'No especificada'}</p>
@@ -442,44 +400,24 @@ export default function LicenseDashboard() {
                   <p>{fighterProfile?.fighting_style || 'No especificado'}</p>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Gimnasio/Academia</p>
-                  <p>{fighterProfile?.gym_name || 'No especificado'}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Disciplina Principal</p>
-                  <p>{fighterProfile?.discipline || licenseData.discipline || 'No especificada'}</p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Información de Combate y Artes Marciales */}
+        {/* Información Deportiva - Disciplina, biografía, artes marciales */}
         <Card>
           <CardHeader>
-            <CardTitle>Información de Combate</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Información Deportiva
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Récord Profesional</p>
-                  <div className="flex items-center gap-4">
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border">
-                      <p className="font-bold text-2xl text-green-600">{fighterProfile?.record_wins || 0}</p>
-                      <p className="text-xs text-green-600">Victorias</p>
-                    </div>
-                    <div className="text-center p-3 bg-red-50 dark:bg-red-950/20 rounded-lg border">
-                      <p className="font-bold text-2xl text-red-600">{fighterProfile?.record_losses || 0}</p>
-                      <p className="text-xs text-red-600">Derrotas</p>
-                    </div>
-                    <div className="text-center p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg border">
-                      <p className="font-bold text-2xl text-yellow-600">{fighterProfile?.record_draws || 0}</p>
-                      <p className="text-xs text-yellow-600">Empates</p>
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Disciplina Principal</p>
+                  <p className="font-semibold">{fighterProfile?.discipline || licenseData.discipline || 'No especificada'}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Tipo de Récord</p>
@@ -538,7 +476,10 @@ export default function LicenseDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Información Médica</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5" />
+                Información Médica
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -554,51 +495,58 @@ export default function LicenseDashboard() {
                     <p className="text-sm">{fighterProfile?.medical_allergies || 'Sin alergias reportadas'}</p>
                   </div>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Contacto de Emergencia</p>
+                  <div className="space-y-2 pt-2">
+                    <p className="text-sm">{fighterProfile?.emergency_contact_name || 'No especificado'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {fighterProfile?.emergency_contact_relation && `${fighterProfile.emergency_contact_relation} - `}
+                      {fighterProfile?.emergency_contact_phone || 'Sin teléfono'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Contacto de Emergencia</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Información de Seguro
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nombre del Contacto</p>
-                  <p>{fighterProfile?.emergency_contact_name || 'No especificado'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Compañía de Seguro</p>
+                  <p>{fighterProfile?.insurance_company || 'No especificada'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Relación</p>
-                  <p>{fighterProfile?.emergency_contact_relation || 'No especificada'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Número de Póliza</p>
+                  <p className="font-mono">{fighterProfile?.insurance_policy || 'No especificado'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Teléfono</p>
-                  <p className="font-mono">{fighterProfile?.emergency_contact_phone || 'No especificado'}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Información de Licencia</p>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Creada:</span>
+                      <span>{licenseData.created_at ? format(new Date(licenseData.created_at), 'PP', { locale: es }) : 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Última actualización:</span>
+                      <span>{fighterProfile?.updated_at ? format(new Date(fighterProfile.updated_at), 'PP', { locale: es }) : 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Versión:</span>
+                      <span>v{licenseData.version || 1}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-
-        {/* Información de Seguro */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información de Seguro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Compañía de Seguro</p>
-                <p>{fighterProfile?.insurance_company || 'No especificada'}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Número de Póliza</p>
-                <p className="font-mono">{fighterProfile?.insurance_policy || 'No especificado'}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Information Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
