@@ -51,7 +51,24 @@ export const useUserProfile = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Convert profile_visibility from Json to Record<string, boolean>
+      const profileData = {
+        ...data,
+        profile_visibility: typeof data.profile_visibility === 'object' && data.profile_visibility !== null
+          ? data.profile_visibility as Record<string, boolean>
+          : {
+              bio: true,
+              email: false,
+              phone: false,
+              avatar: true,
+              birthdate: false,
+              last_name: true,
+              first_name: true
+            }
+      };
+      
+      setProfile(profileData);
     } catch (err: any) {
       setError(err.message);
       console.error('Error fetching user profile:', err);

@@ -235,7 +235,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error en populate-batalla-gimnasios:', error);
     return new Response(JSON.stringify({ 
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error occurred' 
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
