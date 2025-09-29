@@ -82,7 +82,7 @@ const Header = () => {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link 
-                    to="/license/welcome" 
+                    to="/license/dashboard" 
                     className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-2" />
@@ -154,7 +154,7 @@ const Header = () => {
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
           {user && hasFighterProfile && (
             <Link 
-              to="/license/welcome"
+              to="/license/dashboard"
               className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
             >
               <Shield className="h-3 w-3" />
