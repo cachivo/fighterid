@@ -6,9 +6,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
-import { MessageCircle, TrendingUp, Users, Star, Plus, Globe } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
+import { NewsPostGenerator } from '@/components/social/NewsPostGenerator';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
@@ -100,6 +101,9 @@ export default function SocialFeed() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Background News Generator */}
+      <NewsPostGenerator userType={userFighter ? "fighter" : isAdmin ? "admin" : "fan"} />
+      
       {/* Optimized Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm">
         <div className="container mx-auto px-4 py-3">
@@ -117,9 +121,11 @@ export default function SocialFeed() {
                   {userFighter ? 'Red Social de Peleadores' : 
                    isAdmin ? 'Panel Social Administrativo' : 'Comunidad Fighter ID'}
                 </h1>
-                <p className="text-sm text-muted-foreground hidden md:block">
-                  {userFighter ? 'Conecta con otros peleadores' : 
-                   isAdmin ? 'Gestiona la comunidad' : 'Explora la comunidad'}
+                <p className="text-sm text-muted-foreground hidden md:block flex items-center gap-2">
+                  <Rss className="h-3 w-3" />
+                  {userFighter ? 'Noticias automáticas cada 30 min' : 
+                   isAdmin ? 'Sistema de noticias inteligente activo' : 'Feed con noticias en tiempo real'}
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse ml-2"></div>
                 </p>
               </div>
             </div>
@@ -176,7 +182,7 @@ export default function SocialFeed() {
                 Luchadores
               </TabsTrigger>
               <TabsTrigger value="news" className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
+                <Rss className="h-4 w-4" />
                 Noticias
               </TabsTrigger>
               <TabsTrigger value="featured" className="flex items-center gap-2">

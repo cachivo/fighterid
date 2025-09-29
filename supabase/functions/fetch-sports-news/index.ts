@@ -125,6 +125,7 @@ serve(async (req) => {
 
     // Insert new news, avoiding duplicates by URL
     let insertedCount = 0;
+    let socialPostsCreated = 0;
     
     for (const newsItem of allNewsItems) {
       const { data: existing } = await supabase
@@ -134,25 +135,66 @@ serve(async (req) => {
         .single();
 
       if (!existing) {
-        const { error } = await supabase
+        const { data: insertedNews, error } = await supabase
           .from('sports_news')
-          .insert([newsItem]);
+          .insert([newsItem])
+          .select()
+          .single();
         
-        if (!error) {
+        if (!error && insertedNews) {
           insertedCount++;
+          
+          // Create social post for high-impact news
+          const shouldCreateSocialPost = 
+            newsItem.is_featured || 
+            newsItem.category === 'mma' || 
+            newsItem.title.toLowerCase().includes('ufc') ||
+            newsItem.title.toLowerCase().includes('canelo') ||
+            newsItem.title.toLowerCase().includes('tank') ||
+            newsItem.title.toLowerCase().includes('championship');
+          
+          if (shouldCreateSocialPost) {
+            const socialPostContent = `🥊 ${newsItem.title}
+
+${newsItem.description}
+
+📰 Fuente: ${newsItem.source}
+🔗 Leer más: ${newsItem.url}
+
+#${newsItem.category} #CombateSports #NoticiasDeportivas`;
+
+            const { error: socialError } = await supabase
+              .from('social_posts')
+              .insert([{
+                author_id: '00000000-0000-0000-0000-000000000000', // System user
+                author_type: 'admin',
+                content: socialPostContent,
+                media_urls: newsItem.image_url ? [newsItem.image_url] : [],
+                post_type: 'news',
+                featured: newsItem.is_featured,
+                active: true
+              }]);
+            
+            if (!socialError) {
+              socialPostsCreated++;
+            } else {
+              console.error('Error creating social post:', socialError);
+            }
+          }
         } else {
           console.error('Error inserting news item:', error);
         }
       }
     }
 
-    console.log(`✅ Sports news updated successfully - ${insertedCount} new items inserted from ${allNewsItems.length} total items`);
+    console.log(`✅ Sports news updated successfully - ${insertedCount} new items inserted, ${socialPostsCreated} social posts created from ${allNewsItems.length} total items`);
 
     return new Response(JSON.stringify({ 
       success: true,
       processed: allNewsItems.length,
       inserted: insertedCount,
-      message: `Sports news updated successfully - ${insertedCount} new items`
+      socialPosts: socialPostsCreated,
+      message: `Sports news updated successfully - ${insertedCount} new items, ${socialPostsCreated} social posts`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
