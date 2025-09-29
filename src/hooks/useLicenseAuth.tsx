@@ -149,13 +149,14 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   useEffect(() => {
+    console.log('🚀 [LICENSE AUTH] useEffect started - setting up auth listeners');
     let mounted = true;
     let realtimeChannel: any = null;
 
     // Set a backup timeout to prevent infinite loading
     const backupTimeout = setTimeout(() => {
       if (mounted) {
-        console.log('Backup timeout triggered, stopping loading');
+        console.log('⏰ [LICENSE AUTH] Backup timeout triggered, stopping loading');
         setLoading(false);
       }
     }, 15000);
@@ -163,16 +164,19 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('🔄 [LICENSE AUTH] Auth state changed:', event, session?.user?.id);
         if (!mounted) return;
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          console.log('👤 [LICENSE AUTH] User found, calling checkLicenseStatus');
           setTimeout(() => {
             checkLicenseStatus(session.user.id);
           }, 0);
         } else {
+          console.log('❌ [LICENSE AUTH] No user, setting defaults');
           setHasActiveLicense(false);
           setLicenseData(null);
           setLoading(false);
@@ -181,21 +185,25 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     );
 
     // Check for existing session
+    console.log('🔍 [LICENSE AUTH] Checking for existing session...');
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('📋 [LICENSE AUTH] Existing session result:', session?.user?.id);
       if (!mounted) return;
       
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('👤 [LICENSE AUTH] Existing user found, calling checkLicenseStatus');
         setTimeout(() => {
           checkLicenseStatus(session.user.id);
         }, 0);
       } else {
+        console.log('❌ [LICENSE AUTH] No existing session');
         setLoading(false);
       }
     }).catch((error) => {
-      console.error('Error getting session:', error);
+      console.error('💥 [LICENSE AUTH] Error getting session:', error);
       if (mounted) {
         setLoading(false);
       }
