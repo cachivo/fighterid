@@ -33,7 +33,7 @@ export default function LicenseWelcome() {
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              Obtén tu <strong>Fighter ID</strong> oficial y conéctate al mundo de las peleas global en el deporte de combate.
+              Obtén tu <strong>Fighter ID</strong> oficial y conéctate al mundo global de las peleas en el deporte de combate.
             </p>
           </div>
 
@@ -126,9 +126,9 @@ export default function LicenseWelcome() {
                   ¿Qué es un Fighter ID?
                 </h3>
                 <p className="text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  El Fighter ID es tu licencia oficial como peleador pro y amateur. Te permite participar en eventos oficiales, 
-                  acceder a tu portal personalizado, gestionar tu carrera deportiva, y ser parte de la comunidad profesional 
-                  de deportes de combate. Es tu identificación única y verificada en el mundo del deporte de contacto.
+                  El Fighter ID es tu licencia oficial como peleador profesional y amateur. Te permite participar en eventos oficiales, 
+                  acceder a tu portal personalizado, gestionar tu carrera deportiva, y formar parte de la comunidad global 
+                  de deportes de combate. Es tu identificación única y verificada en el mundo de las peleas de contacto.
                 </p>
               </CardContent>
             </Card>
