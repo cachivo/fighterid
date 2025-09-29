@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, User, Shield } from 'lucide-react';
+import { Loader2, User, Shield, Clock, Zap, Trophy, Eye } from 'lucide-react';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -170,39 +170,86 @@ export default function Auth() {
                     control={signUpForm.control}
                     name="userType"
                     render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel className="text-base font-medium">¿Qué tipo de cuenta necesitas?</FormLabel>
+                      <FormItem className="space-y-4">
+                        <FormLabel className="text-base font-medium">Elige tu experiencia en la plataforma</FormLabel>
                         <FormControl>
                           <RadioGroup
                             onValueChange={field.onChange}
                             value={field.value}
                             className="grid grid-cols-1 gap-4"
                           >
-                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
-                              <RadioGroupItem value="fighter" id="fighter" />
-                              <div className="flex items-center space-x-3 flex-1">
-                                <Shield className="h-5 w-5 text-primary" />
-                                <div className="grid gap-1">
-                                  <label htmlFor="fighter" className="text-sm font-medium cursor-pointer">
-                                    Soy peleador profesional
-                                  </label>
-                                  <p className="text-xs text-muted-foreground">
-                                    Crear Fighter ID y acceder a eventos y licencias
-                                  </p>
+                            {/* Fighter Option */}
+                            <div className="relative flex items-start space-x-4 rounded-xl border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50 p-6 hover:from-orange-100 hover:to-amber-100 cursor-pointer transition-all duration-200 hover:border-orange-300">
+                              <RadioGroupItem value="fighter" id="fighter" className="mt-1" />
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-lg bg-orange-100">
+                                    <Trophy className="h-6 w-6 text-orange-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <label htmlFor="fighter" className="text-lg font-semibold text-gray-900 cursor-pointer block">
+                                      Quiero ser Peleador
+                                    </label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                                        Fighter ID
+                                      </span>
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Proceso completo
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed">
+                                  Registro completo con proceso de verificación para obtener tu <strong>Fighter ID oficial</strong> y licencia de combate. Accede a eventos profesionales, sistema de ranking y oportunidades de pelea.
+                                </p>
+                                <div className="flex items-center gap-4 text-xs text-gray-600">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    <span>3-5 días de verificación</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Shield className="h-3 w-3" />
+                                    <span>Licencia oficial</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-accent cursor-pointer">
-                              <RadioGroupItem value="user" id="user" />
-                              <div className="flex items-center space-x-3 flex-1">
-                                <User className="h-5 w-5 text-primary" />
-                                <div className="grid gap-1">
-                                  <label htmlFor="user" className="text-sm font-medium cursor-pointer">
-                                    Usuario regular
-                                  </label>
-                                  <p className="text-xs text-muted-foreground">
-                                    Ver eventos, apostar y seguir peleadores
-                                  </p>
+
+                            {/* Regular User Option */}
+                            <div className="relative flex items-start space-x-4 rounded-xl border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 hover:from-blue-100 hover:to-indigo-100 cursor-pointer transition-all duration-200 hover:border-blue-300">
+                              <RadioGroupItem value="user" id="user" className="mt-1" />
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 rounded-lg bg-blue-100">
+                                    <Eye className="h-6 w-6 text-blue-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <label htmlFor="user" className="text-lg font-semibold text-gray-900 cursor-pointer block">
+                                      Solo quiero ver eventos
+                                    </label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Acceso inmediato
+                                      </span>
+                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        Espectador
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed">
+                                  Acceso completo como <strong>espectador</strong> para ver peleas en vivo, apostar en eventos, seguir a tus peleadores favoritos y participar en la comunidad de fans.
+                                </p>
+                                <div className="flex items-center gap-4 text-xs text-gray-600">
+                                  <div className="flex items-center gap-1">
+                                    <Zap className="h-3 w-3" />
+                                    <span>Activación instantánea</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    <span>Perfil de fan</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
