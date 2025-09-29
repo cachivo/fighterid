@@ -3,6 +3,7 @@ import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
+import { UserFighterProfileEditForm } from '@/components/UserFighterProfileEditForm';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import FighterUpdateForm from '@/components/FighterUpdateForm';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
@@ -72,13 +73,19 @@ export default function LicenseDashboard() {
     );
   };
 
+  const [isEditing, setIsEditing] = useState(false);
+
   const handleUpdateInfo = () => {
-    navigate('/profile/request-changes', { 
-      state: { 
-        fighterProfileId: licenseData?.fighter_profiles?.id,
-        returnTo: '/license/dashboard'
-      } 
-    });
+    setIsEditing(true);
+  };
+
+  const handleEditSuccess = () => {
+    setIsEditing(false);
+    refreshData();
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -121,6 +128,33 @@ export default function LicenseDashboard() {
   // Get fighter profile from license data
   const fighterProfile = licenseData?.fighter_profiles;
   const missingFields = getMissingFields(fighterProfile);
+
+  // Show edit form if editing mode is active
+  if (isEditing && fighterProfile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                Editar Información del Perfil
+              </CardTitle>
+              <CardDescription>
+                Actualiza tu información personal y profesional
+              </CardDescription>
+            </CardHeader>
+          </Card>
+          
+          <UserFighterProfileEditForm
+            profile={fighterProfile}
+            onSuccess={handleEditSuccess}
+            onCancel={handleEditCancel}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-4">

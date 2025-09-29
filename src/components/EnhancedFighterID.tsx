@@ -67,7 +67,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
                 <img
                   src={profile.avatar_url || '/placeholder-avatar.png'}
                   alt={`${profile.first_name} ${profile.last_name}`}
-                  className="h-16 w-16 md:h-20 md:w-20 rounded-xl object-cover border-2 border-professional-accent/40"
+                  className="h-24 w-24 md:h-32 md:w-32 rounded-xl object-cover border-2 border-professional-accent/40"
                 />
                 <Badge 
                   className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-xs ${getStatusColor(profile.license_status)}`}

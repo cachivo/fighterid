@@ -94,7 +94,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
             {/* Avatar and Basic Info */}
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <Avatar className="h-12 w-12 border-2 border-slate-600/50 ring-2 ring-purple-500/20">
+                <Avatar className="h-20 w-20 border-2 border-slate-600/50 ring-2 ring-purple-500/20">
                   <AvatarImage src={profile.avatar_url} alt={getFullName(profile.first_name, profile.last_name)} />
                   <AvatarFallback className="bg-slate-700 text-slate-200 font-semibold">
                     {getInitials(profile.first_name, profile.last_name)}
