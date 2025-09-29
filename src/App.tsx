@@ -32,6 +32,7 @@ const FightResults = lazy(() => import('./pages/admin/FightResults'));
 const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
 const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
 import LicenseAuth from './pages/license/LicenseAuth';
+import LicenseWelcome from './pages/license/LicenseWelcome';
 import LicenseDashboard from './pages/license/LicenseDashboard';
 import LicensePending from './pages/license/LicensePending';
 import LicenseSuspended from './pages/license/LicenseSuspended';
@@ -98,6 +99,7 @@ const App = () => (
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
 
               {/* Fighter License Portal Routes */}
+              <Route path="/license/welcome" element={<LicenseWelcome />} />
               <Route path="/license/auth" element={<LicenseAuth />} />
               <Route path="/license/onboarding" element={
                 <LicenseProtectedRoute>

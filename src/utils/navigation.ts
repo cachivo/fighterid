@@ -21,6 +21,7 @@ export const ADMIN_ROUTES = {
 } as const;
 
 export const LICENSE_ROUTES = {
+  WELCOME: '/license/welcome',
   ONBOARDING: '/license/onboarding',
   DASHBOARD: '/license/dashboard',
   VERIFY: '/verify-license'

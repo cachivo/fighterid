@@ -82,7 +82,7 @@ const Header = () => {
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <Link 
-                    to="/license/dashboard" 
+                    to="/license/welcome" 
                     className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                   >
                     <Shield className="h-4 w-4 mr-2" />
@@ -154,7 +154,7 @@ const Header = () => {
         <nav className="hidden md:flex lg:hidden items-center space-x-4">
           {user && hasFighterProfile && (
             <Link 
-              to="/license/dashboard"
+              to="/license/welcome"
               className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
             >
               <Shield className="h-3 w-3" />
@@ -212,7 +212,7 @@ const Header = () => {
                   {(!user || !hasFighterProfile) && (
                     <div className="px-3 sm:px-4 pb-4">
                       <Link
-                        to="/license/dashboard"
+                        to="/license/welcome"
                         className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20 min-h-[56px] touch-manipulation"
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -310,7 +310,7 @@ const Header = () => {
             {/* Fighter ID - Show in actions when not logged in OR logged in without fighter profile */}
             {(!user || (user && !hasFighterProfile)) && (
               <Button variant="outline" size="sm" className="h-8 px-2 text-xs" asChild>
-                <Link to="/license/dashboard" className="flex items-center gap-1">
+                <Link to="/license/welcome" className="flex items-center gap-1">
                   <Shield className="h-3 w-3" />
                   Fighter ID
                 </Link>
