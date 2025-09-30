@@ -49,6 +49,7 @@ import SocialProfile from "./pages/social/SocialProfile";
 import Friends from "./pages/social/Friends";
 import Discover from "./pages/social/Discover";
 import SocialUserProfile from "./pages/social/UserProfile";
+import TestNewsFunction from "./pages/TestNewsFunction";
 import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/social/friends" element={<Friends />} />
               <Route path="/social/discover" element={<Discover />} />
               <Route path="/social/profile/:id" element={<SocialUserProfile />} />
+              <Route path="/test-news" element={<TestNewsFunction />} />
               <Route path="/verify/license/:licenseNumber" element={<VerifyLicense />} />
               <Route path="/import-event" element={<ImportEvent />} />
               <Route path="/predicciones" element={<Predicciones />} />
