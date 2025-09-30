@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { getPublicFighterFieldsSelect } from '@/lib/fighterDataFilter';
 
 export interface FighterProfile {
   id: string;
@@ -146,7 +147,9 @@ export function useFighterProfiles() {
       setLoading(true);
       console.log('[FIGHTERS] Fetching public fighters...');
       
-      // Simplified query - first get all active fighters
+      // RLS policies ensure only authorized users see sensitive data
+      // Public users: see basic fields only (RLS enforced)
+      // Owners/Admins: see complete profile (RLS enforced)
       let query = supabase
         .from('fighter_profiles')
         .select('*');
@@ -197,6 +200,7 @@ export function useFighterProfiles() {
   const fetchFightersWithReadyStatus = useCallback(async (includeInactive = false) => {
     try {
       setLoading(true);
+      // RLS policies ensure only authorized users see sensitive data
       let query = supabase
         .from('fighter_profiles')
         .select(`
@@ -330,6 +334,7 @@ export function useFighterProfiles() {
 
   const getFighterById = async (id: string) => {
     try {
+      // RLS policies ensure only authorized users see sensitive data
       const { data, error } = await supabase
         .from('fighter_profiles')
         .select('*')

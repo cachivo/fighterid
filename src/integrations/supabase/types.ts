@@ -678,13 +678,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fight_control_events_fighter_affected_fkey"
-            columns: ["fighter_affected"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fight_control_events_referee_id_fkey"
             columns: ["referee_id"]
             isOneToOne: false
@@ -815,13 +808,6 @@ export type Database = {
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fight_results_winner_id_fkey"
-            columns: ["winner_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -977,13 +963,6 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fight_statistics_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       fighter_licenses: {
@@ -1068,13 +1047,6 @@ export type Database = {
             columns: ["fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fighter_licenses_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
             referencedColumns: ["id"]
           },
           {
@@ -1297,13 +1269,6 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       fighter_updates: {
@@ -1340,13 +1305,6 @@ export type Database = {
             columns: ["fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fighter_updates_fighter_id_fkey"
-            columns: ["fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1419,29 +1377,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fights_fighter_a_id_fkey"
-            columns: ["fighter_a_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fights_fighter_b_id_fkey"
             columns: ["fighter_b_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_fighter_b_id_fkey"
-            columns: ["fighter_b_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_winner_id_fkey"
-            columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
@@ -1450,7 +1387,7 @@ export type Database = {
             foreignKeyName: "fights_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
+            referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1513,13 +1450,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fights_history_blue_fighter_id_fkey"
-            columns: ["blue_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "fights_history_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1531,13 +1461,6 @@ export type Database = {
             columns: ["red_fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fights_history_red_fighter_id_fkey"
-            columns: ["red_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2281,13 +2204,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
-            columns: ["fighter_profile_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "profile_change_requests_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
@@ -2603,24 +2519,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
-            columns: ["from_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "sparring_requests_to_fighter_id_fkey"
             columns: ["to_fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
-            columns: ["to_fighter_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2899,123 +2801,7 @@ export type Database = {
       }
     }
     Views: {
-      fighter_profiles_public: {
-        Row: {
-          active: boolean | null
-          avatar_url: string | null
-          bio: string | null
-          boxrec_url: string | null
-          country: string | null
-          created_at: string | null
-          discipline: Database["public"]["Enums"]["discipline"] | null
-          fighting_style: string | null
-          first_name: string | null
-          gender: string | null
-          gym_name: string | null
-          height_cm: number | null
-          id: string | null
-          last_name: string | null
-          level: string | null
-          license_number: string | null
-          license_status: string | null
-          martial_arts: string[] | null
-          nickname: string | null
-          organization_id: string | null
-          primary_license_id: string | null
-          reach_cm: number | null
-          record_draws: number | null
-          record_losses: number | null
-          record_type: string | null
-          record_wins: number | null
-          stance: string | null
-          tapology_url: string | null
-          updated_at: string | null
-          weight_class: string | null
-          weight_kg: number | null
-        }
-        Insert: {
-          active?: boolean | null
-          avatar_url?: string | null
-          bio?: string | null
-          boxrec_url?: string | null
-          country?: string | null
-          created_at?: string | null
-          discipline?: Database["public"]["Enums"]["discipline"] | null
-          fighting_style?: string | null
-          first_name?: string | null
-          gender?: string | null
-          gym_name?: string | null
-          height_cm?: number | null
-          id?: string | null
-          last_name?: string | null
-          level?: string | null
-          license_number?: string | null
-          license_status?: string | null
-          martial_arts?: string[] | null
-          nickname?: string | null
-          organization_id?: string | null
-          primary_license_id?: string | null
-          reach_cm?: number | null
-          record_draws?: number | null
-          record_losses?: number | null
-          record_type?: string | null
-          record_wins?: number | null
-          stance?: string | null
-          tapology_url?: string | null
-          updated_at?: string | null
-          weight_class?: string | null
-          weight_kg?: number | null
-        }
-        Update: {
-          active?: boolean | null
-          avatar_url?: string | null
-          bio?: string | null
-          boxrec_url?: string | null
-          country?: string | null
-          created_at?: string | null
-          discipline?: Database["public"]["Enums"]["discipline"] | null
-          fighting_style?: string | null
-          first_name?: string | null
-          gender?: string | null
-          gym_name?: string | null
-          height_cm?: number | null
-          id?: string | null
-          last_name?: string | null
-          level?: string | null
-          license_number?: string | null
-          license_status?: string | null
-          martial_arts?: string[] | null
-          nickname?: string | null
-          organization_id?: string | null
-          primary_license_id?: string | null
-          reach_cm?: number | null
-          record_draws?: number | null
-          record_losses?: number | null
-          record_type?: string | null
-          record_wins?: number | null
-          stance?: string | null
-          tapology_url?: string | null
-          updated_at?: string | null
-          weight_class?: string | null
-          weight_kg?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fighter_profiles_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fighter_profiles_primary_license_id_fkey"
-            columns: ["primary_license_id"]
-            isOneToOne: false
-            referencedRelation: "fighter_licenses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       admin_delete_fighter_profile: {
