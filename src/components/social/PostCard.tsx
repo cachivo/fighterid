@@ -6,9 +6,10 @@ import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2, Newspaper, Messag
 import { SocialPost } from '@/hooks/useSocialPosts';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PostCardProps {
   post: SocialPost;
@@ -19,7 +20,31 @@ interface PostCardProps {
 
 export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardProps) {
   const [imageError, setImageError] = useState<Set<string>>(new Set());
+  const [mediaFiles, setMediaFiles] = useState<Array<{ url: string; type: 'image' | 'video' }>>([]);
   const { user } = useAuth();
+
+  // Load media files from storage
+  useEffect(() => {
+    const loadMediaFiles = async () => {
+      if (post.media_files && Array.isArray(post.media_files)) {
+        const files = await Promise.all(
+          post.media_files.map(async (file: any) => {
+            const { data } = supabase.storage
+              .from('social-media')
+              .getPublicUrl(file.path);
+            
+            return {
+              url: data.publicUrl,
+              type: file.type || 'image'
+            };
+          })
+        );
+        setMediaFiles(files);
+      }
+    };
+
+    loadMediaFiles();
+  }, [post.media_files]);
 
   const getAuthorInitials = () => {
     return post.author_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
@@ -117,7 +142,30 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
             {post.content}
           </p>
 
-          {/* Media */}
+          {/* Media from uploaded files */}
+          {mediaFiles.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {mediaFiles.map((media, index) => (
+                <div key={index} className="relative rounded-lg overflow-hidden border border-border/30">
+                  {media.type === 'video' ? (
+                    <video
+                      src={media.url}
+                      controls
+                      className="w-full max-h-96 object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={media.url}
+                      alt={`Media ${index + 1}`}
+                      className="w-full max-h-96 object-cover"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Media from URLs */}
           {post.media_urls && post.media_urls.length > 0 && (
             <div className="space-y-2">
               {post.media_urls.map((url, index) => {

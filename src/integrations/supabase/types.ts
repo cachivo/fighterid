@@ -1989,6 +1989,56 @@ export type Database = {
           },
         ]
       }
+      post_media: {
+        Row: {
+          created_at: string | null
+          duration: number | null
+          file_path: string
+          file_size: number | null
+          file_type: string
+          height: number | null
+          id: string
+          mime_type: string | null
+          post_id: string
+          thumbnail_path: string | null
+          width: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration?: number | null
+          file_path: string
+          file_size?: number | null
+          file_type: string
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id: string
+          thumbnail_path?: string | null
+          width?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          duration?: number | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          post_id?: string
+          thumbnail_path?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_media_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_change_requests: {
         Row: {
           admin_notes: string | null
@@ -2267,6 +2317,7 @@ export type Database = {
           featured: boolean
           id: string
           likes_count: number
+          media_files: Json | null
           media_urls: string[] | null
           post_type: string
           updated_at: string
@@ -2281,6 +2332,7 @@ export type Database = {
           featured?: boolean
           id?: string
           likes_count?: number
+          media_files?: Json | null
           media_urls?: string[] | null
           post_type?: string
           updated_at?: string
@@ -2295,6 +2347,7 @@ export type Database = {
           featured?: boolean
           id?: string
           likes_count?: number
+          media_files?: Json | null
           media_urls?: string[] | null
           post_type?: string
           updated_at?: string

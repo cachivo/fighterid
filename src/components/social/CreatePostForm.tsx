@@ -5,8 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Image, X, Plus, Loader2 } from 'lucide-react';
+import { Image, X, Plus, Loader2, Video, Upload } from 'lucide-react';
 import { CreatePostData } from '@/hooks/useSocialPosts';
+import { FileUpload } from '@/components/ui/file-upload';
 
 interface CreatePostFormProps {
   onSubmit: (data: CreatePostData) => Promise<void>;
@@ -33,18 +34,22 @@ export default function CreatePostForm({
 }: CreatePostFormProps) {
   const [content, setContent] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<{file: File, preview: string, type: 'image' | 'video'}[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [showImageInput, setShowImageInput] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!content.trim()) return;
+    if (!content.trim() && mediaUrls.length === 0 && mediaFiles.length === 0) return;
 
     const postData: CreatePostData = {
       content: content.trim(),
       media_urls: mediaUrls.length > 0 ? mediaUrls : undefined,
-      post_type: mediaUrls.length > 0 ? 'image' : 'text'
+      media_files: mediaFiles.length > 0 ? mediaFiles : undefined,
+      post_type: mediaFiles.some(f => f.type.startsWith('video/')) ? 'video' : 
+                 (mediaUrls.length > 0 || mediaFiles.length > 0) ? 'image' : 'text'
     };
 
     await onSubmit(postData);
@@ -52,8 +57,27 @@ export default function CreatePostForm({
     // Reset form
     setContent('');
     setMediaUrls([]);
+    setMediaFiles([]);
+    filePreviews.forEach(p => URL.revokeObjectURL(p.preview));
+    setFilePreviews([]);
     setNewImageUrl('');
     setShowImageInput(false);
+  };
+
+  const handleFileSelect = (file: File) => {
+    if (mediaFiles.length >= 4) return; // Max 4 files
+    
+    const fileType = file.type.startsWith('image/') ? 'image' : 'video';
+    const preview = URL.createObjectURL(file);
+    
+    setMediaFiles(prev => [...prev, file]);
+    setFilePreviews(prev => [...prev, { file, preview, type: fileType }]);
+  };
+
+  const removeFile = (index: number) => {
+    URL.revokeObjectURL(filePreviews[index].preview);
+    setMediaFiles(prev => prev.filter((_, i) => i !== index));
+    setFilePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const addImageUrl = () => {
@@ -72,7 +96,7 @@ export default function CreatePostForm({
     return authorName.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
   };
 
-  const isSubmitDisabled = !content.trim() || content.length > 2000 || loading;
+  const isSubmitDisabled = (!content.trim() && mediaUrls.length === 0 && mediaFiles.length === 0) || content.length > 2000 || loading;
 
   return (
     <div className="space-y-4">
@@ -138,6 +162,36 @@ export default function CreatePostForm({
           )}
         </div>
 
+        {/* File previews */}
+        {filePreviews.length > 0 && (
+          <div className="grid grid-cols-2 gap-2">
+            {filePreviews.map((item, index) => (
+              <div key={index} className="relative rounded-lg overflow-hidden border border-border/50">
+                {item.type === 'image' ? (
+                  <img 
+                    src={item.preview} 
+                    alt={`Preview ${index + 1}`}
+                    className="w-full h-32 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-32 bg-muted flex items-center justify-center">
+                    <Video className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(index)}
+                  className="absolute top-2 right-2 h-7 w-7 p-0 bg-black/50 hover:bg-black/70 text-white"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Media URLs */}
         {mediaUrls.length > 0 && (
           <div className="space-y-3">
@@ -162,6 +216,23 @@ export default function CreatePostForm({
                 </Button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* File upload */}
+        {mediaFiles.length < 4 && (
+          <div className="p-2 border-2 border-dashed border-border rounded-lg">
+            <FileUpload
+              onFileSelect={handleFileSelect}
+              accept="image/*,video/*"
+              maxSize={100}
+              autoResize={true}
+              resizeOptions={{ maxWidth: 1920, maxHeight: 1920, quality: 0.85 }}
+              showResizeInfo={false}
+            />
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Máx. 4 archivos • Imágenes hasta 10MB, Videos hasta 100MB
+            </p>
           </div>
         )}
 
@@ -207,7 +278,7 @@ export default function CreatePostForm({
             className="text-muted-foreground hover:text-foreground"
           >
             <Image className="h-4 w-4 mr-2" />
-            Foto
+            URL Imagen
           </Button>
           
           <Button
