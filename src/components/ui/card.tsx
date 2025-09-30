@@ -9,9 +9,9 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-300",
-      variant === 'neon' && "border-purple-neon-primary/30 hover:border-purple-neon-primary/60 hover:shadow-[0_0_20px_hsl(285_100%_68%/0.2)]",
-      variant === 'cyber' && "border-purple-neon-secondary/30 hover:border-purple-neon-secondary/60 hover:shadow-[0_0_20px_hsl(220_100%_60%/0.2)]",
+      "rounded-lg border bg-card text-card-foreground shadow-sm transition-all duration-200",
+      variant === 'neon' && "border-purple-neon-primary/20 hover:border-purple-neon-primary/40 hover:shadow-md",
+      variant === 'cyber' && "border-purple-neon-secondary/20 hover:border-purple-neon-secondary/40 hover:shadow-md",
       className
     )}
     {...props}

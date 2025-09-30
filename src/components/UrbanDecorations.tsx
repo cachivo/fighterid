@@ -1,18 +1,16 @@
 const UrbanDecorations = () => {
   return (
     <>
-      {/* Urban Combat 2.0 - Enhanced decorative lighting */}
+      {/* Professional Urban - Subtle ambient lighting */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Intense magenta neon effects */}
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-purple-neon-primary/25 rounded-full blur-3xl opacity-40 animate-pulse"></div>
-        <div className="absolute top-1/4 right-0 w-[500px] h-[500px] bg-purple-neon-secondary/20 rounded-full blur-3xl opacity-50"></div>
-        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-purple-neon-glow/30 rounded-full blur-3xl opacity-45"></div>
-        <div className="absolute bottom-0 right-1/3 w-[350px] h-[350px] bg-cyan-neon/15 rounded-full blur-3xl opacity-35"></div>
+        {/* Soft matte ambient lights */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-neon-primary/12 rounded-full blur-3xl opacity-30"></div>
+        <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-purple-neon-secondary/10 rounded-full blur-3xl opacity-35"></div>
+        <div className="absolute bottom-1/4 left-1/4 w-[350px] h-[350px] bg-purple-neon-glow/15 rounded-full blur-3xl opacity-30"></div>
         
-        {/* Modern gradient overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(285_100%_68%/0.15)_0%,transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(220_100%_60%/0.12)_0%,transparent_60%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(315_90%_70%/0.08)_0%,transparent_70%)]"></div>
+        {/* Subtle gradient overlays for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(280_60%_55%/0.06)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,hsl(220_50%_50%/0.05)_0%,transparent_60%)]"></div>
       </div>
 
       {/* Dramatic shadow elements */}
