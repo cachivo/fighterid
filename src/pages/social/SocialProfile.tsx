@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { PageHeader } from '@/components/ui/page-header';
 import PostCard from '@/components/social/PostCard';
 import { SocialSidebar } from '@/components/social/SocialSidebar';
@@ -31,7 +30,7 @@ export default function SocialProfile() {
       fetchPosts();
       getUserFighterProfile().then(setFighterProfile);
     }
-  }, [user, profile, getUserFighterProfile]);
+  }, [user, profile, fetchPosts, getUserFighterProfile]);
 
   // Filter posts by current user
   const myPosts = posts.filter(post => post.author_id === profile?.id);
