@@ -221,22 +221,26 @@ async function parseRSSFeed(feedUrl: string, category: string, source: string) {
             }
           }
           
-          // 6. Try AI generation (only for featured articles to save resources)
+          // 6. AI generation priority logic
           const isFeatured = Math.random() > 0.7;
-          if (!imageUrl && isFeatured) {
-            console.log(`Generating AI image for featured article: "${articleTitle}"`);
+          
+          // Force AI generation for Boxing News 24 (they rarely have images)
+          const shouldForceAI = source === 'Boxing News 24' || (!imageUrl && (isFeatured || category === 'boxing'));
+          
+          if (shouldForceAI && !imageUrl) {
+            console.log(`🎨 Generating AI image for ${source}: "${articleTitle}"`);
             imageUrl = await generateImageWithAI(articleTitle, articleDesc, category);
           }
           
-          // 7. Fallback to Unsplash (last resort)
+          // For any remaining articles without images, try AI generation
           if (!imageUrl) {
-            const fallbackImages = {
-              mma: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=800&h=400&fit=crop',
-              boxing: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=800&h=400&fit=crop',
-              muay_thai: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&h=400&fit=crop'
-            };
-            imageUrl = fallbackImages[category as keyof typeof fallbackImages] || fallbackImages.mma;
-            console.log(`⚠️ Using fallback Unsplash image for: "${articleTitle}"`);
+            console.log(`🎨 Final AI attempt for: "${articleTitle}"`);
+            imageUrl = await generateImageWithAI(articleTitle, articleDesc, category);
+          }
+          
+          // If AI generation fails completely, skip image (no generic fallback)
+          if (!imageUrl) {
+            console.log(`⚠️ No image available for: "${articleTitle}" - will display without image`);
           }
           
           const publishedAt = pubDate ? new Date(pubDate[1]).toISOString() : new Date().toISOString();
