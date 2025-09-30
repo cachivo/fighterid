@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Image, X, Plus, Loader2, Video, Upload } from 'lucide-react';
+import { Image, X, Plus, Loader2, Video, Upload, ImagePlus } from 'lucide-react';
 import { CreatePostData } from '@/hooks/useSocialPosts';
 import { FileUpload } from '@/components/ui/file-upload';
 
@@ -38,6 +38,7 @@ export default function CreatePostForm({
   const [filePreviews, setFilePreviews] = useState<{file: File, preview: string, type: 'image' | 'video'}[]>([]);
   const [newImageUrl, setNewImageUrl] = useState('');
   const [showImageInput, setShowImageInput] = useState(false);
+  const [showMediaUpload, setShowMediaUpload] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,67 +220,76 @@ export default function CreatePostForm({
           </div>
         )}
 
-        {/* File upload */}
-        {mediaFiles.length < 4 && (
-          <div className="p-2 border-2 border-dashed border-border rounded-lg">
-            <FileUpload
-              onFileSelect={handleFileSelect}
-              accept="image/*,video/*"
-              maxSize={100}
-              autoResize={true}
-              resizeOptions={{ maxWidth: 1920, maxHeight: 1920, quality: 0.85 }}
-              showResizeInfo={false}
-            />
-            <p className="text-xs text-muted-foreground text-center mt-2">
-              Máx. 4 archivos • Imágenes hasta 10MB, Videos hasta 100MB
-            </p>
-          </div>
-        )}
+        {/* Media upload section - optional */}
+        {showMediaUpload && (
+          <div className="space-y-3 p-4 border border-border/50 rounded-lg">
+            {/* File upload */}
+            {mediaFiles.length < 4 && (
+              <div>
+                <FileUpload
+                  onFileSelect={handleFileSelect}
+                  accept="image/*,video/*"
+                  maxSize={100}
+                  autoResize={true}
+                  resizeOptions={{ maxWidth: 1920, maxHeight: 1920, quality: 0.85 }}
+                  showResizeInfo={false}
+                />
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Máx. 4 archivos • Imágenes hasta 10MB, Videos hasta 100MB
+                </p>
+              </div>
+            )}
 
-        {/* Add image URL */}
-        {showImageInput && (
-          <div className="flex gap-2 p-3 bg-muted/50 rounded-lg">
-            <Input
-              placeholder="URL de la imagen"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              className="flex-1 border-0 bg-transparent focus-visible:ring-0"
-            />
+            {/* Add image URL */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="O pega una URL de imagen"
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addImageUrl();
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                onClick={addImageUrl}
+                size="sm"
+                disabled={!newImageUrl.trim()}
+              >
+                Agregar
+              </Button>
+            </div>
+
             <Button
               type="button"
-              onClick={addImageUrl}
-              size="sm"
-              disabled={!newImageUrl.trim()}
               variant="ghost"
-            >
-              Agregar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setShowImageInput(false);
-                setNewImageUrl('');
-              }}
               size="sm"
+              onClick={() => setShowMediaUpload(false)}
+              className="w-full"
             >
-              <X className="h-4 w-4" />
+              Cancelar
             </Button>
           </div>
         )}
 
         {/* Actions */}
         <div className="flex items-center justify-between pt-3 border-t border-border/30">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setShowImageInput(true)}
-            size="sm"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Image className="h-4 w-4 mr-2" />
-            URL Imagen
-          </Button>
+          {!showMediaUpload && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setShowMediaUpload(true)}
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ImagePlus className="h-4 w-4 mr-2" />
+              Agregar Foto/Video
+            </Button>
+          )}
           
           <Button
             type="submit"

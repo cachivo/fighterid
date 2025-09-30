@@ -45,6 +45,9 @@ import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Fighters from "./pages/Fighters";
 import SocialFeed from "./pages/SocialFeed";
+import Friends from "./pages/social/Friends";
+import Discover from "./pages/social/Discover";
+import SocialUserProfile from "./pages/social/UserProfile";
 import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
@@ -93,6 +96,9 @@ const App = () => (
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />
               <Route path="/social" element={<SocialFeed />} />
+              <Route path="/social/friends" element={<Friends />} />
+              <Route path="/social/discover" element={<Discover />} />
+              <Route path="/social/profile/:handle" element={<SocialUserProfile />} />
               <Route path="/verify/license/:licenseNumber" element={<VerifyLicense />} />
               <Route path="/import-event" element={<ImportEvent />} />
               <Route path="/predicciones" element={<Predicciones />} />

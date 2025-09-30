@@ -10,6 +10,7 @@ import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss } from 'lucide
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { NewsPostGenerator } from '@/components/social/NewsPostGenerator';
+import { SocialSidebar } from '@/components/social/SocialSidebar';
 import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
@@ -148,7 +149,10 @@ export default function SocialFeed() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+      <div className="flex">
+        <SocialSidebar />
+        
+        <div className="flex-1 max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Create Post Section */}
         {canCreatePost && (
           <Card className="border-border/50">
@@ -268,6 +272,7 @@ export default function SocialFeed() {
               )}
             </>
           )}
+        </div>
         </div>
       </div>
     </div>
