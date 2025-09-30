@@ -84,9 +84,11 @@ export function useSocialPosts() {
           post_type: post.post_type as 'text' | 'image' | 'video' | 'news',
           author_name: post.author_type === 'fighter' 
             ? `${fighterProfile?.first_name || ''} ${fighterProfile?.last_name || ''}`.trim() || 'Peleador'
-            : 'Batalla de Gallos',
+            : 'News',
           author_nickname: fighterProfile?.nickname,
-          author_avatar: fighterProfile?.avatar_url,
+          author_avatar: post.author_type === 'fighter' 
+            ? fighterProfile?.avatar_url 
+            : '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
           is_liked: likesData.some(like => like.post_id === post.id)
         };
       }) || [];
