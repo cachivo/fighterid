@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
-import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss, RefreshCw } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { NewsPostGenerator } from '@/components/social/NewsPostGenerator';
@@ -15,6 +15,7 @@ import { useSocialPosts } from '@/hooks/useSocialPosts';
 import { useAuth } from '@/hooks/useAuth';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function SocialFeed() {
   const [activeTab, setActiveTab] = useState('all');
@@ -144,7 +145,21 @@ export default function SocialFeed() {
                 </p>
               </div>
             </div>
-            <BackButton to="/" label="Inicio" className="md:hidden" variant="outline" />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  fetchPosts();
+                  toast.success('Feed actualizado');
+                }}
+                disabled={loading}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+              <BackButton to="/" label="Inicio" className="md:hidden" variant="outline" />
+            </div>
           </div>
         </div>
       </div>

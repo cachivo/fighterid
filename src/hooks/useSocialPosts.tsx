@@ -42,6 +42,8 @@ export function useSocialPosts() {
     setError(null);
     
     try {
+      console.log('[SOCIAL POSTS] Fetching posts...');
+      
       // Get posts first
       const { data: postsData, error: postsError } = await supabase
         .from('social_posts')
@@ -52,6 +54,8 @@ export function useSocialPosts() {
         .range(offset, offset + limit - 1);
 
       if (postsError) throw postsError;
+      
+      console.log(`[SOCIAL POSTS] Fetched ${postsData?.length || 0} posts`, postsData);
 
       // Get fighter info for fighter posts
       const fighterPosts = postsData?.filter(p => p.author_type === 'fighter') || [];
@@ -114,6 +118,8 @@ export function useSocialPosts() {
         };
       }) || [];
 
+      console.log(`[SOCIAL POSTS] Enriched ${enrichedPosts.length} posts`);
+
       if (offset === 0) {
         setPosts(enrichedPosts);
       } else {
@@ -121,7 +127,7 @@ export function useSocialPosts() {
       }
 
     } catch (err) {
-      console.error('Error fetching posts:', err);
+      console.error('[SOCIAL POSTS ERROR]:', err);
       setError('Error al cargar los posts');
     } finally {
       setLoading(false);
