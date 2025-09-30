@@ -10,8 +10,51 @@ interface NewsPostGeneratorProps {
 export function NewsPostGenerator({ userId, userType = 'fan' }: NewsPostGeneratorProps) {
   const { toast } = useToast();
 
+  // Process existing recent news on mount
   useEffect(() => {
-    // Listen for real-time news updates and create targeted social posts
+    const processExistingNews = async () => {
+      try {
+        // Get recent news from last 24 hours
+        const oneDayAgo = new Date();
+        oneDayAgo.setHours(oneDayAgo.getHours() - 24);
+        
+        const { data: recentNews, error } = await supabase
+          .from('sports_news')
+          .select('*')
+          .gte('published_at', oneDayAgo.toISOString())
+          .order('published_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (recentNews && recentNews.length > 0) {
+          // Process each news item
+          for (const newsItem of recentNews) {
+            // Check if post already exists
+            const { data: existingPost } = await supabase
+              .from('social_posts')
+              .select('id')
+              .eq('post_type', 'news')
+              .ilike('content', `%${newsItem.title}%`)
+              .single();
+
+            if (!existingPost) {
+              const shouldPost = await shouldCreatePostForUser(newsItem, userType);
+              if (shouldPost) {
+                await createSmartSocialPost(newsItem, userType);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing existing news:', error);
+      }
+    };
+
+    processExistingNews();
+  }, [userType]);
+
+  // Listen for real-time news updates
+  useEffect(() => {
     const channel = supabase
       .channel('news-social-updates')
       .on(
@@ -23,8 +66,6 @@ export function NewsPostGenerator({ userId, userType = 'fan' }: NewsPostGenerato
         },
         async (payload) => {
           const newsItem = payload.new;
-          
-          // Determine if this news should be posted based on user preferences
           const shouldPost = await shouldCreatePostForUser(newsItem, userType);
           
           if (shouldPost) {
@@ -40,21 +81,25 @@ export function NewsPostGenerator({ userId, userType = 'fan' }: NewsPostGenerato
   }, [userType]);
 
   const shouldCreatePostForUser = async (newsItem: any, userType: string) => {
-    // Smart criteria based on user type and news relevance
+    // Always post featured news
+    if (newsItem.is_featured) return true;
+    
+    // Smart criteria based on category - post all boxing and mma news
+    if (newsItem.category === 'mma' || newsItem.category === 'boxing') {
+      return true;
+    }
+    
+    // Additional keywords for other categories
     const keywords = {
       fighter: ['championship', 'title', 'ranking', 'license', 'tournament'],
-      fan: ['ufc', 'boxing', 'knockout', 'highlight', 'result'],
+      fan: ['knockout', 'highlight', 'result', 'fight', 'match'],
       admin: ['regulation', 'safety', 'commission', 'policy']
     };
 
     const userKeywords = keywords[userType as keyof typeof keywords] || keywords.fan;
     const titleLower = newsItem.title.toLowerCase();
     
-    return (
-      newsItem.is_featured ||
-      userKeywords.some(keyword => titleLower.includes(keyword)) ||
-      newsItem.category === 'mma' && userType === 'fighter'
-    );
+    return userKeywords.some(keyword => titleLower.includes(keyword));
   };
 
   const createSmartSocialPost = async (newsItem: any, userType: string) => {
