@@ -45,6 +45,7 @@ import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
 import Fighters from "./pages/Fighters";
 import SocialFeed from "./pages/SocialFeed";
+import SocialProfile from "./pages/social/SocialProfile";
 import Friends from "./pages/social/Friends";
 import Discover from "./pages/social/Discover";
 import SocialUserProfile from "./pages/social/UserProfile";
@@ -140,7 +141,14 @@ const App = () => (
                 </ProtectedRoute>
               } />
 
-              {/* User Profile Route - General profile for all users */}
+              {/* Social Profile Route - For social network personal profile */}
+              <Route path="/perfil" element={
+                <ProtectedRoute>
+                  <SocialProfile />
+                </ProtectedRoute>
+              } />
+
+              {/* User Profile Route - General profile for all users (fighter-focused) */}
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <UserProfile />

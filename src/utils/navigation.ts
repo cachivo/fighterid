@@ -6,6 +6,7 @@ export const MAIN_ROUTES = {
   PREDICTIONS: '/predicciones',
   SOCIAL: '/social',
   PROFILE: '/perfil',
+  FIGHTER_PROFILE: '/profile',
   AUTH: '/auth',
   ADMIN: '/admin'
 } as const;
