@@ -9,6 +9,7 @@ export interface SocialPost {
   author_type: 'fighter' | 'admin' | 'user';
   content: string;
   media_urls: string[] | null;
+  media_files?: any[] | null;
   post_type: 'text' | 'image' | 'video' | 'news';
   likes_count: number;
   comments_count: number;
@@ -26,6 +27,7 @@ export interface SocialPost {
 export interface CreatePostData {
   content: string;
   media_urls?: string[];
+  media_files?: File[];
   post_type?: 'text' | 'image' | 'video' | 'news';
 }
 
@@ -94,6 +96,7 @@ export function useSocialPosts() {
         
         return {
           ...post,
+          media_files: post.media_files ? (Array.isArray(post.media_files) ? post.media_files : null) : null,
           author_type: post.author_type as 'fighter' | 'admin' | 'user',
           post_type: post.post_type as 'text' | 'image' | 'video' | 'news',
           author_name: post.author_type === 'fighter' 
@@ -132,6 +135,49 @@ export function useSocialPosts() {
     }
 
     try {
+      setLoading(true);
+      let uploadedFiles: any[] = [];
+
+      // Upload files to storage if any
+      if (postData.media_files && postData.media_files.length > 0) {
+        // Get current user's app_user record
+        const { data: appUser } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .single();
+
+        if (!appUser) throw new Error('Usuario no encontrado');
+
+        for (const file of postData.media_files) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${crypto.randomUUID()}.${fileExt}`;
+          const filePath = `${appUser.id}/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('social-media')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            throw uploadError;
+          }
+
+          uploadedFiles.push({
+            path: filePath,
+            type: file.type.startsWith('image/') ? 'image' : 'video'
+          });
+        }
+      }
+
+      // Determine post type
+      const postType = postData.post_type || 
+        (uploadedFiles.some(f => f.type === 'video') ? 'video' : 
+         ((postData.media_urls && postData.media_urls.length > 0) || uploadedFiles.length > 0) ? 'image' : 'text');
+
       const { data, error } = await supabase
         .from('social_posts')
         .insert([{
@@ -139,12 +185,28 @@ export function useSocialPosts() {
           author_type: authorType,
           content: postData.content,
           media_urls: postData.media_urls || null,
-          post_type: postData.post_type || 'text'
+          media_files: uploadedFiles.length > 0 ? uploadedFiles : null,
+          post_type: postType
         }])
         .select()
         .single();
 
       if (error) throw error;
+
+      // Insert media metadata if files were uploaded
+      if (uploadedFiles.length > 0 && data) {
+        const mediaRecords = uploadedFiles.map(file => ({
+          post_id: data.id,
+          file_path: file.path,
+          file_type: file.type,
+          file_size: 0,
+          mime_type: file.type === 'image' ? 'image/jpeg' : 'video/mp4'
+        }));
+
+        await supabase
+          .from('post_media')
+          .insert(mediaRecords);
+      }
 
       toast.success('Post publicado exitosamente');
       fetchPosts(); // Refresh posts
@@ -153,6 +215,8 @@ export function useSocialPosts() {
       console.error('Error creating post:', err);
       toast.error('Error al crear el post');
       return null;
+    } finally {
+      setLoading(false);
     }
   };
 
