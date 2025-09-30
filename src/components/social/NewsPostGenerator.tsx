@@ -104,43 +104,44 @@ export function NewsPostGenerator({ userId, userType = 'fan' }: NewsPostGenerato
 
   const createSmartSocialPost = async (newsItem: any, userType: string) => {
     try {
+      // Create cleaner post templates with better link formatting
       const postTemplates = {
-        fighter: `¡Atención luchadores!
-        
+        fighter: `🥊 ATENCIÓN LUCHADORES
+
 ${newsItem.title}
 
-${newsItem.description}
+${newsItem.description || ''}
 
 Esta información podría impactar tu carrera. ¿Qué opinas?
 
-Fuente: ${newsItem.source}
-Enlace: ${newsItem.url}
+📰 Fuente: ${newsItem.source}
+🔗 Leer artículo completo: ${newsItem.url}
 
 #Fighters #${newsItem.category} #CombateSports`,
 
-        fan: `¡Breaking News en el mundo del combate!
+        fan: `🔥 ÚLTIMA HORA EN ${newsItem.category.toUpperCase()}
 
 ${newsItem.title}
 
-${newsItem.description}
+${newsItem.description || ''}
 
-¿Qué te parece esta noticia? ¡Comenta tu opinión!
+💬 ¿Qué te parece? ¡Comenta tu opinión!
 
-Fuente: ${newsItem.source}  
-Enlace: ${newsItem.url}
+📰 Fuente: ${newsItem.source}
+🔗 Leer más: ${newsItem.url}
 
 #${newsItem.category} #CombateSports #MMA #Boxing`,
 
-        admin: `Actualización importante
+        admin: `📢 ACTUALIZACIÓN IMPORTANTE
 
 ${newsItem.title}
 
-${newsItem.description}
+${newsItem.description || ''}
 
 Información relevante para la comunidad de combate.
 
-Fuente: ${newsItem.source}
-Enlace: ${newsItem.url}
+📰 Fuente: ${newsItem.source}
+🔗 Enlace: ${newsItem.url}
 
 #News #${newsItem.category} #Update`
       };

@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2, Newspaper, MessageSquare, Image as ImageIcon, Video, Star } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreHorizontal, Trash2, Newspaper, MessageSquare, Image as ImageIcon, Video, Star, ExternalLink } from 'lucide-react';
 import { SocialPost } from '@/hooks/useSocialPosts';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -61,6 +61,32 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
 
   const handleImageError = (url: string) => {
     setImageError(prev => new Set([...prev, url]));
+  };
+
+  // Parse content to make URLs clickable
+  const parseContentWithLinks = (content: string) => {
+    // Detect URLs in the content
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = content.split(urlRegex);
+    
+    return parts.map((part, index) => {
+      if (urlRegex.test(part)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-primary/80 underline inline-flex items-center gap-1 transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part.length > 50 ? `${part.slice(0, 50)}...` : part}
+            <ExternalLink className="h-3 w-3 inline" />
+          </a>
+        );
+      }
+      return part;
+    });
   };
 
   return (
@@ -136,11 +162,11 @@ export default function PostCard({ post, onLike, onDelete, isOwner }: PostCardPr
           )}
         </div>
 
-        {/* Content */}
+        {/* Content with clickable links */}
         <div className="space-y-3">
-          <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-            {post.content}
-          </p>
+          <div className="text-foreground leading-relaxed whitespace-pre-wrap">
+            {parseContentWithLinks(post.content)}
+          </div>
 
           {/* Media from uploaded files */}
           {mediaFiles.length > 0 && (

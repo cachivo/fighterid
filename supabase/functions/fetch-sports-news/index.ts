@@ -77,7 +77,7 @@ async function scrapeImageFromWebpage(url: string): Promise<string | null> {
   return null;
 }
 
-// Generate image with AI
+// Generate image with AI - Improved prompts for combat sports
 async function generateImageWithAI(title: string, description: string, category: string): Promise<string | null> {
   try {
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -86,7 +86,40 @@ async function generateImageWithAI(title: string, description: string, category:
       return null;
     }
 
-    const prompt = `Create a high-quality, realistic sports image for a ${category} news article. Title: "${title}". Style: professional sports photography, dynamic action, dramatic lighting. The image should be suitable for a news article thumbnail.`;
+    // Create detailed prompts based on category and content
+    const categoryPrompts: Record<string, string> = {
+      'mma': 'UFC octagon, mixed martial arts fighters in action, dramatic sports photography',
+      'boxing': 'boxing ring, professional boxers throwing punches, intense boxing match',
+      'muay_thai': 'Muay Thai fighters, traditional Thai boxing, knee strikes and clinch work',
+      'kickboxing': 'kickboxing match, high kicks and punches, dynamic combat sports',
+    };
+
+    const basePrompt = categoryPrompts[category] || 'combat sports action';
+    
+    // Extract key terms from title for more specific imagery
+    const lowerTitle = title.toLowerCase();
+    let specificDetails = '';
+    
+    if (lowerTitle.includes('knockout') || lowerTitle.includes('ko')) {
+      specificDetails = ', dramatic knockout moment, fighter celebrating victory';
+    } else if (lowerTitle.includes('champion') || lowerTitle.includes('title')) {
+      specificDetails = ', champion with belt, victory celebration, spotlights';
+    } else if (lowerTitle.includes('training') || lowerTitle.includes('camp')) {
+      specificDetails = ', intense training scene, gym equipment, focused athlete';
+    } else if (lowerTitle.includes('weigh-in') || lowerTitle.includes('weight')) {
+      specificDetails = ', professional weigh-in ceremony, face-off between fighters';
+    } else if (lowerTitle.includes('injury') || lowerTitle.includes('suspended')) {
+      specificDetails = ', concerned medical staff, injury scene (respectful)';
+    } else if (lowerTitle.includes('announcement') || lowerTitle.includes('fight card')) {
+      specificDetails = ', promotional poster style, fighter portraits, event branding';
+    }
+
+    const prompt = `Create a high-quality, photorealistic sports image for ${category.toUpperCase()} news. 
+Context: ${title}
+Style: ${basePrompt}${specificDetails}
+Requirements: Professional sports photography, dramatic lighting, 16:9 aspect ratio, suitable for news thumbnail, NO TEXT on image, action-focused, high contrast, vibrant colors.`;
+
+    console.log(`🎨 Generating AI image for "${title.substring(0, 50)}..." (${category})`);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
