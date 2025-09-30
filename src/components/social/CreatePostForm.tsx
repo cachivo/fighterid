@@ -13,7 +13,7 @@ interface CreatePostFormProps {
   authorName: string;
   authorNickname?: string;
   authorAvatar?: string;
-  authorType: 'fighter' | 'admin';
+  authorType: 'fighter' | 'admin' | 'user';
   loading?: boolean;
   canToggleAuthor?: boolean;
   postAsAdmin?: boolean;

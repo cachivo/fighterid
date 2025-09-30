@@ -24,18 +24,20 @@ export default function SocialFeed() {
   const { getUserFighterProfile } = useFighterProfiles();
   const [userFighter, setUserFighter] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [appUser, setAppUser] = useState<any>(null);
 
   useEffect(() => {
     const checkUserType = async () => {
       if (user) {
-        // Check if user is admin
-        const { data: appUser } = await supabase
+        // Get app_user data
+        const { data: appUserData } = await supabase
           .from('app_user')
-          .select('is_admin')
+          .select('*')
           .eq('auth_user_id', user.id)
           .single();
         
-        setIsAdmin(appUser?.is_admin || false);
+        setAppUser(appUserData);
+        setIsAdmin(appUserData?.is_admin || false);
 
         // Check if user has fighter profile
         const fighterProfile = await getUserFighterProfile();
@@ -47,23 +49,19 @@ export default function SocialFeed() {
   }, [user]);
 
   const handleCreatePost = async (postData: any) => {
-    if (!user) return;
+    if (!user || !appUser) return;
 
     if (isAdmin && postAsAdmin) {
       // Admin posting as News
-      const { data: adminUser } = await supabase
-        .from('app_user')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
-      
-      if (adminUser) {
-        await createPost(postData, 'admin', adminUser.id);
-        setShowCreateForm(false);
-      }
+      await createPost(postData, 'admin', appUser.id);
+      setShowCreateForm(false);
     } else if (userFighter) {
       // Fighter post (or admin posting as fighter)
       await createPost(postData, 'fighter', userFighter.id);
+      setShowCreateForm(false);
+    } else {
+      // Regular user post
+      await createPost(postData, 'user', appUser.id);
       setShowCreateForm(false);
     }
   };
@@ -76,7 +74,7 @@ export default function SocialFeed() {
     return true;
   });
 
-  const canCreatePost = user && (isAdmin || userFighter);
+  const canCreatePost = user && appUser; // Any authenticated user can post
 
   const getAuthorInfo = () => {
     // Admin with fighter profile can choose
@@ -100,6 +98,14 @@ export default function SocialFeed() {
         nickname: userFighter.nickname,
         avatar: userFighter.avatar_url,
         type: 'fighter' as const
+      };
+    } else if (appUser) {
+      // Regular user
+      return {
+        name: appUser.first_name || appUser.handle || appUser.email?.split('@')[0] || 'Usuario',
+        nickname: appUser.handle,
+        avatar: appUser.avatar_url,
+        type: 'user' as const
       };
     }
     return null;

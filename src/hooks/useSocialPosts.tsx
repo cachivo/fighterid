@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 export interface SocialPost {
   id: string;
   author_id: string;
-  author_type: 'fighter' | 'admin';
+  author_type: 'fighter' | 'admin' | 'user';
   content: string;
   media_urls: string[] | null;
   post_type: 'text' | 'image' | 'video' | 'news';
@@ -64,6 +64,19 @@ export function useSocialPosts() {
         fighterProfiles = profiles || [];
       }
 
+      // Get user info for user posts
+      const userPosts = postsData?.filter(p => p.author_type === 'user') || [];
+      let userProfiles: any[] = [];
+      
+      if (userPosts.length > 0) {
+        const { data: profiles } = await supabase
+          .from('app_user')
+          .select('id, first_name, last_name, handle, avatar_url, email')
+          .in('id', userPosts.map(p => p.author_id));
+        
+        userProfiles = profiles || [];
+      }
+
       // Get likes for current user if authenticated
       let likesData: any[] = [];
       if (user && postsData?.length) {
@@ -77,17 +90,22 @@ export function useSocialPosts() {
 
       const enrichedPosts: SocialPost[] = postsData?.map(post => {
         const fighterProfile = fighterProfiles.find(fp => fp.id === post.author_id);
+        const userProfile = userProfiles.find(up => up.id === post.author_id);
         
         return {
           ...post,
-          author_type: post.author_type as 'fighter' | 'admin',
+          author_type: post.author_type as 'fighter' | 'admin' | 'user',
           post_type: post.post_type as 'text' | 'image' | 'video' | 'news',
           author_name: post.author_type === 'fighter' 
             ? `${fighterProfile?.first_name || ''} ${fighterProfile?.last_name || ''}`.trim() || 'Peleador'
+            : post.author_type === 'user'
+            ? userProfile?.first_name || userProfile?.handle || userProfile?.email?.split('@')[0] || 'Usuario'
             : 'News',
-          author_nickname: fighterProfile?.nickname,
+          author_nickname: post.author_type === 'fighter' ? fighterProfile?.nickname : userProfile?.handle,
           author_avatar: post.author_type === 'fighter' 
             ? fighterProfile?.avatar_url 
+            : post.author_type === 'user'
+            ? userProfile?.avatar_url
             : '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
           is_liked: likesData.some(like => like.post_id === post.id)
         };
@@ -107,7 +125,7 @@ export function useSocialPosts() {
     }
   };
 
-  const createPost = async (postData: CreatePostData, authorType: 'fighter' | 'admin', authorId: string) => {
+  const createPost = async (postData: CreatePostData, authorType: 'fighter' | 'admin' | 'user', authorId: string) => {
     if (!user) {
       toast.error('Debes iniciar sesión para crear posts');
       return null;
