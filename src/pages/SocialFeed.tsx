@@ -149,9 +149,29 @@ export default function SocialFeed() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
+                onClick={async () => {
                   fetchPosts();
-                  toast.success('Feed actualizado');
+                  
+                  // If admin, also fetch fresh news
+                  if (isAdmin) {
+                    try {
+                      toast.info('Buscando noticias nuevas...');
+                      const { error } = await supabase.functions.invoke('fetch-sports-news');
+                      
+                      if (error) {
+                        console.error('Error fetching news:', error);
+                        toast.error('Error al buscar noticias');
+                      } else {
+                        toast.success('Noticias actualizadas exitosamente');
+                        // Refresh posts again after news are fetched
+                        setTimeout(() => fetchPosts(), 2000);
+                      }
+                    } catch (err) {
+                      console.error('Error invoking fetch-sports-news:', err);
+                    }
+                  } else {
+                    toast.success('Feed actualizado');
+                  }
                 }}
                 disabled={loading}
                 className="text-muted-foreground hover:text-foreground"
