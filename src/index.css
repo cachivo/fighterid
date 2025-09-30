@@ -48,12 +48,12 @@ All colors MUST be HSL.
     --urban-light: 0 0% 96%;
     --street-accent: 280 60% 55%;
     
-    /* Professional Urban colors - Matte finish */
-    --purple-neon-primary: 280 60% 55%; /* Matte purple - primary accent */
-    --purple-neon-secondary: 220 50% 50%; /* Matte blue - secondary */
-    --purple-neon-glow: 280 40% 65%; /* Soft purple - highlights */
-    --cyan-neon: 180 45% 45%; /* Matte cyan - complement */
-    --vote-active: 280 60% 55%;
+    /* Professional Urban colors - Steel tones */
+    --purple-neon-primary: 210 20% 45%; /* Steel blue - primary accent */
+    --purple-neon-secondary: 215 18% 50%; /* Light steel - secondary */
+    --purple-neon-glow: 210 15% 60%; /* Soft steel - highlights */
+    --cyan-neon: 200 20% 50%; /* Steel cyan - complement */
+    --vote-active: 210 20% 45%;
     --vote-inactive: 0 0% 45%;
 
     /* Professional Fighter Theme - Light mode readable */
@@ -83,23 +83,23 @@ All colors MUST be HSL.
     --professional-muted: 210 10% 85%; /* Light gray-blue */
     --professional-border: 210 12% 25%; /* Dark border */
     
-    /* Professional Urban Gradients - Subtle and elegant */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(280 40% 15%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(280 5% 97%) 100%);
-    --gradient-cyber: linear-gradient(135deg, hsl(280 60% 55%) 0%, hsl(220 50% 50%) 100%);
-    --gradient-neon: linear-gradient(90deg, hsl(280 60% 55%) 0%, hsl(280 40% 65%) 100%);
-    --gradient-accent: linear-gradient(120deg, hsl(220 50% 50%) 0%, hsl(180 45% 45%) 100%);
+    /* Professional Urban Gradients - Steel and elegant */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(210 30% 20%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 15% 97%) 100%);
+    --gradient-cyber: linear-gradient(135deg, hsl(210 20% 45%) 0%, hsl(215 18% 50%) 100%);
+    --gradient-neon: linear-gradient(90deg, hsl(210 20% 45%) 0%, hsl(210 15% 60%) 100%);
+    --gradient-accent: linear-gradient(120deg, hsl(215 18% 50%) 0%, hsl(200 20% 50%) 100%);
     
     /* Professional gradients - elegant and subtle */
     --gradient-professional: linear-gradient(135deg, hsl(210 15% 20%) 0%, hsl(210 12% 35%) 100%);
     --gradient-professional-light: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 10% 96%) 100%);
 
-    /* Professional Urban Shadows - Subtle depth */
+    /* Professional Urban Shadows - Subtle steel depth */
     --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
-    --shadow-card: 0 2px 12px -3px hsl(280 20% 30% / 0.06);
-    --shadow-accent-subtle: 0 4px 16px -4px hsl(280 60% 55% / 0.2);
-    --shadow-accent-hover: 0 6px 20px -4px hsl(280 60% 55% / 0.25);
-    --shadow-highlight: 0 2px 8px -2px hsl(280 40% 65% / 0.15);
+    --shadow-card: 0 2px 12px -3px hsl(210 20% 30% / 0.06);
+    --shadow-accent-subtle: 0 4px 16px -4px hsl(210 20% 45% / 0.15);
+    --shadow-accent-hover: 0 6px 20px -4px hsl(210 20% 45% / 0.2);
+    --shadow-highlight: 0 2px 8px -2px hsl(210 15% 60% / 0.12);
     
     /* Professional shadows - subtle and elegant */
     --shadow-professional: 0 4px 16px -2px hsl(210 15% 20% / 0.15);
@@ -217,29 +217,29 @@ All colors MUST be HSL.
   }
 
   @keyframes pulse-purple-neon {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(280 60% 55% / 0.3); }
-    50% { box-shadow: 0 0 0 8px hsl(280 60% 55% / 0); }
+    0%, 100% { box-shadow: 0 0 0 0 hsl(210 20% 45% / 0.2); }
+    50% { box-shadow: 0 0 0 8px hsl(210 20% 45% / 0); }
   }
 
   @keyframes glow-neon {
     0%, 100% { 
-      box-shadow: 0 0 4px hsl(280 60% 55% / 0.3),
-                  0 0 8px hsl(280 60% 55% / 0.2);
+      box-shadow: 0 0 4px hsl(210 20% 45% / 0.2),
+                  0 0 8px hsl(210 20% 45% / 0.15);
     }
     50% { 
-      box-shadow: 0 0 8px hsl(280 60% 55% / 0.4),
-                  0 0 12px hsl(280 60% 55% / 0.3);
+      box-shadow: 0 0 8px hsl(210 20% 45% / 0.25),
+                  0 0 12px hsl(210 20% 45% / 0.2);
     }
   }
 
   @keyframes glow-cyber {
     0%, 100% { 
-      box-shadow: 0 0 4px hsl(220 50% 50% / 0.3),
-                  0 0 8px hsl(220 50% 50% / 0.2);
+      box-shadow: 0 0 4px hsl(215 18% 50% / 0.2),
+                  0 0 8px hsl(215 18% 50% / 0.15);
     }
     50% { 
-      box-shadow: 0 0 8px hsl(220 50% 50% / 0.4),
-                  0 0 12px hsl(220 50% 50% / 0.3);
+      box-shadow: 0 0 8px hsl(215 18% 50% / 0.25),
+                  0 0 12px hsl(215 18% 50% / 0.2);
     }
   }
 
