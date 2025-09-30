@@ -15,6 +15,9 @@ interface CreatePostFormProps {
   authorAvatar?: string;
   authorType: 'fighter' | 'admin';
   loading?: boolean;
+  canToggleAuthor?: boolean;
+  postAsAdmin?: boolean;
+  onToggleAuthor?: (asAdmin: boolean) => void;
 }
 
 export default function CreatePostForm({ 
@@ -23,7 +26,10 @@ export default function CreatePostForm({
   authorNickname, 
   authorAvatar, 
   authorType,
-  loading = false 
+  loading = false,
+  canToggleAuthor = false,
+  postAsAdmin = true,
+  onToggleAuthor
 }: CreatePostFormProps) {
   const [content, setContent] = useState('');
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
@@ -70,23 +76,49 @@ export default function CreatePostForm({
 
   return (
     <div className="space-y-4">
-      {/* Author info */}
-      <div className="flex items-center gap-3">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={authorAvatar || ''} alt={authorName} />
-          <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-            {getAuthorInitials()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-foreground">{authorName}</span>
-          {authorNickname && (
-            <span className="text-sm text-muted-foreground">"{authorNickname}"</span>
-          )}
-          {authorType === 'admin' && (
-            <Badge variant="secondary" className="text-xs">Oficial</Badge>
-          )}
+      {/* Author info with toggle */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={authorAvatar || ''} alt={authorName} />
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+              {getAuthorInitials()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-foreground">{authorName}</span>
+            {authorNickname && (
+              <span className="text-sm text-muted-foreground">"{authorNickname}"</span>
+            )}
+            {authorType === 'admin' && postAsAdmin && (
+              <Badge variant="secondary" className="text-xs">Oficial</Badge>
+            )}
+          </div>
         </div>
+        
+        {/* Toggle for admins with fighter profile */}
+        {canToggleAuthor && onToggleAuthor && (
+          <div className="flex items-center gap-2 text-sm">
+            <Button
+              type="button"
+              variant={postAsAdmin ? "default" : "outline"}
+              size="sm"
+              onClick={() => onToggleAuthor(true)}
+              className="h-7 text-xs"
+            >
+              News
+            </Button>
+            <Button
+              type="button"
+              variant={!postAsAdmin ? "default" : "outline"}
+              size="sm"
+              onClick={() => onToggleAuthor(false)}
+              className="h-7 text-xs"
+            >
+              Mi Perfil
+            </Button>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

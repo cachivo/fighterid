@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 export default function SocialFeed() {
   const [activeTab, setActiveTab] = useState('all');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [postAsAdmin, setPostAsAdmin] = useState(true); // true = News, false = Fighter profile
   const { posts, loading, createPost, toggleLike, deletePost, fetchPosts } = useSocialPosts();
   const { user } = useAuth();
   const { getUserFighterProfile } = useFighterProfiles();
@@ -48,8 +49,8 @@ export default function SocialFeed() {
   const handleCreatePost = async (postData: any) => {
     if (!user) return;
 
-    if (isAdmin) {
-      // Admin post
+    if (isAdmin && postAsAdmin) {
+      // Admin posting as News
       const { data: adminUser } = await supabase
         .from('app_user')
         .select('id')
@@ -61,7 +62,7 @@ export default function SocialFeed() {
         setShowCreateForm(false);
       }
     } else if (userFighter) {
-      // Fighter post
+      // Fighter post (or admin posting as fighter)
       await createPost(postData, 'fighter', userFighter.id);
       setShowCreateForm(false);
     }
@@ -78,20 +79,27 @@ export default function SocialFeed() {
   const canCreatePost = user && (isAdmin || userFighter);
 
   const getAuthorInfo = () => {
-    // Prioritize fighter profile data if exists, even for admins
-    if (userFighter) {
+    // Admin with fighter profile can choose
+    if (isAdmin && userFighter && !postAsAdmin) {
       return {
         name: `${userFighter.first_name} ${userFighter.last_name}`,
         nickname: userFighter.nickname,
         avatar: userFighter.avatar_url,
-        type: isAdmin ? 'admin' as const : 'fighter' as const
+        type: 'fighter' as const
       };
-    } else if (isAdmin) {
+    } else if (isAdmin && postAsAdmin) {
       return {
-        name: 'Batalla de Gallos',
+        name: 'News',
         nickname: undefined,
-        avatar: undefined,
+        avatar: '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
         type: 'admin' as const
+      };
+    } else if (userFighter) {
+      return {
+        name: `${userFighter.first_name} ${userFighter.last_name}`,
+        nickname: userFighter.nickname,
+        avatar: userFighter.avatar_url,
+        type: 'fighter' as const
       };
     }
     return null;
@@ -147,6 +155,9 @@ export default function SocialFeed() {
                   authorAvatar={authorInfo!.avatar}
                   authorType={authorInfo!.type}
                   loading={loading}
+                  canToggleAuthor={isAdmin && !!userFighter}
+                  postAsAdmin={postAsAdmin}
+                  onToggleAuthor={(asAdmin) => setPostAsAdmin(asAdmin)}
                 />
               ) : (
                 <div 
