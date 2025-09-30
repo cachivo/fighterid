@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Calendar, MapPin, Users, TrendingUp, Clock, DollarSign, Trophy } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import UrbanDecorations from '@/components/UrbanDecorations';
 import { Gamepad2, Mic, Sword, Zap } from "lucide-react";
 
 interface BDGEvent {
@@ -128,14 +129,15 @@ export default function Predicciones() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-background relative">
+        <UrbanDecorations />
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-800 rounded w-64"></div>
+            <div className="h-8 bg-purple-neon-primary/20 rounded w-64"></div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="h-64 bg-gray-800 rounded-lg"></div>
+                <div key={i} className="h-64 bg-card/20 border border-purple-neon-primary/20 rounded-lg animate-glow-neon"></div>
               ))}
             </div>
           </div>
@@ -146,7 +148,8 @@ export default function Predicciones() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background relative">
+      <UrbanDecorations />
       <Header />
       
       <div className="container mx-auto px-4 py-8 space-y-8">
@@ -160,17 +163,17 @@ export default function Predicciones() {
         />
 
         {/* Filters */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card variant="neon" className="backdrop-blur-sm bg-card/50">
           <CardContent className="p-6">
             <div className="grid gap-4 md:grid-cols-4">
               <Input
                 placeholder="Buscar eventos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-black border-gray-700"
+                className="bg-card/50 border-purple-neon-primary/30 focus:border-purple-neon-primary"
               />
               <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
-                <SelectTrigger className="bg-black border-gray-700">
+                <SelectTrigger className="bg-card/50 border-purple-neon-primary/30">
                   <SelectValue placeholder="Todas las disciplinas" />
                 </SelectTrigger>
                 <SelectContent>
@@ -182,7 +185,7 @@ export default function Predicciones() {
                 </SelectContent>
               </Select>
               <Select value={stateFilter} onValueChange={setStateFilter}>
-                <SelectTrigger className="bg-black border-gray-700">
+                <SelectTrigger className="bg-card/50 border-purple-neon-primary/30">
                   <SelectValue placeholder="Todos los estados" />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,7 +194,7 @@ export default function Predicciones() {
                   <SelectItem value="finished">Finalizados</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="text-sm text-gray-400 flex items-center gap-2">
+              <div className="text-sm text-purple-neon-primary flex items-center gap-2 font-semibold">
                 <Trophy className="h-4 w-4" />
                 {filteredEvents.length} eventos encontrados
               </div>
@@ -207,7 +210,7 @@ export default function Predicciones() {
             const marketCount = event.markets?.length || 0;
             
             return (
-              <Card key={event.id} className="bg-gray-900 border-gray-800 hover:border-orange-500 transition-colors group">
+              <Card key={event.id} variant="neon" className="backdrop-blur-sm bg-card/50 hover:shadow-[0_0_30px_hsl(285_100%_68%/0.3)] transition-all group">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-2">
@@ -218,27 +221,27 @@ export default function Predicciones() {
                       </Badge>
                     </div>
                     {event.state === 'live' && (
-                      <div className="flex items-center gap-1 text-green-400 animate-pulse">
-                        <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                      <div className="flex items-center gap-1 text-purple-neon-glow animate-pulse">
+                        <div className="w-2 h-2 rounded-full bg-purple-neon-glow shadow-[0_0_10px_hsl(315_90%_70%/0.8)]"></div>
                         <span className="text-xs font-medium">LIVE</span>
                       </div>
                     )}
                   </div>
-                  <CardTitle className="text-xl text-white group-hover:text-orange-400 transition-colors">
+                  <CardTitle className="text-xl group-hover:text-purple-neon-primary transition-colors">
                     {event.name}
                   </CardTitle>
-                  <CardDescription className="text-gray-400">
+                  <CardDescription className="text-muted-foreground">
                     {event.discipline} • {event.venue}
                   </CardDescription>
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-300 line-clamp-2">
+                  <p className="text-sm text-foreground/80 line-clamp-2">
                     {event.description}
                   </p>
                   
                   {event.start_time && (
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
                       {new Date(event.start_time).toLocaleDateString('es', {
                         day: 'numeric',
@@ -251,11 +254,11 @@ export default function Predicciones() {
                   
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1 text-gray-400">
+                      <div className="flex items-center gap-1 text-cyan-neon">
                         <TrendingUp className="h-4 w-4" />
                         <span>{marketCount} mercados</span>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-400">
+                      <div className="flex items-center gap-1 text-purple-neon-secondary">
                         <DollarSign className="h-4 w-4" />
                         <span>{totalPool.toFixed(0)} pool total</span>
                       </div>
@@ -264,7 +267,8 @@ export default function Predicciones() {
                   
                   <Link to={`/evento/${event.id}/betting`}>
                     <Button 
-                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                      variant="hero"
+                      className="w-full"
                       disabled={event.state === 'finished'}
                     >
                       {event.state === 'live' ? 'Apostar Ahora' : 
@@ -278,11 +282,11 @@ export default function Predicciones() {
         </div>
 
         {filteredEvents.length === 0 && (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card variant="neon" className="backdrop-blur-sm bg-card/50">
             <CardContent className="text-center py-12">
-              <Trophy className="h-12 w-12 mx-auto mb-4 text-gray-600" />
-              <h3 className="text-lg font-medium text-gray-300 mb-2">No hay eventos disponibles</h3>
-              <p className="text-gray-500">
+              <Trophy className="h-12 w-12 mx-auto mb-4 text-purple-neon-primary/50" />
+              <h3 className="text-lg font-medium mb-2">No hay eventos disponibles</h3>
+              <p className="text-muted-foreground">
                 Ajusta los filtros o vuelve más tarde para ver nuevos eventos de batalla.
               </p>
             </CardContent>
