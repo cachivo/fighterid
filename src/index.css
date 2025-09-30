@@ -48,13 +48,19 @@ All colors MUST be HSL.
     --urban-light: 0 0% 96%;
     --street-accent: 280 60% 55%;
     
-    /* Professional Urban colors - Steel tones */
-    --purple-neon-primary: 210 20% 45%; /* Steel blue - primary accent */
-    --purple-neon-secondary: 215 18% 50%; /* Light steel - secondary */
-    --purple-neon-glow: 210 15% 60%; /* Soft steel - highlights */
-    --cyan-neon: 200 20% 50%; /* Steel cyan - complement */
-    --vote-active: 210 20% 45%;
-    --vote-inactive: 0 0% 45%;
+    /* Neon colors for Home page - Vibrant and energetic */
+    --home-neon-primary: 285 100% 68%; /* Vibrant purple neon */
+    --home-neon-secondary: 200 100% 60%; /* Electric cyan */
+    --home-neon-glow: 280 90% 75%; /* Bright purple glow */
+    --home-cyan-neon: 180 100% 55%; /* Intense cyan */
+    
+    /* Professional colors for App pages - Matte and clean */
+    --purple-neon-primary: 215 25% 50%; /* Professional blue-gray */
+    --purple-neon-secondary: 220 20% 55%; /* Soft blue */
+    --purple-neon-glow: 215 18% 65%; /* Light blue-gray */
+    --cyan-neon: 200 22% 52%; /* Muted cyan */
+    --vote-active: 215 25% 50%;
+    --vote-inactive: 0 0% 50%;
 
     /* Professional Fighter Theme - Light mode readable */
     --fighter-primary: 210 11% 25%; /* Readable dark */
@@ -83,23 +89,32 @@ All colors MUST be HSL.
     --professional-muted: 210 10% 85%; /* Light gray-blue */
     --professional-border: 210 12% 25%; /* Dark border */
     
-    /* Professional Urban Gradients - Steel and elegant */
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(210 30% 20%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 15% 97%) 100%);
-    --gradient-cyber: linear-gradient(135deg, hsl(210 20% 45%) 0%, hsl(215 18% 50%) 100%);
-    --gradient-neon: linear-gradient(90deg, hsl(210 20% 45%) 0%, hsl(210 15% 60%) 100%);
-    --gradient-accent: linear-gradient(120deg, hsl(215 18% 50%) 0%, hsl(200 20% 50%) 100%);
+    /* Home page gradients - Neon and vibrant */
+    --gradient-home-hero: linear-gradient(135deg, hsl(280 60% 15%) 0%, hsl(200 80% 20%) 100%);
+    --gradient-home-cyber: linear-gradient(135deg, hsl(285 100% 68%) 0%, hsl(200 100% 60%) 100%);
+    --gradient-home-neon: linear-gradient(90deg, hsl(285 100% 68%) 0%, hsl(180 100% 55%) 100%);
+    
+    /* App pages gradients - Professional and subtle */
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(215 20% 25%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(215 10% 98%) 100%);
+    --gradient-cyber: linear-gradient(135deg, hsl(215 25% 50%) 0%, hsl(220 20% 55%) 100%);
+    --gradient-neon: linear-gradient(90deg, hsl(215 25% 50%) 0%, hsl(215 18% 65%) 100%);
+    --gradient-accent: linear-gradient(120deg, hsl(220 20% 55%) 0%, hsl(200 22% 52%) 100%);
     
     /* Professional gradients - elegant and subtle */
     --gradient-professional: linear-gradient(135deg, hsl(210 15% 20%) 0%, hsl(210 12% 35%) 100%);
     --gradient-professional-light: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 10% 96%) 100%);
 
-    /* Professional Urban Shadows - Subtle steel depth */
-    --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.1);
-    --shadow-card: 0 2px 12px -3px hsl(210 20% 30% / 0.06);
-    --shadow-accent-subtle: 0 4px 16px -4px hsl(210 20% 45% / 0.15);
-    --shadow-accent-hover: 0 6px 20px -4px hsl(210 20% 45% / 0.2);
-    --shadow-highlight: 0 2px 8px -2px hsl(210 15% 60% / 0.12);
+    /* Home page shadows - Neon glow effects */
+    --shadow-home-neon: 0 0 20px hsl(285 100% 68% / 0.5), 0 0 40px hsl(285 100% 68% / 0.3);
+    --shadow-home-cyan: 0 0 20px hsl(180 100% 55% / 0.5), 0 0 40px hsl(180 100% 55% / 0.3);
+    
+    /* App pages shadows - Professional and subtle */
+    --shadow-urban: 0 4px 20px -2px hsl(0 0% 8% / 0.08);
+    --shadow-card: 0 2px 12px -3px hsl(215 20% 30% / 0.05);
+    --shadow-accent-subtle: 0 4px 16px -4px hsl(215 25% 50% / 0.12);
+    --shadow-accent-hover: 0 6px 20px -4px hsl(215 25% 50% / 0.15);
+    --shadow-highlight: 0 2px 8px -2px hsl(215 18% 65% / 0.1);
     
     /* Professional shadows - subtle and elegant */
     --shadow-professional: 0 4px 16px -2px hsl(210 15% 20% / 0.15);
@@ -216,30 +231,50 @@ All colors MUST be HSL.
     to { opacity: 1; }
   }
 
+  /* Home page neon animations - Vibrant effects */
+  @keyframes pulse-home-neon {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(285 100% 68% / 0.6); }
+    50% { box-shadow: 0 0 0 15px hsl(285 100% 68% / 0); }
+  }
+
+  @keyframes glow-home-neon {
+    0%, 100% { 
+      box-shadow: 0 0 10px hsl(285 100% 68% / 0.5),
+                  0 0 20px hsl(285 100% 68% / 0.3),
+                  0 0 30px hsl(285 100% 68% / 0.2);
+    }
+    50% { 
+      box-shadow: 0 0 15px hsl(285 100% 68% / 0.7),
+                  0 0 30px hsl(285 100% 68% / 0.5),
+                  0 0 45px hsl(285 100% 68% / 0.3);
+    }
+  }
+
+  /* App pages animations - Subtle professional effects */
   @keyframes pulse-purple-neon {
-    0%, 100% { box-shadow: 0 0 0 0 hsl(210 20% 45% / 0.2); }
-    50% { box-shadow: 0 0 0 8px hsl(210 20% 45% / 0); }
+    0%, 100% { box-shadow: 0 0 0 0 hsl(215 25% 50% / 0.15); }
+    50% { box-shadow: 0 0 0 8px hsl(215 25% 50% / 0); }
   }
 
   @keyframes glow-neon {
     0%, 100% { 
-      box-shadow: 0 0 4px hsl(210 20% 45% / 0.2),
-                  0 0 8px hsl(210 20% 45% / 0.15);
+      box-shadow: 0 0 3px hsl(215 25% 50% / 0.15),
+                  0 0 6px hsl(215 25% 50% / 0.1);
     }
     50% { 
-      box-shadow: 0 0 8px hsl(210 20% 45% / 0.25),
-                  0 0 12px hsl(210 20% 45% / 0.2);
+      box-shadow: 0 0 5px hsl(215 25% 50% / 0.2),
+                  0 0 10px hsl(215 25% 50% / 0.15);
     }
   }
 
   @keyframes glow-cyber {
     0%, 100% { 
-      box-shadow: 0 0 4px hsl(215 18% 50% / 0.2),
-                  0 0 8px hsl(215 18% 50% / 0.15);
+      box-shadow: 0 0 3px hsl(220 20% 55% / 0.15),
+                  0 0 6px hsl(220 20% 55% / 0.1);
     }
     50% { 
-      box-shadow: 0 0 8px hsl(215 18% 50% / 0.25),
-                  0 0 12px hsl(215 18% 50% / 0.2);
+      box-shadow: 0 0 5px hsl(220 20% 55% / 0.2),
+                  0 0 10px hsl(220 20% 55% / 0.15);
     }
   }
 
@@ -263,33 +298,44 @@ All colors MUST be HSL.
     animation: glow-cyber 2s ease-in-out infinite;
   }
 
-  /* Urban home page - preserve neon aesthetic for main page only */
+  /* Urban home page - Neon aesthetic for main page only */
   .urban-home {
-    /* Override colors for home page only */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 8%;
-    --primary: 0 0% 8%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --accent: 0 0% 20%;
-    --accent-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 94%;
-    --ring: 0 0% 20%;
+    /* Use neon colors for home page */
+    --purple-neon-primary: var(--home-neon-primary);
+    --purple-neon-secondary: var(--home-neon-secondary);
+    --purple-neon-glow: var(--home-neon-glow);
+    --cyan-neon: var(--home-cyan-neon);
   }
-
-  .urban-home.dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+  
+  .urban-home .bg-gradient-cyber {
+    background: var(--gradient-home-cyber);
+  }
+  
+  .urban-home .text-neon-primary {
+    color: hsl(var(--home-neon-primary));
+  }
+  
+  .urban-home .text-neon-glow {
+    color: hsl(var(--home-neon-glow));
+  }
+  
+  .urban-home .border-neon {
+    border-color: hsl(var(--home-neon-primary) / 0.5);
+  }
+  
+  .urban-home .shadow-neon {
+    box-shadow: var(--shadow-home-neon);
+  }
+  
+  .urban-home .shadow-cyan {
+    box-shadow: var(--shadow-home-cyan);
+  }
+  
+  .urban-home .animate-pulse-neon {
+    animation: pulse-home-neon 2s ease-in-out infinite;
+  }
+  
+  .urban-home .animate-glow-neon {
+    animation: glow-home-neon 3s ease-in-out infinite;
   }
 }
