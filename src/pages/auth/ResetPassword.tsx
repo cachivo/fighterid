@@ -16,19 +16,26 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Verificar si hay un token de recuperación en la URL
-    if (!session) {
-      toast({
-        title: 'Sesión inválida',
-        description: 'El enlace de recuperación es inválido o ha expirado',
-        variant: 'destructive',
-      });
-      navigate('/auth');
-    }
+    // Dar tiempo a Supabase para procesar los tokens del hash de la URL
+    const timer = setTimeout(() => {
+      if (!session) {
+        toast({
+          title: 'Enlace inválido o expirado',
+          description: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.',
+          variant: 'destructive',
+        });
+        navigate('/auth/forgot-password');
+      } else {
+        setVerifying(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [session, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +67,19 @@ export default function ResetPassword() {
       navigate('/auth');
     }
   };
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">Verificando enlace de recuperación...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

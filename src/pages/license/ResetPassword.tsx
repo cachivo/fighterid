@@ -16,19 +16,26 @@ export default function LicenseResetPassword() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(true);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Verificar si hay un token de recuperación en la URL
-    if (!session) {
-      toast({
-        title: 'Sesión inválida',
-        description: 'El enlace de recuperación es inválido o ha expirado',
-        variant: 'destructive',
-      });
-      navigate('/license/auth');
-    }
+    // Dar tiempo a Supabase para procesar los tokens del hash de la URL
+    const timer = setTimeout(() => {
+      if (!session) {
+        toast({
+          title: 'Enlace inválido o expirado',
+          description: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.',
+          variant: 'destructive',
+        });
+        navigate('/license/forgot-password');
+      } else {
+        setVerifying(false);
+      }
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, [session, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +67,19 @@ export default function LicenseResetPassword() {
       navigate('/license/auth');
     }
   };
+
+  if (verifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-gray-50 p-4">
+        <Card className="w-full max-w-md border-0 shadow-2xl bg-card/95 backdrop-blur-sm">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-800 mb-4" />
+            <p className="text-muted-foreground">Verificando enlace de recuperación...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-gray-50 p-4">
