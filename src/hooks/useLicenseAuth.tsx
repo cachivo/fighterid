@@ -246,7 +246,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/license/dashboard`;
+    const redirectUrl = `https://fighter-id.org/license/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
