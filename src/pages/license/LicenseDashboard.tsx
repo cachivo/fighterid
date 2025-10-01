@@ -2,11 +2,15 @@ import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, Refr
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
+import { useDopingTests } from '@/hooks/useDopingTests';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
 import { UserFighterProfileEditForm } from '@/components/UserFighterProfileEditForm';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import FighterUpdateForm from '@/components/FighterUpdateForm';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
+import { DopingTestCard } from '@/components/DopingTestCard';
+import { DopingTestUploadForm } from '@/components/DopingTestUploadForm';
+import { DopingEligibilityBadge } from '@/components/DopingEligibilityBadge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +25,9 @@ export default function LicenseDashboard() {
   const { user, licenseData, refreshLicense } = useLicenseAuth();
   const { license, fightBookings, medicalCerts } = useLicenseData(licenseData?.id);
   const { fetchFighters } = useFighterProfiles();
+  const { tests, eligibility, loading: dopingLoading, uploading, uploadReport } = useDopingTests(
+    licenseData?.id || null
+  );
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -760,6 +767,43 @@ export default function LicenseDashboard() {
               />
             </CardContent>
           </Card>
+        </div>
+
+        {/* Doping Tests Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Reportes de Dopaje</h2>
+              <p className="text-muted-foreground">
+                Gestiona tus pruebas antidopaje y mantén tu elegibilidad para competir
+              </p>
+            </div>
+          </div>
+
+          <DopingEligibilityBadge eligibility={eligibility} showDetails />
+
+          <DopingTestUploadForm onUpload={uploadReport} uploading={uploading} />
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Historial de Pruebas</h3>
+            {dopingLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                Cargando reportes...
+              </div>
+            ) : tests.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  No hay reportes de dopaje registrados
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {tests.map((test) => (
+                  <DopingTestCard key={test.id} test={test} />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
       </div>

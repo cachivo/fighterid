@@ -374,6 +374,62 @@ export type Database = {
         }
         Relationships: []
       }
+      doping_tests: {
+        Row: {
+          created_at: string | null
+          id: string
+          license_id: string
+          notes: string | null
+          report_file_url: string | null
+          result_status: Database["public"]["Enums"]["doping_result_status"]
+          substances_detected: string[] | null
+          test_date: string
+          test_type: Database["public"]["Enums"]["doping_test_type"]
+          testing_agency: string
+          updated_at: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          license_id: string
+          notes?: string | null
+          report_file_url?: string | null
+          result_status?: Database["public"]["Enums"]["doping_result_status"]
+          substances_detected?: string[] | null
+          test_date: string
+          test_type: Database["public"]["Enums"]["doping_test_type"]
+          testing_agency: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          license_id?: string
+          notes?: string | null
+          report_file_url?: string | null
+          result_status?: Database["public"]["Enums"]["doping_result_status"]
+          substances_detected?: string[] | null
+          test_date?: string
+          test_type?: Database["public"]["Enums"]["doping_test_type"]
+          testing_agency?: string
+          updated_at?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "doping_tests_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_licenses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       estadisticas: {
         Row: {
           activo: boolean | null
@@ -2854,6 +2910,10 @@ export type Database = {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
       }
+      check_doping_eligibility: {
+        Args: { p_license_id: string }
+        Returns: Json
+      }
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
@@ -2986,6 +3046,17 @@ export type Database = {
           medical_conditions: string
         }[]
       }
+      get_recent_doping_tests: {
+        Args: { p_license_id: string; p_months?: number }
+        Returns: {
+          id: string
+          result_status: Database["public"]["Enums"]["doping_result_status"]
+          test_date: string
+          test_type: Database["public"]["Enums"]["doping_test_type"]
+          testing_agency: string
+          verified_at: string
+        }[]
+      }
       import_fighter_data: {
         Args: {
           p_academy?: string
@@ -3062,6 +3133,8 @@ export type Database = {
         | "MuayThai"
         | "Grappling"
         | "Otro"
+      doping_result_status: "PENDING" | "CLEAN" | "POSITIVE" | "INCONCLUSIVE"
+      doping_test_type: "PRE_FIGHT" | "RANDOM" | "POST_FIGHT" | "ANNUAL"
       fight_result: "red_win" | "blue_win" | "draw" | "no_contest" | "scheduled"
       license_level:
         | "AMATEUR"
@@ -3230,6 +3303,8 @@ export const Constants = {
         "Grappling",
         "Otro",
       ],
+      doping_result_status: ["PENDING", "CLEAN", "POSITIVE", "INCONCLUSIVE"],
+      doping_test_type: ["PRE_FIGHT", "RANDOM", "POST_FIGHT", "ANNUAL"],
       fight_result: ["red_win", "blue_win", "draw", "no_contest", "scheduled"],
       license_level: [
         "AMATEUR",
