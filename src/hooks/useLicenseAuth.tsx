@@ -14,6 +14,8 @@ interface LicenseAuthContextType {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshLicense: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
 }
 
 const LicenseAuthContext = createContext<LicenseAuthContextType | undefined>(undefined);
@@ -281,6 +283,21 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       navigate('/', { replace: true });
     }
   };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://fighter-id.org/license/reset-password'
+    });
+    return { error };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    return { error };
+  };
+
   const value = {
     user,
     session,
@@ -290,7 +307,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     signIn,
     signUp,
     signOut,
-    refreshLicense
+    refreshLicense,
+    resetPassword,
+    updatePassword
   };
 
   return (

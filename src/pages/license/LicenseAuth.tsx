@@ -161,6 +161,18 @@ export default function LicenseAuth() {
               </Button>
             </form>
 
+            {isLogin && (
+              <div className="text-center mt-3">
+                <button
+                  type="button"
+                  onClick={() => window.location.href = '/license/forgot-password'}
+                  className="text-sm text-gray-600 hover:text-gray-900 underline underline-offset-4"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
+
             <div className="text-center">
               <button
                 type="button"

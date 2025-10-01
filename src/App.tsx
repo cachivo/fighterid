@@ -39,6 +39,8 @@ import LicenseSuspended from './pages/license/LicenseSuspended';
 import LicenseOnboarding from './pages/license/LicenseOnboarding';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 import Predicciones from "./pages/Predicciones";
 import EventoBetting from "./pages/EventoBetting";
 import Events from "./pages/Events";
@@ -56,6 +58,8 @@ import Dashboard from "./pages/admin/Dashboard";
 import EventosDeportivos from "./pages/admin/EventosDeportivos";
 import EventosPelea from "./pages/admin/EventosPelea";
 import EventosDigitales from "./pages/admin/EventosDigitales";
+import LicenseForgotPassword from "./pages/license/ForgotPassword";
+import LicenseResetPassword from "./pages/license/ResetPassword";
 
 import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
 import Ranking from "./pages/admin/Ranking";
@@ -94,6 +98,8 @@ const App = () => (
               {/* Public Platform Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+              <Route path="/auth/reset-password" element={<ResetPassword />} />
               <Route path="/eventos" element={<Events />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
@@ -112,6 +118,8 @@ const App = () => (
               {/* Fighter License Portal Routes */}
               <Route path="/license/welcome" element={<LicenseWelcome />} />
               <Route path="/license/auth" element={<LicenseAuth />} />
+              <Route path="/license/forgot-password" element={<LicenseForgotPassword />} />
+              <Route path="/license/reset-password" element={<LicenseResetPassword />} />
               <Route path="/license/onboarding" element={
                 <LicenseProtectedRoute>
                   <LicenseOnboarding />

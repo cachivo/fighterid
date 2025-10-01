@@ -154,6 +154,15 @@ export default function Auth() {
                   </Button>
                 </form>
               </Form>
+              <div className="mt-4 text-center">
+                <Button
+                  variant="link"
+                  className="text-sm text-muted-foreground"
+                  onClick={() => window.location.href = '/auth/forgot-password'}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
             </TabsContent>
             
             <TabsContent value="signup">
