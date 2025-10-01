@@ -67,14 +67,18 @@ export default function SocialProfile() {
     <div className="flex min-h-screen w-full bg-background">
       <SocialSidebar />
       
-      <main className="flex-1 overflow-y-auto">
-        <div className="container max-w-4xl mx-auto p-6 space-y-6">
-          <PageHeader 
-            title="Mi Perfil Social"
-            subtitle="Gestiona tu información personal y contenido"
-            showBackButton={false}
-          />
+      <div className="flex-1">
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <PageHeader 
+              title="Mi Perfil Social"
+              subtitle="Gestiona tu información personal y contenido"
+              showBackButton={false}
+            />
+          </div>
+        </div>
 
+        <main className="container max-w-4xl mx-auto p-6 space-y-6">
           {/* Profile Card */}
           <Card className="border-2">
             <CardContent className="p-8">
@@ -200,8 +204,8 @@ export default function SocialProfile() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

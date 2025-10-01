@@ -89,13 +89,10 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Cargando..." />
-        <div className="flex">
-          <SocialSidebar />
-          <main className="flex-1 p-6">
-            <p className="text-center text-muted-foreground">Cargando perfil...</p>
-          </main>
+      <div className="min-h-screen flex w-full bg-background">
+        <SocialSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-center text-muted-foreground">Cargando perfil...</p>
         </div>
       </div>
     );
@@ -103,13 +100,10 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
-        <PageHeader title="Usuario no encontrado" />
-        <div className="flex">
-          <SocialSidebar />
-          <main className="flex-1 p-6">
-            <p className="text-center text-muted-foreground">El usuario no existe</p>
-          </main>
+      <div className="min-h-screen flex w-full bg-background">
+        <SocialSidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-center text-muted-foreground">El usuario no existe</p>
         </div>
       </div>
     );
@@ -134,13 +128,17 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title={`Perfil de ${displayName}`} />
+    <div className="min-h-screen flex w-full bg-background">
+      <SocialSidebar />
       
-      <div className="flex">
-        <SocialSidebar />
-        
-        <main className="flex-1 p-6 max-w-4xl mx-auto">
+      <div className="flex-1">
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <PageHeader title={`Perfil de ${displayName}`} showBackButton={true} />
+          </div>
+        </div>
+
+        <main className="container mx-auto p-6 max-w-4xl">
           <Card className="p-6 mb-6">
             <div className="flex items-start gap-6">
               <Avatar className="w-24 h-24">

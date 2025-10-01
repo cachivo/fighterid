@@ -17,13 +17,17 @@ const Friends = () => {
   } = useFriends();
 
   return (
-    <div className="min-h-screen bg-background">
-      <PageHeader title="Amigos" />
+    <div className="min-h-screen flex w-full bg-background">
+      <SocialSidebar />
       
-      <div className="flex">
-        <SocialSidebar />
-        
-        <main className="flex-1 p-6 max-w-4xl mx-auto">
+      <div className="flex-1">
+        <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <PageHeader title="Amigos" showBackButton={false} />
+          </div>
+        </div>
+
+        <main className="container mx-auto p-6 max-w-4xl">
           <Tabs defaultValue="friends" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="friends">
