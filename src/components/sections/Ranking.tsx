@@ -1,49 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, Calendar, Users, Monitor, Globe } from "lucide-react";
+import { Trophy, Users, Target, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useFighterRanking } from "@/hooks/useFighterRanking";
+import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
+import { useNavigate } from "react-router-dom";
 
 const Ranking = () => {
+  const { fighters, stats, isLoading } = useFighterRanking(3);
+  const navigate = useNavigate();
+
   const estadisticas = [
     {
-      numero: "150+",
-      descripcion: "Eventos Producidos",
-      Icon: Calendar
-    },
-    {
-      numero: "50K+",
-      descripcion: "Participantes",
+      numero: stats?.total_fighters.toString() || "0",
+      descripcion: "Peleadores Registrados",
       Icon: Users
     },
     {
-      numero: "2M+",
-      descripcion: "Visualizaciones Online",
-      Icon: Monitor
+      numero: stats?.total_fights.toString() || "0",
+      descripcion: "Peleas Realizadas",
+      Icon: Target
     },
     {
-      numero: "25+",
-      descripcion: "Ciudades Alcanzadas",
-      Icon: Globe
-    }
-  ];
-
-  const topEventos = [
-    {
-      evento: "Copa Nacional Freestyle 2024",
-      participantes: "120 MC's",
-      audiencia: "850K visualizaciones",
-      lugar: "1er Lugar"
+      numero: stats?.professional_fighters.toString() || "0",
+      descripcion: "Profesionales Activos",
+      Icon: Award
     },
     {
-      evento: "Urban Games Championship",
-      participantes: "200 atletas",
-      audiencia: "1.2M visualizaciones", 
-      lugar: "1er Lugar"
-    },
-    {
-      evento: "Festival Digital Urbano",
-      participantes: "80 artistas",
-      audiencia: "650K visualizaciones",
-      lugar: "1er Lugar"
+      numero: stats?.undefeated_count.toString() || "0",
+      descripcion: "Invictos",
+      Icon: TrendingUp
     }
   ];
 
@@ -67,60 +54,141 @@ const Ranking = () => {
 
         {/* Estadísticas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
-          {estadisticas.map((stat, index) => (
-            <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm text-center group hover:scale-105 transition-all duration-300 touch-manipulation">
-              <CardContent className="p-4 sm:p-6">
-                <stat.Icon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 text-purple-neon-primary" />
-                <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-neon-primary mb-2 group-hover:animate-pulse-purple-neon">
-                  {stat.numero}
-                </div>
-                <p className="text-gray-300 text-xs sm:text-sm md:text-base">
-                  {stat.descripcion}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Top Eventos */}
-        <div className="mb-8 sm:mb-12">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
-            Eventos <span className="text-purple-neon-primary">Destacados</span>
-          </h3>
-          
-          <div className="space-y-3 sm:space-y-4">
-            {topEventos.map((evento, index) => (
-              <Card key={index} className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm hover:bg-black/60 transition-all duration-300 touch-manipulation">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm">
                 <CardContent className="p-4 sm:p-6">
-                  <div className="flex flex-col gap-3 sm:gap-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                      <div className="flex-1">
-                        <h4 className="text-base sm:text-lg font-bold text-white mb-2">
-                          {evento.evento}
-                        </h4>
-                        <div className="flex flex-col gap-1 sm:gap-2 text-gray-300 text-sm sm:text-base">
-                          <span>{evento.participantes}</span>
-                          <span>{evento.audiencia}</span>
-                        </div>
-                      </div>
-                      <div className="bg-purple-neon-primary text-black px-3 sm:px-4 py-2 rounded-lg font-bold text-sm sm:text-base self-start sm:self-center flex items-center gap-2">
-                        <Trophy className="h-4 w-4" />
-                        {evento.lugar}
-                      </div>
-                    </div>
-                  </div>
+                  <EnhancedSkeleton className="h-10 w-10 mx-auto mb-2 rounded-full" />
+                  <EnhancedSkeleton className="h-8 w-16 mx-auto mb-2" />
+                  <EnhancedSkeleton className="h-4 w-24 mx-auto" />
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            ))
+          ) : (
+            estadisticas.map((stat, index) => (
+              <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm text-center group hover:scale-105 transition-all duration-300 touch-manipulation">
+                <CardContent className="p-4 sm:p-6">
+                  <stat.Icon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 text-purple-neon-primary" />
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-neon-primary mb-2 group-hover:animate-pulse-purple-neon">
+                    {stat.numero}
+                  </div>
+                  <p className="text-gray-300 text-xs sm:text-sm md:text-base">
+                    {stat.descripcion}
+                  </p>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+
+        {/* Top Peleadores */}
+        <div className="mb-8 sm:mb-12">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
+            Top 10 <span className="text-purple-neon-primary">Peleadores</span>
+          </h3>
+          
+          {isLoading ? (
+            <div className="space-y-3 sm:space-y-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Card key={index} className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex items-center gap-4">
+                      <EnhancedSkeleton className="h-12 w-12 rounded-full" />
+                      <div className="flex-1">
+                        <EnhancedSkeleton className="h-5 w-32 mb-2" />
+                        <EnhancedSkeleton className="h-4 w-24" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : fighters && fighters.length > 0 ? (
+            <div className="space-y-3 sm:space-y-4">
+              {fighters.map((fighter, index) => {
+                const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
+                const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
+                
+                return (
+                  <Card 
+                    key={fighter.id} 
+                    className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm hover:bg-black/60 transition-all duration-300 cursor-pointer touch-manipulation group"
+                    onClick={() => navigate(`/fighter/${fighter.id}`)}
+                  >
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex items-center gap-4">
+                        {/* Ranking Position */}
+                        <div className={`text-2xl sm:text-3xl font-bold ${rankColor} min-w-[40px] text-center`}>
+                          {index < 3 ? <Trophy className="h-6 w-6 sm:h-8 sm:w-8 mx-auto" /> : `#${index + 1}`}
+                        </div>
+
+                        {/* Avatar */}
+                        <Avatar className="h-12 w-12 sm:h-14 sm:w-14 border-2 border-purple-neon-primary/50">
+                          <AvatarImage src={fighter.avatar_url || undefined} />
+                          <AvatarFallback className="bg-purple-neon-primary/20 text-white">
+                            {fighter.first_name[0]}{fighter.last_name[0]}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        {/* Fighter Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-purple-neon-primary transition-colors">
+                              {fighter.first_name} {fighter.last_name}
+                            </h4>
+                            {fighter.nickname && (
+                              <span className="text-sm text-gray-400 italic">"{fighter.nickname}"</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                            <span className="text-gray-300">
+                              {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
+                            </span>
+                            {fighter.discipline && (
+                              <Badge variant="outline" className="text-xs border-purple-neon-primary/50 text-purple-neon-primary">
+                                {fighter.discipline}
+                              </Badge>
+                            )}
+                            {fighter.level && (
+                              <Badge variant="secondary" className="text-xs bg-purple-neon-primary/20 text-purple-neon-primary">
+                                {fighter.level}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Win Rate */}
+                        <div className="text-right min-w-[80px]">
+                          <div className="text-lg sm:text-xl font-bold text-purple-neon-primary">
+                            {fighter.win_rate.toFixed(1)}%
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Win Rate
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm">
+              <CardContent className="p-8 text-center">
+                <p className="text-gray-400">No hay suficientes peleadores con el mínimo de peleas requeridas</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="text-center">
           <Button 
             size="lg" 
+            onClick={() => navigate('/fighters')}
             className="bg-purple-neon-primary hover:bg-purple-neon-secondary text-black font-bold px-6 sm:px-8 py-4 text-base sm:text-lg animate-glow-neon min-h-[48px] touch-manipulation"
           >
-            Ver Historial Completo
+            Ver Todos los Peleadores
           </Button>
         </div>
       </div>
