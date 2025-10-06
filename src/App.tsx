@@ -26,12 +26,12 @@ import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
 import ProfileChangeRequest from './pages/ProfileChangeRequest';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import UserRoles from './pages/admin/UserRoles';
 
 // Lazy loaded components
 const FightResults = lazy(() => import('./pages/admin/FightResults'));
 const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
 const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
+const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
 import LicenseAuth from './pages/license/LicenseAuth';
 import LicenseWelcome from './pages/license/LicenseWelcome';
 import LicenseDashboard from './pages/license/LicenseDashboard';
