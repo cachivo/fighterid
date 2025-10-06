@@ -9,6 +9,11 @@ interface UseAdminReturn {
   checkAdminStatus: () => Promise<void>;
 }
 
+/**
+ * Hook to check if current user has admin role
+ * Uses new role-based system with user_roles table
+ * Maintains backward compatibility with existing code
+ */
 export function useAdmin(): UseAdminReturn {
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -26,18 +31,20 @@ export function useAdmin(): UseAdminReturn {
       setLoading(true);
       setError(null);
 
+      // Check if user has 'admin' role in user_roles table
       const { data, error: queryError } = await supabase
-        .from('app_user')
-        .select('is_admin')
-        .eq('auth_user_id', user.id)
-        .single();
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
 
       if (queryError) {
         console.error('Error checking admin status:', queryError);
         setError('Error verificando permisos de administrador');
         setIsAdmin(false);
       } else {
-        setIsAdmin(data?.is_admin || false);
+        setIsAdmin(!!data);
       }
     } catch (err) {
       console.error('Error in checkAdminStatus:', err);
@@ -50,7 +57,7 @@ export function useAdmin(): UseAdminReturn {
 
   useEffect(() => {
     if (authLoading) {
-      return; // Wait for auth to complete
+      return;
     }
 
     checkAdminStatus();

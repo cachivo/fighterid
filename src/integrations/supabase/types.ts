@@ -2741,6 +2741,33 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       votes: {
         Row: {
           created_at: string
@@ -2906,6 +2933,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      assign_user_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       calculate_parimutuel_payout: {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
@@ -3057,6 +3091,20 @@ export type Database = {
           verified_at: string
         }[]
       }
+      has_any_role: {
+        Args: {
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       import_fighter_data: {
         Args: {
           p_academy?: string
@@ -3101,6 +3149,13 @@ export type Database = {
         Args: { p_reason: string; p_ticket_id: string }
         Returns: undefined
       }
+      remove_user_role: {
+        Args: {
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       reprocess_approved_profile_changes: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3115,6 +3170,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       discipline:
         | "MMA"
         | "Boxeo"
@@ -3283,6 +3339,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       discipline: [
         "MMA",
         "Boxeo",
