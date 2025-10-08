@@ -248,7 +248,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `https://fighter-id.org/license/auth`;
+    const redirectUrl = `${window.location.origin}/license/auth`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -286,7 +286,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://fighter-id.org/license/reset-password'
+      redirectTo: `${window.location.origin}/license/reset-password`
     });
     return { error };
   };

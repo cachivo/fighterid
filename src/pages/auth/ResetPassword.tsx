@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,17 +22,26 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Dar tiempo a Supabase para procesar los tokens del hash de la URL
+    // Escuchar el evento PASSWORD_RECOVERY y dar más tiempo a procesar el hash
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'PASSWORD_RECOVERY' || (newSession && newSession.user)) {
+        // Sesión válida para actualizar contraseña
+        setError('');
+        setVerifying(false);
+      }
+    });
+
     const timer = setTimeout(() => {
       if (!session) {
         setError('El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
-        setVerifying(false);
-      } else {
-        setVerifying(false);
       }
-    }, 1500);
+      setVerifying(false);
+    }, 4000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
