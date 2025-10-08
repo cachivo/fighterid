@@ -40,7 +40,10 @@ export default function SocialFeed() {
           .single();
         
         setAppUser(appUserData);
-        setIsAdmin(appUserData?.is_admin || false);
+        
+        // Check admin status using RPC function (matches RLS policies)
+        const { data: adminStatus } = await supabase.rpc('is_admin');
+        setIsAdmin(adminStatus || false);
 
         // Check if user has fighter profile
         const fighterProfile = await getUserFighterProfile();
@@ -107,6 +110,35 @@ export default function SocialFeed() {
       supabase.removeChannel(channel);
     };
   }, [activeTab, fetchPosts, fetchFriendsPosts]);
+
+  // Helper to check if user owns a post
+  const isOwnerPost = (post: any) => {
+    if (!user) return false;
+    
+    // Admin can delete admin posts
+    if (isAdmin && post.author_type === 'admin') return true;
+    
+    // Fighter can delete their own posts
+    if (userFighter && post.author_type === 'fighter' && post.author_id === userFighter.id) return true;
+    
+    // Regular user can delete their own posts
+    if (appUser && post.author_type === 'user' && post.author_id === appUser.id) return true;
+    
+    return false;
+  };
+
+  // Delete post handler with refresh
+  const handleDelete = async (postId: string) => {
+    const success = await deletePost(postId);
+    if (success) {
+      // Refresh feed based on active tab
+      if (activeTab === 'friends') {
+        await fetchFriendsPosts();
+      } else {
+        await fetchPosts();
+      }
+    }
+  };
 
   const handleCreatePost = async (postData: any) => {
     console.log('🔍 [SOCIAL FEED] handleCreatePost iniciado');
@@ -376,11 +408,8 @@ export default function SocialFeed() {
                   key={post.id}
                   post={post}
                   onLike={toggleLike}
-                  onDelete={canCreatePost ? deletePost : undefined}
-                  isOwner={
-                    (user && isAdmin && post.author_type === 'admin') ||
-                    (user && userFighter && post.author_id === userFighter.id)
-                  }
+                  onDelete={canCreatePost ? handleDelete : undefined}
+                  isOwner={isOwnerPost(post)}
                 />
               ))}
               

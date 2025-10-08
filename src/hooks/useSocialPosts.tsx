@@ -425,20 +425,39 @@ export function useSocialPosts() {
     }
   };
 
-  const deletePost = async (postId: string) => {
+  const deletePost = async (postId: string): Promise<boolean> => {
     try {
+      console.log('🗑️ [DELETE POST] Attempting to delete post:', postId);
+      
       const { error } = await supabase
         .from('social_posts')
         .update({ active: false })
         .eq('id', postId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [DELETE POST] Database error:', error);
+        
+        // Check if it's an RLS policy error
+        if (error.code === '42501' || error.message?.includes('policy')) {
+          toast.error('Error de permisos: No tienes autorización para eliminar este post');
+        } else {
+          toast.error(`Error al eliminar el post: ${error.message}`);
+        }
+        
+        return false;
+      }
 
+      console.log('✅ [DELETE POST] Post deleted successfully');
+      
+      // Optimistic UI update
       setPosts(prev => prev.filter(post => post.id !== postId));
       toast.success('Post eliminado');
-    } catch (err) {
-      console.error('Error deleting post:', err);
-      toast.error('Error al eliminar el post');
+      
+      return true;
+    } catch (err: any) {
+      console.error('❌ [DELETE POST] Fatal error:', err);
+      toast.error('Error inesperado al eliminar el post');
+      return false;
     }
   };
 
