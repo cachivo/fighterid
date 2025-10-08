@@ -1021,6 +1021,62 @@ export type Database = {
           },
         ]
       }
+      fighter_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          fighter_profile_id: string | null
+          first_name: string
+          id: string
+          invited_by: string | null
+          last_name: string
+          phone: string | null
+          status: string
+          token: string
+          weight_class: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          fighter_profile_id?: string | null
+          first_name: string
+          id?: string
+          invited_by?: string | null
+          last_name: string
+          phone?: string | null
+          status?: string
+          token: string
+          weight_class?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          fighter_profile_id?: string | null
+          first_name?: string
+          id?: string
+          invited_by?: string | null
+          last_name?: string
+          phone?: string | null
+          status?: string
+          token?: string
+          weight_class?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_invitations_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_licenses: {
         Row: {
           approved_at: string | null

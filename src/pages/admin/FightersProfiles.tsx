@@ -88,9 +88,9 @@ export default function FightersProfiles() {
             Administra los perfiles de todos los peleadores registrados
           </p>
         </div>
-        <Button onClick={() => navigate('/admin/fighters-profiles/create')} size="lg">
+        <Button onClick={() => navigate('/admin/fighters-profiles/invite')} size="lg">
           <Plus className="mr-2 h-5 w-5" />
-          Crear Nuevo Perfil
+          Invitar Peleador
         </Button>
       </div>
 

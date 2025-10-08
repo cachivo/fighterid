@@ -20,7 +20,7 @@ import ProfileSetup from './pages/profile/ProfileSetup';
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFightersProfiles from './pages/admin/FightersProfiles';
-import FightersProfilesCreate from './pages/admin/FightersProfilesCreate';
+import FightersProfilesInvite from './pages/admin/FightersProfilesInvite';
 import JudgesManagement from './pages/admin/JudgesManagement';
 import LiveEventsControl from './pages/admin/LiveEventsControl';
 import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
@@ -200,7 +200,7 @@ const App = () => (
                       <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
                       <Route path="/fighters" element={<AdminFightersProfiles />} />
                       <Route path="/fighters-profiles" element={<AdminFightersProfiles />} />
-                      <Route path="/fighters-profiles/create" element={<FightersProfilesCreate />} />
+                      <Route path="/fighters-profiles/invite" element={<FightersProfilesInvite />} />
                       <Route path="/judges" element={<JudgesManagement />} />
                       <Route path="/live-events" element={<LiveEventsControl />} />
                       <Route path="/fight-results" element={

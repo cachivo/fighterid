@@ -11,7 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserCheck } from 'lucide-react';
+import { useFighterInvitations } from '@/hooks/useFighterInvitations';
+import { supabase } from '@/integrations/supabase/client';
 
 const authSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -33,6 +35,10 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirect');
+  const inviteToken = searchParams.get('invite');
+  const { validateToken } = useFighterInvitations();
+  const [invitation, setInvitation] = useState<any>(null);
+  const [validatingToken, setValidatingToken] = useState(false);
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -45,10 +51,38 @@ export default function Auth() {
   const signUpForm = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      email: '',
+      email: invitation?.email || '',
       password: '',
     },
   });
+
+  // Validate invitation token on mount
+  useEffect(() => {
+    const checkInvitation = async () => {
+      if (inviteToken) {
+        setValidatingToken(true);
+        const invitationData = await validateToken(inviteToken);
+        
+        if (invitationData) {
+          setInvitation(invitationData);
+          signUpForm.setValue('email', invitationData.email);
+          toast({
+            title: 'Invitación válida',
+            description: `Bienvenido ${invitationData.first_name}! Completa tu registro para crear tu perfil de peleador.`,
+          });
+        } else {
+          toast({
+            title: 'Invitación inválida',
+            description: 'El link de invitación ha expirado o no es válido',
+            variant: 'destructive',
+          });
+        }
+        setValidatingToken(false);
+      }
+    };
+    
+    checkInvitation();
+  }, [inviteToken]);
 
   // Redirect if already authenticated
   if (user && !adminLoading) {
@@ -85,21 +119,82 @@ export default function Auth() {
 
   const handleSignUp = async (data: SignUpFormData) => {
     setLoading(true);
-    const { error } = await signUp(data.email, data.password);
     
-    if (error) {
+    try {
+      // Register the user
+      const { error: signUpError } = await signUp(data.email, data.password);
+      
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      // If this is an invitation signup, create fighter profile
+      if (invitation && inviteToken) {
+        // Wait a bit for auth and trigger to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Get the newly created user
+        const { data: { user: newUser } } = await supabase.auth.getUser();
+        
+        if (newUser) {
+          // Get app_user (should be created by trigger)
+          const { data: appUser, error: appUserError } = await supabase
+            .from('app_user')
+            .select('id')
+            .eq('auth_user_id', newUser.id)
+            .single();
+
+          if (appUserError || !appUser) {
+            console.error('App user not found:', appUserError);
+            throw new Error('Error configurando perfil de usuario');
+          }
+
+          // Create fighter profile
+          const { data: fighterProfile, error: profileError } = await supabase
+            .from('fighter_profiles')
+            .insert({
+              user_id: appUser.id,
+              first_name: invitation.first_name,
+              last_name: invitation.last_name,
+              weight_class: invitation.weight_class || 'Lightweight',
+              country: 'HN',
+            })
+            .select('id')
+            .single();
+
+          if (profileError) throw profileError;
+
+          // Mark invitation as accepted
+          await supabase
+            .from('fighter_invitations')
+            .update({
+              status: 'accepted',
+              accepted_at: new Date().toISOString(),
+              fighter_profile_id: fighterProfile.id,
+            })
+            .eq('token', inviteToken);
+
+          toast({
+            title: '✅ Registro completo',
+            description: 'Tu perfil de peleador ha sido creado exitosamente',
+          });
+        }
+      } else {
+        toast({
+          title: 'Registro exitoso',
+          description: 'Por favor revisa tu email para confirmar tu cuenta',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error en registro:', error);
       toast({
         title: 'Error de registro',
         description: error.message,
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Registro exitoso',
-        description: 'Por favor revisa tu email para confirmar tu cuenta. Después podrás crear tu Fighter ID si deseas ser peleador.',
-      });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -173,11 +268,27 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
-              <div className="mb-4 p-4 bg-muted rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Después del registro podrás crear tu <strong>Fighter ID</strong> si deseas ser peleador profesional.
-                </p>
-              </div>
+              {invitation && (
+                <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCheck className="h-5 w-5 text-primary" />
+                    <p className="text-sm font-medium">Invitación de Fighter ID</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Has sido invitado como: <strong>{invitation.first_name} {invitation.last_name}</strong>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tu perfil de peleador se creará automáticamente al completar el registro
+                  </p>
+                </div>
+              )}
+              {!invitation && (
+                <div className="mb-4 p-4 bg-muted rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Después del registro podrás crear tu <strong>Fighter ID</strong> si deseas ser peleador profesional.
+                  </p>
+                </div>
+              )}
               <Form {...signUpForm}>
                 <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
                   <FormField
@@ -191,6 +302,7 @@ export default function Auth() {
                             type="email"
                             placeholder="tu@email.com"
                             {...field}
+                            disabled={!!invitation}
                           />
                         </FormControl>
                         <FormMessage />
@@ -214,9 +326,9 @@ export default function Auth() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Registrarse
+                  <Button type="submit" className="w-full" disabled={loading || validatingToken}>
+                    {(loading || validatingToken) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {invitation ? 'Completar Registro' : 'Registrarse'}
                   </Button>
                 </form>
               </Form>
