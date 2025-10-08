@@ -42,11 +42,9 @@ export const SocialSidebar = () => {
             ? (hasFighterProfile ? '/license/dashboard' : '/license/welcome')
             : item.path;
           
-          // Fighter ID: solo activo cuando estamos en rutas /license/*
-          // Otros: solo activos cuando estamos FUERA de /license y en su ruta exacta
-          const isActive = item.isPrimary 
-            ? inLicense
-            : !inLicense && location.pathname === item.path;
+          // Resaltado: solo para "Fighter ID" sin importar la ruta
+          const isActive = item.isPrimary;
+          
           
           const showBadge = item.path === '/social/notifications' && unreadCount > 0;
           
