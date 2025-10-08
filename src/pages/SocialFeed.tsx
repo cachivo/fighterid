@@ -171,12 +171,14 @@ export default function SocialFeed() {
                   {userFighter ? 'Red Social de Peleadores' : 
                    isAdmin ? 'Panel Social Administrativo' : 'Comunidad Fighter ID'}
                 </h1>
-                <p className="text-sm text-muted-foreground hidden md:block flex items-center gap-2">
+                <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
                   <Rss className="h-3 w-3" />
-                  {userFighter ? 'Noticias automáticas cada 30 min' : 
-                   isAdmin ? 'Sistema de noticias inteligente activo' : 'Feed con noticias en tiempo real'}
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse ml-2"></div>
-                </p>
+                  <span>
+                    {userFighter ? 'Noticias automáticas cada 30 min' : 
+                     isAdmin ? 'Sistema de noticias inteligente activo' : 'Feed con noticias en tiempo real'}
+                  </span>
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
