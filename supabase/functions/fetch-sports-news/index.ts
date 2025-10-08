@@ -45,30 +45,59 @@ function extractImageFromHTML(html: string): string | null {
   return null;
 }
 
-// Scrape Open Graph image from webpage
+// Scrape Open Graph image from webpage with improved selectors
 async function scrapeImageFromWebpage(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, { 
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; NewsBot/1.0)' },
-      signal: AbortSignal.timeout(5000) // 5 second timeout
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      },
+      signal: AbortSignal.timeout(8000) // Increased timeout
     });
     const html = await response.text();
     
     // Try Open Graph image
     const ogImageMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i);
     if (ogImageMatch && ogImageMatch[1]) {
+      console.log('Found OG image');
       return ogImageMatch[1];
     }
     
     // Try Twitter card image
     const twitterImageMatch = html.match(/<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
     if (twitterImageMatch && twitterImageMatch[1]) {
+      console.log('Found Twitter image');
       return twitterImageMatch[1];
+    }
+    
+    // ESPN specific - try data-default-src
+    const espnMatch = html.match(/<img[^>]+data-default-src=["']([^"']+)["']/i);
+    if (espnMatch && espnMatch[1]) {
+      console.log('Found ESPN image');
+      return espnMatch[1];
+    }
+    
+    // Try data-src (lazy loading)
+    const dataSrcMatch = html.match(/<img[^>]+data-src=["']([^"']+)["']/i);
+    if (dataSrcMatch && dataSrcMatch[1]) {
+      console.log('Found data-src image');
+      return dataSrcMatch[1];
+    }
+    
+    // Try srcset attribute
+    const srcsetMatch = html.match(/<img[^>]+srcset=["']([^"']+)["']/i);
+    if (srcsetMatch && srcsetMatch[1]) {
+      const firstSrc = srcsetMatch[1].split(',')[0].trim().split(' ')[0];
+      if (firstSrc) {
+        console.log('Found srcset image');
+        return firstSrc;
+      }
     }
     
     // Try to find first large image in content
     const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
     if (imgMatch && imgMatch[1] && !imgMatch[1].includes('logo') && !imgMatch[1].includes('icon')) {
+      console.log('Found img tag');
       return imgMatch[1];
     }
   } catch (error) {
@@ -178,9 +207,10 @@ async function parseRSSFeed(feedUrl: string, category: string, source: string) {
         
         if (title && link) {
           let imageUrl: string | null = null;
-          const articleUrl = link[1].trim();
-          const articleTitle = (title[1] || title[2]).replace(/<[^>]*>/g, '').trim();
-          const articleDesc = description ? (description[1] || description[2]).replace(/<[^>]*>/g, '').trim() : '';
+          // Clean CDATA tags from URLs
+          const articleUrl = link[1].replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+          const articleTitle = (title[1] || title[2]).replace(/<[^>]*>/g, '').replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+          const articleDesc = description ? (description[1] || description[2]).replace(/<[^>]*>/g, '').replace(/<!\[CDATA\[|\]\]>/g, '').trim() : '';
           
           // 1. Try enclosure tag
           const enclosure = item.match(/<enclosure[^>]*url=["']([^"']+)["'][^>]*\/?>/i);
