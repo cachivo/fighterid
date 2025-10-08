@@ -29,7 +29,7 @@ export default function AdminProtectedRoute({ children }: AdminProtectedRoutePro
   }
 
   if (isAdmin === null) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth?redirect=/admin" replace />;
   }
 
   return <>{children}</>;

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
-import { useAdmin } from "@/hooks/useAdmin";
 import { useFighterProfiles } from "@/hooks/useFighterProfiles";
 import {
   NavigationMenu,
@@ -21,7 +20,6 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hasFighterProfile, setHasFighterProfile] = useState(false);
   const { user, signOut } = useAuth();
-  const { isAdmin } = useAdmin();
   const { getUserFighterProfile } = useFighterProfiles();
 
   const handleLogout = async () => {
@@ -224,16 +222,6 @@ const Header = () => {
                     </h3>
                     <div className="space-y-1 mb-4">
                       <div className="text-sm font-medium text-foreground px-3 py-2">{user.email}</div>
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          <Shield className="h-5 w-5" />
-                          <span className="font-medium">Admin Panel</span>
-                        </Link>
-                      )}
                     </div>
                     <Button 
                       variant="outline" 
@@ -264,12 +252,6 @@ const Header = () => {
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
-            {isAdmin && (
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/admin">Admin Panel</Link>
-              </Button>
-            )}
-            
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -301,17 +283,6 @@ const Header = () => {
                         Fighter ID
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer">
-                          <Shield className="mr-2 h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">

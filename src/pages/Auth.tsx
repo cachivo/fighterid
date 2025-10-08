@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,6 +31,8 @@ export default function Auth() {
   const { isAdmin, loading: adminLoading } = useAdmin();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -50,6 +52,11 @@ export default function Auth() {
 
   // Redirect if already authenticated
   if (user && !adminLoading) {
+    // If there's a redirect parameter, use it (for admin access)
+    if (redirectTo) {
+      return <Navigate to={redirectTo} replace />;
+    }
+    // Otherwise, redirect based on role
     if (isAdmin === true) {
       return <Navigate to="/admin/dashboard" replace />;
     } else if (isAdmin === false) {
