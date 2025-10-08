@@ -140,20 +140,68 @@ export function useSocialPosts() {
       return null;
     }
 
+    console.log('🚀 [CREATE POST] Starting post creation:', { 
+      authorType, 
+      authorId, 
+      user: user.id,
+      contentLength: postData.content.length,
+      hasMedia: !!postData.media_files?.length || !!postData.media_urls?.length
+    });
+
     try {
       setLoading(true);
-      let uploadedFiles: any[] = [];
+      
+      // 1. VALIDATE: Check app_user exists
+      const { data: appUser, error: userError } = await supabase
+        .from('app_user')
+        .select('id, is_admin, email')
+        .eq('auth_user_id', user.id)
+        .single();
 
-      // Upload files to storage if any
-      if (postData.media_files && postData.media_files.length > 0) {
-        // Get current user's app_user record
-        const { data: appUser } = await supabase
-          .from('app_user')
-          .select('id')
-          .eq('auth_user_id', user.id)
+      if (userError || !appUser) {
+        console.error('❌ [CREATE POST] app_user not found:', userError);
+        toast.error('Error: No se encontró el perfil de usuario. Por favor, cierra sesión y vuelve a iniciar.');
+        return null;
+      }
+
+      console.log('✅ [CREATE POST] app_user validated:', appUser);
+
+      // 2. VALIDATE: Check author_id matches expected type
+      if (authorType === 'fighter') {
+        const { data: fighterProfile, error: fighterError } = await supabase
+          .from('fighter_profiles')
+          .select('id, first_name, last_name, user_id')
+          .eq('id', authorId)
           .single();
 
-        if (!appUser) throw new Error('Usuario no encontrado');
+        if (fighterError || !fighterProfile) {
+          console.error('❌ [CREATE POST] Fighter profile not found:', fighterError);
+          toast.error('Error: No se encontró el perfil de luchador');
+          return null;
+        }
+
+        console.log('✅ [CREATE POST] Fighter profile validated:', fighterProfile);
+      } else if (authorType === 'admin') {
+        if (!appUser.is_admin) {
+          console.error('❌ [CREATE POST] User is not admin');
+          toast.error('Error: No tienes permisos de administrador');
+          return null;
+        }
+        console.log('✅ [CREATE POST] Admin status validated');
+      } else if (authorType === 'user') {
+        if (appUser.id !== authorId) {
+          console.error('❌ [CREATE POST] Author ID mismatch:', { appUserId: appUser.id, authorId });
+          toast.error('Error: ID de autor no coincide');
+          return null;
+        }
+        console.log('✅ [CREATE POST] User ID validated');
+      }
+
+      let uploadedFiles: any[] = [];
+
+      // 3. Upload files to storage if any
+      if (postData.media_files && postData.media_files.length > 0) {
+        console.log(`📤 [CREATE POST] Uploading ${postData.media_files.length} files...`);
 
         for (const file of postData.media_files) {
           const fileExt = file.name.split('.').pop();
@@ -179,25 +227,55 @@ export function useSocialPosts() {
         }
       }
 
-      // Determine post type
+      // 4. Determine post type
       const postType = postData.post_type || 
         (uploadedFiles.some(f => f.type === 'video') ? 'video' : 
          ((postData.media_urls && postData.media_urls.length > 0) || uploadedFiles.length > 0) ? 'image' : 'text');
 
+      const postPayload = {
+        author_id: authorId,
+        author_type: authorType,
+        content: postData.content,
+        media_urls: postData.media_urls || null,
+        media_files: uploadedFiles.length > 0 ? uploadedFiles : null,
+        post_type: postType
+      };
+
+      console.log('📝 [CREATE POST] Inserting post with payload:', postPayload);
+
       const { data, error } = await supabase
         .from('social_posts')
-        .insert([{
-          author_id: authorId,
-          author_type: authorType,
-          content: postData.content,
-          media_urls: postData.media_urls || null,
-          media_files: uploadedFiles.length > 0 ? uploadedFiles : null,
-          post_type: postType
-        }])
+        .insert([postPayload])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [CREATE POST] Insert failed:', error);
+        
+        // Check if it's an RLS policy error
+        if (error.code === '42501' || error.message?.includes('policy')) {
+          console.error('🔒 [CREATE POST] RLS POLICY ERROR - Details:', {
+            code: error.code,
+            message: error.message,
+            hint: error.hint,
+            details: error.details,
+            authorType,
+            authorId,
+            userId: user.id
+          });
+          
+          toast.error(
+            'Error de permisos: No tienes autorización para crear este tipo de post. ' +
+            'Por favor verifica tu perfil o contacta al administrador.'
+          );
+        } else {
+          toast.error(`Error al crear post: ${error.message}`);
+        }
+        
+        throw error;
+      }
+
+      console.log('✅ [CREATE POST] Post created successfully:', data.id);
 
       // Insert media metadata if files were uploaded
       if (uploadedFiles.length > 0 && data) {
@@ -214,12 +292,17 @@ export function useSocialPosts() {
           .insert(mediaRecords);
       }
 
-      toast.success('Post publicado exitosamente');
+      toast.success('¡Post publicado exitosamente!');
       fetchPosts(); // Refresh posts
       return data;
-    } catch (err) {
-      console.error('Error creating post:', err);
-      toast.error('Error al crear el post');
+    } catch (err: any) {
+      console.error('❌ [CREATE POST] Fatal error:', err);
+      
+      // Only show generic error if we haven't shown specific one
+      if (!err.code || err.code !== '42501') {
+        toast.error('Error inesperado al crear el post. Revisa la consola para más detalles.');
+      }
+      
       return null;
     } finally {
       setLoading(false);

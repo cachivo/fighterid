@@ -40,10 +40,15 @@ export default function CreatePostForm({
   const [showImageInput, setShowImageInput] = useState(false);
   const [showMediaUpload, setShowMediaUpload] = useState(false);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!content.trim() && mediaUrls.length === 0 && mediaFiles.length === 0) return;
+    if (isSubmitting) return; // Prevent double submit
+
+    setIsSubmitting(true);
 
     const postData: CreatePostData = {
       content: content.trim(),
@@ -53,16 +58,22 @@ export default function CreatePostForm({
                  (mediaUrls.length > 0 || mediaFiles.length > 0) ? 'image' : 'text'
     };
 
-    await onSubmit(postData);
-    
-    // Reset form
-    setContent('');
-    setMediaUrls([]);
-    setMediaFiles([]);
-    filePreviews.forEach(p => URL.revokeObjectURL(p.preview));
-    setFilePreviews([]);
-    setNewImageUrl('');
-    setShowImageInput(false);
+    try {
+      await onSubmit(postData);
+      
+      // Reset form only on success
+      setContent('');
+      setMediaUrls([]);
+      setMediaFiles([]);
+      filePreviews.forEach(p => URL.revokeObjectURL(p.preview));
+      setFilePreviews([]);
+      setNewImageUrl('');
+      setShowImageInput(false);
+    } catch (error) {
+      console.error('Error in form submission:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileSelect = (file: File) => {
@@ -97,27 +108,41 @@ export default function CreatePostForm({
     return authorName.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
   };
 
-  const isSubmitDisabled = (!content.trim() && mediaUrls.length === 0 && mediaFiles.length === 0) || content.length > 2000 || loading;
+  const isSubmitDisabled = (!content.trim() && mediaUrls.length === 0 && mediaFiles.length === 0) || content.length > 2000 || loading || isSubmitting;
 
   return (
     <div className="space-y-4">
-      {/* Author info with toggle */}
-      <div className="flex items-center justify-between">
+      {/* Author info with toggle - ENHANCED */}
+      <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/30">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
+          <Avatar className="h-10 w-10 ring-2 ring-primary/20">
             <AvatarImage src={authorAvatar || ''} alt={authorName} />
             <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
               {getAuthorInitials()}
             </AvatarFallback>
           </Avatar>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">{authorName}</span>
-            {authorNickname && (
-              <span className="text-sm text-muted-foreground">"{authorNickname}"</span>
-            )}
-            {authorType === 'admin' && postAsAdmin && (
-              <Badge variant="secondary" className="text-xs">Oficial</Badge>
-            )}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-foreground">{authorName}</span>
+              {authorNickname && (
+                <span className="text-sm text-muted-foreground">"{authorNickname}"</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                Publicando como: <span className="font-medium">
+                  {authorType === 'admin' && postAsAdmin ? 'News (Oficial)' : 
+                   authorType === 'fighter' ? 'Luchador' : 
+                   authorType === 'admin' ? 'Mi Perfil' : 'Usuario'}
+                </span>
+              </span>
+              {authorType === 'admin' && postAsAdmin && (
+                <Badge variant="secondary" className="text-xs">Oficial</Badge>
+              )}
+              {authorType === 'fighter' && (
+                <Badge variant="default" className="text-xs">Fighter</Badge>
+              )}
+            </div>
           </div>
         </div>
         
@@ -297,7 +322,7 @@ export default function CreatePostForm({
             size="sm"
             className="px-6"
           >
-            {loading ? (
+            {loading || isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Publicando...
