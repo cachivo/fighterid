@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,21 +22,89 @@ export default function LicenseResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Dar tiempo a Supabase para procesar los tokens del hash de la URL
-    const timer = setTimeout(() => {
-      if (!session) {
-        toast({
-          title: 'Enlace inválido o expirado',
-          description: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.',
-          variant: 'destructive',
-        });
-        navigate('/license/forgot-password');
-      } else {
+    let cancelled = false;
+
+    const parseParams = () => {
+      const rawHash = window.location.hash || '';
+      const hashParams = new URLSearchParams(rawHash.startsWith('#') ? rawHash.slice(1) : rawHash);
+      const queryParams = new URLSearchParams(window.location.search || '');
+      const get = (k: string) => hashParams.get(k) || queryParams.get(k);
+      return {
+        type: get('type') || undefined,
+        access_token: get('access_token') || undefined,
+        refresh_token: get('refresh_token') || undefined,
+        code: get('code') || undefined,
+        token_hash: get('token_hash') || get('token') || undefined,
+        error_code: get('error_code') || undefined,
+        error_description: get('error_description') || undefined,
+      };
+    };
+
+    const tryProcessAuthFromUrl = async () => {
+      try {
+        const params = parseParams();
+
+        if (params.error_code) {
+          console.error('[LicenseResetPassword] auth error:', params.error_code, params.error_description);
+        }
+
+        if (params.type === 'recovery' && params.access_token && params.refresh_token) {
+          const { error } = await supabase.auth.setSession({
+            access_token: params.access_token,
+            refresh_token: params.refresh_token,
+          });
+          if (error) console.error('[LicenseResetPassword] setSession error:', error);
+          return;
+        }
+
+        if (params.code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(params.code);
+          if (error) console.error('[LicenseResetPassword] exchangeCodeForSession error:', error);
+          return;
+        }
+
+        if (params.type === 'recovery' && params.token_hash) {
+          const { error } = await supabase.auth.verifyOtp({
+            type: 'recovery',
+            token_hash: params.token_hash,
+          } as any);
+          if (error) console.error('[LicenseResetPassword] verifyOtp error:', error);
+          return;
+        }
+      } catch (e) {
+        console.error('[LicenseResetPassword] URL processing error:', e);
+      }
+    };
+
+    tryProcessAuthFromUrl();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (!cancelled && (event === 'PASSWORD_RECOVERY' || (newSession && newSession.user))) {
+        setError('');
         setVerifying(false);
       }
-    }, 1500);
+    });
 
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      if (!cancelled) {
+        if (!session) {
+          toast({
+            title: 'Enlace inválido o expirado',
+            description: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.',
+            variant: 'destructive',
+          });
+          navigate('/license/forgot-password');
+        } else {
+          setVerifying(false);
+        }
+      }
+    }, 12000);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, [session, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -24,39 +24,73 @@ export default function ResetPassword() {
   useEffect(() => {
     let cancelled = false;
 
-    const tryHydrateFromHash = async () => {
-      try {
-        const rawHash = window.location.hash || '';
-        const params = new URLSearchParams(rawHash.startsWith('#') ? rawHash.slice(1) : rawHash);
-        const access_token = params.get('access_token');
-        const refresh_token = params.get('refresh_token');
-        const type = params.get('type');
+    const parseParams = () => {
+      const rawHash = window.location.hash || '';
+      const hashParams = new URLSearchParams(rawHash.startsWith('#') ? rawHash.slice(1) : rawHash);
+      const queryParams = new URLSearchParams(window.location.search || '');
+      const get = (k: string) => hashParams.get(k) || queryParams.get(k);
+      return {
+        type: get('type') || undefined,
+        access_token: get('access_token') || undefined,
+        refresh_token: get('refresh_token') || undefined,
+        code: get('code') || undefined,
+        token_hash: get('token_hash') || get('token') || undefined,
+        error_code: get('error_code') || undefined,
+        error_description: get('error_description') || undefined,
+      };
+    };
 
-        if (type === 'recovery' && access_token && refresh_token) {
-          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-          if (error) {
-            console.error('[ResetPassword] setSession error:', error);
-          }
+    const tryProcessAuthFromUrl = async () => {
+      try {
+        const params = parseParams();
+
+        if (params.error_code) {
+          console.error('[ResetPassword] auth error:', params.error_code, params.error_description);
+        }
+
+        // Case A: access_token/refresh_token in URL (hash or query)
+        if (params.type === 'recovery' && params.access_token && params.refresh_token) {
+          const { error } = await supabase.auth.setSession({
+            access_token: params.access_token,
+            refresh_token: params.refresh_token,
+          });
+          if (error) console.error('[ResetPassword] setSession error:', error);
+          return;
+        }
+
+        // Case B: code param present
+        if (params.code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(params.code);
+          if (error) console.error('[ResetPassword] exchangeCodeForSession error:', error);
+          return;
+        }
+
+        // Case C: token_hash (or token) provided for recovery
+        if (params.type === 'recovery' && params.token_hash) {
+          const { error } = await supabase.auth.verifyOtp({
+            type: 'recovery',
+            token_hash: params.token_hash,
+          } as any);
+          if (error) console.error('[ResetPassword] verifyOtp error:', error);
+          return;
         }
       } catch (e) {
-        console.error('[ResetPassword] hash parse error:', e);
+        console.error('[ResetPassword] URL processing error:', e);
       }
     };
 
-    // Intentar hidratar sesión desde el hash manualmente (fallback)
-    tryHydrateFromHash();
+    // Start processing URL (no Supabase calls inside the listener)
+    tryProcessAuthFromUrl();
 
-    // Escuchar evento de recuperación y cambios de sesión
+    // Listen for auth state changes to end verifying state when session is ready
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
-      if (event === 'PASSWORD_RECOVERY' || (newSession && newSession.user)) {
-        if (!cancelled) {
-          setError('');
-          setVerifying(false);
-        }
+      if (!cancelled && (event === 'PASSWORD_RECOVERY' || (newSession && newSession.user))) {
+        setError('');
+        setVerifying(false);
       }
     });
 
-    // Dar tiempo extra para que Supabase procese el hash y cree la sesión
+    // Extra time for Supabase to process the link
     const timer = setTimeout(() => {
       if (!cancelled) {
         if (!session) {
@@ -64,7 +98,7 @@ export default function ResetPassword() {
         }
         setVerifying(false);
       }
-    }, 8000);
+    }, 12000);
 
     return () => {
       cancelled = true;
