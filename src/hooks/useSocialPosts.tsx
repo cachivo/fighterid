@@ -147,7 +147,17 @@ export function useSocialPosts() {
       );
 
       if (offset === 0) {
-        setPosts(sortedPosts);
+        // Preserve optimistic posts, replace with real ones
+        setPosts(prev => {
+          const optimisticPosts = prev.filter((p: any) => p.isOptimistic);
+          console.log(`🔄 [FETCH POSTS] Preserving ${optimisticPosts.length} optimistic posts`);
+          
+          // Merge: real posts replace optimistic by id, keep optimistic if not found
+          const realPostIds = new Set(sortedPosts.map(p => p.id));
+          const keptOptimistic = optimisticPosts.filter((p: any) => !realPostIds.has(p.id));
+          
+          return [...keptOptimistic, ...sortedPosts];
+        });
       } else {
         // Deduplicate by id when appending
         setPosts(prev => {
@@ -323,7 +333,7 @@ export function useSocialPosts() {
           .insert(mediaRecords);
       }
 
-      // OPTIMISTIC UPDATE: Agregar post localmente de inmediato
+      // OPTIMISTIC UPDATE: Agregar post localmente de inmediato con flag
       const newPost: SocialPost = {
         ...data,
         author_type: data.author_type as 'fighter' | 'admin' | 'user',
@@ -332,9 +342,11 @@ export function useSocialPosts() {
         author_name: authorType === 'admin' ? 'News' : 'Usuario',
         author_avatar: '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
         is_liked: false,
-        is_friend: false
-      };
+        is_friend: false,
+        isOptimistic: true // Flag para identificar posts optimísticos
+      } as any;
       
+      console.log('✨ [CREATE POST] Adding optimistic post to feed');
       setPosts(prev => [newPost, ...prev]);
       toast.success('¡Post publicado exitosamente!');
       

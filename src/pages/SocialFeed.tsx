@@ -144,14 +144,7 @@ export default function SocialFeed() {
     if (result) {
       console.log('✅ [SOCIAL FEED] Post creado exitosamente');
       setShowCreateForm(false);
-      
-      // Refetch explícito basado en tab activo
-      console.log('🔄 [SOCIAL FEED] Refetching feed para tab:', activeTab);
-      if (activeTab === 'friends') {
-        await fetchFriendsPosts();
-      } else {
-        await fetchPosts();
-      }
+      // NO refetch explícito - dejamos que optimistic update + realtime hagan el trabajo
     } else {
       console.error('❌ [SOCIAL FEED] Fallo al crear post');
     }
