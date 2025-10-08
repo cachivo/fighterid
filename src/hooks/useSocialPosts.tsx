@@ -419,6 +419,7 @@ export function useSocialPosts() {
     try {
       if (!user) {
         console.log('[FRIENDS POSTS] No user authenticated');
+        setPosts([]);
         return;
       }
 
@@ -431,31 +432,47 @@ export function useSocialPosts() {
 
       if (!appUser) {
         console.log('[FRIENDS POSTS] No app_user found');
+        setPosts([]);
         return;
       }
 
-      // Get list of friends IDs
+      // Get list of friends app_user IDs
       const { data: friendships } = await supabase
         .from('friendships')
         .select('friend_id')
         .eq('user_id', appUser.id);
 
-      const friendIds = friendships?.map(f => f.friend_id) || [];
+      const friendAppUserIds = friendships?.map(f => f.friend_id) || [];
       
-      console.log('[FRIENDS POSTS] Friend IDs:', friendIds);
+      console.log('[FRIENDS POSTS] Friend app_user IDs:', friendAppUserIds);
 
-      if (friendIds.length === 0) {
+      if (friendAppUserIds.length === 0) {
         console.log('[FRIENDS POSTS] No friends found');
         setPosts([]);
         return;
       }
 
-      // Fetch posts from friends
+      // Get fighter_profile IDs for friends who are fighters
+      const { data: friendFighterProfiles } = await supabase
+        .from('fighter_profiles')
+        .select('id')
+        .in('user_id', friendAppUserIds);
+
+      const friendFighterIds = friendFighterProfiles?.map(fp => fp.id) || [];
+      
+      console.log('[FRIENDS POSTS] Friend fighter_profile IDs:', friendFighterIds);
+
+      // Combine both app_user IDs and fighter_profile IDs
+      const allFriendAuthorIds = [...friendAppUserIds, ...friendFighterIds];
+      
+      console.log('[FRIENDS POSTS] All friend author IDs:', allFriendAuthorIds);
+
+      // Fetch posts from friends (both user posts and fighter posts)
       const { data: postsData, error: postsError } = await supabase
         .from('social_posts')
         .select('*')
         .eq('active', true)
-        .in('author_id', friendIds)
+        .in('author_id', allFriendAuthorIds)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
