@@ -22,23 +22,52 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    // Escuchar el evento PASSWORD_RECOVERY y dar más tiempo a procesar el hash
+    let cancelled = false;
+
+    const tryHydrateFromHash = async () => {
+      try {
+        const rawHash = window.location.hash || '';
+        const params = new URLSearchParams(rawHash.startsWith('#') ? rawHash.slice(1) : rawHash);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        const type = params.get('type');
+
+        if (type === 'recovery' && access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (error) {
+            console.error('[ResetPassword] setSession error:', error);
+          }
+        }
+      } catch (e) {
+        console.error('[ResetPassword] hash parse error:', e);
+      }
+    };
+
+    // Intentar hidratar sesión desde el hash manualmente (fallback)
+    tryHydrateFromHash();
+
+    // Escuchar evento de recuperación y cambios de sesión
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (event === 'PASSWORD_RECOVERY' || (newSession && newSession.user)) {
-        // Sesión válida para actualizar contraseña
-        setError('');
-        setVerifying(false);
+        if (!cancelled) {
+          setError('');
+          setVerifying(false);
+        }
       }
     });
 
+    // Dar tiempo extra para que Supabase procese el hash y cree la sesión
     const timer = setTimeout(() => {
-      if (!session) {
-        setError('El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
+      if (!cancelled) {
+        if (!session) {
+          setError('El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
+        }
+        setVerifying(false);
       }
-      setVerifying(false);
-    }, 4000);
+    }, 8000);
 
     return () => {
+      cancelled = true;
       clearTimeout(timer);
       subscription.unsubscribe();
     };
