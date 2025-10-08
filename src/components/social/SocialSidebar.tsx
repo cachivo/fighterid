@@ -39,8 +39,13 @@ export const SocialSidebar = () => {
           const itemPath = item.path === '/license/dashboard' 
             ? (hasFighterProfile ? '/license/dashboard' : '/license/welcome')
             : item.path;
-          const isActive = location.pathname === itemPath || 
-            (item.path === '/license/dashboard' && location.pathname.startsWith('/license'));
+          
+          // Solo Fighter ID está activo cuando estamos en rutas /license
+          // Los demás botones están activos solo en su ruta exacta
+          const isActive = item.isPrimary 
+            ? location.pathname.startsWith('/license')
+            : location.pathname === item.path;
+          
           const showBadge = item.path === '/social/notifications' && unreadCount > 0;
           
           return (
@@ -49,21 +54,13 @@ export const SocialSidebar = () => {
               to={itemPath}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-lg transition-all relative',
-                item.isPrimary && 'bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-md hover:opacity-90',
-                !item.isPrimary && isActive && 'bg-primary text-primary-foreground',
-                !item.isPrimary && !isActive && 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                isActive && item.isPrimary && 'bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-md hover:opacity-90',
+                isActive && !item.isPrimary && 'bg-primary text-primary-foreground',
+                !isActive && 'hover:bg-accent text-muted-foreground hover:text-foreground'
               )}
             >
-              <item.icon className={cn('w-5 h-5', item.isPrimary && 'animate-pulse')} />
+              <item.icon className="w-5 h-5" />
               <span className="font-medium">{item.label}</span>
-              {item.isPrimary && (
-                <Badge 
-                  variant="secondary" 
-                  className="ml-auto h-5 px-2 flex items-center justify-center text-xs bg-background/20"
-                >
-                  ⭐
-                </Badge>
-              )}
               {showBadge && (
                 <Badge 
                   variant="destructive" 
