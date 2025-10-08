@@ -154,7 +154,7 @@ export const useFriends = () => {
         : senderData?.email?.split('@')[0] || 'Alguien';
 
       // Crear notificación in-app para el receptor
-      await supabase
+      const { error: notifError } = await supabase
         .from('notifications')
         .insert({
           user_id: receiverId,
@@ -164,6 +164,11 @@ export const useFriends = () => {
           data: { link: '/social/friends' },
           read: false
         });
+
+      if (notifError) {
+        console.error('[FRIEND REQUEST] Error creando notificación:', notifError);
+        // No fallar la operación por esto, solo log
+      }
 
       toast.success('Solicitud enviada');
       fetchFriendRequests();

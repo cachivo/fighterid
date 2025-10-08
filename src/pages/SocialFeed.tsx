@@ -96,13 +96,7 @@ export default function SocialFeed() {
     if (result) {
       console.log('✅ [SOCIAL FEED] Post creado exitosamente');
       setShowCreateForm(false);
-      
-      // Auto-refresh feed según tab activo
-      if (activeTab === 'friends') {
-        await fetchFriendsPosts();
-      } else {
-        await fetchPosts();
-      }
+      // Ya no necesitamos refetch aquí porque useSocialPosts hace optimistic update + realtime
     } else {
       console.error('❌ [SOCIAL FEED] Fallo al crear post');
     }

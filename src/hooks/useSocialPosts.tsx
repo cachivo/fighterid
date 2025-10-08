@@ -314,8 +314,21 @@ export function useSocialPosts() {
           .insert(mediaRecords);
       }
 
+      // OPTIMISTIC UPDATE: Agregar post localmente de inmediato
+      const newPost: SocialPost = {
+        ...data,
+        author_type: data.author_type as 'fighter' | 'admin' | 'user',
+        post_type: data.post_type as 'text' | 'image' | 'video' | 'news',
+        media_files: uploadedFiles.length > 0 ? uploadedFiles : null,
+        author_name: authorType === 'admin' ? 'News' : 'Usuario',
+        author_avatar: '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
+        is_liked: false,
+        is_friend: false
+      };
+      
+      setPosts(prev => [newPost, ...prev]);
       toast.success('¡Post publicado exitosamente!');
-      fetchPosts(); // Refresh posts
+      
       return data;
     } catch (err: any) {
       console.error('❌ [CREATE POST] Fatal error:', err);
@@ -410,6 +423,40 @@ export function useSocialPosts() {
 
   useEffect(() => {
     fetchPosts();
+
+    // REALTIME: Suscribirse a cambios en social_posts
+    const channel = supabase
+      .channel('social-posts-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'social_posts'
+        },
+        (payload) => {
+          console.log('[REALTIME] Nuevo post detectado:', payload.new);
+          // Refetch para obtener datos enriquecidos
+          fetchPosts();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'social_posts'
+        },
+        (payload) => {
+          console.log('[REALTIME] Post actualizado:', payload.new);
+          fetchPosts();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchFriendsPosts = async (limit = 20, offset = 0) => {

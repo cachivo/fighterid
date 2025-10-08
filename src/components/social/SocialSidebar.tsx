@@ -40,8 +40,8 @@ export const SocialSidebar = () => {
             ? (hasFighterProfile ? '/license/dashboard' : '/license/welcome')
             : item.path;
           
-          // Solo Fighter ID está activo cuando estamos en rutas /license
-          // Los demás botones están activos solo en su ruta exacta
+          // Fighter ID: activo en todas las rutas /license/*
+          // Otros: activos solo en su ruta exacta
           const isActive = item.isPrimary 
             ? location.pathname.startsWith('/license')
             : location.pathname === item.path;
@@ -54,9 +54,12 @@ export const SocialSidebar = () => {
               to={itemPath}
               className={cn(
                 'flex items-center gap-3 px-4 py-3 rounded-lg transition-all relative',
-                isActive && item.isPrimary && 'bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold shadow-md hover:opacity-90',
-                isActive && !item.isPrimary && 'bg-primary text-primary-foreground',
-                !isActive && 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                // Fighter ID: SIEMPRE con gradiente cuando activo
+                isActive && item.isPrimary && 'bg-gradient-to-r from-primary/90 to-accent/90 text-white font-semibold shadow-lg hover:from-primary hover:to-accent',
+                // Otros: fondo sólido cuando activos
+                isActive && !item.isPrimary && 'bg-primary/10 text-primary font-medium',
+                // Inactivos: texto normal sin apariencia de activo
+                !isActive && 'text-foreground hover:bg-muted/50'
               )}
             >
               <item.icon className="w-5 h-5" />
