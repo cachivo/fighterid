@@ -51,20 +51,43 @@ export default function SocialFeed() {
   }, [user]);
 
   const handleCreatePost = async (postData: any) => {
-    if (!user || !appUser) return;
+    console.log('🔍 [SOCIAL FEED] handleCreatePost iniciado');
+    console.log('🔍 [SOCIAL FEED] user:', user?.id);
+    console.log('🔍 [SOCIAL FEED] appUser:', appUser);
+    console.log('🔍 [SOCIAL FEED] isAdmin:', isAdmin);
+    console.log('🔍 [SOCIAL FEED] userFighter:', userFighter);
+    console.log('🔍 [SOCIAL FEED] postAsAdmin:', postAsAdmin);
+    
+    if (!user || !appUser) {
+      console.error('❌ [SOCIAL FEED] No user or appUser');
+      toast.error('Debes iniciar sesión para publicar');
+      return;
+    }
+
+    let authorType: 'admin' | 'fighter' | 'user';
+    let authorId: string;
 
     if (isAdmin && postAsAdmin) {
-      // Admin posting as News
-      await createPost(postData, 'admin', appUser.id);
-      setShowCreateForm(false);
+      authorType = 'admin';
+      authorId = appUser.id;
+      console.log('📝 [SOCIAL FEED] Posteando como ADMIN:', authorId);
     } else if (userFighter) {
-      // Fighter post (or admin posting as fighter)
-      await createPost(postData, 'fighter', userFighter.id);
+      authorType = 'fighter';
+      authorId = userFighter.id;
+      console.log('📝 [SOCIAL FEED] Posteando como FIGHTER:', authorId);
+    } else {
+      authorType = 'user';
+      authorId = appUser.id;
+      console.log('📝 [SOCIAL FEED] Posteando como USER:', authorId);
+    }
+
+    const result = await createPost(postData, authorType, authorId);
+    
+    if (result) {
+      console.log('✅ [SOCIAL FEED] Post creado exitosamente');
       setShowCreateForm(false);
     } else {
-      // Regular user post
-      await createPost(postData, 'user', appUser.id);
-      setShowCreateForm(false);
+      console.error('❌ [SOCIAL FEED] Fallo al crear post');
     }
   };
 
