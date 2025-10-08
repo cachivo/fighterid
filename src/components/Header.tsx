@@ -13,9 +13,9 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Trophy, Monitor, Settings, BarChart3, Users, Phone, DollarSign, ChevronDown, Shield, LogOut, User, Heart, Globe } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, BarChart3, Users, DollarSign, Shield, LogOut, User, CreditCard } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -48,16 +48,11 @@ const Header = () => {
   }, [user, getUserFighterProfile]);
 
   const navigationItems = [
-    { name: "Mi Perfil", href: "/profile", icon: Shield },
-    { name: "Social", href: "/social", icon: Globe },
-    { name: "Eventos", href: "/eventos", icon: Trophy },
-    { name: "Fighters", href: "/fighters", icon: Users },
-    { name: "Predicciones", href: "/predicciones", icon: DollarSign },
-    { name: "Ranking", href: "#ranking", icon: BarChart3 },
-  ];
-
-  const sectionItems = [
-    { name: "Ranking", href: "#ranking", icon: BarChart3 },
+    { name: "Comunidad", href: "/", icon: Home },
+    { name: "Eventos", href: "/eventos", icon: Calendar },
+    { name: "Peleadores", href: "/fighters", icon: Users },
+    { name: "Predicciones", href: "/predicciones", icon: Trophy },
+    { name: "Mi Perfil", href: "/profile", icon: User },
   ];
 
   return (
@@ -75,109 +70,79 @@ const Header = () => {
         </div>
         
         {/* Desktop Navigation */}
-        <NavigationMenu className="hidden lg:flex">
-          <NavigationMenuList className="space-x-2">
-            {/* Fighter ID - Only show in central nav if user is logged in AND has fighter profile */}
-            {user && hasFighterProfile && (
-              <NavigationMenuItem>
-                <NavigationMenuLink asChild>
-                  <Link 
-                    to="/license/dashboard" 
-                    className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-                  >
-                    <Shield className="h-4 w-4 mr-2" />
-                    Fighter ID
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            )}
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link 
-                  to="/social" 
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  <Globe className="h-4 w-4 mr-2" />
-                  Social
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link 
-                  to="/eventos" 
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Eventos
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link 
-                  to="/fighters" 
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Fighters
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link 
-                  to="/predicciones" 
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Predicciones
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <a 
-                  href="#ranking" 
-                  className="group inline-flex h-10 w-max items-center justify-center px-4 py-2 text-sm font-medium text-foreground transition-colors hover:text-primary relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-1 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-                >
-                  Ranking
-                </a>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+        <div className="hidden lg:flex items-center gap-1">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/">Comunidad</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/eventos">Eventos</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/fighters">Peleadores</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/predicciones">Predicciones</Link>
+          </Button>
+          
+          {user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="default" size="sm" className="ml-2 gap-2">
+                  <Shield className="h-4 w-4" />
+                  Fighter ID
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Sistema de Licencias</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {hasFighterProfile ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/license/dashboard" className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Ver mi Fighter ID
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Mi Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/license/welcome" className="cursor-pointer">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Obtén tu licencia
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer">
+                        <User className="mr-2 h-4 w-4" />
+                        Mi Perfil
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         {/* Simplified Navigation for Medium Screens */}
-        <nav className="hidden md:flex lg:hidden items-center space-x-4">
-          {user && hasFighterProfile && (
-            <Link 
-              to="/license/dashboard"
-              className="flex items-center gap-1 text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md font-medium hover:bg-primary/90 transition-colors"
-            >
-              <Shield className="h-3 w-3" />
-              Fighter ID
-            </Link>
-          )}
-          <Link to="/social" className="text-sm text-foreground hover:text-primary transition-colors flex items-center gap-1">
-            <Globe className="h-3 w-3" />
-            Social
-          </Link>
-          <Link to="/eventos" className="text-sm text-foreground hover:text-primary transition-colors">
-            Eventos
-          </Link>
-          <Link to="/fighters" className="text-sm text-foreground hover:text-primary transition-colors">
-            Fighters
-          </Link>
-          <Link to="/predicciones" className="text-sm text-foreground hover:text-primary transition-colors">
-            Predicciones
-          </Link>
-          <a href="#ranking" className="text-sm text-foreground hover:text-primary transition-colors">
-            Ranking
-          </a>
-        </nav>
+        <div className="hidden md:flex lg:hidden items-center gap-1">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/">Comunidad</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/eventos">Eventos</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/fighters">Peleadores</Link>
+          </Button>
+        </div>
         
         {/* Actions */}
         <div className="flex items-center gap-3">
@@ -208,115 +173,97 @@ const Header = () => {
                 
                 {/* Navigation Items */}
                 <div className="flex-1 py-2">
-                  {/* Featured Fighter ID - Only for non-fighters */}
-                  {(!user || !hasFighterProfile) && (
-                    <div className="px-3 sm:px-4 pb-4">
-                      <Link
-                        to="/license/welcome"
-                        className="flex items-center gap-3 rounded-lg px-4 py-4 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors border-2 border-primary/20 min-h-[56px] touch-manipulation"
-                        onClick={() => setMobileMenuOpen(false)}
+                  <div className="mb-4 px-3 sm:px-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Acceso Rápido
+                    </h3>
+                    {user && (
+                      <Button 
+                        variant="default" 
+                        asChild 
+                        className="w-full justify-start gap-2"
+                        size="lg"
                       >
-                        <Shield className="h-6 w-6 flex-shrink-0" />
-                        <div>
-                          <span className="font-semibold text-base">Fighter ID</span>
-                          <p className="text-xs opacity-90 mt-0.5">
-                            Obtén tu licencia de peleador
-                          </p>
-                        </div>
-                      </Link>
-                    </div>
-                  )}
-                  
-                  <nav className="space-y-1 px-3 sm:px-4">
-                     {navigationItems.slice(1).map((item) => {
-                       const IconComponent = item.icon;
-                       const isExternalLink = item.href.startsWith('#');
-                       
-                       if (isExternalLink) {
-                         return (
-                           <a
-                             key={item.name}
-                             href={item.href}
-                             className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
-                             onClick={() => setMobileMenuOpen(false)}
-                           >
-                            <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary" />
-                             <span className="font-medium">{item.name}</span>
-                           </a>
-                         );
-                       }
-                       
+                        <Link to={hasFighterProfile ? "/license/dashboard" : "/license/welcome"} onClick={() => setMobileMenuOpen(false)}>
+                          <Shield className="h-5 w-5" />
+                          {hasFighterProfile ? "Mi Fighter ID" : "Obtén tu Fighter ID"}
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="border-t border-border pt-4 px-3 sm:px-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Navegación
+                    </h3>
+                    <nav className="space-y-1">
+                      {navigationItems.map((item) => {
+                        const IconComponent = item.icon;
+                        
                         return (
                           <Link
                             key={item.name}
                             to={item.href}
-                            className="flex items-center gap-3 rounded-lg px-3 py-4 text-foreground hover:bg-muted hover:text-primary transition-colors min-h-[48px] touch-manipulation"
+                            className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors min-h-[48px] touch-manipulation"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <IconComponent className="h-5 w-5 text-accent-foreground opacity-90 hover:text-primary flex-shrink-0" />
+                            <IconComponent className="h-5 w-5 flex-shrink-0" />
                             <span className="font-medium text-base">{item.name}</span>
                           </Link>
                         );
-                     })}
-                  </nav>
+                      })}
+                    </nav>
+                  </div>
                 </div>
                 
                 {/* Call to Actions */}
-                <div className="border-t border-border p-4 sm:p-6 space-y-3">
-                  {user ? (
-                    <>
-                      <div className="text-center mb-4">
-                        <p className="text-sm font-medium text-foreground">{user.email}</p>
-                      </div>
+                {user && (
+                  <div className="border-t border-border pt-4 px-3 sm:px-4">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Mi Cuenta
+                    </h3>
+                    <div className="space-y-1 mb-4">
+                      <div className="text-sm font-medium text-foreground px-3 py-2">{user.email}</div>
                       {isAdmin && (
-                        <Button 
-                          variant="outline" 
-                          className="w-full"
+                        <Link
+                          to="/admin"
+                          className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors"
                           onClick={() => setMobileMenuOpen(false)}
-                          asChild
                         >
-                          <Link to="/admin">
-                            <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
-                            Admin Panel
-                          </Link>
-                        </Button>
+                          <Shield className="h-5 w-5" />
+                          <span className="font-medium">Admin Panel</span>
+                        </Link>
                       )}
-                      <Button 
-                        variant="outline" 
-                        className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={handleLogout}
-                      >
-                        <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
-                        Cerrar Sesión
-                      </Button>
-                    </>
-                  ) : (
+                    </div>
                     <Button 
                       variant="outline" 
+                      className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Cerrar Sesión
+                    </Button>
+                  </div>
+                )}
+                
+                {!user && (
+                  <div className="border-t border-border p-4 sm:p-6">
+                    <Button 
+                      variant="default" 
                       className="w-full"
                       onClick={() => setMobileMenuOpen(false)}
                       asChild
                     >
                       <Link to="/auth">Iniciar Sesión</Link>
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </SheetContent>
           </Sheet>
 
           {/* Desktop Actions */}
           <div className="hidden sm:flex items-center gap-2">
-            {/* Fighter ID - Show in actions when not logged in OR logged in without fighter profile */}
-            {(!user || (user && !hasFighterProfile)) && (
-              <Button variant="outline" size="sm" className="h-8 px-2 text-xs" asChild>
-                <Link to="/license/welcome" className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  Fighter ID
-                </Link>
-              </Button>
-            )}
-            
             {isAdmin && (
               <Button variant="outline" size="sm" asChild>
                 <Link to="/admin">Admin Panel</Link>
@@ -336,33 +283,45 @@ const Header = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                   <div className="px-2 py-1.5">
-                    <p className="text-sm font-medium">{user.email}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
-                      <User className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
+                    <Link to="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
-                  {isAdmin && (
+                  {hasFighterProfile && (
                     <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center">
-                        <Shield className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
-                        Admin Panel
+                      <Link to="/license/dashboard" className="cursor-pointer">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Fighter ID
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer">
+                          <Shield className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4 mr-2 text-accent-foreground opacity-90 hover:text-primary" />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="default" size="sm" asChild>
                 <Link to="/auth">Iniciar Sesión</Link>
               </Button>
             )}

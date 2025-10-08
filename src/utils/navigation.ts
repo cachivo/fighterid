@@ -4,9 +4,7 @@ export const MAIN_ROUTES = {
   EVENTS: '/eventos',
   FIGHTERS: '/fighters',
   PREDICTIONS: '/predicciones',
-  SOCIAL: '/social',
-  PROFILE: '/perfil',
-  FIGHTER_PROFILE: '/profile',
+  PROFILE: '/profile',
   AUTH: '/auth',
   ADMIN: '/admin'
 } as const;
@@ -25,16 +23,18 @@ export const LICENSE_ROUTES = {
   WELCOME: '/license/welcome',
   ONBOARDING: '/license/onboarding',
   DASHBOARD: '/license/dashboard',
+  AUTH: '/license/auth',
   VERIFY: '/verify-license'
 } as const;
 
 // Breadcrumb configurations for pages
 export const BREADCRUMB_CONFIG = {
+  '/': [{ label: 'Comunidad', isActive: true }],
   '/eventos': [{ label: 'Eventos', isActive: true }],
   '/fighters': [{ label: 'Peleadores', isActive: true }],
   '/predicciones': [{ label: 'Predicciones', isActive: true }],
-  '/social': [{ label: 'Red Social', isActive: true }],
-  '/perfil': [{ label: 'Mi Perfil', isActive: true }],
+  '/profile': [{ label: 'Mi Perfil', isActive: true }],
+  '/license/dashboard': [{ label: 'Fighter ID', isActive: true }],
   '/admin/dashboard': [
     { label: 'Admin', href: '/admin' },
     { label: 'Dashboard', isActive: true }

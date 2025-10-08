@@ -98,7 +98,6 @@ const App = () => (
             <Routes>
               {/* Public Platform Routes */}
               <Route path="/" element={<SocialFeed />} />
-              <Route path="/landing" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
@@ -154,19 +153,15 @@ const App = () => (
                 </ProtectedRoute>
               } />
 
-              {/* Social Profile Route - For social network personal profile */}
-              <Route path="/perfil" element={
-                <ProtectedRoute>
-                  <SocialProfile />
-                </ProtectedRoute>
-              } />
-
-              {/* User Profile Route - General profile for all users (fighter-focused) */}
+              {/* Unified Profile Route - Central hub for user and fighter info */}
               <Route path="/profile" element={
                 <ProtectedRoute>
                   <UserProfile />
                 </ProtectedRoute>
               } />
+              
+              {/* Alias for profile (backwards compatibility) */}
+              <Route path="/perfil" element={<Navigate to="/profile" replace />} />
 
               {/* Profile Change Request Route */}
               <Route path="/profile/request-changes" element={
@@ -175,19 +170,9 @@ const App = () => (
                 </ProtectedRoute>
               } />
 
-              {/* Legacy Fighter Profile Routes (maintained for compatibility) */}
-              <Route path="/fighter/me" element={
-                <ProtectedRoute>
-                  <MyProfile />
-                </ProtectedRoute>
-              } />
-              
-              {/* Legacy Fighter Routes (maintained for compatibility) */}
-              <Route path="/fighters/me" element={
-                <ProtectedRoute>
-                  <FighterMe />
-                </ProtectedRoute>
-              } />
+              {/* Legacy Fighter Routes - Redirect to unified profile */}
+              <Route path="/fighter/me" element={<Navigate to="/profile" replace />} />
+              <Route path="/fighters/me" element={<Navigate to="/profile" replace />} />
               <Route path="/fighters/license/:id" element={
                 <ProtectedRoute>
                   <FighterLicense />
