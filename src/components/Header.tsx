@@ -183,7 +183,7 @@ const Header = () => {
                 <div className="flex-1 py-2">
                   <div className="mb-4 px-3 sm:px-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      ⭐ Principal
+                      Principal
                     </h3>
                     {user && (
                       <Button 

@@ -53,12 +53,60 @@ export default function SocialFeed() {
 
   // Load posts based on active tab
   useEffect(() => {
+    console.log('🔄 [SOCIAL FEED] Tab changed to:', activeTab);
     if (activeTab === 'friends') {
       fetchFriendsPosts();
     } else {
       fetchPosts();
     }
   }, [activeTab]);
+
+  // Realtime subscription at page level, respects activeTab
+  useEffect(() => {
+    console.log('🔌 [SOCIAL FEED] Setting up realtime for tab:', activeTab);
+    
+    const channel = supabase
+      .channel('social-posts-page-rt')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'social_posts'
+        },
+        (payload) => {
+          console.log('📥 [REALTIME] Nuevo post detectado:', payload.new);
+          // Refetch según tab actual
+          if (activeTab === 'friends') {
+            fetchFriendsPosts();
+          } else {
+            fetchPosts();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'social_posts'
+        },
+        (payload) => {
+          console.log('📝 [REALTIME] Post actualizado:', payload.new);
+          if (activeTab === 'friends') {
+            fetchFriendsPosts();
+          } else {
+            fetchPosts();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔌 [SOCIAL FEED] Cleaning up realtime subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [activeTab, fetchPosts, fetchFriendsPosts]);
 
   const handleCreatePost = async (postData: any) => {
     console.log('🔍 [SOCIAL FEED] handleCreatePost iniciado');
@@ -96,7 +144,14 @@ export default function SocialFeed() {
     if (result) {
       console.log('✅ [SOCIAL FEED] Post creado exitosamente');
       setShowCreateForm(false);
-      // Ya no necesitamos refetch aquí porque useSocialPosts hace optimistic update + realtime
+      
+      // Refetch explícito basado en tab activo
+      console.log('🔄 [SOCIAL FEED] Refetching feed para tab:', activeTab);
+      if (activeTab === 'friends') {
+        await fetchFriendsPosts();
+      } else {
+        await fetchPosts();
+      }
     } else {
       console.error('❌ [SOCIAL FEED] Fallo al crear post');
     }

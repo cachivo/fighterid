@@ -30,6 +30,8 @@ export const SocialSidebar = () => {
     }
   }, [user, getUserFighterProfile]);
 
+  const inLicense = location.pathname.startsWith('/license');
+  
   return (
     <aside className="w-64 border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="sticky top-0 p-4 space-y-2">
@@ -40,11 +42,11 @@ export const SocialSidebar = () => {
             ? (hasFighterProfile ? '/license/dashboard' : '/license/welcome')
             : item.path;
           
-          // Fighter ID: activo en todas las rutas /license/*
-          // Otros: activos solo en su ruta exacta
+          // Fighter ID: solo activo cuando estamos en rutas /license/*
+          // Otros: solo activos cuando estamos FUERA de /license y en su ruta exacta
           const isActive = item.isPrimary 
-            ? location.pathname.startsWith('/license')
-            : location.pathname === item.path;
+            ? inLicense
+            : !inLicense && location.pathname === item.path;
           
           const showBadge = item.path === '/social/notifications' && unreadCount > 0;
           

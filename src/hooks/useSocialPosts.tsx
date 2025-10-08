@@ -423,40 +423,7 @@ export function useSocialPosts() {
 
   useEffect(() => {
     fetchPosts();
-
-    // REALTIME: Suscribirse a cambios en social_posts
-    const channel = supabase
-      .channel('social-posts-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'social_posts'
-        },
-        (payload) => {
-          console.log('[REALTIME] Nuevo post detectado:', payload.new);
-          // Refetch para obtener datos enriquecidos
-          fetchPosts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'social_posts'
-        },
-        (payload) => {
-          console.log('[REALTIME] Post actualizado:', payload.new);
-          fetchPosts();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // Realtime subscription moved to SocialFeed.tsx page level
   }, []);
 
   const fetchFriendsPosts = async (limit = 20, offset = 0) => {
