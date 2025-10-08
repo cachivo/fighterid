@@ -142,6 +142,29 @@ export const useFriends = () => {
         return false;
       }
 
+      // Obtener datos del remitente para la notificación
+      const { data: senderData } = await supabase
+        .from('app_user')
+        .select('first_name, last_name, email')
+        .eq('id', appUser.id)
+        .single();
+
+      const senderName = senderData?.first_name 
+        ? `${senderData.first_name} ${senderData.last_name || ''}`.trim()
+        : senderData?.email?.split('@')[0] || 'Alguien';
+
+      // Crear notificación in-app para el receptor
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: receiverId,
+          type: 'friend_request',
+          title: 'Nueva solicitud de amistad',
+          message: `${senderName} te ha enviado una solicitud de amistad`,
+          data: { link: '/social/friends' },
+          read: false
+        });
+
       toast.success('Solicitud enviada');
       fetchFriendRequests();
       return true;
