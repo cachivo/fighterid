@@ -56,8 +56,8 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
-        {/* Logo */}
-        <div className="flex items-center">
+        {/* Logo + Título */}
+        <div className="flex items-center gap-3">
           <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer">
             <img 
               src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
@@ -65,27 +65,24 @@ const Header = () => {
               className="h-7 sm:h-8 md:h-10 w-auto"
             />
           </Link>
+          <div className="hidden sm:block">
+            <h1 className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Fighter ID
+            </h1>
+            <p className="text-[10px] md:text-xs text-muted-foreground hidden md:block">Sistema de Licencias</p>
+          </div>
         </div>
         
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-1">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/">Comunidad</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/eventos">Eventos</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/fighters">Peleadores</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/predicciones">Predicciones</Link>
-          </Button>
-          
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="default" size="sm" className="ml-2 gap-2">
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="mr-2 gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold shadow-lg"
+                >
                   <Shield className="h-4 w-4" />
                   Fighter ID
                 </Button>
@@ -127,6 +124,19 @@ const Header = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/">Comunidad</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/eventos">Eventos</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/fighters">Peleadores</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/predicciones">Predicciones</Link>
+          </Button>
         </div>
 
         {/* Simplified Navigation for Medium Screens */}
@@ -173,17 +183,17 @@ const Header = () => {
                 <div className="flex-1 py-2">
                   <div className="mb-4 px-3 sm:px-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                      Acceso Rápido
+                      ⭐ Principal
                     </h3>
                     {user && (
                       <Button 
                         variant="default" 
                         asChild 
-                        className="w-full justify-start gap-2"
+                        className="w-full justify-start gap-3 bg-gradient-to-r from-primary to-accent hover:opacity-90 font-semibold shadow-lg text-base h-12"
                         size="lg"
                       >
                         <Link to={hasFighterProfile ? "/license/dashboard" : "/license/welcome"} onClick={() => setMobileMenuOpen(false)}>
-                          <Shield className="h-5 w-5" />
+                          <Shield className="h-6 w-6" />
                           {hasFighterProfile ? "Mi Fighter ID" : "Obtén tu Fighter ID"}
                         </Link>
                       </Button>
