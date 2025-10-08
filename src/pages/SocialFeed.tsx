@@ -125,13 +125,13 @@ export default function SocialFeed() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <BackButton to="/" label="Inicio" className="hidden md:flex" />
-              <img 
-                src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
-                alt="Fighter ID" 
-                className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => window.location.href = '/'}
-              />
+              <Link to="/">
+                <img 
+                  src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
+                  alt="Fighter ID" 
+                  className="h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+                />
+              </Link>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   {userFighter ? 'Red Social de Peleadores' : 
@@ -178,7 +178,6 @@ export default function SocialFeed() {
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
-              <BackButton to="/" label="Inicio" className="md:hidden" variant="outline" />
             </div>
           </div>
         </div>

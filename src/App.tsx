@@ -97,7 +97,8 @@ const App = () => (
             <Sonner />
             <Routes>
               {/* Public Platform Routes */}
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<SocialFeed />} />
+              <Route path="/landing" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
@@ -105,7 +106,6 @@ const App = () => (
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />
-              <Route path="/social" element={<SocialFeed />} />
               <Route path="/social/friends" element={<Friends />} />
               <Route path="/social/discover" element={<Discover />} />
               <Route path="/social/notifications" element={<Notifications />} />

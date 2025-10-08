@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ResetPassword() {
@@ -24,19 +24,15 @@ export default function ResetPassword() {
     // Dar tiempo a Supabase para procesar los tokens del hash de la URL
     const timer = setTimeout(() => {
       if (!session) {
-        toast({
-          title: 'Enlace inválido o expirado',
-          description: 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.',
-          variant: 'destructive',
-        });
-        navigate('/auth/forgot-password');
+        setError('El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.');
+        setVerifying(false);
       } else {
         setVerifying(false);
       }
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [session, navigate, toast]);
+  }, [session]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +60,7 @@ export default function ResetPassword() {
         title: 'Contraseña actualizada',
         description: 'Tu contraseña ha sido cambiada exitosamente',
       });
-      navigate('/auth');
+      navigate('/');
     }
   };
 
@@ -87,17 +83,45 @@ export default function ResetPassword() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Nueva Contraseña</CardTitle>
           <CardDescription>
-            Ingresa tu nueva contraseña
+            {session ? 'Ingresa tu nueva contraseña' : 'Enlace de recuperación inválido'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error && (
+          {error && !session && (
             <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {!session ? (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                El enlace de recuperación puede haber expirado o ya fue utilizado. 
+                Solicita un nuevo enlace para continuar.
+              </p>
+              <Link to="/auth/forgot-password" className="w-full">
+                <Button type="button" variant="default" className="w-full">
+                  Solicitar nuevo enlace
+                </Button>
+              </Link>
+              <Link to="/auth" className="w-full">
+                <Button type="button" variant="outline" className="w-full">
+                  Volver al inicio de sesión
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <>
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="password">Nueva Contraseña</Label>
               <div className="relative">
@@ -138,11 +162,13 @@ export default function ResetPassword() {
               />
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Cambiar Contraseña
-            </Button>
-          </form>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Cambiar Contraseña
+                </Button>
+              </form>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
