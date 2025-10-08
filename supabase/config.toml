@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.fetch-sports-news]
 verify_jwt = false
 
+[functions.publish-news-to-social]
+verify_jwt = false
+
 [functions.send-fighter-invitation]
 verify_jwt = true

@@ -243,22 +243,33 @@ export default function SocialFeed() {
                 onClick={async () => {
                   fetchPosts();
                   
-                  // If admin, also fetch fresh news
+                  // If admin, also fetch fresh news and publish to social
                   if (isAdmin) {
                     try {
                       toast.info('Buscando noticias nuevas...');
-                      const { error } = await supabase.functions.invoke('fetch-sports-news');
                       
-                      if (error) {
-                        console.error('Error fetching news:', error);
+                      // Step 1: Fetch fresh news
+                      const { error: fetchError } = await supabase.functions.invoke('fetch-sports-news');
+                      
+                      if (fetchError) {
+                        console.error('Error fetching news:', fetchError);
                         toast.error('Error al buscar noticias');
                       } else {
-                        toast.success('Noticias actualizadas exitosamente');
-                        // Refresh posts again after news are fetched
-                        setTimeout(() => fetchPosts(), 2000);
+                        // Step 2: Publish news to social feed
+                        const { data, error: publishError } = await supabase.functions.invoke('publish-news-to-social');
+                        
+                        if (publishError) {
+                          console.error('Error publishing news:', publishError);
+                          toast.error('Error al publicar noticias');
+                        } else {
+                          console.log('📰 News published:', data);
+                          toast.success(`Noticias actualizadas: ${data?.postsCreated || 0} posts creados`);
+                          // Refresh posts after publishing
+                          setTimeout(() => fetchPosts(), 1000);
+                        }
                       }
                     } catch (err) {
-                      console.error('Error invoking fetch-sports-news:', err);
+                      console.error('Error invoking functions:', err);
                     }
                   } else {
                     toast.success('Feed actualizado');
@@ -384,7 +395,14 @@ export default function SocialFeed() {
               {posts.length > 0 && (
                 <div className="flex justify-center pt-6">
                   <Button 
-                    onClick={() => fetchPosts(10, posts.length)} 
+                    onClick={() => {
+                      console.log('🔄 [LOAD MORE] Tab activo:', activeTab);
+                      if (activeTab === 'friends') {
+                        fetchFriendsPosts(10, posts.length);
+                      } else {
+                        fetchPosts(10, posts.length);
+                      }
+                    }} 
                     disabled={loading}
                     variant="outline"
                     className="bg-card/50 hover:bg-card border-border/50"

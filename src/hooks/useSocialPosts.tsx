@@ -65,12 +65,11 @@ export function useSocialPosts() {
         }
       }
       
-      // Get posts first
+      // Get posts first - ordered by newest first
       const { data: postsData, error: postsError } = await supabase
         .from('social_posts')
         .select('*')
         .eq('active', true)
-        .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -142,10 +141,20 @@ export function useSocialPosts() {
 
       console.log(`[SOCIAL POSTS] Enriched ${enrichedPosts.length} posts`);
 
+      // Sort in memory by created_at DESC to ensure consistency
+      const sortedPosts = enrichedPosts.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
       if (offset === 0) {
-        setPosts(enrichedPosts);
+        setPosts(sortedPosts);
       } else {
-        setPosts(prev => [...prev, ...enrichedPosts]);
+        // Deduplicate by id when appending
+        setPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = sortedPosts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       }
 
     } catch (err) {

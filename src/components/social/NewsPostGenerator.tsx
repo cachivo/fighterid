@@ -104,67 +104,15 @@ export function NewsPostGenerator({ userId, userType = 'fan' }: NewsPostGenerato
 
   const createSmartSocialPost = async (newsItem: any, userType: string) => {
     try {
-      // Create cleaner post templates with better link formatting
-      const postTemplates = {
-        fighter: `🥊 ATENCIÓN LUCHADORES
+      console.log('📤 [NEWS POST GEN] Invoking publish-news-to-social function');
+      
+      // Use the server-side function to publish news (bypasses RLS)
+      const { error } = await supabase.functions.invoke('publish-news-to-social');
 
-${newsItem.title}
-
-${newsItem.description || ''}
-
-Esta información podría impactar tu carrera. ¿Qué opinas?
-
-📰 Fuente: ${newsItem.source}
-🔗 Leer artículo completo: ${newsItem.url}
-
-#Fighters #${newsItem.category} #CombateSports`,
-
-        fan: `🔥 ÚLTIMA HORA EN ${newsItem.category.toUpperCase()}
-
-${newsItem.title}
-
-${newsItem.description || ''}
-
-💬 ¿Qué te parece? ¡Comenta tu opinión!
-
-📰 Fuente: ${newsItem.source}
-🔗 Leer más: ${newsItem.url}
-
-#${newsItem.category} #CombateSports #MMA #Boxing`,
-
-        admin: `📢 ACTUALIZACIÓN IMPORTANTE
-
-${newsItem.title}
-
-${newsItem.description || ''}
-
-Información relevante para la comunidad de combate.
-
-📰 Fuente: ${newsItem.source}
-🔗 Enlace: ${newsItem.url}
-
-#News #${newsItem.category} #Update`
-      };
-
-      const content = postTemplates[userType as keyof typeof postTemplates] || postTemplates.fan;
-
-      const { error } = await supabase
-        .from('social_posts')
-        .insert([{
-          author_id: '00000000-0000-0000-0000-000000000000', // System/Bot ID
-          author_type: 'admin',
-          content,
-          media_urls: newsItem.image_url ? [newsItem.image_url] : [],
-          post_type: 'news',
-          featured: newsItem.is_featured,
-          active: true
-        }]);
-
-      if (!error) {
-        toast({
-          title: "Nueva publicación",
-          description: "Se ha agregado una nueva noticia al feed social",
-        });
+      if (error) {
+        console.error('❌ Error invoking publish-news-to-social:', error);
+      } else {
+        console.log('✅ News published to social feed via Edge Function');
       }
     } catch (error) {
       console.error('Error creating smart social post:', error);
