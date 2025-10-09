@@ -47,9 +47,16 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No autorizado");
     }
 
-    // Verificar que sea admin
-    const { data: isAdmin } = await supabaseClient.rpc('is_admin');
-    if (!isAdmin) {
+    // Verificar que sea admin consultando directamente la tabla user_roles
+    const { data: userRoles, error: rolesError } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    if (rolesError || !userRoles) {
+      console.error("Error verificando rol de admin:", rolesError);
       throw new Error("Solo administradores pueden enviar invitaciones");
     }
 
@@ -85,7 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Enviar email con Resend
     const emailResponse = await resend.emails.send({
-      from: "Fighter ID <onboarding@resend.dev>",
+      from: "Fighter ID <send@fighter-id.org>",
       to: [email],
       subject: "🥊 Invitación para registrarte en Fighter ID",
       html: `
