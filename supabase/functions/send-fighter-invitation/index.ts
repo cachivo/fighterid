@@ -52,8 +52,8 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     // Obtener usuario autenticado
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+    const jwt = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
 
     if (authError || !user) {
       console.error("Error de autenticación:", authError);
@@ -96,8 +96,8 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, firstName, lastName, phone, weightClass }: InvitationRequest = await req.json();
 
     // Generar token único
-    const token = crypto.randomUUID();
-    const registrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth?invite=${token}`;
+    const inviteToken = crypto.randomUUID();
+    const registrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth?invite=${inviteToken}`;
 
     console.log("Creating invitation for:", email);
 
@@ -110,7 +110,7 @@ const handler = async (req: Request): Promise<Response> => {
         last_name: lastName,
         phone,
         weight_class: weightClass,
-        token,
+        token: inviteToken,
         invited_by: user.id,
       })
       .select()
