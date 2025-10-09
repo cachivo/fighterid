@@ -23,6 +23,19 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verificar autenticación primero
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "No autorizado - falta token" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // Crear cliente de Supabase con el JWT del usuario
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -30,21 +43,26 @@ const handler = async (req: Request): Promise<Response> => {
         auth: {
           persistSession: false,
         },
+        global: {
+          headers: {
+            Authorization: authHeader,
+          },
+        },
       }
     );
 
-    // Verificar autenticación
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No autorizado");
-    }
-
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
-      authHeader.replace("Bearer ", "")
-    );
+    // Obtener usuario autenticado
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
-      throw new Error("No autorizado");
+      console.error("Error de autenticación:", authError);
+      return new Response(
+        JSON.stringify({ error: "No autorizado - usuario inválido" }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     // Verificar que sea admin usando RPC function
