@@ -47,17 +47,31 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No autorizado");
     }
 
-    // Verificar que sea admin consultando directamente la tabla user_roles
-    const { data: userRoles, error: rolesError } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .single();
+    // Verificar que sea admin usando RPC function
+    console.log('Verificando admin para user:', user.id);
+    const { data: isAdmin, error: isAdminError } = await supabaseClient.rpc('is_admin');
+    
+    if (isAdminError) {
+      console.error('Error en is_admin RPC:', isAdminError);
+      return new Response(
+        JSON.stringify({ error: "Error verificando permisos de administrador" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
-    if (rolesError || !userRoles) {
-      console.error("Error verificando rol de admin:", rolesError);
-      throw new Error("Solo administradores pueden enviar invitaciones");
+    console.log('isAdmin resultado:', isAdmin);
+    
+    if (!isAdmin) {
+      return new Response(
+        JSON.stringify({ error: "Solo administradores pueden enviar invitaciones" }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     const { email, firstName, lastName, phone, weightClass }: InvitationRequest = await req.json();
