@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AdminLayoutWithAI } from '@/components/admin/AIAssistant/AdminLayoutWithAI';
+import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,7 +127,7 @@ export default function MassEmail() {
   };
 
   return (
-    <AdminLayoutWithAI title="Envío de Correos Masivos">
+    <AdminLayoutWithAI>
       <div className="space-y-6">
         <Alert>
           <Mail className="h-4 w-4" />

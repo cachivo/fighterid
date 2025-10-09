@@ -101,11 +101,12 @@ export default function EnhancedLicenseOnboarding() {
           });
 
         if (!reactivationError && reactivation) {
-          if (reactivation.action === 'reactivated') {
+          const result = reactivation as { action?: string; message?: string };
+          if (result.action === 'reactivated') {
             toast.success('Tu perfil ha sido reactivado exitosamente');
             navigate('/license/pending', { replace: true });
             return;
-          } else if (reactivation.action === 'exists') {
+          } else if (result.action === 'exists') {
             toast.info('Ya tienes un perfil activo');
             navigate('/license/pending', { replace: true });
             return;
@@ -170,10 +171,13 @@ export default function EnhancedLicenseOnboarding() {
           p_email: user.email || ''
         });
 
-      if (reactivation && reactivation.action === 'exists') {
-        toast.error('Ya tienes un perfil activo. Redirigiendo...');
-        setTimeout(() => navigate('/license/pending', { replace: true }), 2000);
-        return;
+      if (reactivation) {
+        const result = reactivation as { action?: string; message?: string };
+        if (result.action === 'exists') {
+          toast.error('Ya tienes un perfil activo. Redirigiendo...');
+          setTimeout(() => navigate('/license/pending', { replace: true }), 2000);
+          return;
+        }
       }
 
       // Check if user already has a profile
