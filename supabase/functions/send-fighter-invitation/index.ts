@@ -52,7 +52,8 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     // Obtener usuario autenticado
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
       console.error("Error de autenticación:", authError);
