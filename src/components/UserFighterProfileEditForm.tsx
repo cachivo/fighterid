@@ -20,17 +20,25 @@ const fighterProfileSchema = z.object({
   first_name: z.string().min(1, 'Nombre es requerido').max(50, 'Máximo 50 caracteres'),
   last_name: z.string().min(1, 'Apellido es requerido').max(50, 'Máximo 50 caracteres'),
   nickname: z.string().max(50, 'Máximo 50 caracteres').optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  country: z.string().optional().or(z.literal('')),
   birthdate: z.string().optional().or(z.literal('')),
   birthplace: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   document_type: z.string().optional().or(z.literal('')),
   document_number: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
   blood_type: z.string().optional().or(z.literal('')),
+  weight_class: z.string().optional().or(z.literal('')),
   height_cm: z.string().optional().or(z.literal('')),
   weight_kg: z.string().optional().or(z.literal('')),
   reach_cm: z.string().optional().or(z.literal('')),
   stance: z.string().max(50, 'Máximo 50 caracteres').optional().or(z.literal('')),
   fighting_style: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   gym_name: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
+  level: z.string().optional().or(z.literal('')),
+  record_wins: z.string().optional().or(z.literal('')),
+  record_losses: z.string().optional().or(z.literal('')),
+  record_draws: z.string().optional().or(z.literal('')),
+  record_type: z.string().optional().or(z.literal('')),
   bio: z.string().max(500, 'Máximo 500 caracteres').optional().or(z.literal('')),
   emergency_contact_name: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   emergency_contact_phone: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
@@ -63,17 +71,25 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       first_name: profile.first_name || '',
       last_name: profile.last_name || '',
       nickname: profile.nickname || '',
+      gender: profile.gender || '',
+      country: profile.country || 'HN',
       birthdate: profile.birthdate || '',
       birthplace: profile.birthplace || '',
       document_type: profile.document_type || '',
       document_number: profile.document_number || '',
       blood_type: profile.blood_type || '',
+      weight_class: profile.weight_class || '',
       height_cm: profile.height_cm ? profile.height_cm.toString() : '',
       weight_kg: profile.weight_kg ? profile.weight_kg.toString() : '',
       reach_cm: profile.reach_cm ? profile.reach_cm.toString() : '',
       stance: profile.stance || '',
       fighting_style: profile.fighting_style || '',
       gym_name: profile.gym_name || '',
+      level: profile.level || '',
+      record_wins: profile.record_wins ? profile.record_wins.toString() : '0',
+      record_losses: profile.record_losses ? profile.record_losses.toString() : '0',
+      record_draws: profile.record_draws ? profile.record_draws.toString() : '0',
+      record_type: profile.record_type || 'Amateur',
       bio: profile.bio || '',
       emergency_contact_name: profile.emergency_contact_name || '',
       emergency_contact_phone: profile.emergency_contact_phone || '',
@@ -123,7 +139,10 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         avatar_url: avatarUrl,
         height_cm: data.height_cm && data.height_cm !== '' ? parseInt(data.height_cm) : null,
         weight_kg: data.weight_kg && data.weight_kg !== '' ? parseFloat(data.weight_kg) : null,
-        reach_cm: data.reach_cm && data.reach_cm !== '' ? parseInt(data.reach_cm) : null
+        reach_cm: data.reach_cm && data.reach_cm !== '' ? parseInt(data.reach_cm) : null,
+        record_wins: data.record_wins && data.record_wins !== '' ? parseInt(data.record_wins) : 0,
+        record_losses: data.record_losses && data.record_losses !== '' ? parseInt(data.record_losses) : 0,
+        record_draws: data.record_draws && data.record_draws !== '' ? parseInt(data.record_draws) : 0
       };
 
       // Remove empty strings and convert them to null
@@ -334,6 +353,40 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Género</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar género" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="M">Masculino</SelectItem>
+                          <SelectItem value="F">Femenino</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>País</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="HN" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </CardContent>
           </Card>
@@ -435,6 +488,148 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   )}
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Información de Combate */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Información de Combate</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="weight_class"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoría de Peso</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar categoría" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Strawweight">Strawweight</SelectItem>
+                          <SelectItem value="Flyweight">Flyweight</SelectItem>
+                          <SelectItem value="Bantamweight">Bantamweight</SelectItem>
+                          <SelectItem value="Featherweight">Featherweight</SelectItem>
+                          <SelectItem value="Lightweight">Lightweight</SelectItem>
+                          <SelectItem value="Welterweight">Welterweight</SelectItem>
+                          <SelectItem value="Middleweight">Middleweight</SelectItem>
+                          <SelectItem value="Light Heavyweight">Light Heavyweight</SelectItem>
+                          <SelectItem value="Heavyweight">Heavyweight</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nivel</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar nivel" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="AMATEUR">Amateur</SelectItem>
+                          <SelectItem value="SEMI_PRO">Semi-Profesional</SelectItem>
+                          <SelectItem value="PROFESSIONAL">Profesional</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div>
+                <Label className="text-base font-semibold">Récord de Peleas</Label>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                  <FormField
+                    control={form.control}
+                    name="record_wins"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Victorias</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="record_losses"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Derrotas</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="record_draws"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empates</FormLabel>
+                        <FormControl>
+                          <Input type="number" min="0" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="record_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Amateur">Amateur</SelectItem>
+                            <SelectItem value="Profesional">Profesional</SelectItem>
+                            <SelectItem value="Mixto">Mixto</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Biografía</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={4} placeholder="Cuéntanos sobre tu trayectoria en las artes marciales..." />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
@@ -556,22 +751,9 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
           {/* Información Adicional */}
           <Card>
             <CardHeader>
-              <CardTitle>Información Adicional</CardTitle>
+              <CardTitle>Enlaces de Perfil Deportivo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="bio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Biografía</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Cuéntanos sobre tu trayectoria en las artes marciales" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
