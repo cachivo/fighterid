@@ -30,14 +30,6 @@ export default function ValidacionLicencias() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [reviewingLicense, setReviewingLicense] = useState<any>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  
-  // Form state for creating/updating licenses
-  const [fighterId, setFighterId] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState('');
-  const [discipline, setDiscipline] = useState<'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro'>('MMA');
-  const [status, setStatus] = useState<'ACTIVE'|'SUSPENDED'|'EXPIRED'|'PENDING_REVIEW'>('ACTIVE');
-  const [notes, setNotes] = useState('');
-  const [expiresAt, setExpiresAt] = useState('');
 
   // Fetch pending license requests
   const { data: pendingLicenses, refetch: refetchPending, isLoading: isLoadingPending } = useQuery({
@@ -90,26 +82,6 @@ export default function ValidacionLicencias() {
     },
   });
 
-  // Fetch ALL active fighter profiles for dropdown (with or without licenses)
-  const { data: fighters } = useQuery({
-    queryKey: ['all_fighters_for_license'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fighter_profiles')
-        .select(`
-          id, 
-          first_name, 
-          last_name, 
-          nickname,
-          license_number,
-          primary_license_id
-        `)
-        .eq('active', true)
-        .order('first_name');
-      if (error) throw error;
-      return data || [];
-    },
-  });
 
   // Check admin permissions
   useEffect(() => {
@@ -170,42 +142,6 @@ export default function ValidacionLicencias() {
     };
   }, [queryClient, refetch]);
 
-  const createOrUpdateLicense = async () => {
-    if (!fighterId || !licenseNumber) {
-      toast({ title: "Error", description: "Fighter ID y número de licencia son requeridos", variant: "destructive" });
-      return;
-    }
-
-    try {
-      const payload = {
-        fighter_id: fighterId,
-        license_number: licenseNumber,
-        discipline: discipline as any,
-        status,
-        notes: notes || undefined,
-        expires_at: expiresAt ? new Date(expiresAt).toISOString() : undefined,
-      };
-
-      const { error } = await supabase.from('fighter_licenses').insert(payload);
-      
-      if (error) throw error;
-
-      toast({ title: "Licencia creada", description: "La licencia ha sido emitida exitosamente" });
-      
-      // Reset form
-      setFighterId('');
-      setLicenseNumber('');
-      setDiscipline('MMA');
-      setStatus('ACTIVE');
-      setNotes('');
-      setExpiresAt('');
-      
-      refetch();
-      refetchPending();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
 
   const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED') => {
     if (!isAdmin) {
@@ -347,110 +283,6 @@ export default function ValidacionLicencias() {
 
       {isAdmin && (
         <>
-          {/* Create License Form */}
-          <Card className="border-border/50 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Emitir Nueva Licencia
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="fighter_select">Peleador</Label>
-                <Select value={fighterId} onValueChange={setFighterId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un peleador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fighters?.map(fighter => {
-                      const hasLicense = !!fighter.primary_license_id;
-                      return (
-                        <SelectItem key={fighter.id} value={fighter.id}>
-                          <div className="flex items-center gap-2">
-                            <span>
-                              {fighter.first_name} {fighter.last_name}
-                              {fighter.nickname ? ` "${fighter.nickname}"` : ''}
-                            </span>
-                            {hasLicense ? (
-                              <span className="text-xs text-green-600">✓ Con Licencia</span>
-                            ) : (
-                              <span className="text-xs text-amber-600">⚠ Sin Licencia</span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Selecciona un peleador para emitirle una nueva licencia
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="license_number">Número de Licencia</Label>
-                <Input 
-                  placeholder="FGT-2025-123" 
-                  value={licenseNumber} 
-                  onChange={e => setLicenseNumber(e.target.value)} 
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="discipline_select">Disciplina</Label>
-                <Select value={discipline} onValueChange={(v) => setDiscipline(v as any)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DISCIPLINES.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="state_select">Estado</Label>
-                <Select value={status} onValueChange={(v: any) => setStatus(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PENDING_REVIEW">Pendiente</SelectItem>
-                    <SelectItem value="ACTIVE">Activa</SelectItem>
-                    <SelectItem value="SUSPENDED">Suspendida</SelectItem>
-                    <SelectItem value="EXPIRED">Expirada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="expires_at">Fecha de Expiración</Label>
-                <Input 
-                  type="date" 
-                  value={expiresAt} 
-                  onChange={e => setExpiresAt(e.target.value)} 
-                />
-              </div>
-
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="notes">Notas</Label>
-                <Textarea 
-                  placeholder="Información adicional sobre la licencia..."
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <Button onClick={createOrUpdateLicense} className="w-full sm:w-auto">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Emitir Licencia
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Pending License Requests */}
           <Card className="border-amber-200 bg-amber-50/50 shadow-lg">
             <CardHeader>
