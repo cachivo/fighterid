@@ -2943,6 +2943,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_fighter_invitation: {
+        Args: { p_fighter_profile_id: string; p_token: string }
+        Returns: boolean
+      }
       admin_create_fighter_profile: {
         Args: { p_profile_data: Json }
         Returns: string
@@ -3227,6 +3231,18 @@ export type Database = {
       suspend_license: {
         Args: { p_license_id: string; p_reason: string; p_until?: string }
         Returns: undefined
+      }
+      validate_fighter_invitation: {
+        Args: { p_token: string }
+        Returns: {
+          email: string
+          expires_at: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          weight_class: string
+        }[]
       }
     }
     Enums: {

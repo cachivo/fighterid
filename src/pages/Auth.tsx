@@ -164,15 +164,14 @@ export default function Auth() {
 
           if (profileError) throw profileError;
 
-          // Mark invitation as accepted
-          await supabase
-            .from('fighter_invitations')
-            .update({
-              status: 'accepted',
-              accepted_at: new Date().toISOString(),
-              fighter_profile_id: fighterProfile.id,
-            })
-            .eq('token', inviteToken);
+          // Mark invitation as accepted using secure RPC function
+          const { error: acceptError } = await supabase
+            .rpc('accept_fighter_invitation', {
+              p_token: inviteToken,
+              p_fighter_profile_id: fighterProfile.id,
+            });
+          
+          if (acceptError) throw acceptError;
 
           toast({
             title: '✅ Registro completo',

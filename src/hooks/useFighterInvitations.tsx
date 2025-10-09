@@ -41,16 +41,14 @@ export function useFighterInvitations() {
 
   const validateToken = async (token: string) => {
     try {
+      // Use secure RPC function instead of direct query
       const { data, error } = await supabase
-        .from('fighter_invitations')
-        .select('*')
-        .eq('token', token)
-        .eq('status', 'pending')
-        .gt('expires_at', new Date().toISOString())
-        .maybeSingle();
+        .rpc('validate_fighter_invitation', { p_token: token });
 
       if (error) throw error;
-      return data;
+      
+      // Return first result if array, or null if empty
+      return data && data.length > 0 ? data[0] : null;
     } catch (error: any) {
       console.error('Error validating token:', error);
       return null;
@@ -59,17 +57,15 @@ export function useFighterInvitations() {
 
   const acceptInvitation = async (token: string, fighterProfileId: string) => {
     try {
-      const { error } = await supabase
-        .from('fighter_invitations')
-        .update({
-          status: 'accepted',
-          accepted_at: new Date().toISOString(),
-          fighter_profile_id: fighterProfileId,
-        })
-        .eq('token', token);
+      // Use secure RPC function instead of direct update
+      const { data, error } = await supabase
+        .rpc('accept_fighter_invitation', { 
+          p_token: token,
+          p_fighter_profile_id: fighterProfileId 
+        });
 
       if (error) throw error;
-      return true;
+      return data === true;
     } catch (error: any) {
       console.error('Error accepting invitation:', error);
       return false;
