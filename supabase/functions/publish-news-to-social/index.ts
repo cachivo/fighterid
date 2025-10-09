@@ -47,16 +47,23 @@ Deno.serve(async (req) => {
 
     if (recentNews && recentNews.length > 0) {
       for (const newsItem of recentNews) {
-        // Check if post already exists for this news
-        const { data: existingPost } = await supabaseAdmin
+        // Check if post already exists - improved duplicate detection
+        // Check by both URL in content AND by title similarity
+        const { data: existingPosts } = await supabaseAdmin
           .from('social_posts')
-          .select('id')
+          .select('id, content')
           .eq('post_type', 'news')
-          .ilike('content', `%${newsItem.title}%`)
-          .single();
+          .or(`content.ilike.%${newsItem.url}%,content.ilike.%${newsItem.title.substring(0, 50)}%`)
+          .limit(5);
 
-        if (existingPost) {
-          console.log(`⏭️ Skipping existing post for: ${newsItem.title}`);
+        // More strict duplicate check - if URL appears in any post, skip
+        const isDuplicate = existingPosts?.some(post => 
+          post.content.includes(newsItem.url) || 
+          post.content.includes(newsItem.title)
+        );
+
+        if (isDuplicate) {
+          console.log(`⏭️ Skipping existing post for: ${newsItem.title.substring(0, 80)}`);
           continue;
         }
 

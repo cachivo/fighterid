@@ -7,8 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// RSS Feed sources
+// RSS Feed sources - Expanded for better coverage
 const RSS_FEEDS = [
+  // MMA Sources
   { 
     url: 'https://www.ufc.com/rss/news', 
     category: 'mma', 
@@ -20,19 +21,40 @@ const RSS_FEEDS = [
     source: 'ESPN MMA' 
   },
   { 
-    url: 'https://www.boxingscene.com/rss.xml', 
-    category: 'boxing', 
-    source: 'Boxing Scene' 
-  },
-  { 
     url: 'https://www.mmafighting.com/rss/index.xml', 
     category: 'mma', 
     source: 'MMA Fighting' 
   },
   { 
+    url: 'https://www.sherdog.com/rss/news.xml', 
+    category: 'mma', 
+    source: 'Sherdog' 
+  },
+  { 
+    url: 'https://www.mmajunkie.usatoday.com/feed', 
+    category: 'mma', 
+    source: 'MMA Junkie' 
+  },
+  // Boxing Sources
+  { 
+    url: 'https://www.boxingscene.com/rss.xml', 
+    category: 'boxing', 
+    source: 'Boxing Scene' 
+  },
+  { 
     url: 'https://www.boxingnews24.com/feed/', 
     category: 'boxing', 
     source: 'Boxing News 24' 
+  },
+  { 
+    url: 'https://www.ringtv.com/feed/', 
+    category: 'boxing', 
+    source: 'The Ring' 
+  },
+  { 
+    url: 'https://www.badlefthook.com/rss/index.xml', 
+    category: 'boxing', 
+    source: 'Bad Left Hook' 
   }
 ];
 
@@ -325,14 +347,14 @@ serve(async (req) => {
 
     // Insert new news, avoiding duplicates by URL
     let insertedCount = 0;
-    let socialPostsCreated = 0;
     
     for (const newsItem of allNewsItems) {
+      // Check for duplicates by both URL and title (more robust)
       const { data: existing } = await supabase
         .from('sports_news')
         .select('id')
-        .eq('url', newsItem.url)
-        .single();
+        .or(`url.eq.${newsItem.url},title.eq.${newsItem.title}`)
+        .maybeSingle();
 
       if (!existing) {
         const { data: insertedNews, error } = await supabase
@@ -343,58 +365,19 @@ serve(async (req) => {
         
         if (!error && insertedNews) {
           insertedCount++;
-          
-          // Create social post for high-impact news
-          const shouldCreateSocialPost = 
-            newsItem.is_featured || 
-            newsItem.category === 'mma' || 
-            newsItem.title.toLowerCase().includes('ufc') ||
-            newsItem.title.toLowerCase().includes('canelo') ||
-            newsItem.title.toLowerCase().includes('tank') ||
-            newsItem.title.toLowerCase().includes('championship');
-          
-          if (shouldCreateSocialPost) {
-            const socialPostContent = `🥊 ${newsItem.title}
-
-${newsItem.description}
-
-📰 Fuente: ${newsItem.source}
-🔗 Leer más: ${newsItem.url}
-
-#${newsItem.category} #CombateSports #NoticiasDeportivas`;
-
-            const { error: socialError } = await supabase
-              .from('social_posts')
-              .insert([{
-                author_id: '00000000-0000-0000-0000-000000000000', // System user
-                author_type: 'admin',
-                content: socialPostContent,
-                media_urls: newsItem.image_url ? [newsItem.image_url] : [],
-                post_type: 'news',
-                featured: newsItem.is_featured,
-                active: true
-              }]);
-            
-            if (!socialError) {
-              socialPostsCreated++;
-            } else {
-              console.error('Error creating social post:', socialError);
-            }
-          }
         } else {
           console.error('Error inserting news item:', error);
         }
       }
     }
 
-    console.log(`✅ Sports news updated successfully - ${insertedCount} new items inserted, ${socialPostsCreated} social posts created from ${allNewsItems.length} total items`);
+    console.log(`✅ Sports news updated successfully - ${insertedCount} new items inserted from ${allNewsItems.length} total items`);
 
     return new Response(JSON.stringify({ 
       success: true,
       processed: allNewsItems.length,
       inserted: insertedCount,
-      socialPosts: socialPostsCreated,
-      message: `Sports news updated successfully - ${insertedCount} new items, ${socialPostsCreated} social posts`
+      message: `Sports news updated successfully - ${insertedCount} new items`
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
