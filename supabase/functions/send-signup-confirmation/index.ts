@@ -137,17 +137,18 @@ serve(async (req) => {
       );
     }
 
-    // Build confirmation link
+    // Build confirmation link - always force production domain
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const tokenHash = emailData.token_hash;
     const emailActionType = emailData.email_action_type;
-    const redirectTo = emailData.redirect_to || `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth`;
+    const siteBase = (Deno.env.get("SITE_URL") || "https://fighter-id.org").replace(/\/$/, "");
+    const redirectTo = `${siteBase}/auth`;
 
     const confirmationLink = `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${emailActionType}&redirect_to=${encodeURIComponent(redirectTo)}`;
 
     console.log("[SIGNUP] Sending confirmation email:", {
       to: user.email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
-      redirectTo: redirectTo
+      redirectTo
     });
 
     // Send email with Resend

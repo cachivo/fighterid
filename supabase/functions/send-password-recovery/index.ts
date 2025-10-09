@@ -199,20 +199,27 @@ serve(async (req) => {
     });
 
     // Generate password recovery link directly
-    // Supabase will handle checking if user exists internally
-    const defaultRedirect = redirectTo || `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth/reset-password`;
+    // Always force redirect to production SITE_URL + the requested path (avoid preview domains)
+    const siteBase = (Deno.env.get("SITE_URL") || "https://fighter-id.org").replace(/\/$/, "");
+    let finalRedirect = `${siteBase}/auth/reset-password`;
+    try {
+      if (redirectTo) {
+        const u = new URL(redirectTo);
+        finalRedirect = `${siteBase}${u.pathname}${u.search}`;
+      }
+    } catch {}
     
     console.log("[RECOVERY] Generating link with redirect:", {
       receivedRedirectTo: redirectTo,
-      finalRedirect: defaultRedirect,
-      siteUrl: Deno.env.get("SITE_URL")
+      finalRedirect,
+      siteUrl: siteBase
     });
     
     const { data: recoveryData, error: recoveryError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
       options: {
-        redirectTo: defaultRedirect
+        redirectTo: finalRedirect
       }
     });
 
