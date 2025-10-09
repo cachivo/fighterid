@@ -29,7 +29,7 @@ interface DeleteFighterDialogProps {
   fighter: FighterProfile | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export function DeleteFighterDialog({ fighter, isOpen, onClose, onConfirm }: DeleteFighterDialogProps) {
@@ -52,7 +52,7 @@ export function DeleteFighterDialog({ fighter, isOpen, onClose, onConfirm }: Del
         description: "Perfil de peleador eliminado correctamente",
       });
 
-      onConfirm();
+      await onConfirm();
       onClose();
     } catch (error) {
       console.error('Error deleting fighter:', error);

@@ -20,7 +20,7 @@ const WEIGHT_CLASSES = [
 
 export default function FightersProfiles() {
   const navigate = useNavigate();
-  const { fighters, loading, error } = useAdminFighters();
+  const { fighters, loading, error, fetchFighters } = useAdminFighters();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
@@ -278,9 +278,10 @@ export default function FightersProfiles() {
         fighter={deletingFighter as FighterProfile}
         isOpen={!!deletingFighter}
         onClose={() => setDeletingFighter(null)}
-        onConfirm={() => {
-          // Refresh will be handled by the dialog's onConfirm
+        onConfirm={async () => {
           setDeletingFighter(null);
+          // Force immediate refresh after deletion
+          await fetchFighters();
         }}
       />
     </div>
