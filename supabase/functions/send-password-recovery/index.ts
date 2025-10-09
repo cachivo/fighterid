@@ -198,25 +198,10 @@ serve(async (req) => {
       }
     });
 
-    // Check if user exists (using admin client)
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserByEmail(email);
-
-    if (userError || !userData.user) {
-      console.log("[RECOVERY] User not found:", { email: email.replace(/(?<=.{2}).(?=.*@)/g, '*') });
-      // IMPORTANT: Always return success to prevent user enumeration
-      // Add artificial delay to prevent timing attacks
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return new Response(
-        JSON.stringify({ 
-          success: true,
-          message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña"
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Generate password recovery link
+    // Generate password recovery link directly
+    // Supabase will handle checking if user exists internally
     const defaultRedirect = redirectTo || `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth/reset-password`;
+    
     const { data: recoveryData, error: recoveryError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: email,
@@ -225,9 +210,25 @@ serve(async (req) => {
       }
     });
 
+    // If user doesn't exist, Supabase returns an error
+    // But we still return success to prevent user enumeration
     if (recoveryError || !recoveryData) {
-      console.error("[RECOVERY] Error generating recovery link:", recoveryError);
-      throw new Error("Error al generar el enlace de recuperación");
+      console.log("[RECOVERY] Recovery link generation failed:", { 
+        email: email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
+        error: recoveryError?.message || "No data returned"
+      });
+      
+      // Add artificial delay to prevent timing attacks
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Always return success to prevent user enumeration
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          message: "Si el correo existe, recibirás instrucciones para recuperar tu contraseña"
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const resetLink = recoveryData.properties.action_link;
