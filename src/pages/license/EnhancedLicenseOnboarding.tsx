@@ -87,33 +87,34 @@ export default function EnhancedLicenseOnboarding() {
     }
   };
 
-  // Check if user already has a profile
+  // Check if user already has a profile and attempt reactivation
   useEffect(() => {
     const checkExistingProfile = async () => {
       if (!user) return;
 
       try {
-        const { data: appUser } = await supabase
-          .from('app_user')
-          .select('id')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
+        // Intentar reactivar perfil existente
+        const { data: reactivation, error: reactivationError } = await supabase
+          .rpc('reactivate_fighter_profile', {
+            p_auth_user_id: user.id,
+            p_email: user.email || ''
+          });
 
-        if (appUser) {
-          const { data: profile } = await supabase
-            .from('fighter_profiles')
-            .select('id')
-            .eq('user_id', appUser.id)
-            .eq('active', true)
-            .maybeSingle();
-
-          if (profile) {
+        if (!reactivationError && reactivation) {
+          if (reactivation.action === 'reactivated') {
+            toast.success('Tu perfil ha sido reactivado exitosamente');
+            navigate('/license/pending', { replace: true });
+            return;
+          } else if (reactivation.action === 'exists') {
+            toast.info('Ya tienes un perfil activo');
             navigate('/license/pending', { replace: true });
             return;
           }
         }
+
+        // Si no hay perfil para reactivar, continuar con el onboarding
       } catch (error) {
-        console.error('Error checking existing profile:', error);
+        console.error('Error checking/reactivating profile:', error);
       } finally {
         setCheckingExisting(false);
       }
@@ -162,6 +163,19 @@ export default function EnhancedLicenseOnboarding() {
     setUploading(true);
     
     try {
+      // Verificar reactivación de perfil primero
+      const { data: reactivation } = await supabase
+        .rpc('reactivate_fighter_profile', {
+          p_auth_user_id: user.id,
+          p_email: user.email || ''
+        });
+
+      if (reactivation && reactivation.action === 'exists') {
+        toast.error('Ya tienes un perfil activo. Redirigiendo...');
+        setTimeout(() => navigate('/license/pending', { replace: true }), 2000);
+        return;
+      }
+
       // Check if user already has a profile
       const { data: existingAppUser } = await supabase
         .from('app_user')
@@ -172,7 +186,7 @@ export default function EnhancedLicenseOnboarding() {
       let userId = existingAppUser?.id;
       
       if (!userId) {
-        // Create app_user
+        // Create app_user with conflict handling
         const { data: newAppUser, error: appUserError } = await supabase
           .from('app_user')
           .insert({
@@ -185,8 +199,26 @@ export default function EnhancedLicenseOnboarding() {
           .select('id')
           .single();
 
-        if (appUserError) throw appUserError;
-        userId = newAppUser.id;
+        if (appUserError) {
+          // Si falla por duplicado, intentar obtener el existente
+          if (appUserError.message.includes('duplicate') || appUserError.message.includes('already exists')) {
+            const { data: existing } = await supabase
+              .from('app_user')
+              .select('id')
+              .eq('email', user.email)
+              .maybeSingle();
+            
+            if (existing) {
+              userId = existing.id;
+            } else {
+              throw appUserError;
+            }
+          } else {
+            throw appUserError;
+          }
+        } else {
+          userId = newAppUser.id;
+        }
       }
 
       // Create enhanced fighter profile

@@ -3209,6 +3209,10 @@ export type Database = {
         }
         Returns: string
       }
+      reactivate_fighter_profile: {
+        Args: { p_auth_user_id: string; p_email: string }
+        Returns: Json
+      }
       refund_bet: {
         Args: { p_reason: string; p_ticket_id: string }
         Returns: undefined
