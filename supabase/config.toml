@@ -1,5 +1,8 @@
 project_id = "eeshomcqztvjkvycdfwi"
 
+[functions.send-password-recovery]
+verify_jwt = false
+
 [functions.bet-delay-processor]
 verify_jwt = false
 

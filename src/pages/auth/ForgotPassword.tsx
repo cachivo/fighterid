@@ -15,11 +15,31 @@ export default function ForgotPassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const [attemptsRemaining, setAttemptsRemaining] = useState(3);
+
+  useEffect(() => {
+    // Load cooldown from localStorage on mount
+    const storedCooldown = localStorage.getItem('password-recovery-cooldown');
+    if (storedCooldown) {
+      const cooldownData = JSON.parse(storedCooldown);
+      const remainingTime = Math.ceil((cooldownData.expiresAt - Date.now()) / 1000);
+      if (remainingTime > 0) {
+        setCooldownSeconds(remainingTime);
+        setAttemptsRemaining(cooldownData.attemptsRemaining || 0);
+      } else {
+        localStorage.removeItem('password-recovery-cooldown');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (cooldownSeconds > 0) {
       const timer = setTimeout(() => {
         setCooldownSeconds(cooldownSeconds - 1);
+        if (cooldownSeconds === 1) {
+          localStorage.removeItem('password-recovery-cooldown');
+          setAttemptsRemaining(3);
+        }
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -28,33 +48,46 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email.trim()) {
-      setError('Por favor ingresa tu correo electrónico.');
+    if (!email) {
+      setError("Por favor ingresa tu correo electrónico");
       return;
     }
 
-    setError('');
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Por favor ingresa un correo electrónico válido");
+      return;
+    }
+
     setLoading(true);
+    setError("");
 
     const { error } = await resetPassword(email);
 
     if (error) {
-      // Handle rate limit error (429)
-      if (error.message.includes('Email rate limit exceeded') || 
-          error.message.includes('can only request this after') ||
-          error.message.includes('security purposes')) {
-        setError('Has solicitado demasiados correos. Por favor espera 60 segundos antes de intentar nuevamente.');
-        setCooldownSeconds(60);
+      if (error.message.includes("Demasiados intentos") || error.retryAfter) {
+        const cooldown = error.retryAfter || 300;
+        setCooldownSeconds(cooldown);
+        const newAttempts = Math.max(0, attemptsRemaining - 1);
+        setAttemptsRemaining(newAttempts);
+        
+        // Store in localStorage
+        localStorage.setItem('password-recovery-cooldown', JSON.stringify({
+          expiresAt: Date.now() + (cooldown * 1000),
+          attemptsRemaining: newAttempts
+        }));
+        
+        setError(`Has excedido el número de intentos. Por favor espera ${Math.ceil(cooldown / 60)} minutos.`);
       } else {
-        setError(error.message || 'No se pudo enviar el correo de recuperación.');
+        setError(error.message || "Error al procesar tu solicitud");
       }
-      setSuccess(false);
     } else {
       setSuccess(true);
-      setCooldownSeconds(60);
-      setError('');
+      setAttemptsRemaining(3);
+      localStorage.removeItem('password-recovery-cooldown');
     }
-    
+
     setLoading(false);
   };
 
@@ -76,24 +109,27 @@ export default function ForgotPassword() {
           )}
 
           {success && (
-            <Alert className="border-green-500/50 bg-green-500/10">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <AlertDescription className="text-sm">
-                <strong>✅ Correo enviado a: {email}</strong>
-                <br />
-                <br />
-                Revisa tu bandeja de entrada y <strong>carpeta de spam</strong>.
-                <br />
-                El correo proviene de: <code className="text-xs bg-muted px-1 py-0.5 rounded">noreply@mail.app.supabase.io</code>
+            <Alert className="bg-green-50 border-green-200">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <p className="font-semibold mb-2">¡Correo enviado!</p>
+                <p className="mb-2">Te hemos enviado un correo desde <strong>Fighter ID</strong> con instrucciones para restablecer tu contraseña.</p>
+                <p className="text-sm">
+                  ⏱️ El correo debería llegar en 1-2 minutos. Si no lo ves, revisa tu carpeta de spam.
+                </p>
               </AlertDescription>
             </Alert>
           )}
 
           {cooldownSeconds > 0 && (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="text-sm">
-                Podrás solicitar otro correo en <strong>{cooldownSeconds} segundos</strong>
+            <Alert className="bg-amber-50 border-amber-200">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <p className="font-semibold mb-1">Espera antes de reintentar</p>
+                <p>Debes esperar <strong>{cooldownSeconds} segundos</strong> antes de solicitar otro correo.</p>
+                {attemptsRemaining > 0 && (
+                  <p className="text-sm mt-2">Intentos restantes: {attemptsRemaining}</p>
+                )}
               </AlertDescription>
             </Alert>
           )}
