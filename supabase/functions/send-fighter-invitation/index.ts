@@ -123,12 +123,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Invitation created:", invitation.id);
 
-    // Enviar email con Resend
-    const emailResponse = await resend.emails.send({
-      from: "Fighter ID <send@fighter-id.org>",
-      to: [email],
-      subject: "🥊 Invitación para registrarte en Fighter ID",
-      html: `
+    // Enviar email con Resend con mejor manejo de errores y fallback
+    const fromEnv = Deno.env.get("RESEND_FROM");
+    let fromAddress = (fromEnv && fromEnv.trim() !== "") ? fromEnv : "Fighter ID <send@fighter-id.org>";
+
+    const htmlContent = `
         <!DOCTYPE html>
         <html>
           <head>
@@ -199,8 +198,73 @@ const handler = async (req: Request): Promise<Response> => {
             </table>
           </body>
         </html>
-      `,
-    });
+      `;
+
+    let emailResponse;
+    try {
+      emailResponse = await resend.emails.send({
+        from: fromAddress,
+        to: [email],
+        subject: "🥊 Invitación para registrarte en Fighter ID",
+        html: htmlContent,
+      });
+    } catch (err: any) {
+      console.error("Error enviando email con Resend (primario):", {
+        name: err?.name,
+        statusCode: err?.statusCode,
+        message: err?.message,
+        body: err?.body,
+      });
+
+      // Fallback si el dominio no está verificado
+      const msg = `${err?.message || "Resend error"}`.toLowerCase();
+      if (err?.statusCode === 403 || msg.includes("domain") || msg.includes("verify")) {
+        try {
+          fromAddress = "Fighter ID <onboarding@resend.dev>";
+          emailResponse = await resend.emails.send({
+            from: fromAddress,
+            to: [email],
+            subject: "🥊 Invitación para registrarte en Fighter ID",
+            html: htmlContent,
+          });
+          console.log("Email enviado con remitente de fallback (onboarding@resend.dev)");
+        } catch (fallbackErr: any) {
+          console.error("Error también en fallback de Resend:", {
+            name: fallbackErr?.name,
+            statusCode: fallbackErr?.statusCode,
+            message: fallbackErr?.message,
+            body: fallbackErr?.body,
+          });
+          return new Response(
+            JSON.stringify({
+              error: "Fallo envío de email",
+              details: fallbackErr?.message || fallbackErr,
+            }),
+            { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+      } else {
+        return new Response(
+          JSON.stringify({ error: err?.message || "Error enviando email" }),
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+    }
+
+    console.log("Email sent successfully:", emailResponse);
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        invitation,
+        registrationLink,
+        fromUsed: fromAddress,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
 
     console.log("Email sent successfully:", emailResponse);
 
