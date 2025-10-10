@@ -58,7 +58,7 @@ const Ranking = () => {
   ];
 
   return (
-    <section id="ranking" className="py-8 sm:py-12 md:py-16 relative overflow-hidden">
+    <section id="ranking" className="py-6 sm:py-8 md:py-12 lg:py-16 relative overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-80"
         style={{ backgroundImage: 'url(/lovable-uploads/17f6dde8-5a0e-4986-a833-30fc435b156c.png)' }}
@@ -66,17 +66,17 @@ const Ranking = () => {
       <div className="absolute inset-0 bg-black/20" />
       
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-12 sm:mb-16 animate-slide-up">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
+        <div className="text-center mb-8 sm:mb-10 md:mb-12 animate-slide-up">
+          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 md:mb-6">
             NUESTROS <span className="text-purple-neon-primary">RESULTADOS</span>
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Cifras que demuestran nuestro compromiso con la excelencia en cada evento
           </p>
         </div>
 
         {/* Estadísticas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-10 md:mb-12">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, index) => (
               <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm">

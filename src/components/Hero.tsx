@@ -19,7 +19,7 @@ const Hero = () => {
   // Si no hay usuario autenticado, mostrar landing page con logo grande
   if (!user) {
     return (
-      <section className="relative min-h-[60vh] md:min-h-[75vh] lg:min-h-[80vh] flex items-center justify-center overflow-hidden pt-16">
+      <section className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-16 pb-8">
         {/* Background with gradient animation */}
         <div className="absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
@@ -30,16 +30,16 @@ const Hero = () => {
         {/* Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
           {/* LOGO OPTIMIZADO PARA MÓVIL */}
-          <div className="mb-6 sm:mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+          <div className="mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
             <img 
               src="/lovable-uploads/fighter-id-logo-user.png" 
               alt="Fighter ID" 
-              className="h-40 sm:h-48 md:h-56 lg:h-64 w-auto mx-auto drop-shadow-neon-purple hover:drop-shadow-neon-blue transition-all duration-500"
+              className="h-28 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto drop-shadow-neon-purple hover:drop-shadow-neon-blue transition-all duration-500"
             />
           </div>
           
           {/* Subtítulo */}
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 sm:mb-8 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
             Plataforma profesional de gestión de peleadores
           </p>
           
@@ -48,23 +48,23 @@ const Hero = () => {
             <Button 
               onClick={() => navigate('/auth')}
               variant="hero"
-              size="lg"
-              className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 text-base min-h-[48px] touch-manipulation"
+              size="default"
+              className="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base min-h-[44px] touch-manipulation"
             >
               Iniciar Sesión
             </Button>
             <Button 
               onClick={() => navigate('/auth')}
               variant="urban"
-              size="lg"
-              className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 text-base min-h-[48px] touch-manipulation"
+              size="default"
+              className="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base min-h-[44px] touch-manipulation"
             >
               Registrarse
             </Button>
           </div>
           
           {/* Info adicional */}
-          <p className="mt-6 sm:mt-8 text-white/70 text-sm animate-fade-in-up" style={{ animationDelay: '450ms' }}>
+          <p className="mt-4 sm:mt-6 text-white/70 text-xs sm:text-sm animate-fade-in-up" style={{ animationDelay: '450ms' }}>
             Únete a la comunidad de peleadores profesionales
           </p>
         </div>
@@ -88,7 +88,7 @@ const Hero = () => {
   
   // Usuario autenticado - mostrar Hero con stats
   return (
-    <section className="relative min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-16">
+    <section className="relative min-h-[45vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] flex items-center justify-center overflow-hidden pt-16 pb-8">
       {/* Background with gradient animation */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
@@ -98,19 +98,19 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
-        <div className="mb-4 sm:mb-6 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
+        <div className="mb-3 sm:mb-4 md:mb-6 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
           <img 
             src="/lovable-uploads/fighter-id-logo-user.png" 
             alt="Fighter ID Logo" 
-            className="h-32 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto drop-shadow-neon-purple"
+            className="h-24 sm:h-32 md:h-40 lg:h-48 w-auto mx-auto drop-shadow-neon-purple"
           />
         </div>
         
         {/* Live indicator with cinematic style and dynamic data */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-purple-neon-primary font-semibold animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+        <div className="mt-4 sm:mt-5 md:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-purple-neon-primary font-semibold animate-fade-in-up" style={{ animationDelay: '150ms' }}>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
-            <span className="text-xs sm:text-sm md:text-base tracking-wider text-center">
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
+            <span className="text-[10px] sm:text-xs md:text-sm tracking-wider text-center">
               {stats?.liveEvents && stats.liveEvents.length > 0 
                 ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO`
                 : stats?.nextEvent
@@ -121,44 +121,44 @@ const Hero = () => {
           </div>
           
           {/* Dynamic fighter count */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-            <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs bg-black/30 px-2.5 py-1 rounded-full backdrop-blur-sm">
+            <Zap className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             <span>{stats?.totalFighters || 0} Peleadores</span>
           </div>
         </div>
         
         {/* CTAs para usuarios autenticados */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="mt-4 sm:mt-5 md:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
           <Button
             onClick={() => navigate('/social/feed')}
             variant="hero"
-            size="lg"
-            className="gap-2 min-h-[48px] touch-manipulation"
+            size="default"
+            className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
           >
-            <Zap className="h-5 w-5" />
+            <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
             Ver Feed Social
           </Button>
           <Button
             onClick={() => navigate('/fighters')}
             variant="urban"
-            size="lg"
-            className="gap-2 min-h-[48px] touch-manipulation"
+            size="default"
+            className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
           >
-            <Trophy className="h-5 w-5" />
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
             Explorar Peleadores
           </Button>
         </div>
         
         {/* Admin Button - Only visible for admin users */}
         {isAdmin && (
-          <div className="mt-6 sm:mt-8 animate-fade-in">
+          <div className="mt-4 sm:mt-5 animate-fade-in">
             <Button
               onClick={() => navigate('/admin/dashboard')}
               variant="hero"
-              size="lg"
-              className="gap-2"
+              size="default"
+              className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base px-5 sm:px-6"
             >
-              <Shield className="h-5 w-5" />
+              <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
               Panel de Administración
             </Button>
           </div>
