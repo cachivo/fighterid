@@ -3196,8 +3196,10 @@ export type Database = {
         Returns: {
           active: boolean
           author_avatar: string
-          author_handle: string
+          author_discipline: string
           author_name: string
+          author_nickname: string
+          author_record_type: string
           content: string
           created_at: string
           id: string

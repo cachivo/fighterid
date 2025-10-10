@@ -8,6 +8,7 @@ import { es } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import FighterBadges from './FighterBadges';
 
 interface CommentCardProps {
   comment: Comment;
@@ -61,15 +62,25 @@ export default function CommentCard({ comment, onDelete }: CommentCardProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <span className="font-medium text-sm truncate">
                   {comment.author_name}
                 </span>
-                {comment.author_handle && (
+                
+                {/* Mostrar nickname del peleador */}
+                {comment.author_nickname && (
                   <span className="text-xs text-muted-foreground truncate">
-                    @{comment.author_handle}
+                    @{comment.author_nickname}
                   </span>
                 )}
+                
+                {/* Distintivos de peleador */}
+                <FighterBadges 
+                  recordType={comment.author_record_type}
+                  discipline={comment.author_discipline}
+                  size="xs"
+                />
+                
                 <span className="text-xs text-muted-foreground">
                   •
                 </span>

@@ -14,6 +14,7 @@ import CommentSection from './CommentSection';
 import LinkPreview from './LinkPreview';
 import { useLinkPreview } from '@/hooks/useLinkPreview';
 import { extractLinks, parseContent } from '@/lib/textParser';
+import FighterBadges from './FighterBadges';
 
 interface PostCardProps {
   post: SocialPost;
@@ -179,6 +180,16 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
                     @{post.author_nickname}
                   </span>
                 )}
+                
+                {/* NUEVO: Distintivos de peleador */}
+                {post.author_type === 'fighter' && (
+                  <FighterBadges 
+                    recordType={post.author_record_type}
+                    discipline={post.author_discipline}
+                    size="sm"
+                  />
+                )}
+                
                 {post.author_type === 'fighter' && showFriendBadge && post.is_friend && (
                   <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
                     👥 Amigo

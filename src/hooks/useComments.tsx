@@ -13,8 +13,10 @@ export interface Comment {
   updated_at: string;
   // Joined data
   author_name?: string;
+  author_nickname?: string;
   author_avatar?: string;
-  author_handle?: string;
+  author_record_type?: string;
+  author_discipline?: string;
 }
 
 export function useComments(postId: string) {
@@ -48,8 +50,10 @@ export function useComments(postId: string) {
         console.log('[COMMENTS] 👤 Processing comment:', {
           id: c.id,
           author_name: c.author_name,
+          author_nickname: c.author_nickname,
           author_avatar: c.author_avatar,
-          author_handle: c.author_handle
+          author_record_type: c.author_record_type,
+          author_discipline: c.author_discipline
         });
         
         return {
@@ -61,8 +65,10 @@ export function useComments(postId: string) {
           created_at: c.created_at,
           updated_at: c.updated_at,
           author_name: c.author_name,
-          author_handle: c.author_handle,
+          author_nickname: c.author_nickname,
           author_avatar: c.author_avatar,
+          author_record_type: c.author_record_type,
+          author_discipline: c.author_discipline,
         };
       });
 

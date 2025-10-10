@@ -22,6 +22,8 @@ export interface SocialPost {
   author_name?: string;
   author_nickname?: string;
   author_avatar?: string;
+  author_record_type?: string | null;
+  author_discipline?: string | null;
   is_liked?: boolean;
   is_friend?: boolean; // NEW: Indicates if the author is a friend
 }
@@ -101,7 +103,7 @@ export function useSocialPosts() {
       if (fighterPosts.length > 0) {
         const { data: profiles } = await supabase
           .from('fighter_profiles')
-          .select('id, first_name, last_name, nickname, avatar_url')
+          .select('id, first_name, last_name, nickname, avatar_url, record_type, discipline')
           .in('id', fighterPosts.map(p => p.author_id));
         
         fighterProfiles = profiles || [];
@@ -151,6 +153,8 @@ export function useSocialPosts() {
             : post.author_type === 'user'
             ? userProfile?.avatar_url
             : '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
+          author_record_type: post.author_type === 'fighter' ? fighterProfile?.record_type : null,
+          author_discipline: post.author_type === 'fighter' ? fighterProfile?.discipline : null,
           is_liked: likesData.some(like => like.post_id === post.id),
           is_friend: friendIds.includes(post.author_id) // Check if author is friend
         };
