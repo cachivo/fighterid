@@ -247,8 +247,13 @@ serve(async (req) => {
     const resetLink = recoveryData.properties.action_link;
 
     // Send email with Resend
+    // Get from email and ensure it has proper format
+    const fromEmail = Deno.env.get("RESEND_FROM") || "onboarding@resend.dev";
+    const fromName = "Fighter ID";
+    const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
+    
     const emailResult = await resend.emails.send({
-      from: Deno.env.get("RESEND_FROM") || "Fighter ID <send@fighter-id.org>",
+      from: formattedFrom,
       to: [email],
       subject: "Recupera tu acceso a Fighter ID",
       html: getRecoveryEmailHTML(resetLink),
