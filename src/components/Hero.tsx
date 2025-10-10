@@ -18,15 +18,10 @@ const Hero = () => {
   if (!user) {
     return (
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img 
-            src={blueArena} 
-            alt="Blue Arena" 
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/80"></div>
-        </div>
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-black"></div>
+      </div>
         
         {/* Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
@@ -89,12 +84,7 @@ const Hero = () => {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Background image */}
       <div className="absolute inset-0">
-        <img 
-          src={blueArena} 
-          alt="Blue Arena" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/80"></div>
+        <div className="absolute inset-0 bg-black"></div>
       </div>
       
       {/* Content */}
