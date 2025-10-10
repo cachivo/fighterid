@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { removeBackground, loadImage } from './backgroundRemoval';
+
 import { toast } from 'sonner';
 
 export async function uploadFighterAvatar(
@@ -51,44 +51,32 @@ export async function uploadFighterAvatar(
 
     let processedFile = file;
 
-    // Apply background removal for image files
+    // Optimize image directly without background removal
     if (file.type.startsWith('image/')) {
       try {
-        toast.info('Procesando imagen, removiendo fondo...');
-        
-        // Load image and remove background
-        const imageElement = await loadImage(file);
-        const processedBlob = await removeBackground(imageElement);
-        
-        // Convert blob to file
-        const tempFile = new File([processedBlob], file.name, {
-          type: 'image/png',
-          lastModified: Date.now()
-        });
-
-        // Optimize size after background removal
         toast.info('Optimizando imagen...');
+        
         const { resizeImage } = await import('./imageUtils');
-        const optimized = await resizeImage(tempFile, {
-          maxWidth: 1024,      // 1024x1024 para peleadores (más grande que avatares normales)
+        const optimized = await resizeImage(file, {
+          maxWidth: 1024,      // 1024x1024 para peleadores
           maxHeight: 1024,
           quality: 0.95,       // Muy alta calidad para profesionales
-          format: 'png',       // PNG para mantener transparencia
+          format: 'webp',      // WebP para mejor compresión
           maintainAspectRatio: true
         });
 
         processedFile = optimized.file;
         
-        toast.success('Imagen procesada y optimizada');
-      } catch (bgError) {
-        console.warn('Background removal failed, using original image:', bgError);
-        toast.warning('No se pudo remover el fondo, usando imagen original');
-        // Continue with original file if background removal fails
+        toast.success('Imagen optimizada correctamente');
+      } catch (error) {
+        console.warn('Image optimization failed, using original image:', error);
+        toast.warning('No se pudo optimizar la imagen, usando imagen original');
+        // Continue with original file if optimization fails
       }
     }
 
     // Upload processed photo
-    const photoFileName = `${userId}/photo-${Date.now()}.png`;
+    const photoFileName = `${userId}/photo-${Date.now()}.webp`;
     console.log('Starting upload to storage:', photoFileName);
     
     const { error: uploadError } = await supabase.storage
