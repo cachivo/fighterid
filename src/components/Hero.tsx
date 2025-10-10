@@ -5,7 +5,7 @@ import { Calendar, Zap } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import batallaPoster from "@/assets/batalla-poster.jpg";
-import mmaCageBg from "@/assets/mma-cage-background.png";
+import mmaCage4k from "@/assets/mma-cage-4k.png";
 
 const Hero = () => {
   const { stats } = useRealTimeStats();
@@ -19,8 +19,8 @@ const Hero = () => {
         {/* Background image */}
         <div className="absolute inset-0">
           <img 
-            src={mmaCageBg} 
-            alt="MMA Cage" 
+            src={mmaCage4k} 
+            alt="MMA Cage 4K" 
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
@@ -88,8 +88,8 @@ const Hero = () => {
       {/* Background image */}
       <div className="absolute inset-0">
         <img 
-          src={mmaCageBg} 
-          alt="MMA Cage" 
+          src={mmaCage4k} 
+          alt="MMA Cage 4K" 
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
