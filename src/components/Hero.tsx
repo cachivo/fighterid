@@ -25,7 +25,7 @@ const Hero = () => {
             alt="Blue Arena" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/65"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/80"></div>
         </div>
         
         {/* Content */}
@@ -94,7 +94,7 @@ const Hero = () => {
           alt="Blue Arena" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/65"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/70 to-black/80"></div>
       </div>
       
       {/* Content */}
@@ -105,7 +105,7 @@ const Hero = () => {
             alt="Fighter ID Logo" 
             className="h-72 sm:h-[400px] md:h-[480px] lg:h-[560px] w-auto mx-auto"
             style={{ 
-              filter: 'sepia(100%) saturate(500%) hue-rotate(-50deg) brightness(1.2) drop-shadow(0 0 20px rgba(220, 38, 38, 0.8)) drop-shadow(0 0 40px rgba(220, 38, 38, 0.6)) drop-shadow(0 0 60px rgba(220, 38, 38, 0.4))'
+              filter: 'sepia(100%) saturate(600%) hue-rotate(-50deg) brightness(1.3) drop-shadow(0 0 30px rgba(239, 68, 68, 1)) drop-shadow(0 0 60px rgba(220, 38, 38, 0.8)) drop-shadow(0 0 90px rgba(220, 38, 38, 0.5))'
             }}
           />
         </div>
