@@ -30,7 +30,7 @@ const Hero = () => {
           {/* LOGO GRANDE */}
           <div className="mb-12 animate-slide-up">
             <img 
-              src="/lovable-uploads/fighter-id-logo-transparent.png" 
+              src="/lovable-uploads/fighter-id-logo-ai.png" 
               alt="Fighter ID" 
               className="h-48 sm:h-56 md:h-72 lg:h-96 w-auto mx-auto drop-shadow-2xl"
               style={{ filter: 'drop-shadow(0 0 40px rgba(139, 92, 246, 0.5))' }}
@@ -96,7 +96,7 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="mb-8 sm:mb-6 animate-slide-up">
           <img 
-            src="/lovable-uploads/fighter-id-logo-neon.png" 
+            src="/lovable-uploads/fighter-id-logo-ai.png" 
             alt="Fighter ID Logo" 
             className="h-16 sm:h-20 md:h-24 lg:h-32 w-auto mx-auto animate-glow-neon"
           />
