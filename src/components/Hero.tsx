@@ -108,24 +108,6 @@ const Hero = () => {
           />
         </div>
         
-        
-        <div className="flex flex-col gap-3 sm:gap-3 justify-center items-center animate-slide-up">
-          <Button 
-            variant="hero" 
-            size="lg" 
-            className="w-full sm:w-auto text-sm sm:text-base px-6 py-3 min-h-[48px] touch-manipulation"
-          >
-            Ver Batalla EN VIVO
-          </Button>
-          <Button 
-            variant="urban" 
-            size="lg" 
-            className="w-full sm:w-auto text-sm sm:text-base px-6 py-3 min-h-[48px] touch-manipulation"
-          >
-            Únete Como Jurado
-          </Button>
-        </div>
-        
         {/* Live indicator with cinematic style and dynamic data */}
         <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-purple-neon-primary font-semibold">
           <div className="flex items-center gap-2">
