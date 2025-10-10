@@ -19,6 +19,8 @@ export default function LicenseAuth() {
   });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -28,6 +30,7 @@ export default function LicenseAuth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setRegistrationSuccess(false);
     setIsSubmitting(true);
 
     try {
@@ -36,7 +39,16 @@ export default function LicenseAuth() {
         : await signUp(formData.email, formData.password);
 
       if (error) {
-        setError(error.message);
+        // Check for rate limiting error
+        if (error.message?.includes('For security purposes') || error.message?.includes('email_send_rate_limit')) {
+          setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
+        } else {
+          setError(error.message);
+        }
+      } else if (!isLogin) {
+        // Registration successful
+        setRegistrationSuccess(true);
+        setRegisteredEmail(formData.email);
       }
     } catch (err) {
       setError('Ha ocurrido un error inesperado');
@@ -79,6 +91,26 @@ export default function LicenseAuth() {
           </CardHeader>
 
           <CardContent className="space-y-4">
+            {registrationSuccess && (
+              <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
+                <AlertDescription className="space-y-3">
+                  <p className="font-semibold text-blue-900 dark:text-blue-100">
+                    ✉️ ¡Registro exitoso! Revisa tu correo electrónico
+                  </p>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    Te hemos enviado un correo de confirmación a:
+                  </p>
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/30 px-3 py-2 rounded">
+                    {registeredEmail}
+                  </p>
+                  <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                    <p>⚠️ <strong>Importante:</strong> Revisa tu carpeta de spam si no lo encuentras en tu bandeja principal</p>
+                    <p>🕒 El enlace de confirmación es válido por <strong>24 horas</strong></p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>

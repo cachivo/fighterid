@@ -62,6 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) {
+      // Handle rate limiting
+      if (error.message?.includes('For security purposes') || error.message?.includes('email_send_rate_limit')) {
+        return { error: { message: 'Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.' } };
+      }
+      
+      // Handle duplicate user
       const message = /registered|exists|already/i.test(error.message)
         ? 'Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.'
         : error.message;

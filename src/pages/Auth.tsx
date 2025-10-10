@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCheck } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,6 +40,8 @@ export default function Auth() {
   const { validateToken } = useFighterInvitations();
   const [invitation, setInvitation] = useState<any>(null);
   const [validatingToken, setValidatingToken] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -119,12 +122,17 @@ export default function Auth() {
 
   const handleSignUp = async (data: SignUpFormData) => {
     setLoading(true);
+    setRegistrationSuccess(false);
     
     try {
       // Register the user
       const { error: signUpError } = await signUp(data.email, data.password);
       
       if (signUpError) {
+        // Check for rate limiting
+        if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
+          throw new Error('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
+        }
         throw signUpError;
       }
 
@@ -179,10 +187,9 @@ export default function Auth() {
           });
         }
       } else {
-        toast({
-          title: 'Registro exitoso',
-          description: 'Por favor revisa tu email para confirmar tu cuenta',
-        });
+        // Show registration success message
+        setRegistrationSuccess(true);
+        setRegisteredEmail(data.email);
       }
     } catch (error: any) {
       console.error('Error en registro:', error);
@@ -267,6 +274,26 @@ export default function Auth() {
             </TabsContent>
             
             <TabsContent value="signup">
+              {registrationSuccess && (
+                <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
+                  <AlertDescription className="space-y-3">
+                    <p className="font-semibold text-blue-900 dark:text-blue-100">
+                      ✉️ ¡Registro exitoso! Revisa tu correo electrónico
+                    </p>
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      Te hemos enviado un correo de confirmación a:
+                    </p>
+                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 bg-blue-100 dark:bg-blue-900/30 px-3 py-2 rounded">
+                      {registeredEmail}
+                    </p>
+                    <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                      <p>⚠️ <strong>Importante:</strong> Revisa tu carpeta de spam si no lo encuentras</p>
+                      <p>🕒 El enlace es válido por <strong>24 horas</strong></p>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {invitation && (
                 <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
