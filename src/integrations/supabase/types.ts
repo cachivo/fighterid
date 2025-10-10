@@ -649,6 +649,54 @@ export type Database = {
           },
         ]
       }
+      fight_judges: {
+        Row: {
+          assigned_at: string | null
+          confirmed: boolean | null
+          fight_id: string
+          id: string
+          judge_id: string
+          role: string | null
+          station_ip: unknown | null
+          station_number: number | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          confirmed?: boolean | null
+          fight_id: string
+          id?: string
+          judge_id: string
+          role?: string | null
+          station_ip?: unknown | null
+          station_number?: number | null
+        }
+        Update: {
+          assigned_at?: string | null
+          confirmed?: boolean | null
+          fight_id?: string
+          id?: string
+          judge_id?: string
+          role?: string | null
+          station_ip?: unknown | null
+          station_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_judges_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_judges_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fight_officials: {
         Row: {
           assigned_at: string
@@ -1343,6 +1391,7 @@ export type Database = {
           finish_round: number | null
           finish_time: string | null
           id: string
+          is_championship: boolean | null
           scheduled_time: string | null
           status: string
           updated_at: string
@@ -1360,6 +1409,7 @@ export type Database = {
           finish_round?: number | null
           finish_time?: string | null
           id?: string
+          is_championship?: boolean | null
           scheduled_time?: string | null
           status?: string
           updated_at?: string
@@ -1377,6 +1427,7 @@ export type Database = {
           finish_round?: number | null
           finish_time?: string | null
           id?: string
+          is_championship?: boolean | null
           scheduled_time?: string | null
           status?: string
           updated_at?: string
@@ -1583,6 +1634,7 @@ export type Database = {
           specialization: string[] | null
           total_fights_judged: number | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
@@ -1601,6 +1653,7 @@ export type Database = {
           specialization?: string[] | null
           total_fights_judged?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
@@ -1619,6 +1672,7 @@ export type Database = {
           specialization?: string[] | null
           total_fights_judged?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -2453,6 +2507,108 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scoring_events: {
+        Row: {
+          corner: Database["public"]["Enums"]["corner"]
+          created_at: string | null
+          fight_id: string
+          id: number
+          judge_id: string
+          power: number | null
+          round_id: string
+          target: Database["public"]["Enums"]["strike_target"] | null
+          timestamp_ms: number
+          type: Database["public"]["Enums"]["strike_type"]
+        }
+        Insert: {
+          corner: Database["public"]["Enums"]["corner"]
+          created_at?: string | null
+          fight_id: string
+          id?: number
+          judge_id: string
+          power?: number | null
+          round_id: string
+          target?: Database["public"]["Enums"]["strike_target"] | null
+          timestamp_ms: number
+          type: Database["public"]["Enums"]["strike_type"]
+        }
+        Update: {
+          corner?: Database["public"]["Enums"]["corner"]
+          created_at?: string | null
+          fight_id?: string
+          id?: number
+          judge_id?: string
+          power?: number | null
+          round_id?: string
+          target?: Database["public"]["Enums"]["strike_target"] | null
+          timestamp_ms?: number
+          type?: Database["public"]["Enums"]["strike_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scoring_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scoring_events_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scoring_events_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scoring_weights: {
+        Row: {
+          body_multiplier: number | null
+          created_at: string | null
+          defense_weight: number | null
+          event_id: string | null
+          head_multiplier: number | null
+          id: number
+          kick_weight: number | null
+          punch_weight: number | null
+        }
+        Insert: {
+          body_multiplier?: number | null
+          created_at?: string | null
+          defense_weight?: number | null
+          event_id?: string | null
+          head_multiplier?: number | null
+          id?: number
+          kick_weight?: number | null
+          punch_weight?: number | null
+        }
+        Update: {
+          body_multiplier?: number | null
+          created_at?: string | null
+          defense_weight?: number | null
+          event_id?: string | null
+          head_multiplier?: number | null
+          id?: number
+          kick_weight?: number | null
+          punch_weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scoring_weights_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
             referencedColumns: ["id"]
           },
         ]
@@ -3372,6 +3528,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      corner: "red" | "blue"
       discipline:
         | "MMA"
         | "Boxeo"
@@ -3413,6 +3570,16 @@ export type Database = {
         | "declined"
         | "cancelled"
         | "expired"
+      strike_target: "head" | "body" | "leg"
+      strike_type:
+        | "punch"
+        | "kick"
+        | "elbow"
+        | "knee"
+        | "takedown"
+        | "knockdown"
+        | "defense"
+        | "foul"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3541,6 +3708,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      corner: ["red", "blue"],
       discipline: [
         "MMA",
         "Boxeo",
@@ -3586,6 +3754,17 @@ export const Constants = {
         "declined",
         "cancelled",
         "expired",
+      ],
+      strike_target: ["head", "body", "leg"],
+      strike_type: [
+        "punch",
+        "kick",
+        "elbow",
+        "knee",
+        "takedown",
+        "knockdown",
+        "defense",
+        "foul",
       ],
     },
   },
