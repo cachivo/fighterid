@@ -143,6 +143,10 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[SIGNUP] ===== FUNCTION INVOKED =====");
+    console.log("[DEBUG] Request method:", req.method);
+    console.log("[DEBUG] Request URL:", req.url);
+    
     // This function is called by Supabase Auth Hook
     // Parse the webhook payload from Supabase
     const payload = await req.json();
@@ -153,6 +157,8 @@ serve(async (req) => {
       email_action_type: payload.email_data?.email_action_type,
       timestamp: new Date().toISOString()
     });
+    
+    console.log("[DEBUG] Full email_action_type value:", payload.email_data?.email_action_type);
 
     // Extract user and email data
     const user = payload.user;

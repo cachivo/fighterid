@@ -292,28 +292,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const resetPassword = async (email: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('send-password-recovery', {
-        body: { 
-          email,
-          redirectTo: `${window.location.origin}/license/reset-password`
-        }
-      });
-
-      if (error) {
-        console.error('Error calling recovery function:', error);
-        return { error: { message: error.message } };
-      }
-
-      if (data?.error) {
-        return { error: { message: data.error, retryAfter: data.retryAfter } };
-      }
-
-      return { error: null };
-    } catch (e: any) {
-      console.error('Unexpected error in resetPassword:', e);
-      return { error: { message: 'Error al procesar la solicitud' } };
-    }
+    const redirectUrl = `${window.location.origin}/license/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectUrl
+    });
+    return { error };
   };
 
   const updatePassword = async (newPassword: string) => {
