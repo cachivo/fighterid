@@ -35,7 +35,11 @@ export default function CommentCard({ comment, onDelete }: CommentCardProps) {
   }, [user, comment.user_id]);
 
   const getInitials = () => {
-    return comment.author_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'U';
+    if (!comment.author_name) return 'U';
+    const parts = comment.author_name.trim().split(' ').filter(Boolean);
+    if (parts.length === 0) return 'U';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   return (
@@ -43,7 +47,13 @@ export default function CommentCard({ comment, onDelete }: CommentCardProps) {
       <CardContent className="p-3">
         <div className="flex items-start gap-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={comment.author_avatar || ''} />
+          <AvatarImage 
+            src={comment.author_avatar || ''} 
+            alt={comment.author_name || 'Usuario'}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
               {getInitials()}
             </AvatarFallback>

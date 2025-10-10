@@ -3191,6 +3191,21 @@ export type Database = {
           medical_conditions: string
         }[]
       }
+      get_post_comments_with_author: {
+        Args: { p_post_id: string }
+        Returns: {
+          active: boolean
+          author_avatar: string
+          author_handle: string
+          author_name: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       get_recent_doping_tests: {
         Args: { p_license_id: string; p_months?: number }
         Returns: {

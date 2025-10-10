@@ -30,43 +30,32 @@ export function useComments(postId: string) {
     try {
       console.log('[COMMENTS] Fetching comments for post:', postId);
 
-      // Get comments
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('post_comments')
-        .select('*')
-        .eq('post_id', postId)
-        .eq('active', true)
-        .order('created_at', { ascending: true });
+      // Use RPC function to get comments with author info in one call
+      const { data, error } = await supabase
+        .rpc('get_post_comments_with_author', { p_post_id: postId });
 
-      if (commentsError) throw commentsError;
+      if (error) throw error;
 
-      // Get author info for each comment
-      if (commentsData && commentsData.length > 0) {
-        const userIds = [...new Set(commentsData.map(c => c.user_id))];
-        
-        const { data: users } = await supabase
-          .from('app_user')
-          .select('id, first_name, last_name, handle, avatar_url, email')
-          .in('id', userIds);
+      // Map RPC result to Comment interface
+      const enriched: Comment[] = (data || []).map((c: any) => ({
+        id: c.id,
+        post_id: c.post_id,
+        user_id: c.user_id,
+        content: c.content,
+        active: c.active,
+        created_at: c.created_at,
+        updated_at: c.updated_at,
+        author_name: c.author_name,
+        author_handle: c.author_handle,
+        author_avatar: c.author_avatar,
+      }));
 
-        const enriched: Comment[] = commentsData.map(comment => {
-          const author = users?.find(u => u.id === comment.user_id);
-          return {
-            ...comment,
-            author_name: author?.first_name || author?.handle || author?.email?.split('@')[0] || 'Usuario',
-            author_avatar: author?.avatar_url,
-            author_handle: author?.handle
-          };
-        });
-
-        setComments(enriched);
-      } else {
-        setComments([]);
-      }
+      setComments(enriched);
 
     } catch (err: any) {
       console.error('[COMMENTS ERROR]:', err);
       setError(err.message);
+      setComments([]);
     } finally {
       setLoading(false);
     }
