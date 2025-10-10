@@ -203,9 +203,9 @@ export function useProfileChangeRequests() {
 
       if (error) throw error;
 
-      // If approved, apply the changes using the fixed RPC function
+      // If approved, apply the changes using the correct RPC function
       if (status === 'APPROVED') {
-        const { error: rpcError } = await supabase.rpc('admin_update_fighter_profile_v4', {
+        const { error: rpcError } = await supabase.rpc('admin_update_fighter_profile', {
           p_fighter_id: requestData.fighter_profile_id,
           p_profile_data: requestData.requested_changes
         });
@@ -260,7 +260,7 @@ export function useProfileChangeRequests() {
       }
 
       // Use the admin update function
-      const { error } = await supabase.rpc('admin_update_fighter_profile_v4', {
+      const { error } = await supabase.rpc('admin_update_fighter_profile', {
         p_fighter_id: fighterProfileId,
         p_profile_data: changes
       });

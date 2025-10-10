@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAdmin } from '@/hooks/useAdmin';
 import { useAdminLicenseActions } from '@/hooks/useLicenseSystem';
 import { DeleteLicenseDialog } from '@/components/admin/DeleteLicenseDialog';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -23,11 +23,11 @@ const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Gr
 export default function ValidacionLicencias() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isAdmin, loading: loadingAdmin } = useAdmin();
   const { approveLicense, suspendLicense } = useAdminLicenseActions();
   const [searchTerm, setSearchTerm] = useState('');
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
   const [optimisticUpdates, setOptimisticUpdates] = useState<Record<string, string>>({});
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [reviewingLicense, setReviewingLicense] = useState<any>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
@@ -82,53 +82,16 @@ export default function ValidacionLicencias() {
     },
   });
 
-
-  // Check admin permissions
+  // Real-time subscription
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setIsAdmin(false);
-          return;
-        }
+    if (isAdmin === false) return;
 
-        const { data: appUser, error } = await supabase
-          .from('app_user')
-          .select('is_admin')
-          .eq('auth_user_id', user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-          return;
-        }
-
-        setIsAdmin(appUser?.is_admin ?? false);
-      } catch (error) {
-        console.error('Error in checkAdminStatus:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, []);
-
-  // Set up real-time subscription for license updates
-  useEffect(() => {
     const channel = supabase
       .channel('license-changes')
       .on(
         'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'fighter_licenses'
-        },
-        (payload) => {
-          console.log('License change detected:', payload);
-          // Invalidate and refetch the licenses query
+        { event: '*', schema: 'public', table: 'fighter_licenses' },
+        () => {
           queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
           queryClient.invalidateQueries({ queryKey: ['pending_licenses'] });
           refetch();
@@ -140,8 +103,7 @@ export default function ValidacionLicencias() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [queryClient, refetch]);
-
+  }, [isAdmin, refetch, refetchPending, queryClient]);
 
   const updateLicenseState = async (licenseId: string, newStatus: 'ACTIVE' | 'SUSPENDED') => {
     if (!isAdmin) {

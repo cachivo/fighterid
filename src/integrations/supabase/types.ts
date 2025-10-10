@@ -3141,15 +3141,11 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: undefined
       }
+      admin_update_fighter_profile: {
+        Args: { p_fighter_id: string; p_profile_data: Json }
+        Returns: undefined
+      }
       admin_update_fighter_profile_v10: {
-        Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: undefined
-      }
-      admin_update_fighter_profile_v4: {
-        Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: undefined
-      }
-      admin_update_fighter_profile_v5: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
       }
@@ -3162,10 +3158,6 @@ export type Database = {
         Returns: undefined
       }
       admin_update_fighter_profile_v8: {
-        Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: undefined
-      }
-      admin_update_fighter_profile_v9: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
       }
@@ -3197,6 +3189,10 @@ export type Database = {
       check_doping_eligibility: {
         Args: { p_license_id: string }
         Returns: Json
+      }
+      cleanup_expired_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
