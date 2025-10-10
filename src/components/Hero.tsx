@@ -28,7 +28,7 @@ const Hero = () => {
           {/* LOGO GRANDE */}
           <div className="mb-6 sm:mb-8 md:mb-10 animate-slide-up">
             <img 
-              src="/lovable-uploads/fighter-id-logo-transparent.png" 
+              src="/lovable-uploads/fighter-id-logo-final.png" 
               alt="Fighter ID" 
               className="h-48 sm:h-56 md:h-64 lg:h-80 w-auto mx-auto"
               style={{ 
@@ -91,7 +91,7 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="mb-2 sm:mb-4 animate-slide-up">
           <img 
-            src="/lovable-uploads/fighter-id-logo-transparent.png" 
+            src="/lovable-uploads/fighter-id-logo-final.png" 
             alt="Fighter ID Logo" 
             className="h-72 sm:h-[400px] md:h-[480px] lg:h-[560px] w-auto mx-auto"
             style={{ 
