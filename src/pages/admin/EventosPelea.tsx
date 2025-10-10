@@ -678,9 +678,10 @@ export default function EventosPelea() {
                     <SelectValue placeholder="Seleccionar peleador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {eventFightersData.map((fighter) => (
-                      <SelectItem key={fighter?.id} value={fighter?.id || ''}>
-                        {fighter?.first_name} {fighter?.last_name} {fighter?.nickname && `"${fighter.nickname}"`}
+                    {availableFighters.map((fighter) => (
+                      <SelectItem key={fighter.id} value={fighter.id}>
+                        {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
+                        <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -693,11 +694,15 @@ export default function EventosPelea() {
                     <SelectValue placeholder="Seleccionar peleador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {eventFightersData.filter(f => f?.id !== fightData.fighter_a_id).map((fighter) => (
-                      <SelectItem key={fighter?.id} value={fighter?.id || ''}>
-                        {fighter?.first_name} {fighter?.last_name} {fighter?.nickname && `"${fighter.nickname}"`}
-                      </SelectItem>
-                    ))}
+                    {availableFighters
+                      .filter(f => f.id !== fightData.fighter_a_id)
+                      .map((fighter) => (
+                        <SelectItem key={fighter.id} value={fighter.id}>
+                          {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
+                          <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
+                        </SelectItem>
+                      ))
+                    }
                   </SelectContent>
                 </Select>
               </div>
