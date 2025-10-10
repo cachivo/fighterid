@@ -164,17 +164,17 @@ export default function LicenseDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-3 sm:p-4">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 md:space-y-6">
         {/* Admin Header */}
-        <div className="bg-card border rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="bg-card border rounded-lg p-3 sm:p-4 md:p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                <Shield className="h-6 w-6 text-primary" />
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+                <Shield className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
                 Fighter ID - Información Administrativa
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                 Vista completa de licencia {licenseData.license_number}
               </p>
             </div>
@@ -220,33 +220,33 @@ export default function LicenseDashboard() {
         {/* Prominent Fighter Profile Section */}
         <Card className="overflow-hidden border-2 shadow-lg">
           <CardContent className="p-0">
-            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-6">
-              <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+            <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-background p-4 sm:p-5 md:p-6">
+              <div className="flex flex-col md:flex-row gap-4 sm:gap-5 md:gap-6 items-center md:items-start">
                 {/* Large Avatar */}
                 <div className="relative flex-shrink-0">
                   <div className="relative">
-                    <Avatar className="h-32 w-32 md:h-40 md:w-40 ring-4 ring-primary/20 ring-offset-4 ring-offset-background shadow-xl">
+                    <Avatar className="h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 ring-2 sm:ring-3 md:ring-4 ring-primary/20 ring-offset-2 sm:ring-offset-3 ring-offset-background shadow-xl">
                       <AvatarImage src={fighterProfile?.avatar_url} className="object-cover" />
-                      <AvatarFallback className="text-4xl md:text-5xl font-bold bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                      <AvatarFallback className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
                         {fighterProfile?.first_name?.[0]}{fighterProfile?.last_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     {licenseData.status === 'ACTIVE' && (
-                      <div className="absolute -bottom-2 -right-2 bg-fighter-success rounded-full p-2 ring-4 ring-background shadow-lg">
-                        <CheckCircle className="h-6 w-6 text-white" />
+                      <div className="absolute -bottom-2 -right-2 bg-fighter-success rounded-full p-1.5 sm:p-2 ring-4 ring-background shadow-lg">
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Fighter Info */}
-                <div className="flex-1 text-center md:text-left space-y-4">
+                <div className="flex-1 text-center md:text-left space-y-2 sm:space-y-3 md:space-y-4">
                   <div>
-                    <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                       {fighterProfile?.first_name} {fighterProfile?.last_name}
                     </h2>
                     {fighterProfile?.nickname && (
-                      <p className="text-xl md:text-2xl text-muted-foreground font-medium mt-1">
+                      <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-medium mt-1">
                         "{fighterProfile.nickname}"
                       </p>
                     )}
@@ -273,31 +273,31 @@ export default function LicenseDashboard() {
                   </div>
 
                   {/* Fighter Record */}
-                  <div className="flex items-center justify-center md:justify-start gap-6 pt-2">
+                  <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4 md:gap-6 pt-1 sm:pt-2">
                     <div className="text-center">
-                      <p className="text-2xl md:text-3xl font-bold text-fighter-success">
+                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-success">
                         {fighterProfile?.record_wins || 0}
                       </p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Victorias</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Victorias</p>
                     </div>
-                    <Separator orientation="vertical" className="h-12" />
+                    <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
                     <div className="text-center">
-                      <p className="text-2xl md:text-3xl font-bold text-fighter-danger">
+                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-danger">
                         {fighterProfile?.record_losses || 0}
                       </p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Derrotas</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Derrotas</p>
                     </div>
-                    <Separator orientation="vertical" className="h-12" />
+                    <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
                     <div className="text-center">
-                      <p className="text-2xl md:text-3xl font-bold text-fighter-warning">
+                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-warning">
                         {fighterProfile?.record_draws || 0}
                       </p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Empates</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Empates</p>
                     </div>
                   </div>
 
                   {/* Additional Quick Info */}
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm text-muted-foreground pt-2">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-muted-foreground pt-1 sm:pt-2">
                     {fighterProfile?.country && (
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
@@ -321,11 +321,11 @@ export default function LicenseDashboard() {
 
                 {/* License Number Badge */}
                 <div className="flex-shrink-0 text-center md:text-right">
-                  <div className="inline-block bg-card border-2 rounded-lg p-4 shadow-md">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Licencia</p>
-                    <p className="text-lg font-mono font-bold text-primary">{licenseData.license_number}</p>
+                  <div className="inline-block bg-card border-2 rounded-lg p-3 sm:p-3.5 md:p-4 shadow-md">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide mb-1">Licencia</p>
+                    <p className="text-sm sm:text-base md:text-lg font-mono font-bold text-primary">{licenseData.license_number}</p>
                     {licenseData.expires_at && (
-                      <p className="text-xs text-muted-foreground mt-2">
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
                         Vence: {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
                       </p>
                     )}
@@ -337,7 +337,7 @@ export default function LicenseDashboard() {
         </Card>
 
         {/* Reorganized Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           {/* Información Personal - Solo datos únicos de identificación */}
           <Card>
             <CardHeader>
@@ -480,7 +480,7 @@ export default function LicenseDashboard() {
         </Card>
 
         {/* Información Médica y de Emergencia */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -556,7 +556,7 @@ export default function LicenseDashboard() {
         </div>
 
         {/* Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           {/* License Status Details */}
           <Card>
             <CardHeader>
@@ -730,7 +730,7 @@ export default function LicenseDashboard() {
         </div>
 
         {/* Fighter Updates Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 md:gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Crear Actualización</CardTitle>
@@ -770,11 +770,11 @@ export default function LicenseDashboard() {
         </div>
 
         {/* Doping Tests Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-5 md:space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Reportes de Dopaje</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-xl sm:text-2xl font-bold">Reportes de Dopaje</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">
                 Gestiona tus pruebas antidopaje y mantén tu elegibilidad para competir
               </p>
             </div>
