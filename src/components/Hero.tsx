@@ -91,7 +91,7 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="mb-2 sm:mb-4 animate-slide-up">
           <img 
-            src="/lovable-uploads/fighter-id-logo-transparent.png" 
+            src="/lovable-uploads/fighter-id-logo-user.png" 
             alt="Fighter ID Logo" 
             className="h-72 sm:h-[400px] md:h-[480px] lg:h-[560px] w-auto mx-auto"
             style={{ 
