@@ -93,20 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      const { data, error } = await supabase.functions.invoke('send-password-recovery', {
-        body: { 
-          email,
-          redirectTo: `${window.location.origin}/auth/reset-password`
-        }
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
       });
 
       if (error) {
-        console.error('Error calling recovery function:', error);
+        console.error('Error sending recovery email:', error);
         return { error: { message: error.message } };
-      }
-
-      if (data?.error) {
-        return { error: { message: data.error, retryAfter: data.retryAfter } };
       }
 
       return { error: null };

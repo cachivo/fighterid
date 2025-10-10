@@ -119,6 +119,116 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (dbError) {
       console.error("[INVITATION] Error creating invitation:", dbError);
+      // Manejar invitación duplicada (email ya tiene una invitación)
+      if ((dbError as any).code === '23505') {
+        // Buscar invitación existente más reciente para este email
+        const { data: existing, error: fetchErr } = await supabaseClient
+          .from('fighter_invitations')
+          .select('*')
+          .eq('email', email)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (fetchErr || !existing) {
+          console.error("[INVITATION] Failed to fetch existing invitation:", fetchErr);
+          return new Response(
+            JSON.stringify({ error: "Ya existe una invitación para este email, pero no se pudo recuperar." }),
+            { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
+        const now = new Date();
+        const exp = existing.expires_at ? new Date(existing.expires_at) : null;
+        const isExpired = !exp || exp.getTime() < now.getTime() || existing.status === 'expired';
+
+        let activeInvitation = existing as any;
+        let linkToken = existing.token as string;
+
+        if (isExpired || existing.status === 'cancelled') {
+          // Renovar token y fecha de expiración; resetear a pendiente
+          linkToken = crypto.randomUUID();
+          const newExpiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+          const { data: updated, error: updateErr } = await supabaseClient
+            .from('fighter_invitations')
+            .update({
+              token: linkToken,
+              status: 'pending',
+              expires_at: newExpiresAt,
+              accepted_at: null,
+              first_name: firstName,
+              last_name: lastName,
+              phone,
+              weight_class: weightClass,
+              invited_by: user.id,
+            })
+            .eq('id', existing.id)
+            .select('*')
+            .single();
+
+          if (updateErr) {
+            console.error("[INVITATION] Failed to refresh existing invitation:", updateErr);
+            return new Response(
+              JSON.stringify({ error: "No se pudo actualizar la invitación existente." }),
+              { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+            );
+          }
+          activeInvitation = updated!;
+        } else if (existing.status === 'accepted') {
+          return new Response(
+            JSON.stringify({ 
+              error: "El usuario ya aceptó la invitación previamente.",
+              invitation: existing,
+              accepted: true
+            }),
+            { status: 409, headers: { "Content-Type": "application/json", ...corsHeaders } }
+          );
+        }
+
+        const finalRegistrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth?invite=${linkToken}`;
+
+        // Reenviar correo con el enlace activo (reutilizado o renovado)
+        try {
+          const emailResult = await sendEmailWithFallback(resend, {
+            to: email,
+            subject: "🥊 Invitación para registrarte en Fighter ID",
+            html: EmailTemplates.wrap(`
+          <h2>¡Hola ${firstName} ${lastName}!</h2>
+          <p>Ya tienes una invitación activa. Te reenviamos tu enlace para completar el registro:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${finalRegistrationLink}" class="button">
+              Completar Registro
+            </a>
+          </div>
+          <p style="color: #666; font-size: 14px;">
+            O copia y pega este enlace en tu navegador:<br>
+            <a href="${finalRegistrationLink}" style="color: #0066cc; word-break: break-all;">
+              ${finalRegistrationLink}
+            </a>
+          </p>
+          <p style="color: #999; font-size: 12px; margin-top: 30px;">
+            <strong>Nota:</strong> Esta invitación expira en 7 días.
+          </p>
+        `),
+          });
+          console.log("[INVITATION] Email re-sent successfully:", emailResult);
+        } catch (emailError: any) {
+          console.error("[INVITATION] Failed to re-send invitation email:", emailError);
+          // Continuamos para retornar el link aunque falle el correo
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            invitation: activeInvitation,
+            registrationLink: finalRegistrationLink,
+            duplicate: true,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
+      }
+
       throw new Error(`Error creando invitación: ${dbError.message}`);
     }
 
