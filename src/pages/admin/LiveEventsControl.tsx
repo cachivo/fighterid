@@ -11,6 +11,8 @@ import { useFightOfficials, useFightControl } from '@/hooks/useFightControl';
 import { useFightRealtime } from '@/hooks/useFightRealtime';
 import { useJudges } from '@/hooks/useJudges';
 import { useToast } from '@/hooks/use-toast';
+import { RoundControlPanel } from '@/components/admin/RoundControlPanel';
+import { PrepareFightDialog } from '@/components/admin/PrepareFightDialog';
 
 export default function LiveEventsControl() {
   const { events, loading: eventsLoading } = useEvents();
@@ -65,6 +67,10 @@ export default function LiveEventsControl() {
             </div>
             
             <div className="flex gap-2">
+              <PrepareFightDialog 
+                fight={fight} 
+                availableJudges={getActiveJudges()} 
+              />
               <Button 
                 size="sm" 
                 variant="outline"
@@ -72,13 +78,6 @@ export default function LiveEventsControl() {
               >
                 <Eye className="mr-2 h-3 w-3" />
                 Ver
-              </Button>
-              <Button 
-                size="sm"
-                onClick={() => window.open(`/judge/scorecard/${fight.id}`, '_blank')}
-              >
-                <Settings className="mr-2 h-3 w-3" />
-                Control
               </Button>
             </div>
           </div>
@@ -142,6 +141,9 @@ export default function LiveEventsControl() {
               )}
             </div>
           </div>
+
+          {/* Round Control Panel */}
+          <RoundControlPanel fightId={fight.id} />
 
           {/* Real-time Stats */}
           {realtimeData.scorecards.length > 0 && (

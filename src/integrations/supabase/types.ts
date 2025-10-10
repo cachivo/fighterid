@@ -823,6 +823,50 @@ export type Database = {
           },
         ]
       }
+      fight_rounds: {
+        Row: {
+          created_at: string | null
+          duration_seconds: number
+          ends_at: string | null
+          fight_id: string
+          id: string
+          number: number
+          starts_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          duration_seconds?: number
+          ends_at?: string | null
+          fight_id: string
+          id?: string
+          number: number
+          starts_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          duration_seconds?: number
+          ends_at?: string | null
+          fight_id?: string
+          id?: string
+          number?: number
+          starts_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_rounds_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fight_scorecards: {
         Row: {
           fight_id: string
@@ -3264,6 +3308,10 @@ export type Database = {
         Args: { p_ticket_id: string }
         Returns: undefined
       }
+      control_round: {
+        Args: { p_action: string; p_round_id: string }
+        Returns: Json
+      }
       create_fighter_profile_with_license: {
         Args:
           | {
@@ -3470,6 +3518,16 @@ export type Database = {
           p_admin_notes?: string
           p_new_status: string
           p_update_id: string
+        }
+        Returns: Json
+      }
+      prepare_fight_for_scoring: {
+        Args: {
+          p_fight_id: string
+          p_judge_1_id: string
+          p_judge_2_id: string
+          p_judge_3_id: string
+          p_referee_id: string
         }
         Returns: Json
       }
