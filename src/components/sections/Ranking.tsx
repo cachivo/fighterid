@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Target, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,10 +7,32 @@ import { Badge } from "@/components/ui/badge";
 import { useFighterRanking } from "@/hooks/useFighterRanking";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { useNavigate } from "react-router-dom";
+import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 
 const Ranking = () => {
-  const { fighters, stats, isLoading } = useFighterRanking(3);
+  const [page, setPage] = useState(1);
+  const [allFighters, setAllFighters] = useState<any[]>([]);
+  const PAGE_SIZE = 10;
+  
+  const { fighters, stats, isLoading, hasMore } = useFighterRanking(3, page, PAGE_SIZE);
   const navigate = useNavigate();
+
+  // Acumular fighters mientras se carga más
+  useEffect(() => {
+    if (fighters && fighters.length > 0) {
+      setAllFighters(prev => {
+        const existingIds = new Set(prev.map(f => f.id));
+        const newFighters = fighters.filter(f => !existingIds.has(f.id));
+        return [...prev, ...newFighters];
+      });
+    }
+  }, [fighters]);
+
+  const loadMore = () => {
+    if (!isLoading && hasMore) {
+      setPage(prev => prev + 1);
+    }
+  };
 
   const estadisticas = [
     {
@@ -35,7 +58,7 @@ const Ranking = () => {
   ];
 
   return (
-    <section id="ranking" className="py-12 sm:py-16 md:py-20 relative overflow-hidden">
+    <section id="ranking" className="py-8 sm:py-12 md:py-16 relative overflow-hidden">
       <div 
         className="absolute inset-0 bg-cover bg-center bg-fixed opacity-80"
         style={{ backgroundImage: 'url(/lovable-uploads/17f6dde8-5a0e-4986-a833-30fc435b156c.png)' }}
@@ -81,13 +104,13 @@ const Ranking = () => {
           )}
         </div>
 
-        {/* Top Peleadores */}
+        {/* Top Peleadores con Infinite Scroll */}
         <div className="mb-8 sm:mb-12">
           <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
-            Top 10 <span className="text-purple-neon-primary">Peleadores</span>
+            Top Peleadores <span className="text-purple-neon-primary">Ranking</span>
           </h3>
           
-          {isLoading ? (
+          {isLoading && page === 1 ? (
             <div className="space-y-3 sm:space-y-4">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Card key={index} className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm">
@@ -103,9 +126,14 @@ const Ranking = () => {
                 </Card>
               ))}
             </div>
-          ) : fighters && fighters.length > 0 ? (
-            <div className="space-y-3 sm:space-y-4">
-              {fighters.map((fighter, index) => {
+          ) : allFighters.length > 0 ? (
+            <InfiniteScrollContainer
+              onLoadMore={loadMore}
+              hasMore={hasMore}
+              loading={isLoading}
+            >
+              <div className="space-y-3 sm:space-y-4">
+                {allFighters.map((fighter, index) => {
                 const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
                 const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
                 
@@ -123,7 +151,7 @@ const Ranking = () => {
                         </div>
 
                         {/* Avatar */}
-                        <Avatar className="h-12 w-12 sm:h-14 sm:w-14 border-2 border-purple-neon-primary/50">
+                        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-purple-neon-primary/50">
                           <AvatarImage src={fighter.avatar_url || undefined} />
                           <AvatarFallback className="bg-purple-neon-primary/20 text-white">
                             {fighter.first_name[0]}{fighter.last_name[0]}
@@ -133,15 +161,15 @@ const Ranking = () => {
                         {/* Fighter Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h4 className="text-base sm:text-lg font-bold text-white group-hover:text-purple-neon-primary transition-colors">
+                            <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors truncate">
                               {fighter.first_name} {fighter.last_name}
                             </h4>
                             {fighter.nickname && (
-                              <span className="text-sm text-gray-400 italic">"{fighter.nickname}"</span>
+                              <span className="text-xs text-gray-400 italic truncate">"{fighter.nickname}"</span>
                             )}
                           </div>
                           
-                          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
                             <span className="text-gray-300">
                               {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
                             </span>
@@ -150,17 +178,12 @@ const Ranking = () => {
                                 {fighter.discipline}
                               </Badge>
                             )}
-                            {fighter.level && (
-                              <Badge variant="secondary" className="text-xs bg-purple-neon-primary/20 text-purple-neon-primary">
-                                {fighter.level}
-                              </Badge>
-                            )}
                           </div>
                         </div>
 
                         {/* Win Rate */}
-                        <div className="text-right min-w-[80px]">
-                          <div className="text-lg sm:text-xl font-bold text-purple-neon-primary">
+                        <div className="text-right min-w-[70px]">
+                          <div className="text-base sm:text-lg font-bold text-purple-neon-primary">
                             {fighter.win_rate.toFixed(1)}%
                           </div>
                           <div className="text-xs text-gray-400">
@@ -172,7 +195,8 @@ const Ranking = () => {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </InfiniteScrollContainer>
           ) : (
             <Card className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm">
               <CardContent className="p-8 text-center">

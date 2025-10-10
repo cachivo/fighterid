@@ -27,13 +27,13 @@ interface RankingStats {
   undefeated_count: number;
 }
 
-export function useFighterRanking(minFights: number = 3) {
+export function useFighterRanking(minFights: number = 3, page: number = 1, pageSize: number = 10) {
   const { data: fighters, isLoading: loadingFighters, error: fightersError } = useQuery({
-    queryKey: ['fighter-ranking', minFights],
+    queryKey: ['fighter-ranking', minFights, page, pageSize],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('fighter_profiles')
-        .select('id, first_name, last_name, nickname, avatar_url, record_wins, record_losses, record_draws, discipline, level, weight_class, country')
+        .select('id, first_name, last_name, nickname, avatar_url, record_wins, record_losses, record_draws, discipline, level, weight_class, country', { count: 'exact' })
         .eq('active', true)
         .order('record_wins', { ascending: false });
 
@@ -55,7 +55,7 @@ export function useFighterRanking(minFights: number = 3) {
       });
 
       // Filtrar por mínimo de peleas y ordenar por win rate
-      return processed
+      const filtered = processed
         .filter(f => f.total_fights >= minFights)
         .sort((a, b) => {
           // Primero por win rate, luego por total de victorias
@@ -63,8 +63,18 @@ export function useFighterRanking(minFights: number = 3) {
             return b.win_rate - a.win_rate;
           }
           return b.record_wins - a.record_wins;
-        })
-        .slice(0, 10); // Top 10
+        });
+
+      // Paginación
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const paginated = filtered.slice(start, end);
+      
+      return {
+        fighters: paginated,
+        totalCount: filtered.length,
+        hasMore: end < filtered.length
+      };
     },
   });
 
@@ -122,9 +132,11 @@ export function useFighterRanking(minFights: number = 3) {
   });
 
   return {
-    fighters: fighters as FighterRankingData[] | undefined,
+    fighters: (fighters as any)?.fighters as FighterRankingData[] | undefined,
     stats,
     isLoading: loadingFighters || loadingStats,
     error: fightersError,
+    hasMore: (fighters as any)?.hasMore || false,
+    totalCount: (fighters as any)?.totalCount || 0,
   };
 }

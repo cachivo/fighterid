@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import RealTimeStats from "@/components/RealTimeStats";
+import { QuickStats } from "@/components/QuickStats";
 import StrategicAllies from "@/components/StrategicAllies";
 import Ranking from "@/components/sections/Ranking";
 import Footer from "@/components/Footer";
@@ -54,9 +54,9 @@ const Index = () => {
       <Hero />
       {user && (
         <>
-          <RealTimeStats />
-          <StrategicAllies />
+          <QuickStats />
           <Ranking />
+          <StrategicAllies />
         </>
       )}
       <Footer />
