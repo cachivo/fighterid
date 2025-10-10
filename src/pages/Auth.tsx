@@ -89,6 +89,14 @@ export default function Auth() {
     checkInvitation();
   }, [inviteToken]);
 
+  // Cooldown timer - MUST be before conditional return
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   // Redirect if already authenticated
   if (user && !adminLoading) {
     // If there's a redirect parameter, use it (for admin access)
@@ -143,14 +151,6 @@ export default function Auth() {
     }
     setIsResending(false);
   };
-
-  // Cooldown timer
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
 
   const handleSignUp = async (data: SignUpFormData) => {
     setLoading(true);
