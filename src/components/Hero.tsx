@@ -1,15 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Zap } from 'lucide-react';
+import { Calendar, Zap, Shield } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { useUserRole } from '@/hooks/useUserRole';
 import batallaPoster from "@/assets/batalla-poster.jpg";
 import mmaCage4k from "@/assets/mma-cage-4k.png";
 
 const Hero = () => {
   const { stats } = useRealTimeStats();
   const { user } = useAuth();
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   
   // Si no hay usuario autenticado, mostrar landing page con logo grande
@@ -126,6 +128,21 @@ const Hero = () => {
             <span>{stats?.totalFighters || 0} Peleadores Registrados</span>
           </div>
         </div>
+        
+        {/* Admin Button - Only visible for admin users */}
+        {isAdmin && (
+          <div className="mt-6 sm:mt-8 animate-fade-in">
+            <Button
+              onClick={() => navigate('/admin/dashboard')}
+              variant="hero"
+              size="lg"
+              className="gap-2"
+            >
+              <Shield className="h-5 w-5" />
+              Panel de Administración
+            </Button>
+          </div>
+        )}
       </div>
       
       {/* Cinematic bottom fade */}
