@@ -34,9 +34,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
-  { title: 'Eventos Deportivos', url: '/admin/eventos-deportivos', icon: Calendar },
   { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Users },
-  { title: 'Eventos Digitales', url: '/admin/eventos-digitales', icon: Monitor },
   { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },

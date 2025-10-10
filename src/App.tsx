@@ -58,9 +58,7 @@ import SocialUserProfile from "./pages/social/UserProfile";
 import TestNewsFunction from "./pages/TestNewsFunction";
 import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
-import EventosDeportivos from "./pages/admin/EventosDeportivos";
 import EventosPelea from "./pages/admin/EventosPelea";
-import EventosDigitales from "./pages/admin/EventosDigitales";
 import LicenseForgotPassword from "./pages/license/ForgotPassword";
 import LicenseResetPassword from "./pages/license/ResetPassword";
 
@@ -195,9 +193,7 @@ const App = () => (
                   <AdminLayout>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/eventos-deportivos" element={<EventosDeportivos />} />
                       <Route path="/eventos-pelea" element={<EventosPelea />} />
-                      <Route path="/eventos-digitales" element={<EventosDigitales />} />
                       
                       <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
                       <Route path="/fighters" element={<AdminFightersProfiles />} />

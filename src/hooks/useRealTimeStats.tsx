@@ -11,7 +11,10 @@ export function useRealTimeStats() {
         activeEvents,
         totalEvents,
         recentFights,
-        nextEvent
+        nextEvent,
+        totalLicenses,
+        activeLicenses,
+        pendingLicenses
       ] = await Promise.all([
         supabase.from('fighter_profiles').select('id', { count: 'exact' }).eq('active', true),
         supabase.from('fighter_profiles')
@@ -30,7 +33,10 @@ export function useRealTimeStats() {
           .gt('start_time', new Date().toISOString())
           .order('start_time', { ascending: true })
           .limit(1)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase.from('fighter_licenses').select('id', { count: 'exact' }),
+        supabase.from('fighter_licenses').select('id', { count: 'exact' }).eq('status', 'ACTIVE'),
+        supabase.from('fighter_licenses').select('id', { count: 'exact' }).eq('status', 'PENDING_REVIEW')
       ]);
 
       return {
@@ -40,6 +46,9 @@ export function useRealTimeStats() {
         totalEvents: totalEvents.count || 0,
         recentFights: recentFights.data || [],
         nextEvent: nextEvent.data || null,
+        totalLicenses: totalLicenses.count || 0,
+        activeLicenses: activeLicenses.count || 0,
+        pendingLicenses: pendingLicenses.count || 0,
         growthRate: Math.round(((activeFighters.data?.length || 0) / (fightersCount.count || 1)) * 100)
       };
     },

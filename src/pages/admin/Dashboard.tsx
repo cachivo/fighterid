@@ -2,35 +2,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Calendar, Monitor, Briefcase, TrendingUp, Users, Settings, Download, 
-  CheckCircle, Clock, AlertCircle, Bot } from 'lucide-react';
-import { useSystemStats } from '@/hooks/useSystemStats';
+import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy } from 'lucide-react';
+import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
 import AdminAnalytics from '@/components/AdminAnalytics';
 
 export default function Dashboard() {
-  const { stats, isLoading } = useSystemStats();
+  const { stats, isLoading } = useRealTimeStats();
   const { dbConnected, authActive, lastUpdate } = useSystemStatus();
 
   const statsConfig = [
     {
-      title: 'Eventos Deportivos',
-      value: stats?.eventosDeportivos?.toString() || '0',
-      description: 'Tipos de eventos activos',
+      title: 'Peleadores Activos',
+      value: stats?.totalFighters?.toString() || '0',
+      description: 'Fighter IDs registrados',
+      icon: Users,
+    },
+    {
+      title: 'Eventos Totales',
+      value: stats?.totalEvents?.toString() || '0',
+      description: 'Eventos de pelea creados',
       icon: Calendar,
     },
     {
-      title: 'Eventos Digitales',
-      value: stats?.eventosDigitales?.toString() || '0',
-      description: 'Servicios digitales disponibles',
-      icon: Monitor,
+      title: 'Eventos en Vivo',
+      value: stats?.liveEvents?.length?.toString() || '0',
+      description: 'Peleas transmitiendo ahora',
+      icon: Trophy,
     },
     {
-      title: 'Estadísticas',
-      value: stats?.estadisticas?.toString() || '0',
-      description: 'Métricas en el ranking',
-      icon: TrendingUp,
+      title: 'Licencias Activas',
+      value: stats?.totalFighters?.toString() || '0',
+      description: 'Fighter IDs vigentes',
+      icon: Shield,
     },
   ];
   return (
@@ -98,7 +103,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-dashed">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+                <Trophy className="h-5 w-5 text-green-600" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">"Estadísticas del sistema"</p>
                   <p className="text-xs text-muted-foreground">Ver métricas actuales</p>
@@ -140,14 +145,14 @@ export default function Dashboard() {
                 <Calendar className="h-5 w-5" />
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    Gestionar Eventos Deportivos
+                    Gestionar Eventos de Pelea
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Añadir, editar o eliminar tipos de eventos
+                    Crear y administrar eventos MMA
                   </p>
                 </div>
                 <Button asChild size="sm">
-                  <Link to="/admin/eventos-deportivos">Gestionar</Link>
+                  <Link to="/admin/eventos-pelea">Gestionar</Link>
                 </Button>
               </div>
               <div className="flex items-center space-x-4 rounded-md border p-4">
@@ -161,7 +166,7 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <Button asChild size="sm">
-                  <Link to="/admin/fighters">Gestionar</Link>
+                  <Link to="/admin/fighters-profiles">Gestionar</Link>
                 </Button>
               </div>
             </CardContent>

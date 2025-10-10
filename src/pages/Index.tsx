@@ -32,26 +32,6 @@ const Index = () => {
       },
       staleTime: 15 * 60 * 1000, // 15 minutes
     });
-
-    // Prefetch ranking data for when user scrolls
-    const prefetchTimer = setTimeout(() => {
-      queryClient.prefetchQuery({
-        queryKey: ["eventos-destacados"],
-        queryFn: async () => {
-          const { data, error } = await supabase
-            .from("eventos_destacados")
-            .select("*")
-            .eq("activo", true)
-            .order("orden", { ascending: true });
-          
-          if (error) throw error;
-          return data;
-        },
-        staleTime: 15 * 60 * 1000,
-      });
-    }, 1000); // Prefetch after 1 second
-
-    return () => clearTimeout(prefetchTimer);
   }, [queryClient]);
 
   // Show loading state
