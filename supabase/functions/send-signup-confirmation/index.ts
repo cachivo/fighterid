@@ -107,6 +107,35 @@ function getSignupEmailHTML(confirmationLink: string, email: string): string {
   `;
 }
 
+// Recovery email template (simplified)
+function getRecoveryEmailHTML(resetLink: string, email: string): string {
+  return `
+  <!DOCTYPE html>
+  <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Restablece tu contraseña</title></head>
+  <body style="margin:0;padding:0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;background-color:#f5f5f5;">
+    <table role="presentation" style="width:100%;border-collapse:collapse;">
+      <tr><td align="center" style="padding:40px 0;">
+        <table role="presentation" style="width:600px;max-width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+          <tr><td style="padding:32px 40px;background:linear-gradient(135deg,#1a1a1a,#2d2d2d);border-radius:8px 8px 0 0;color:#fff;">
+            <h1 style="margin:0;font-size:22px;font-weight:700;">Fighter ID</h1>
+            <p style="margin:6px 0 0;color:#e0e0e0;font-size:14px;">Recuperación de contraseña</p>
+          </td></tr>
+          <tr><td style="padding:32px 40px;">
+            <p style="margin:0 0 16px;color:#4a4a4a;font-size:16px;">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p>
+            <p style="margin:0 0 24px;color:#4a4a4a;font-size:16px;">Haz clic en el botón para crear una nueva contraseña:</p>
+            <div style="text-align:center;margin:0 0 24px;">
+              <a href="${resetLink}" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Restablecer contraseña</a>
+            </div>
+            <p style="margin:0 0 10px;color:#6b7280;font-size:14px;">Si no solicitaste este cambio, puedes ignorar este correo.</p>
+            <p style="margin:0;color:#6b7280;font-size:13px;">Tu correo: ${email}</p>
+          </td></tr>
+          <tr><td style="padding:24px 40px;background:#f9fafb;border-radius:0 0 8px 8px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:12px;text-align:center;">© 2025 Fighter ID</td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body></html>`;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -178,11 +207,20 @@ serve(async (req) => {
     const fromName = "Fighter ID";
     const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
     
+    // Determine subject and template based on action type
+    const isRecovery = String(emailActionType || '').toLowerCase().includes('recovery');
+    const subject = isRecovery
+      ? 'Restablece tu contraseña en Fighter ID'
+      : 'Confirma tu cuenta en Fighter ID';
+    const html = isRecovery
+      ? getRecoveryEmailHTML(confirmationLink, user.email)
+      : getSignupEmailHTML(confirmationLink, user.email);
+
     const emailResult = await resend.emails.send({
       from: formattedFrom,
       to: [user.email],
-      subject: "Confirma tu cuenta en Fighter ID",
-      html: getSignupEmailHTML(confirmationLink, user.email),
+      subject,
+      html,
     });
 
     if (emailResult.error) {
