@@ -260,13 +260,13 @@ const Header = () => {
             </SheetContent>
           </Sheet>
 
-          {/* Desktop Actions */}
-          <div className="hidden sm:flex items-center gap-2">
+          {/* User Actions - Visible on all screens */}
+          <div className="flex items-center gap-2">
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 min-h-[44px] min-w-[44px] touch-manipulation">
+                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                       <AvatarImage src="" alt={user.email || 'Usuario'} />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {user.email?.charAt(0).toUpperCase() || 'U'}
@@ -274,35 +274,35 @@ const Header = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuContent align="end" className="w-64 z-[100]">
                   <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                   <div className="px-2 py-1.5">
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link to="/profile" className="cursor-pointer min-h-[44px] touch-manipulation">
                       <User className="mr-2 h-4 w-4" />
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
                   {hasFighterProfile && (
                     <DropdownMenuItem asChild>
-                      <Link to="/license/dashboard" className="cursor-pointer">
+                      <Link to="/license/dashboard" className="cursor-pointer min-h-[44px] touch-manipulation">
                         <Shield className="mr-2 h-4 w-4" />
                         Fighter ID
                       </Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive min-h-[44px] touch-manipulation">
                     <LogOut className="mr-2 h-4 w-4" />
                     Cerrar Sesión
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="default" size="sm" asChild>
+              <Button variant="default" size="sm" asChild className="hidden sm:inline-flex">
                 <Link to="/auth">Iniciar Sesión</Link>
               </Button>
             )}
