@@ -30,7 +30,7 @@ const Hero = () => {
           {/* LOGO GRANDE */}
           <div className="mb-12 animate-slide-up">
             <img 
-              src="/lovable-uploads/fighter-id-logo-clean.png" 
+              src="/lovable-uploads/fighter-id-logo-transparent.png" 
               alt="Fighter ID" 
               className="h-48 sm:h-56 md:h-72 lg:h-96 w-auto mx-auto drop-shadow-2xl"
               style={{ filter: 'drop-shadow(0 0 40px rgba(139, 92, 246, 0.5))' }}
