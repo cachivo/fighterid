@@ -97,11 +97,11 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
-        <div className="mb-4 sm:mb-6 animate-slide-up">
+        <div className="mb-2 sm:mb-4 animate-slide-up">
           <img 
             src="/lovable-uploads/fighter-id-logo-user.png" 
             alt="Fighter ID Logo" 
-            className="h-96 sm:h-[480px] md:h-[576px] lg:h-[672px] w-auto mx-auto"
+            className="h-72 sm:h-[400px] md:h-[480px] lg:h-[560px] w-auto mx-auto"
             style={{ 
               filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 40px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))'
             }}
@@ -109,7 +109,7 @@ const Hero = () => {
         </div>
         
         {/* Live indicator with cinematic style and dynamic data */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-purple-neon-primary font-semibold">
+        <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-purple-neon-primary font-semibold">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
             <span className="text-xs sm:text-sm md:text-base tracking-wider text-center">
