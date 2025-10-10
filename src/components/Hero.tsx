@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
 import batallaPoster from "@/assets/batalla-poster.jpg";
-import arenaOctagon from "@/assets/arena-octagon.png";
+import blueArena from "@/assets/blue-arena.jpg";
 
 const Hero = () => {
   const { stats } = useRealTimeStats();
@@ -21,11 +21,11 @@ const Hero = () => {
         {/* Background image */}
         <div className="absolute inset-0">
           <img 
-            src={arenaOctagon} 
-            alt="Arena Octagon" 
+            src={blueArena} 
+            alt="Blue Arena" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/65"></div>
         </div>
         
         {/* Content */}
@@ -90,11 +90,11 @@ const Hero = () => {
       {/* Background image */}
       <div className="absolute inset-0">
         <img 
-          src={arenaOctagon} 
-          alt="Arena Octagon" 
+          src={blueArena} 
+          alt="Blue Arena" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/55 to-black/65"></div>
       </div>
       
       {/* Content */}
