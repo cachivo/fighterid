@@ -66,20 +66,19 @@ const Index = () => {
     );
   }
 
-  // Show welcome screen if user is not authenticated
-  if (!user) {
-    return <WelcomeScreen />;
-  }
-
-  // Show main content for authenticated users
+  // Show main content - Hero handles authenticated/unauthenticated states
   return (
     <div className="min-h-screen bg-black urban-home overflow-x-hidden">
       <UrbanDecorations />
       <Header />
       <Hero />
-      <RealTimeStats />
-      <StrategicAllies />
-      <Ranking />
+      {user && (
+        <>
+          <RealTimeStats />
+          <StrategicAllies />
+          <Ranking />
+        </>
+      )}
       <Footer />
     </div>
   );

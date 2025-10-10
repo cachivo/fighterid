@@ -2,11 +2,76 @@ import { Button } from "@/components/ui/button";
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Zap } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import batallaPoster from "@/assets/batalla-poster.jpg";
 
 const Hero = () => {
   const { stats } = useRealTimeStats();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   
+  // Si no hay usuario autenticado, mostrar landing page con logo grande
+  if (!user) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
+        {/* Dark gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
+          {/* LOGO GRANDE */}
+          <div className="mb-12 animate-slide-up">
+            <img 
+              src="/lovable-uploads/fighter-id-logo-clean.png" 
+              alt="Fighter ID" 
+              className="h-32 sm:h-40 md:h-56 lg:h-64 w-auto mx-auto"
+            />
+          </div>
+          
+          {/* Subtítulo */}
+          <p className="text-xl md:text-2xl text-white/90 mb-12 animate-slide-up">
+            Plataforma profesional de gestión de peleadores
+          </p>
+          
+          {/* BOTONES */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto animate-slide-up">
+            <Button 
+              onClick={() => navigate('/auth')}
+              variant="hero"
+              size="lg"
+              className="w-full sm:w-auto px-12 py-6 text-lg min-h-[56px] touch-manipulation"
+            >
+              Iniciar Sesión
+            </Button>
+            <Button 
+              onClick={() => navigate('/auth')}
+              variant="urban"
+              size="lg"
+              className="w-full sm:w-auto px-12 py-6 text-lg min-h-[56px] touch-manipulation"
+            >
+              Registrarse
+            </Button>
+          </div>
+          
+          {/* Info adicional */}
+          <p className="mt-8 text-white/70 text-sm animate-fade-in">
+            Únete a la comunidad de peleadores profesionales
+          </p>
+        </div>
+        
+        {/* Cinematic bottom fade */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent"></div>
+        
+        {/* Urban architectural elements with neon purple */}
+        <div className="absolute bottom-0 left-0 w-full h-2 bg-gradient-to-r from-transparent via-purple-neon-primary/50 to-transparent animate-glow-neon"></div>
+        <div className="absolute top-1/2 left-0 w-2 h-40 bg-gradient-to-b from-transparent via-purple-neon-secondary/30 to-transparent"></div>
+        <div className="absolute top-1/3 right-0 w-2 h-32 bg-gradient-to-b from-transparent via-purple-neon-primary/40 to-transparent"></div>
+      </section>
+    );
+  }
+  
+  // Usuario autenticado - mostrar Hero con stats
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       {/* Dark gradient background */}
