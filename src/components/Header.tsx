@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Menu, Trophy, Calendar, Home, BarChart3, Users, DollarSign, Shield, LogOut, User, CreditCard } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, BarChart3, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -226,16 +226,32 @@ const Header = () => {
                 
                 {/* Call to Actions */}
                 {user && (
-                  <div className="border-t border-border pt-4 px-3 sm:px-4">
+                  <div className="border-t border-border pt-4 px-3 sm:px-4 pb-4">
                     <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                       Mi Cuenta
                     </h3>
                     <div className="space-y-1 mb-4">
                       <div className="text-sm font-medium text-foreground px-3 py-2">{user.email}</div>
+                      <Link 
+                        to="/profile"
+                        className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <User className="h-4 w-4" />
+                        <span>Mi Perfil</span>
+                      </Link>
+                      <Link 
+                        to={hasFighterProfile ? "/license/dashboard" : "/license/welcome"}
+                        className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/50 transition-colors min-h-[44px] touch-manipulation"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span>{hasFighterProfile ? "Fighter ID" : "Obtén tu Fighter ID"}</span>
+                      </Link>
                     </div>
                     <Button 
                       variant="outline" 
-                      className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      className="w-full text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground min-h-[44px]"
                       onClick={handleLogout}
                     >
                       <LogOut className="h-4 w-4 mr-2" />
@@ -286,14 +302,37 @@ const Header = () => {
                       Mi Perfil
                     </Link>
                   </DropdownMenuItem>
-                  {hasFighterProfile && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/license/dashboard" className="cursor-pointer min-h-[44px] touch-manipulation">
-                        <Shield className="mr-2 h-4 w-4" />
-                        Fighter ID
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem asChild>
+                    <Link to={hasFighterProfile ? "/license/dashboard" : "/license/welcome"} className="cursor-pointer min-h-[44px] touch-manipulation">
+                      <Shield className="mr-2 h-4 w-4" />
+                      {hasFighterProfile ? "Fighter ID" : "Obtén tu Fighter ID"}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/" className="cursor-pointer min-h-[44px] touch-manipulation">
+                      <Home className="mr-2 h-4 w-4" />
+                      Feed
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/social/friends" className="cursor-pointer min-h-[44px] touch-manipulation">
+                      <Users className="mr-2 h-4 w-4" />
+                      Amigos
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/social/discover" className="cursor-pointer min-h-[44px] touch-manipulation">
+                      <Compass className="mr-2 h-4 w-4" />
+                      Descubrir
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/social/notifications" className="cursor-pointer min-h-[44px] touch-manipulation">
+                      <Bell className="mr-2 h-4 w-4" />
+                      Notificaciones
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive min-h-[44px] touch-manipulation">
                     <LogOut className="mr-2 h-4 w-4" />

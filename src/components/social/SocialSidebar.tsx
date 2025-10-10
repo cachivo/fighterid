@@ -33,7 +33,7 @@ export const SocialSidebar = () => {
   const inLicense = location.pathname.startsWith('/license');
   
   return (
-    <aside className="w-64 border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <aside className="hidden lg:block w-64 border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="sticky top-0 p-4 space-y-2">
         <h2 className="text-lg font-semibold mb-4 text-foreground">Red Social</h2>
         
