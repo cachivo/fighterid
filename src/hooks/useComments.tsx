@@ -28,32 +28,49 @@ export function useComments(postId: string) {
     setError(null);
 
     try {
-      console.log('[COMMENTS] Fetching comments for post:', postId);
+      console.log('[COMMENTS] 🔍 Fetching comments for post:', postId);
 
       // Use RPC function to get comments with author info in one call
       const { data, error } = await supabase
         .rpc('get_post_comments_with_author', { p_post_id: postId });
 
-      if (error) throw error;
+      console.log('[COMMENTS] 📦 RPC Response:', { data, error });
+
+      if (error) {
+        console.error('[COMMENTS] ❌ RPC Error:', error);
+        throw error;
+      }
+
+      console.log('[COMMENTS] ✅ Raw data from RPC:', data);
 
       // Map RPC result to Comment interface
-      const enriched: Comment[] = (data || []).map((c: any) => ({
-        id: c.id,
-        post_id: c.post_id,
-        user_id: c.user_id,
-        content: c.content,
-        active: c.active,
-        created_at: c.created_at,
-        updated_at: c.updated_at,
-        author_name: c.author_name,
-        author_handle: c.author_handle,
-        author_avatar: c.author_avatar,
-      }));
+      const enriched: Comment[] = (data || []).map((c: any) => {
+        console.log('[COMMENTS] 👤 Processing comment:', {
+          id: c.id,
+          author_name: c.author_name,
+          author_avatar: c.author_avatar,
+          author_handle: c.author_handle
+        });
+        
+        return {
+          id: c.id,
+          post_id: c.post_id,
+          user_id: c.user_id,
+          content: c.content,
+          active: c.active,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          author_name: c.author_name,
+          author_handle: c.author_handle,
+          author_avatar: c.author_avatar,
+        };
+      });
 
+      console.log('[COMMENTS] 🎉 Final enriched comments:', enriched);
       setComments(enriched);
 
     } catch (err: any) {
-      console.error('[COMMENTS ERROR]:', err);
+      console.error('[COMMENTS ERROR] 💥:', err);
       setError(err.message);
       setComments([]);
     } finally {
