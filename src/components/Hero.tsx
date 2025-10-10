@@ -22,7 +22,7 @@ const Hero = () => {
             alt="Octagon" 
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-black/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
         </div>
         
         {/* Content */}
@@ -89,7 +89,7 @@ const Hero = () => {
           alt="Octagon" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/35 to-black/50"></div>
       </div>
       
       {/* Content */}
