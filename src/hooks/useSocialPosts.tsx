@@ -33,6 +33,22 @@ export interface CreatePostData {
   post_type?: 'text' | 'image' | 'video' | 'news';
 }
 
+// Helper to get display name for user
+const getUserDisplayName = (userProfile: any): string => {
+  if (userProfile.first_name) {
+    return userProfile.last_name 
+      ? `${userProfile.first_name} ${userProfile.last_name}` 
+      : userProfile.first_name;
+  }
+  if (userProfile.handle && !userProfile.handle.includes('@')) {
+    return userProfile.handle;
+  }
+  if (userProfile.email) {
+    return userProfile.email.split('@')[0];
+  }
+  return 'Usuario';
+};
+
 export function useSocialPosts() {
   const [posts, setPosts] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(false);
@@ -127,7 +143,7 @@ export function useSocialPosts() {
           author_name: post.author_type === 'fighter' 
             ? `${fighterProfile?.first_name || ''} ${fighterProfile?.last_name || ''}`.trim() || 'Peleador'
             : post.author_type === 'user'
-            ? userProfile?.first_name || userProfile?.handle || userProfile?.email?.split('@')[0] || 'Usuario'
+            ? getUserDisplayName(userProfile)
             : 'News',
           author_nickname: post.author_type === 'fighter' ? fighterProfile?.nickname : userProfile?.handle,
           author_avatar: post.author_type === 'fighter' 
@@ -394,14 +410,49 @@ export function useSocialPosts() {
           .insert(hashtagRecords);
       }
 
+      // Before creating optimistic update, fetch real user/fighter info
+      let authorDisplayName = 'Usuario';
+      let authorAvatar = null;
+      let authorNickname = null;
+
+      if (authorType === 'fighter') {
+        const { data: fighter } = await supabase
+          .from('fighter_profiles')
+          .select('first_name, last_name, nickname, avatar_url')
+          .eq('id', authorId)
+          .single();
+        
+        if (fighter) {
+          authorDisplayName = `${fighter.first_name} ${fighter.last_name}`.trim();
+          authorAvatar = fighter.avatar_url;
+          authorNickname = fighter.nickname;
+        }
+      } else if (authorType === 'user') {
+        const { data: userProfile } = await supabase
+          .from('app_user')
+          .select('id, first_name, last_name, handle, avatar_url, email')
+          .eq('id', authorId)
+          .single();
+        
+        if (userProfile) {
+          authorDisplayName = getUserDisplayName(userProfile);
+          authorAvatar = userProfile.avatar_url;
+          authorNickname = userProfile.handle;
+        }
+      } else if (authorType === 'admin') {
+        authorDisplayName = 'News';
+        authorAvatar = '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png';
+      }
+
       // OPTIMISTIC UPDATE: Agregar post localmente de inmediato con flag
       const newPost: SocialPost = {
         ...data,
         author_type: data.author_type as 'fighter' | 'admin' | 'user',
         post_type: data.post_type as 'text' | 'image' | 'video' | 'news',
         media_files: uploadedFiles.length > 0 ? uploadedFiles : null,
-        author_name: authorType === 'admin' ? 'News' : 'Usuario',
-        author_avatar: '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png',
+        author_name: authorDisplayName,
+        author_nickname: authorNickname,
+        author_avatar: authorAvatar,
         is_liked: false,
         is_friend: false,
         isOptimistic: true // Flag para identificar posts optimísticos
