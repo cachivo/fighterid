@@ -55,18 +55,18 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-12 sm:h-14 flex items-center justify-between">
         {/* Logo + Título */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer">
             <img 
               src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
               alt="Fighter ID" 
-              className="h-7 sm:h-8 md:h-10 w-auto"
+              className="h-6 sm:h-7 md:h-8 w-auto"
             />
           </Link>
           <div className="hidden sm:block">
-            <h1 className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-xs sm:text-sm md:text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Fighter ID
             </h1>
             <p className="text-[10px] md:text-xs text-muted-foreground hidden md:block">Sistema de Licencias</p>

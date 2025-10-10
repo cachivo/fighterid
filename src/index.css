@@ -122,6 +122,12 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Universal mobile spacing system */
+    --mobile-content-max: 90vw;
+    --mobile-padding: 1rem;
+    --tablet-padding: 1.5rem;
+    --desktop-padding: 2rem;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;

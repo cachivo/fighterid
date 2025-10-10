@@ -17,20 +17,20 @@ const WelcomeScreen = () => {
       <div className="relative z-10 flex flex-col items-center justify-center space-y-8 px-4 text-center max-w-2xl">
         {/* Logo/Title */}
         <div className="space-y-4">
-          <h1 className="text-6xl md:text-8xl font-bold text-white tracking-wider">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-wider">
             FIGHTER ID
           </h1>
-          <p className="text-xl md:text-2xl text-white/90">
+          <p className="text-base sm:text-lg md:text-xl text-white/90">
             Plataforma profesional de gestión de peleadores
           </p>
         </div>
 
         {/* Action buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mt-12">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md mt-8 sm:mt-12">
           <Button
             onClick={() => navigate("/auth")}
             size="lg"
-            className="flex-1 h-14 text-lg font-semibold bg-primary hover:bg-primary/90 text-white"
+            className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-white min-h-[48px]"
           >
             Iniciar Sesión
           </Button>
@@ -38,7 +38,7 @@ const WelcomeScreen = () => {
             onClick={() => navigate("/auth")}
             size="lg"
             variant="outline"
-            className="flex-1 h-14 text-lg font-semibold bg-white/10 hover:bg-white/20 text-white border-white/30"
+            className="flex-1 h-12 text-base font-semibold bg-white/10 hover:bg-white/20 text-white border-white/30 min-h-[48px]"
           >
             Crear Cuenta
           </Button>

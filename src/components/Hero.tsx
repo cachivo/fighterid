@@ -28,11 +28,11 @@ const Hero = () => {
         {/* Content */}
         <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
           {/* LOGO GRANDE */}
-          <div className="mb-12 animate-slide-up">
+          <div className="mb-6 sm:mb-8 md:mb-10 animate-slide-up">
             <img 
               src="/lovable-uploads/fighter-id-logo-user.png" 
               alt="Fighter ID" 
-              className="h-96 sm:h-[450px] md:h-[550px] lg:h-[700px] w-auto mx-auto"
+              className="h-48 sm:h-56 md:h-64 lg:h-80 w-auto mx-auto"
               style={{ 
                 filter: 'drop-shadow(0 0 25px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 75px rgba(139, 92, 246, 0.4))'
               }}
@@ -40,17 +40,17 @@ const Hero = () => {
           </div>
           
           {/* Subtítulo */}
-          <p className="text-xl md:text-2xl text-white/90 mb-12 animate-slide-up">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 sm:mb-8 animate-slide-up">
             Plataforma profesional de gestión de peleadores
           </p>
           
           {/* BOTONES */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto animate-slide-up">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center max-w-md mx-auto animate-slide-up">
             <Button 
               onClick={() => navigate('/auth')}
               variant="hero"
               size="lg"
-              className="w-full sm:w-auto px-12 py-6 text-lg min-h-[56px] touch-manipulation"
+              className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 text-base min-h-[48px] touch-manipulation"
             >
               Iniciar Sesión
             </Button>
@@ -58,14 +58,14 @@ const Hero = () => {
               onClick={() => navigate('/auth')}
               variant="urban"
               size="lg"
-              className="w-full sm:w-auto px-12 py-6 text-lg min-h-[56px] touch-manipulation"
+              className="w-full sm:w-auto px-6 py-3 sm:px-8 sm:py-4 text-base min-h-[48px] touch-manipulation"
             >
               Registrarse
             </Button>
           </div>
           
           {/* Info adicional */}
-          <p className="mt-8 text-white/70 text-sm animate-fade-in">
+          <p className="mt-6 sm:mt-8 text-white/70 text-sm animate-fade-in">
             Únete a la comunidad de peleadores profesionales
           </p>
         </div>
@@ -96,11 +96,11 @@ const Hero = () => {
       
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
-        <div className="mb-8 sm:mb-6 animate-slide-up">
+        <div className="mb-4 sm:mb-6 animate-slide-up">
           <img 
             src="/lovable-uploads/fighter-id-logo-user.png" 
             alt="Fighter ID Logo" 
-            className="h-36 sm:h-40 md:h-48 lg:h-64 w-auto mx-auto"
+            className="h-20 sm:h-24 md:h-28 lg:h-36 w-auto mx-auto"
             style={{ 
               filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 40px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))'
             }}
@@ -108,28 +108,28 @@ const Hero = () => {
         </div>
         
         
-        <div className="flex flex-col gap-4 sm:gap-3 justify-center items-center animate-slide-up">
+        <div className="flex flex-col gap-3 sm:gap-3 justify-center items-center animate-slide-up">
           <Button 
             variant="hero" 
             size="lg" 
-            className="w-full sm:w-auto text-base sm:text-lg px-8 py-4 min-h-[48px] touch-manipulation"
+            className="w-full sm:w-auto text-sm sm:text-base px-6 py-3 min-h-[48px] touch-manipulation"
           >
             Ver Batalla EN VIVO
           </Button>
           <Button 
             variant="urban" 
             size="lg" 
-            className="w-full sm:w-auto text-base sm:text-lg px-8 py-4 min-h-[48px] touch-manipulation"
+            className="w-full sm:w-auto text-sm sm:text-base px-6 py-3 min-h-[48px] touch-manipulation"
           >
             Únete Como Jurado
           </Button>
         </div>
         
         {/* Live indicator with cinematic style and dynamic data */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-purple-neon-primary font-semibold">
+        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 text-purple-neon-primary font-semibold">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
-            <span className="text-sm sm:text-base md:text-lg tracking-wider text-center">
+            <span className="text-xs sm:text-sm md:text-base tracking-wider text-center">
               {stats?.liveEvents && stats.liveEvents.length > 0 
                 ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO` 
                 : 'PRÓXIMO EVENTO: 25 ENE 2025'
@@ -138,8 +138,8 @@ const Hero = () => {
           </div>
           
           {/* Dynamic fighter count */}
-          <div className="flex items-center gap-2 text-sm bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
-            <Zap className="h-4 w-4" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm">
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>{stats?.totalFighters || 0} Peleadores Registrados</span>
           </div>
         </div>
