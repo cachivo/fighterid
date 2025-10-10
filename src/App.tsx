@@ -11,6 +11,8 @@ import LicenseProtectedRoute from '@/components/LicenseProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
+import { DesktopOnlyRoute } from '@/components/DesktopOnlyRoute';
+import { JudgeProtectedRoute } from '@/components/JudgeProtectedRoute';
 import { FighterLicense } from './pages/FighterLicense';
 import FighterMe from './pages/FighterMe';
 import MyProfile from './pages/MyProfile';
@@ -35,6 +37,8 @@ const FightResults = lazy(() => import('./pages/admin/FightResults'));
 const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
 const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
 const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
+const JudgeScoringPanel = lazy(() => import('./pages/judge/JudgeScoringPanel'));
+const JudgeStationsSetup = lazy(() => import('./pages/admin/JudgeStationsSetup'));
 import LicenseAuth from './pages/license/LicenseAuth';
 import LicenseWelcome from './pages/license/LicenseWelcome';
 import LicenseDashboard from './pages/license/LicenseDashboard';
@@ -63,6 +67,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import EventosPelea from "./pages/admin/EventosPelea";
 import LicenseForgotPassword from "./pages/license/ForgotPassword";
 import LicenseResetPassword from "./pages/license/ResetPassword";
+import HudPublicDisplay from "./pages/HudPublicDisplay";
 
 import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
 import Comunidad from "./pages/admin/Comunidad";
@@ -116,6 +121,9 @@ const App = () => (
               <Route path="/import-event" element={<ImportEvent />} />
               <Route path="/predicciones" element={<Predicciones />} />
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
+              
+              {/* HUD Público de Scoring en Vivo */}
+              <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
 
               {/* Fighter License Portal Routes */}
               <Route path="/license/welcome" element={<LicenseWelcome />} />
@@ -202,6 +210,11 @@ const App = () => (
                       <Route path="/fighters-profiles/invite" element={<FightersProfilesInvite />} />
                       <Route path="/fighters-profiles/create" element={<FightersProfilesCreate />} />
                       <Route path="/judges" element={<JudgesManagement />} />
+                      <Route path="/scoring/stations" element={
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <JudgeStationsSetup />
+                        </Suspense>
+                      } />
                       <Route path="/live-events" element={<LiveEventsControl />} />
                       <Route path="/pending-changes" element={<PendingChangesHub />} />
                       <Route path="/fight-results" element={
@@ -231,6 +244,20 @@ const App = () => (
                   <DigitalScorecard />
                 </Suspense>
               } />
+              
+              {/* NEW: Desktop Scoring Panel for Judges */}
+              <Route path="/judge/fight/:fightId" element={
+                <ProtectedRoute>
+                  <JudgeProtectedRoute>
+                    <DesktopOnlyRoute>
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <JudgeScoringPanel />
+                      </Suspense>
+                    </DesktopOnlyRoute>
+                  </JudgeProtectedRoute>
+                </ProtectedRoute>
+              } />
+              
               <Route path="/referee/control/:fightId" element={
                 <Suspense fallback={<LoadingSpinner />}>
                   <RefereeControlRoom />

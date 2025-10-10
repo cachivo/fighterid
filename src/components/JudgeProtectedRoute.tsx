@@ -20,7 +20,7 @@ export function JudgeProtectedRoute({ children }: { children: React.ReactNode })
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'judge')
+        .eq('role', 'judge' as any) // Cast temporal hasta que types.ts se regenere
         .maybeSingle();
       
       setIsJudge(!!data);
