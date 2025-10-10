@@ -80,6 +80,48 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          changes: Json | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          performed_at: string | null
+          performed_by: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          changes?: Json | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          changes?: Json | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       bdg_event: {
         Row: {
           created_at: string | null
@@ -1256,6 +1298,7 @@ export type Database = {
           fighter_id: string
           id: string
           image_url: string | null
+          review_status: string | null
           updated_at: string
         }
         Insert: {
@@ -1265,6 +1308,7 @@ export type Database = {
           fighter_id: string
           id?: string
           image_url?: string | null
+          review_status?: string | null
           updated_at?: string
         }
         Update: {
@@ -1274,6 +1318,7 @@ export type Database = {
           fighter_id?: string
           id?: string
           image_url?: string | null
+          review_status?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -3264,6 +3309,14 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: boolean
       }
+      moderate_fighter_update: {
+        Args: {
+          p_admin_notes?: string
+          p_new_status: string
+          p_update_id: string
+        }
+        Returns: Json
+      }
       process_bet_transaction: {
         Args: {
           p_market_id: string
@@ -3311,6 +3364,10 @@ export type Database = {
           phone: string
           weight_class: string
         }[]
+      }
+      validate_profile_change_request: {
+        Args: { p_fighter_id: string; p_requested_changes: Json }
+        Returns: Json
       }
     }
     Enums: {

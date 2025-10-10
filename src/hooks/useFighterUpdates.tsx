@@ -8,6 +8,7 @@ export interface FighterUpdate {
   content: string;
   image_url?: string;
   active: boolean;
+  review_status: 'PENDING' | 'APPROVED' | 'REJECTED';
   created_at: string;
   updated_at: string;
 }
@@ -39,11 +40,12 @@ export function useFighterUpdates() {
         .select('*')
         .eq('fighter_id', fighterId)
         .eq('active', true)
+        .in('review_status', ['APPROVED', 'PENDING'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      setUpdates(data || []);
+      setUpdates((data || []) as FighterUpdate[]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error fetching updates';
       setError(errorMessage);
@@ -72,8 +74,8 @@ export function useFighterUpdates() {
       if (error) throw error;
 
       // Add the new update to the beginning of the list
-      setUpdates(prev => [data, ...prev]);
-      toast.success('Actualización publicada exitosamente');
+      setUpdates(prev => [data as FighterUpdate, ...prev]);
+      toast.success('Actualización enviada para revisión');
       
       return data;
     } catch (err) {
@@ -104,7 +106,7 @@ export function useFighterUpdates() {
 
       // Update the update in the list
       setUpdates(prev => prev.map(update => 
-        update.id === updateId ? data : update
+        update.id === updateId ? (data as FighterUpdate) : update
       ));
       
       toast.success('Actualización editada exitosamente');

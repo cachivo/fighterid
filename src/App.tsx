@@ -21,9 +21,11 @@ import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFightersProfiles from './pages/admin/FightersProfiles';
 import FightersProfilesInvite from './pages/admin/FightersProfilesInvite';
+import FightersProfilesCreate from './pages/admin/FightersProfilesCreate';
 import JudgesManagement from './pages/admin/JudgesManagement';
 import LiveEventsControl from './pages/admin/LiveEventsControl';
 import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
+import PendingChangesHub from './pages/admin/PendingChangesHub';
 import ProfileChangeRequest from './pages/ProfileChangeRequest';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -198,8 +200,10 @@ const App = () => (
                       <Route path="/fighters" element={<AdminFightersProfiles />} />
                       <Route path="/fighters-profiles" element={<AdminFightersProfiles />} />
                       <Route path="/fighters-profiles/invite" element={<FightersProfilesInvite />} />
+                      <Route path="/fighters-profiles/create" element={<FightersProfilesCreate />} />
                       <Route path="/judges" element={<JudgesManagement />} />
                       <Route path="/live-events" element={<LiveEventsControl />} />
+                      <Route path="/pending-changes" element={<PendingChangesHub />} />
                       <Route path="/fight-results" element={
                         <Suspense fallback={<LoadingSpinner />}>
                           <FightResults />

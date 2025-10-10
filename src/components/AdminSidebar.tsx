@@ -14,7 +14,8 @@ import {
   HandHeart,
   Gavel,
   Radio,
-  Trophy
+  Trophy,
+  Activity
 } from 'lucide-react';
 import {
   Sidebar,
@@ -34,6 +35,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+  { title: 'Centro de Moderación', url: '/admin/pending-changes', icon: Activity },
   { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Users },
   { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },

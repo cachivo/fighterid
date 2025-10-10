@@ -126,51 +126,117 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
 
     setIsLoading(true);
     try {
-      let avatarUrl = profile.avatar_url;
+      // Campos que se pueden actualizar directamente (sin aprobación)
+      const directUpdateFields = ['bio', 'boxrec_url', 'tapology_url'];
+      
+      // Campos que requieren aprobación admin
+      const criticalFields = [
+        'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace',
+        'height_cm', 'weight_kg', 'reach_cm', 'weight_class', 'fighting_style', 
+        'stance', 'gender', 'gym_name', 'martial_arts',
+        'document_type', 'document_number', 'blood_type',
+        'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
+        'medical_conditions', 'medical_allergies', 
+        'insurance_company', 'insurance_policy'
+      ];
 
-      // Handle avatar upload if a new file was selected
-      if (avatarFile) {
-        avatarUrl = await uploadFighterAvatar(avatarFile, user.id, profile.id, profile.avatar_url);
-      }
+      // Separar cambios directos de cambios que requieren aprobación
+      const directUpdates: any = {};
+      const requestedChanges: any = {};
+      let hasAvatarChange = false;
 
-      // Prepare update data and handle type conversions
-      const updateData: any = {
-        ...data,
-        avatar_url: avatarUrl,
-        height_cm: data.height_cm && data.height_cm !== '' ? parseInt(data.height_cm) : null,
-        weight_kg: data.weight_kg && data.weight_kg !== '' ? parseFloat(data.weight_kg) : null,
-        reach_cm: data.reach_cm && data.reach_cm !== '' ? parseInt(data.reach_cm) : null,
-        record_wins: data.record_wins && data.record_wins !== '' ? parseInt(data.record_wins) : 0,
-        record_losses: data.record_losses && data.record_losses !== '' ? parseInt(data.record_losses) : 0,
-        record_draws: data.record_draws && data.record_draws !== '' ? parseInt(data.record_draws) : 0
-      };
-
-      // Remove empty strings and convert them to null
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key] === '') {
-          updateData[key] = null;
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== profile[key as keyof typeof profile]) {
+          if (directUpdateFields.includes(key)) {
+            directUpdates[key] = value;
+          } else if (criticalFields.includes(key)) {
+            requestedChanges[key] = value;
+          }
         }
       });
 
-      // Update the profile
-      const { error } = await supabase
-        .from('fighter_profiles')
-        .update(updateData)
-        .eq('id', profile.id);
+      // Manejar avatar por separado
+      if (avatarFile) {
+        hasAvatarChange = true;
+        console.log("Avatar change detected, will be included in change request");
+        
+        const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profile.id, profile.avatar_url);
+        requestedChanges.avatar_url = newAvatarUrl;
+      }
 
-      if (error) throw error;
+      // Aplicar actualizaciones directas si las hay
+      if (Object.keys(directUpdates).length > 0) {
+        const { error: directError } = await supabase
+          .from('fighter_profiles')
+          .update(directUpdates)
+          .eq('id', profile.id);
 
-      toast({
-        title: "Éxito",
-        description: "Información actualizada correctamente",
-      });
+        if (directError) {
+          console.error("Direct update error:", directError);
+          throw directError;
+        }
+      }
+
+      // Crear solicitud de cambio si hay campos críticos modificados
+      if (Object.keys(requestedChanges).length > 0 || hasAvatarChange) {
+        // Validar los cambios antes de crear la solicitud
+        const { data: validation } = await supabase.rpc('validate_profile_change_request', {
+          p_fighter_id: profile.id,
+          p_requested_changes: requestedChanges
+        });
+
+        const validationResult = validation as { valid: boolean; error?: string; field?: string } | null;
+
+        if (validationResult && !validationResult.valid) {
+          toast({
+            variant: "destructive",
+            title: "Error de validación",
+            description: validationResult.error
+          });
+          return;
+        }
+
+        // Convertir valores numéricos
+        if (requestedChanges.height_cm) requestedChanges.height_cm = Number(requestedChanges.height_cm);
+        if (requestedChanges.weight_kg) requestedChanges.weight_kg = Number(requestedChanges.weight_kg);
+        if (requestedChanges.reach_cm) requestedChanges.reach_cm = Number(requestedChanges.reach_cm);
+
+        const { error: requestError } = await supabase
+          .from('profile_change_requests')
+          .insert({
+            fighter_profile_id: profile.id,
+            user_id: user.id,
+            requested_changes: requestedChanges,
+            status: 'PENDING'
+          });
+
+        if (requestError) {
+          console.error("Change request error:", requestError);
+          throw requestError;
+        }
+
+        toast({
+          title: "Solicitud enviada",
+          description: "Los cambios críticos serán revisados por un administrador. Los cambios no críticos se aplicaron inmediatamente."
+        });
+      } else if (Object.keys(directUpdates).length > 0) {
+        toast({
+          title: "Perfil actualizado",
+          description: "Los cambios se han guardado exitosamente"
+        });
+      } else {
+        toast({
+          title: "Sin cambios",
+          description: "No se detectaron modificaciones en el perfil"
+        });
+      }
 
       onSuccess?.();
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
         title: "Error",
-        description: "No se pudo actualizar la información",
+        description: "No se pudo procesar la actualización",
         variant: "destructive",
       });
     } finally {
