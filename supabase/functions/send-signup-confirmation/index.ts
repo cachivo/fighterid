@@ -173,8 +173,13 @@ serve(async (req) => {
     });
 
     // Send email with Resend
+    // Get from email and ensure it has proper format
+    const fromEmail = Deno.env.get("RESEND_FROM") || "onboarding@resend.dev";
+    const fromName = "Fighter ID";
+    const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
+    
     const emailResult = await resend.emails.send({
-      from: Deno.env.get("RESEND_FROM") || "Fighter ID <send@fighter-id.org>",
+      from: formattedFrom,
       to: [user.email],
       subject: "Confirma tu cuenta en Fighter ID",
       html: getSignupEmailHTML(confirmationLink, user.email),
