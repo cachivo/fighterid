@@ -99,7 +99,7 @@ const App = () => (
             <Sonner />
             <Routes>
               {/* Public Platform Routes */}
-              <Route path="/" element={<SmartHomepage />} />
+              <Route path="/" element={<Index />} />
               <Route path="/social/feed" element={<SocialFeed />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
