@@ -32,7 +32,7 @@ const Hero = () => {
             <img 
               src="/lovable-uploads/fighter-id-logo-user.png" 
               alt="Fighter ID" 
-              className="h-72 sm:h-80 md:h-[450px] lg:h-[600px] w-auto mx-auto"
+              className="h-96 sm:h-[450px] md:h-[550px] lg:h-[700px] w-auto mx-auto"
               style={{ 
                 filter: 'drop-shadow(0 0 25px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 50px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 75px rgba(139, 92, 246, 0.4))'
               }}
@@ -100,7 +100,7 @@ const Hero = () => {
           <img 
             src="/lovable-uploads/fighter-id-logo-user.png" 
             alt="Fighter ID Logo" 
-            className="h-28 sm:h-32 md:h-40 lg:h-56 w-auto mx-auto"
+            className="h-36 sm:h-40 md:h-48 lg:h-64 w-auto mx-auto"
             style={{ 
               filter: 'drop-shadow(0 0 20px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 40px rgba(139, 92, 246, 0.6)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.4))'
             }}
