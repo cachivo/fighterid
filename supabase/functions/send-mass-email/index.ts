@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
+import { sendEmailWithFallback } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -46,14 +47,12 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Unauthorized");
     }
 
-    // Verificar que el usuario sea admin
-    const { data: appUser } = await supabase
-      .from('app_user')
-      .select('is_admin')
-      .eq('auth_user_id', user.id)
-      .single();
+    // Verificar que el usuario sea admin usando el sistema de roles unificado
+    const { data: isAdminResult, error: adminError } = await supabase
+      .rpc('is_admin');
 
-    if (!appUser?.is_admin) {
+    if (adminError || !isAdminResult) {
+      console.error("[MASS EMAIL] Admin check failed:", adminError);
       throw new Error("Only admins can send mass emails");
     }
 
@@ -139,9 +138,8 @@ const handler = async (req: Request): Promise<Response> => {
       try {
         // Enviar correos individuales para mejor control de errores
         const batchPromises = batch.map(email => 
-          resend.emails.send({
-            from: "Fighter ID <send@fighter-id.org>",
-            to: [email],
+          sendEmailWithFallback(resend, {
+            to: email,
             subject: requestData.subject,
             html: requestData.html_content,
           }).catch(error => ({
