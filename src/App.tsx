@@ -202,9 +202,9 @@ const App = () => (
                   <AdminLayout>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
-                      <Route path="/admin/eventos-pelea" element={<EventosPelea />} />
-                      <Route path="/admin/eventos-deportivos" element={<Navigate to="/admin/eventos-pelea" replace />} />
-                      <Route path="/aliados-estrategicos" element={<AliadosEstrategicos />} />
+                      <Route path="eventos-pelea" element={<EventosPelea />} />
+                      <Route path="eventos-deportivos" element={<Navigate to="/admin/eventos-pelea" replace />} />
+                      <Route path="aliados-estrategicos" element={<AliadosEstrategicos />} />
                       <Route path="/fighters" element={<AdminFightersProfiles />} />
                       <Route path="/fighters-profiles" element={<AdminFightersProfiles />} />
                       <Route path="/fighters-profiles/invite" element={<FightersProfilesInvite />} />
