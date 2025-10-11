@@ -115,6 +115,7 @@ const App = () => (
               <Route path="/social/friends" element={<Friends />} />
               <Route path="/social/discover" element={<Discover />} />
               <Route path="/social/notifications" element={<Notifications />} />
+              <Route path="/social/profile" element={<SocialProfile />} />
               <Route path="/social/profile/:id" element={<SocialUserProfile />} />
               <Route path="/test-news" element={<TestNewsFunction />} />
               <Route path="/verify/license/:licenseNumber" element={<VerifyLicense />} />
