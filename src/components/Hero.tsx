@@ -107,7 +107,7 @@ const Hero = () => {
         </div>
         
         {/* Live indicator with cinematic style and dynamic data */}
-        <div className="mt-4 sm:mt-5 md:mt-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-purple-neon-primary font-semibold animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+        <div className="mt-2 sm:mt-3 md:mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-purple-neon-primary font-semibold animate-fade-in-up" style={{ animationDelay: '150ms' }}>
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
             <span className="text-[10px] sm:text-xs md:text-sm tracking-wider text-center">
@@ -128,7 +128,7 @@ const Hero = () => {
         </div>
         
         {/* CTAs para usuarios autenticados */}
-        <div className="mt-4 sm:mt-5 md:mt-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+        <div className="mt-3 sm:mt-4 md:mt-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
           <Button
             onClick={() => navigate('/social/feed')}
             variant="hero"
@@ -151,7 +151,7 @@ const Hero = () => {
         
         {/* Admin Button - Only visible for admin users */}
         {isAdmin && (
-          <div className="mt-4 sm:mt-5 animate-fade-in">
+          <div className="mt-3 sm:mt-4 animate-fade-in">
             <Button
               onClick={() => navigate('/admin/dashboard')}
               variant="hero"
