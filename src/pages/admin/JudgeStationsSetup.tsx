@@ -37,11 +37,17 @@ export default function JudgeStationsSetup() {
   const [selectedFight, setSelectedFight] = useState<string>('');
   const [fights, setFights] = useState<any[]>([]);
 
+  const roleForStation = (stationId: number): string => {
+    if (stationId === 1) return 'JUDGE_1';
+    if (stationId === 2) return 'JUDGE_2';
+    if (stationId === 3) return 'JUDGE_3';
+    return 'JUDGE_SCORER';
+  };
+
   useEffect(() => {
     loadJudges();
     loadActiveFights();
   }, []);
-
   useEffect(() => {
     if (selectedFight) {
       loadExistingAssignments();
@@ -154,6 +160,37 @@ export default function JudgeStationsSetup() {
       }
     }
 
+    // Espejar asignación en fight_officials (usado por el panel del juez)
+    if (!error) {
+      const { data: officialExisting } = await supabase
+        .from('fight_officials')
+        .select('id')
+        .eq('fight_id', selectedFight)
+        .eq('official_id', judgeId)
+        .maybeSingle();
+
+      if (officialExisting) {
+        await supabase
+          .from('fight_officials')
+          .update({
+            role: roleForStation(stationId),
+            confirmed: true,
+            confirmed_at: new Date().toISOString()
+          })
+          .eq('id', officialExisting.id);
+      } else {
+        await supabase
+          .from('fight_officials')
+          .insert({
+            fight_id: selectedFight,
+            official_id: judgeId,
+            role: roleForStation(stationId),
+            confirmed: true,
+            confirmed_at: new Date().toISOString()
+          });
+      }
+    }
+
     if (error) {
       toast.error('Error al asignar juez');
       console.error(error);
@@ -174,6 +211,13 @@ export default function JudgeStationsSetup() {
       .delete()
       .eq('fight_id', selectedFight)
       .eq('judge_id', station.judge.id);
+    
+    // También eliminar asignación en fight_officials
+    await supabase
+      .from('fight_officials')
+      .delete()
+      .eq('fight_id', selectedFight)
+      .eq('official_id', station.judge.id);
     
     if (error) {
       toast.error('Error al remover juez');
