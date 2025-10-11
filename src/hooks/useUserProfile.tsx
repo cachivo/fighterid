@@ -79,27 +79,57 @@ export const useUserProfile = () => {
 
   const updateProfile = async (data: UpdateUserProfileData) => {
     if (!user || !profile) {
+      console.error('Update failed: Missing user or profile', { user: !!user, profile: !!profile });
       toast({
         title: 'Error',
-        description: 'No se pudo actualizar el perfil',
+        description: 'No se pudo actualizar el perfil - Usuario no autenticado',
         variant: 'destructive'
       });
       return false;
     }
 
     try {
-      const { error } = await supabase
+      console.log('Updating profile:', { 
+        profileId: profile.id, 
+        authUserId: user.id,
+        data 
+      });
+
+      const { data: updatedData, error } = await supabase
         .from('app_user')
         .update({
           ...data,
           updated_at: new Date().toISOString()
         })
-        .eq('auth_user_id', user.id);
+        .eq('id', profile.id)  // CRITICAL: Use profile.id instead of auth_user_id
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Update error details:', error);
+        throw error;
+      }
 
-      // Update local state
-      setProfile(prev => prev ? { ...prev, ...data } : null);
+      console.log('Profile updated successfully:', updatedData);
+
+      // Update local state with returned data
+      if (updatedData) {
+        const profileData = {
+          ...updatedData,
+          profile_visibility: typeof updatedData.profile_visibility === 'object' && updatedData.profile_visibility !== null
+            ? updatedData.profile_visibility as Record<string, boolean>
+            : {
+                bio: true,
+                email: false,
+                phone: false,
+                avatar: true,
+                birthdate: false,
+                last_name: true,
+                first_name: true
+              }
+        };
+        setProfile(profileData);
+      }
       
       toast({
         title: 'Perfil actualizado',
@@ -108,9 +138,10 @@ export const useUserProfile = () => {
 
       return true;
     } catch (err: any) {
+      console.error('Full error details:', err);
       toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el perfil: ' + err.message,
+        title: 'Error al actualizar',
+        description: err.message || 'No se pudo actualizar el perfil',
         variant: 'destructive'
       });
       return false;
