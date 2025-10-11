@@ -33,6 +33,7 @@ export default function SocialProfile() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [viewMode, setViewMode] = useState<'user' | 'fighter'>('user'); // Toggle entre perfiles
 
   useEffect(() => {
     const loadData = async () => {
@@ -62,12 +63,14 @@ export default function SocialProfile() {
     loadData();
   }, [user, profile, fetchPosts, getUserFighterProfile]);
 
-  // Filter posts by current user
-  const myPosts = posts.filter(post => 
-    (post.author_type === 'user' && post.author_id === profile?.id) ||
-    (post.author_type === 'fighter' && post.author_id === fighterProfile?.id) ||
-    (post.author_type === 'admin' && isAdmin)
-  );
+  // Filter posts by current user based on view mode
+  const myPosts = posts.filter(post => {
+    if (viewMode === 'fighter' && fighterProfile) {
+      return post.author_type === 'fighter' && post.author_id === fighterProfile.id;
+    } else {
+      return post.author_type === 'user' && post.author_id === profile?.id;
+    }
+  });
 
   const handleCreatePost = async (postData: any) => {
     if (!user || !profile) {
@@ -99,7 +102,7 @@ export default function SocialProfile() {
   };
 
   const getAuthorInfo = () => {
-    if (fighterProfile) {
+    if (viewMode === 'fighter' && fighterProfile) {
       return {
         name: `${fighterProfile.first_name} ${fighterProfile.last_name}`,
         nickname: fighterProfile.nickname,
@@ -124,6 +127,9 @@ export default function SocialProfile() {
 
   const authorInfo = getAuthorInfo();
   const displayName = authorInfo?.name || 'Usuario';
+
+  // Determinar qué perfil mostrar
+  const currentProfile = viewMode === 'fighter' ? fighterProfile : null;
 
   if (!user) {
     return (
@@ -154,7 +160,7 @@ export default function SocialProfile() {
   }
 
   const getInitials = () => {
-    if (fighterProfile) {
+    if (viewMode === 'fighter' && fighterProfile) {
       return (fighterProfile.first_name?.[0] || '') + (fighterProfile.last_name?.[0] || '');
     }
     return (profile.first_name?.[0] || '') + (profile.last_name?.[0] || '') || profile.email?.[0] || 'U';
@@ -176,10 +182,45 @@ export default function SocialProfile() {
         </div>
 
         <main className="container mx-auto p-6 max-w-6xl space-y-6">
+          {/* Profile Selector - Solo si tiene ambos perfiles */}
+          {fighterProfile && (
+            <Card className="p-4 bg-gradient-to-r from-primary/5 to-accent/5">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <div>
+                    <h3 className="font-semibold text-foreground">Cambiar vista de perfil</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Elige qué perfil quieres ver y gestionar
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant={viewMode === 'user' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('user')}
+                    className="gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Perfil Personal
+                  </Button>
+                  <Button
+                    variant={viewMode === 'fighter' ? 'default' : 'outline'}
+                    onClick={() => setViewMode('fighter')}
+                    className="gap-2"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Fighter ID
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {/* Hero Card with Cover */}
           <Card className="overflow-hidden border-2">
             {/* Cover Photo */}
-            {fighterProfile && (
+            {currentProfile && (
               <div className="h-32 bg-gradient-to-r from-purple-neon-primary/20 to-cyan-neon/20 relative group">
                 <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-20 bg-cover bg-center"></div>
                 <Button
@@ -193,13 +234,13 @@ export default function SocialProfile() {
               </div>
             )}
             
-            <CardContent className={fighterProfile ? "-mt-16 relative" : "pt-8"}>
+            <CardContent className={currentProfile ? "-mt-16 relative" : "pt-8"}>
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Avatar with Edit */}
                 <div className="flex-shrink-0 relative group">
-                  <Avatar className={`${fighterProfile ? 'w-32 h-32 border-4' : 'w-24 h-24 border-2'} border-background shadow-xl`}>
+                  <Avatar className={`${currentProfile ? 'w-32 h-32 border-4' : 'w-24 h-24 border-2'} border-background shadow-xl`}>
                     <AvatarImage 
-                      src={fighterProfile?.avatar_url || profile.avatar_url || undefined} 
+                      src={currentProfile?.avatar_url || profile.avatar_url || undefined} 
                       alt={displayName} 
                     />
                     <AvatarFallback className="text-3xl bg-gradient-to-br from-primary to-accent text-primary-foreground">
@@ -221,14 +262,14 @@ export default function SocialProfile() {
                     <div className="flex items-start justify-between flex-wrap gap-3">
                       <div>
                         <h1 className="text-3xl font-bold text-foreground">
-                          {fighterProfile ? `${fighterProfile.first_name} ${fighterProfile.last_name}` : displayName}
+                          {currentProfile ? `${currentProfile.first_name} ${currentProfile.last_name}` : displayName}
                         </h1>
-                        {fighterProfile?.nickname && (
+                        {currentProfile?.nickname && (
                           <p className="text-xl text-purple-neon-primary font-semibold">
-                            "{fighterProfile.nickname}"
+                            "{currentProfile.nickname}"
                           </p>
                         )}
-                        {profile.email && !fighterProfile && (
+                        {profile.email && !currentProfile && (
                           <p className="text-muted-foreground">{profile.email}</p>
                         )}
                       </div>
@@ -254,25 +295,25 @@ export default function SocialProfile() {
 
                     {/* Badges */}
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {fighterProfile ? (
+                      {currentProfile ? (
                         <>
-                          {fighterProfile.license_status && (
+                          {currentProfile.license_status && (
                             <Badge variant="default" className="gap-1">
                               <Shield className="h-3 w-3" />
                               Licencia Activa
                             </Badge>
                           )}
-                          {fighterProfile.weight_class && (
-                            <Badge variant="outline">{fighterProfile.weight_class}</Badge>
+                          {currentProfile.weight_class && (
+                            <Badge variant="outline">{currentProfile.weight_class}</Badge>
                           )}
-                          {fighterProfile.country && (
+                          {currentProfile.country && (
                             <Badge variant="outline" className="gap-1">
                               <MapPin className="h-3 w-3" />
-                              {fighterProfile.country}
+                              {currentProfile.country}
                             </Badge>
                           )}
-                          {fighterProfile.gym_name && (
-                            <Badge variant="secondary">{fighterProfile.gym_name}</Badge>
+                          {currentProfile.gym_name && (
+                            <Badge variant="secondary">{currentProfile.gym_name}</Badge>
                           )}
                         </>
                       ) : (
@@ -288,17 +329,17 @@ export default function SocialProfile() {
                     </div>
                   </div>
 
-                  {(fighterProfile?.bio || profile.bio) && (
-                    <p className="text-foreground text-lg">{fighterProfile?.bio || profile.bio}</p>
+                  {(currentProfile?.bio || profile.bio) && (
+                    <p className="text-foreground text-lg">{currentProfile?.bio || profile.bio}</p>
                   )}
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                    {fighterProfile ? (
+                    {currentProfile ? (
                       <>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <div className="text-3xl font-bold text-primary">
-                            {fighterProfile.record_wins || 0}
+                            {currentProfile.record_wins || 0}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                             <Trophy className="h-3 w-3" />
@@ -307,7 +348,7 @@ export default function SocialProfile() {
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <div className="text-3xl font-bold text-destructive">
-                            {fighterProfile.record_losses || 0}
+                            {currentProfile.record_losses || 0}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                             <Target className="h-3 w-3" />
@@ -316,7 +357,7 @@ export default function SocialProfile() {
                         </div>
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <div className="text-3xl font-bold text-accent">
-                            {fighterProfile.record_draws || 0}
+                            {currentProfile.record_draws || 0}
                           </div>
                           <div className="text-sm text-muted-foreground">Empates</div>
                         </div>
@@ -351,26 +392,26 @@ export default function SocialProfile() {
                   </div>
 
                   {/* Fighter Physical Stats */}
-                  {fighterProfile && (
+                  {currentProfile && (
                     <div className="flex flex-wrap gap-6 text-sm text-muted-foreground pt-2 border-t">
-                      {fighterProfile.height_cm && (
+                      {currentProfile.height_cm && (
                         <div>
-                          <span className="font-semibold text-foreground">Altura:</span> {fighterProfile.height_cm} cm
+                          <span className="font-semibold text-foreground">Altura:</span> {currentProfile.height_cm} cm
                         </div>
                       )}
-                      {fighterProfile.weight_kg && (
+                      {currentProfile.weight_kg && (
                         <div>
-                          <span className="font-semibold text-foreground">Peso:</span> {fighterProfile.weight_kg} kg
+                          <span className="font-semibold text-foreground">Peso:</span> {currentProfile.weight_kg} kg
                         </div>
                       )}
-                      {fighterProfile.reach_cm && (
+                      {currentProfile.reach_cm && (
                         <div>
-                          <span className="font-semibold text-foreground">Alcance:</span> {fighterProfile.reach_cm} cm
+                          <span className="font-semibold text-foreground">Alcance:</span> {currentProfile.reach_cm} cm
                         </div>
                       )}
-                      {fighterProfile.fighting_style && (
+                      {currentProfile.fighting_style && (
                         <div>
-                          <span className="font-semibold text-foreground">Estilo:</span> {fighterProfile.fighting_style}
+                          <span className="font-semibold text-foreground">Estilo:</span> {currentProfile.fighting_style}
                         </div>
                       )}
                     </div>
@@ -378,11 +419,11 @@ export default function SocialProfile() {
 
                   {/* Quick Actions */}
                   <div className="flex flex-wrap gap-3 pt-2">
-                    {fighterProfile && (
+                    {currentProfile && (
                       <Button variant="outline" asChild size="sm">
                         <Link to="/license/dashboard">
                           <Shield className="h-4 w-4 mr-2" />
-                          Ver Fighter ID
+                          Ver Fighter ID Completo
                         </Link>
                       </Button>
                     )}
@@ -436,7 +477,7 @@ export default function SocialProfile() {
                 <MessageCircle className="h-4 w-4" />
                 Mis Publicaciones
               </TabsTrigger>
-              {fighterProfile && fighterHistory.length > 0 && (
+              {currentProfile && fighterHistory.length > 0 && (
                 <TabsTrigger value="fights" className="gap-2">
                   <Sword className="h-4 w-4" />
                   Historial de Peleas
@@ -473,7 +514,7 @@ export default function SocialProfile() {
             </TabsContent>
 
             {/* Fights History Tab */}
-            {fighterProfile && fighterHistory.length > 0 && (
+            {currentProfile && fighterHistory.length > 0 && (
               <TabsContent value="fights" className="space-y-4 mt-6">
                 <Card>
                   <CardHeader>
