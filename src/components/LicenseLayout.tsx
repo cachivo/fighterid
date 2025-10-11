@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User } from 'lucide-react';
+import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User, Home } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/sidebar';
 
 const navigation = [
+  { name: 'Inicio', href: '/', icon: Home },
   { name: 'Mi Fighter ID', action: 'modal', icon: Shield },
   { name: 'Mi Perfil General', href: '/profile', icon: User },
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
@@ -59,11 +60,22 @@ export default function LicenseLayout() {
         {/* Header with trigger */}
         <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-4">
           <SidebarTrigger className="text-primary" />
-          <div className="ml-4 flex items-center gap-3">
+          <Link to="/" className="ml-4 flex items-center gap-3 hover:opacity-80 transition-opacity">
             <Shield className="h-6 w-6 text-professional-primary" />
             <span className="font-bold text-lg">Fighter ID</span>
-          </div>
+          </Link>
           <div className="ml-auto flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="hidden sm:flex"
+            >
+              <Link to="/">
+                <Home className="h-4 w-4 mr-2" />
+                Inicio
+              </Link>
+            </Button>
             {licenseData && (
               <Badge variant="outline" className={`${getStatusColor(licenseData.status)} text-white border-0`}>
                 {getStatusText(licenseData.status)}
