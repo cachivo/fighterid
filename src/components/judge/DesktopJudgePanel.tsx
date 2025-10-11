@@ -76,7 +76,7 @@ export function DesktopJudgePanel({
 
     const { error } = await supabase
       .from('scoring_events')
-      .insert(payload);
+      .insert([payload] as any);
 
     if (error) {
       console.error('Error registrando evento:', error);
