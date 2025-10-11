@@ -280,17 +280,17 @@ export default function JudgeStationsSetup() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stations.map(station => (
-          <Card key={station.id}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
+          <Card key={station.id} className="min-h-[400px]">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Monitor className="h-5 w-5" />
                   Estación #{station.id}
-                </span>
+                </CardTitle>
                 <Badge variant={station.status === 'connected' ? 'default' : 'secondary'}>
                   {station.status === 'connected' ? '🟢 Conectado' : '⚪ Desconectado'}
                 </Badge>
-              </CardTitle>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
