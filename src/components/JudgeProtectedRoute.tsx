@@ -14,15 +14,18 @@ export function JudgeProtectedRoute({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Verificar si el usuario tiene rol de juez
+    // Verificar si el usuario existe en la tabla judges
     const checkJudgeRole = async () => {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'judge' as any) // Cast temporal hasta que types.ts se regenere
+      console.log('[JUDGE AUTH] Verificando acceso de juez para:', user.email);
+      
+      const { data, error } = await supabase
+        .from('judges')
+        .select('id, active')
+        .eq('email', user.email)
+        .eq('active', true)
         .maybeSingle();
       
+      console.log('[JUDGE AUTH] Resultado:', { data, error });
       setIsJudge(!!data);
     };
 
