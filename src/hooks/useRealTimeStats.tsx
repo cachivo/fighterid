@@ -31,6 +31,7 @@ export function useRealTimeStats() {
           .select('*')
           .not('state', 'in', '("finished","live")')
           .gt('start_time', new Date().toISOString())
+          .not('name', 'ilike', '%test%')
           .order('start_time', { ascending: true })
           .limit(1)
           .maybeSingle(),

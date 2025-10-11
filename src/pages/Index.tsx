@@ -34,6 +34,12 @@ const Index = () => {
     });
   }, [queryClient]);
 
+  useEffect(() => {
+    // Forzar que el Hero refresque stats (evita caché mostrando eventos antiguos)
+    queryClient.invalidateQueries({ queryKey: ['realtime-stats'] });
+    queryClient.refetchQueries({ queryKey: ['realtime-stats'] });
+  }, [queryClient]);
+
   // Show loading state
   if (loading) {
     return (
