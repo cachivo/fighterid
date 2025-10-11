@@ -79,9 +79,9 @@ const Hero = () => {
         {/* Cinematic bottom fade */}
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent"></div>
         
-        {/* Corner accents */}
-        <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-purple-neon-primary/40"></div>
-        <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-purple-neon-primary/40"></div>
+      {/* Corner accents - Más pequeños y sutiles */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-l border-t border-purple-neon-primary/20"></div>
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-r border-b border-purple-neon-primary/20"></div>
       </section>
     );
   }
@@ -175,9 +175,9 @@ const Hero = () => {
       {/* Cinematic bottom fade */}
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent"></div>
       
-      {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-purple-neon-primary/40"></div>
-      <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-purple-neon-primary/40"></div>
+      {/* Corner accents - Más pequeños y sutiles */}
+      <div className="absolute top-0 left-0 w-16 h-16 border-l border-t border-purple-neon-primary/20"></div>
+      <div className="absolute bottom-0 right-0 w-16 h-16 border-r border-b border-purple-neon-primary/20"></div>
     </section>
   );
 };
