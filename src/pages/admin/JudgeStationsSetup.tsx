@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Monitor, Link2, UserCheck } from 'lucide-react';
+import { Monitor, Link2, UserCheck, X, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Judge {
   id: string;
@@ -41,6 +42,12 @@ export default function JudgeStationsSetup() {
     loadActiveFights();
   }, []);
 
+  useEffect(() => {
+    if (selectedFight) {
+      loadExistingAssignments();
+    }
+  }, [selectedFight]);
+
   async function loadJudges() {
     const { data } = await supabase
       .from('judges')
@@ -67,6 +74,33 @@ export default function JudgeStationsSetup() {
     if (data) setFights(data);
   }
 
+  async function loadExistingAssignments() {
+    if (!selectedFight) return;
+
+    const { data } = await supabase
+      .from('fight_judges')
+      .select(`
+        station_number,
+        station_ip,
+        judge:judges(id, first_name, last_name, certification_level, active)
+      `)
+      .eq('fight_id', selectedFight);
+    
+    if (data) {
+      setStations(prev => prev.map(station => {
+        const assignment = data.find(d => d.station_number === station.id);
+        return assignment && assignment.judge
+          ? {
+              ...station,
+              judge: assignment.judge as Judge,
+              ip: (assignment.station_ip as string) || '',
+              status: 'connected' as const
+            }
+          : { ...station, judge: null, ip: '', status: 'disconnected' as const };
+      }));
+    }
+  }
+
   async function assignJudge(stationId: number, judgeId: string, ip: string) {
     if (!selectedFight) {
       toast.error('Selecciona una pelea primero');
@@ -76,27 +110,81 @@ export default function JudgeStationsSetup() {
     const judge = judges.find(j => j.id === judgeId);
     if (!judge) return;
 
-    const { error } = await supabase
+    // Verificar si el juez ya está asignado a esta pelea
+    const { data: existing } = await supabase
       .from('fight_judges')
-      .insert({
-        fight_id: selectedFight,
-        judge_id: judgeId,
-        role: 'scorer',
-        station_number: stationId,
-        station_ip: ip || null,
-        confirmed: true
-      });
+      .select('id, station_number')
+      .eq('fight_id', selectedFight)
+      .eq('judge_id', judgeId)
+      .maybeSingle();
+
+    let error;
+    
+    if (existing) {
+      // Actualizar la estación existente
+      const { error: updateError } = await supabase
+        .from('fight_judges')
+        .update({
+          station_number: stationId,
+          station_ip: ip || null,
+          confirmed: true
+        })
+        .eq('id', existing.id);
+      
+      error = updateError;
+      if (!error) {
+        toast.success(`Juez reasignado a estación ${stationId}`);
+      }
+    } else {
+      // Insertar nueva asignación
+      const { error: insertError } = await supabase
+        .from('fight_judges')
+        .insert({
+          fight_id: selectedFight,
+          judge_id: judgeId,
+          role: 'scorer',
+          station_number: stationId,
+          station_ip: ip || null,
+          confirmed: true
+        });
+      
+      error = insertError;
+      if (!error) {
+        toast.success(`Juez asignado a estación ${stationId}`);
+      }
+    }
 
     if (error) {
       toast.error('Error al asignar juez');
       console.error(error);
     } else {
+      // Recargar asignaciones para reflejar el estado actual
+      await loadExistingAssignments();
+    }
+  }
+
+  async function removeJudge(stationId: number) {
+    if (!selectedFight) return;
+    
+    const station = stations.find(s => s.id === stationId);
+    if (!station?.judge) return;
+    
+    const { error } = await supabase
+      .from('fight_judges')
+      .delete()
+      .eq('fight_id', selectedFight)
+      .eq('judge_id', station.judge.id);
+    
+    if (error) {
+      toast.error('Error al remover juez');
+      console.error(error);
+    } else {
       setStations(prev => prev.map(s => 
         s.id === stationId 
-          ? { ...s, judge, ip, status: 'connected' as const }
+          ? { ...s, judge: null, status: 'disconnected' as const }
           : s
       ));
-      toast.success(`Juez asignado a estación ${stationId}`);
+      toast.success('Juez removido de la estación');
     }
   }
 
@@ -117,6 +205,18 @@ export default function JudgeStationsSetup() {
         title="Estaciones de Jueces" 
         subtitle="Configurar computadores para scoring en vivo"
       />
+
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>⚠️ Importante</AlertTitle>
+        <AlertDescription>
+          Los jueces <strong>NO necesitan estar conectados</strong> para ser asignados. 
+          El flujo es: <br/>
+          <strong>1️⃣</strong> Asigna jueces aquí <br/>
+          <strong>2️⃣</strong> Copia los links de acceso <br/>
+          <strong>3️⃣</strong> Cada juez hace login cuando llegue a su estación
+        </AlertDescription>
+      </Alert>
       
       <div className="mb-6">
         <Label>Pelea Activa</Label>
@@ -183,15 +283,28 @@ export default function JudgeStationsSetup() {
                 </Select>
               </div>
               
-              <Button 
-                className="w-full" 
-                variant="outline"
-                onClick={() => generateAccessLink(station.id)}
-                disabled={!selectedFight}
-              >
-                <Link2 className="h-4 w-4 mr-2" />
-                Copiar Link de Acceso
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  className="flex-1" 
+                  variant="outline"
+                  onClick={() => generateAccessLink(station.id)}
+                  disabled={!selectedFight}
+                >
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Copiar Link
+                </Button>
+                
+                {station.judge && (
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => removeJudge(station.id)}
+                    title="Limpiar estación"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               
               {station.judge && (
                 <div className="p-3 bg-muted rounded-lg">
