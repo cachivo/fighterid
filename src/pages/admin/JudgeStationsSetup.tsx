@@ -170,7 +170,7 @@ export default function JudgeStationsSetup() {
   };
 
   const copyUrl = (stationNumber: number) => {
-    const url = `${window.location.origin}/estacion/${stationNumber}`;
+    const url = `https://fighter-id.org/estacion/${stationNumber}`;
     navigator.clipboard.writeText(url);
     toast.success(`URL copiada: /estacion/${stationNumber}`);
   };
@@ -310,7 +310,7 @@ export default function JudgeStationsSetup() {
                         <label className="text-sm font-medium">URL de Acceso</label>
                         <div className="flex items-center gap-2">
                           <code className="flex-1 text-sm p-2 bg-background rounded border truncate">
-                            /estacion/{station.station_number}
+                            https://fighter-id.org/estacion/{station.station_number}
                           </code>
                           <Button
                             variant="outline"
