@@ -1663,6 +1663,108 @@ export type Database = {
           },
         ]
       }
+      judge_station_pins: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          fight_id: string
+          id: string
+          judge_id: string | null
+          pin_code: string
+          station_number: number
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          fight_id: string
+          id?: string
+          judge_id?: string | null
+          pin_code: string
+          station_number: number
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          fight_id?: string
+          id?: string
+          judge_id?: string | null
+          pin_code?: string
+          station_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judge_station_pins_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_station_pins_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      judge_station_sessions: {
+        Row: {
+          fight_id: string
+          id: string
+          ip_address: unknown | null
+          judge_id: string | null
+          login_at: string | null
+          logout_at: string | null
+          pin_used: string
+          station_number: number
+          user_agent: string | null
+        }
+        Insert: {
+          fight_id: string
+          id?: string
+          ip_address?: unknown | null
+          judge_id?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          pin_used: string
+          station_number: number
+          user_agent?: string | null
+        }
+        Update: {
+          fight_id?: string
+          id?: string
+          ip_address?: unknown | null
+          judge_id?: string | null
+          login_at?: string | null
+          logout_at?: string | null
+          pin_used?: string
+          station_number?: number
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judge_station_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_station_sessions_judge_id_fkey"
+            columns: ["judge_id"]
+            isOneToOne: false
+            referencedRelation: "judges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       judges: {
         Row: {
           active: boolean
@@ -3752,13 +3854,15 @@ export type Database = {
         Returns: Json
       }
       validate_station_pin: {
-        Args: {
-          p_ip_address?: unknown
-          p_judge_name?: string
-          p_pin_code: string
-          p_station_number: number
-          p_user_agent?: string
-        }
+        Args:
+          | { p_fight_id: string; p_pin_code: string; p_station_number: number }
+          | {
+              p_ip_address?: unknown
+              p_judge_name?: string
+              p_pin_code: string
+              p_station_number: number
+              p_user_agent?: string
+            }
         Returns: {
           current_fight_id: string
           event_id: string
