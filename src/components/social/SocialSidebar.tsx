@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { icon: Shield, label: 'Fighter ID', path: '/license/dashboard', isPrimary: true },
-  { icon: Home, label: 'Feed', path: '/', isPrimary: false },
+  { icon: Home, label: 'Feed', path: '/social/feed', isPrimary: false },
   { icon: Users, label: 'Amigos', path: '/social/friends', isPrimary: false },
   { icon: Compass, label: 'Descubrir', path: '/social/discover', isPrimary: false },
   { icon: Bell, label: 'Notificaciones', path: '/social/notifications', isPrimary: false }
