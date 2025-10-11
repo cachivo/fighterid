@@ -10,6 +10,7 @@ import Ranking from "@/components/sections/Ranking";
 import Footer from "@/components/Footer";
 import UrbanDecorations from "@/components/UrbanDecorations";
 import WelcomeScreen from "@/components/WelcomeScreen";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 const Index = () => {
   const queryClient = useQueryClient();
@@ -66,6 +67,7 @@ const Index = () => {
         </>
       )}
       <Footer />
+      <PWAInstallPrompt />
     </div>
   );
 };
