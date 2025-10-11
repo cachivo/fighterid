@@ -51,26 +51,62 @@ export function useJudges() {
 
   const createJudge = async (judgeData: JudgeFormData) => {
     try {
-      const { error } = await supabase
+      // PRE-VALIDACIÓN DE LICENCIA
+      console.log('[CREATE JUDGE] Verificando licencia:', judgeData.license_number);
+      
+      const { data: existingLicense, error: checkError } = await supabase
+        .from('judges')
+        .select('license_number, first_name, last_name, id')
+        .eq('license_number', judgeData.license_number)
+        .maybeSingle();
+      
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existingLicense) {
+        console.log('[CREATE JUDGE] Licencia duplicada encontrada:', existingLicense);
+        toast({
+          title: "⚠️ Licencia Duplicada",
+          description: `La licencia "${judgeData.license_number}" ya pertenece a ${existingLicense.first_name} ${existingLicense.last_name}`,
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      console.log('[CREATE JUDGE] Licencia disponible, creando juez...');
+      
+      const { error: insertError } = await supabase
         .from('judges')
         .insert([judgeData]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
+      console.log('[CREATE JUDGE] Juez creado exitosamente');
+      
       toast({
-        title: "Éxito",
+        title: "✅ Éxito",
         description: "Juez creado correctamente",
       });
 
       await fetchJudges();
       return true;
+      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al crear juez';
+      console.error('[CREATE JUDGE] Error:', err);
+      
+      let errorMessage = err instanceof Error ? err.message : 'Error al crear juez';
+      
+      if (errorMessage.includes('duplicate key') || errorMessage.includes('judges_license_number_key')) {
+        errorMessage = `⚠️ El número de licencia "${judgeData.license_number}" ya está en uso.`;
+      }
+      
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
       });
+      
       return false;
     }
   };

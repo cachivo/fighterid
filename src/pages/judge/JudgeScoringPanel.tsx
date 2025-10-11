@@ -20,20 +20,19 @@ export default function JudgeScoringPanel() {
   const [judgeId, setJudgeId] = useState<string | null>(null);
   const [fightData, setFightData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [stationNumber, setStationNumber] = useState<number | null>(null);
 
   useEffect(() => {
     if (!fightId) return;
 
     const loadData = async () => {
       try {
-        // Obtener usuario actual y su judge_id
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
           toast.error('No autenticado');
           return;
         }
 
-        // Obtener judge_id del usuario actual usando email
         const judgeQuery = await supabase
           .from('judges')
           .select('id')
@@ -48,7 +47,6 @@ export default function JudgeScoringPanel() {
         const currentJudgeId = judgeQuery.data[0].id;
         setJudgeId(currentJudgeId);
 
-        // Verificar asignación a esta pelea
         const assignmentQuery = await supabase
           .from('fight_officials')
           .select('id')
@@ -61,7 +59,6 @@ export default function JudgeScoringPanel() {
           return;
         }
 
-        // Obtener datos de la pelea
         const { data: fight } = await supabase
           .from('fights')
           .select(`
@@ -76,7 +73,6 @@ export default function JudgeScoringPanel() {
 
         if (fight) setFightData(fight);
 
-        // Obtener round activo
         const roundQuery = await supabase
           .from('fight_rounds')
           .select('id, fight_id, number, starts_at, status, duration_seconds')
@@ -87,7 +83,6 @@ export default function JudgeScoringPanel() {
         if (roundQuery.data && roundQuery.data.length > 0) {
           setRound(roundQuery.data[0] as ScoringRound);
         } else {
-          // Buscar round 1 como fallback
           const round1Query = await supabase
             .from('fight_rounds')
             .select('id, fight_id, number, starts_at, status, duration_seconds')
@@ -111,6 +106,76 @@ export default function JudgeScoringPanel() {
 
     loadData();
   }, [fightId]);
+
+  // TRACKING DE PRESENCIA EN TIEMPO REAL
+  useEffect(() => {
+    if (!fightId || !judgeId) return;
+
+    const setupPresence = async () => {
+      try {
+        const { data: assignment } = await supabase
+          .from('fight_officials')
+          .select('role, station_metadata')
+          .eq('fight_id', fightId)
+          .eq('official_id', judgeId)
+          .maybeSingle();
+        
+        if (!assignment) {
+          console.warn('[PRESENCE] No se encontró asignación');
+          return;
+        }
+
+        let stationNum: number | null = null;
+        
+        if (assignment.role === 'JUDGE_1') stationNum = 1;
+        else if (assignment.role === 'JUDGE_2') stationNum = 2;
+        else if (assignment.role === 'JUDGE_3') stationNum = 3;
+        else if (assignment.station_metadata) {
+          stationNum = (assignment.station_metadata as any).station_number || null;
+        }
+
+        if (!stationNum) {
+          console.warn('[PRESENCE] No se pudo determinar station_number');
+          return;
+        }
+
+        setStationNumber(stationNum);
+        console.log('[PRESENCE] Station number:', stationNum);
+
+        const presenceChannel = supabase.channel(`judge_presence:${fightId}`, {
+          config: { presence: { key: judgeId } }
+        });
+
+        await presenceChannel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('[PRESENCE] Suscrito, anunciando presencia...');
+            
+            await presenceChannel.track({
+              judge_id: judgeId,
+              station_number: stationNum,
+              connected_at: new Date().toISOString(),
+              user_agent: navigator.userAgent,
+            });
+
+            console.log('[PRESENCE] Presencia anunciada');
+          }
+        });
+
+        return () => {
+          console.log('[PRESENCE] Limpiando presencia');
+          presenceChannel.untrack();
+          supabase.removeChannel(presenceChannel);
+        };
+      } catch (error) {
+        console.error('[PRESENCE] Error en setup:', error);
+      }
+    };
+
+    const cleanup = setupPresence();
+    return () => {
+      cleanup.then(fn => fn?.());
+    };
+  }, [fightId, judgeId]);
 
   if (isLoading) {
     return (

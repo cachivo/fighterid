@@ -708,6 +708,7 @@ export type Database = {
           notes: string | null
           official_id: string
           role: string
+          station_metadata: Json | null
         }
         Insert: {
           assigned_at?: string
@@ -719,6 +720,7 @@ export type Database = {
           notes?: string | null
           official_id: string
           role: string
+          station_metadata?: Json | null
         }
         Update: {
           assigned_at?: string
@@ -730,6 +732,7 @@ export type Database = {
           notes?: string | null
           official_id?: string
           role?: string
+          station_metadata?: Json | null
         }
         Relationships: [
           {
@@ -3468,6 +3471,10 @@ export type Database = {
           verified_at: string
         }[]
       }
+      get_station_number: {
+        Args: { p_role: string }
+        Returns: number
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -3511,6 +3518,10 @@ export type Database = {
       }
       is_fighter_owner: {
         Args: { p_fighter_id: string }
+        Returns: boolean
+      }
+      is_judge: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       moderate_fighter_update: {

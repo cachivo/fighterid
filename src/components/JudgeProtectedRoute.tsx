@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function JudgeProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -14,22 +15,66 @@ export function JudgeProtectedRoute({ children }: { children: React.ReactNode })
       return;
     }
 
-    // Verificar si el usuario existe en la tabla judges
-    const checkJudgeRole = async () => {
-      console.log('[JUDGE AUTH] Verificando acceso de juez para:', user.email);
+    const checkJudgeAccess = async () => {
+      console.log('[JUDGE AUTH] Verificando acceso para:', user.email);
       
-      const { data, error } = await supabase
-        .from('judges')
-        .select('id, active')
-        .eq('email', user.email)
-        .eq('active', true)
-        .maybeSingle();
-      
-      console.log('[JUDGE AUTH] Resultado:', { data, error });
-      setIsJudge(!!data);
+      try {
+        // PASO 1: Verificar rol en user_roles usando función is_judge
+        const { data: hasJudgeRole, error: roleError } = await supabase
+          .rpc('is_judge', { _user_id: user.id });
+
+        if (roleError) {
+          console.error('[JUDGE AUTH] Error verificando rol:', roleError);
+          toast.error('Error al verificar permisos');
+          setIsJudge(false);
+          return;
+        }
+
+        if (!hasJudgeRole) {
+          console.log('[JUDGE AUTH] Usuario no tiene rol de juez');
+          setIsJudge(false);
+          return;
+        }
+
+        // PASO 2: Verificar perfil activo en judges
+        const { data: judgeProfile, error: profileError } = await supabase
+          .from('judges')
+          .select('id, active, first_name, last_name')
+          .eq('email', user.email)
+          .maybeSingle();
+        
+        if (profileError) {
+          console.error('[JUDGE AUTH] Error obteniendo perfil:', profileError);
+          toast.error('Error al verificar perfil de juez');
+          setIsJudge(false);
+          return;
+        }
+
+        if (!judgeProfile) {
+          console.log('[JUDGE AUTH] No se encontró perfil de juez');
+          toast.error('No tienes perfil de juez configurado');
+          setIsJudge(false);
+          return;
+        }
+
+        if (!judgeProfile.active) {
+          console.log('[JUDGE AUTH] Perfil de juez inactivo');
+          toast.error('Tu perfil de juez está inactivo');
+          setIsJudge(false);
+          return;
+        }
+
+        console.log('[JUDGE AUTH] Acceso concedido:', judgeProfile);
+        setIsJudge(true);
+
+      } catch (error) {
+        console.error('[JUDGE AUTH] Error inesperado:', error);
+        toast.error('Error al verificar acceso');
+        setIsJudge(false);
+      }
     };
 
-    checkJudgeRole();
+    checkJudgeAccess();
   }, [user]);
 
   if (isJudge === null) {
