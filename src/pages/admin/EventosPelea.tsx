@@ -330,7 +330,135 @@ export default function EventosPelea() {
   ).filter(Boolean);
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando eventos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!events || events.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Eventos de Pelea</h2>
+            <p className="text-muted-foreground">
+              Gestiona los eventos de combate con peleadores y peleas específicas
+            </p>
+          </div>
+          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Evento de Pelea
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Crear Nuevo Evento de Pelea</DialogTitle>
+                <DialogDescription>
+                  Crea un evento específico de combate donde puedes agregar peleadores y peleas.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">Nombre del Evento *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ej: Batalla de Gimnasios #1"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="description">Descripción</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe el evento"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="discipline">Disciplina *</Label>
+                  <Select value={formData.discipline} onValueChange={(value) => setFormData(prev => ({...prev, discipline: value}))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="MMA">MMA</SelectItem>
+                      <SelectItem value="Boxeo">Boxeo</SelectItem>
+                      <SelectItem value="Kickboxing">Kickboxing</SelectItem>
+                      <SelectItem value="Muay Thai">Muay Thai</SelectItem>
+                      <SelectItem value="Jiu-Jitsu">Jiu-Jitsu</SelectItem>
+                      <SelectItem value="Karate">Karate</SelectItem>
+                      <SelectItem value="Taekwondo">Taekwondo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="venue">Sede</Label>
+                  <Input
+                    id="venue"
+                    placeholder="Ej: Arena Multideportiva"
+                    value={formData.venue}
+                    onChange={(e) => setFormData(prev => ({...prev, venue: e.target.value}))}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="start_time">Fecha y Hora Inicio</Label>
+                    <Input
+                      id="start_time"
+                      type="datetime-local"
+                      value={formData.start_time}
+                      onChange={(e) => setFormData(prev => ({...prev, start_time: e.target.value}))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end_time">Fecha y Hora Fin</Label>
+                    <Input
+                      id="end_time"
+                      type="datetime-local"
+                      value={formData.end_time}
+                      onChange={(e) => setFormData(prev => ({...prev, end_time: e.target.value}))}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleCreateEvent}>Crear Evento</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+        
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Trophy className="h-16 w-16 text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No hay eventos creados</h3>
+            <p className="text-muted-foreground mb-4">Crea tu primer evento de pelea para comenzar</p>
+            <Button onClick={() => setShowCreateDialog(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear Primer Evento
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

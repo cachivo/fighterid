@@ -45,18 +45,24 @@ export function useEvents() {
 
   const fetchEvents = async () => {
     try {
+      console.log('[EVENTS] Fetching events...');
       setLoading(true);
       const { data, error } = await supabase
         .from('bdg_event')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('[EVENTS] Query result:', { data, error, count: data?.length });
+      
       if (error) throw error;
       setEvents(data || []);
+      console.log('[EVENTS] Events state updated with', data?.length, 'events');
     } catch (err) {
+      console.error('[EVENTS] Error fetching:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
       setLoading(false);
+      console.log('[EVENTS] Loading set to false');
     }
   };
 
