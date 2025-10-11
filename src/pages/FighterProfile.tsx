@@ -8,8 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info } from 'lucide-react';
+import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home } from 'lucide-react';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
@@ -30,29 +32,45 @@ export default function FighterProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
-          <h2 className="text-xl font-semibold">Cargando perfil del peleador...</h2>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary mx-auto"></div>
+            <h2 className="text-xl font-semibold">Cargando perfil del peleador...</h2>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   if (!fighter) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Peleador no encontrado</h2>
-          <p className="text-muted-foreground mb-4">El perfil que buscas no existe o no está disponible.</p>
-          <Button asChild>
-            <Link to="/fighters">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Fighters
-            </Link>
-          </Button>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-bold mb-2">Peleador no encontrado</h2>
+            <p className="text-muted-foreground mb-4">El perfil que buscas no existe o no está disponible.</p>
+            <div className="flex gap-2 justify-center">
+              <Button asChild variant="outline">
+                <Link to="/">
+                  <Home className="h-4 w-4 mr-2" />
+                  Inicio
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link to="/fighters">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver a Fighters
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -84,19 +102,28 @@ export default function FighterProfile() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       {/* Header */}
-      <div className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <Button asChild variant="ghost">
-            <Link to="/fighters">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Fighters
-            </Link>
-          </Button>
+      <div className="border-b border-border pt-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4">
+          <div className="flex gap-2">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/">
+                <Home className="h-4 w-4 mr-2" />
+                Inicio
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/fighters">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Fighters
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Fighter Header */}
         <Card>
           <CardContent className="p-6">
@@ -336,6 +363,7 @@ export default function FighterProfile() {
         </div>
 
       </div>
+      <Footer />
     </div>
   );
 }

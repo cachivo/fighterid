@@ -15,9 +15,11 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Activity, Users, Plus, ExternalLink, Eye, Camera, Edit, Info } from 'lucide-react';
+import { Shield, Activity, Users, Plus, ExternalLink, Eye, Camera, Edit, Info, Home } from 'lucide-react';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
@@ -44,25 +46,39 @@ export default function MyProfile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center p-8">
-            <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Acceso Restringido</h2>
-            <p className="text-muted-foreground mb-6">Debes iniciar sesión para ver tu perfil.</p>
-            <Button asChild>
-              <Link to="/auth">Iniciar Sesión</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20">
+        <Header />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <Card className="w-full max-w-md mx-3">
+            <CardContent className="text-center p-8">
+              <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Acceso Restringido</h2>
+              <p className="text-muted-foreground mb-6">Debes iniciar sesión para ver tu perfil.</p>
+              <div className="flex gap-2 justify-center">
+                <Button asChild variant="outline">
+                  <Link to="/">
+                    <Home className="h-4 w-4 mr-2" />
+                    Inicio
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/auth">Iniciar Sesión</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20">
+        <Header />
+        <div className="px-3 sm:px-6 py-4 sm:py-6 pt-20">
+          <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <Shield className="h-16 w-16 text-professional-primary mx-auto mb-4" />
             <h1 className="text-4xl font-bold text-professional-primary mb-2">Mi Perfil</h1>
@@ -97,7 +113,9 @@ export default function MyProfile() {
               </Button>
             </CardContent>
           </Card>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -154,10 +172,22 @@ export default function MyProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20 p-6">
-      <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-professional-muted/20">
+      <Header />
+      <div className="px-3 sm:px-6 py-4 sm:py-6 pt-20">
+        <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8 animate-fade-in">
+          {/* Header with back button */}
+          <div className="mb-4 sm:mb-6">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/">
+                <Home className="h-4 w-4 mr-2" />
+                Volver al Inicio
+              </Link>
+            </Button>
+          </div>
+          
+          {/* Header */}
+          <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Shield className="h-8 w-8 text-professional-primary" />
             <h1 className="text-4xl font-bold text-professional-primary">Mi Perfil</h1>
@@ -537,7 +567,9 @@ export default function MyProfile() {
             </Card>
           </div>
         </div>
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

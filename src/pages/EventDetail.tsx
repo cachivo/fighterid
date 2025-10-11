@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight, Home } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { useEvents, useFights } from '@/hooks/useEvents';
 import { FighterMiniature } from '@/components/FighterMiniature';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const EventDetail = () => {
   const { eventId } = useParams<{ eventId: string }>();
@@ -71,8 +73,9 @@ const EventDetail = () => {
   if (eventsLoading || fightsLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
+        <Header />
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20">
+          <div className="animate-pulse space-y-4 sm:space-y-6">
             <div className="flex items-center gap-4">
               <div className="w-24 h-10 bg-muted rounded"></div>
               <div className="w-48 h-8 bg-muted rounded"></div>
@@ -91,32 +94,51 @@ const EventDetail = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Evento no encontrado</h2>
-          <p className="text-muted-foreground mb-4">El evento que buscas no existe o ha sido eliminado.</p>
-          <Button asChild>
-            <Link to="/eventos">
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-bold mb-2">Evento no encontrado</h2>
+            <p className="text-muted-foreground mb-4">El evento que buscas no existe o ha sido eliminado.</p>
+            <div className="flex gap-2 justify-center">
+              <Button asChild variant="outline">
+                <Link to="/">
+                  <Home className="h-4 w-4 mr-2" />
+                  Inicio
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link to="/eventos">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver a Eventos
             </Link>
-          </Button>
+              </Button>
+            </div>
+          </div>
         </div>
+        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
+      <Header />
       {/* Header */}
-      <section className="border-b border-border/50">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4 mb-4">
+      <section className="border-b border-border/50 pt-16">
+        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="flex gap-2 mb-4">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/">
+                <Home className="w-4 h-4 mr-2" />
+                Inicio
+              </Link>
+            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/eventos">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver a Eventos
+                Eventos
               </Link>
             </Button>
           </div>
@@ -366,6 +388,7 @@ const EventDetail = () => {
           )}
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

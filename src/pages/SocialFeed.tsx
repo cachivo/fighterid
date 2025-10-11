@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { BackButton } from '@/components/ui/back-button';
-import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss, RefreshCw } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Star, Plus, Globe, Rss, RefreshCw, ArrowLeft } from 'lucide-react';
 import PostCard from '@/components/social/PostCard';
 import CreatePostForm from '@/components/social/CreatePostForm';
 import { NewsPostGenerator } from '@/components/social/NewsPostGenerator';
@@ -245,11 +245,12 @@ export default function SocialFeed() {
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
-              <Link to="/" className="flex-shrink-0">
+              <Link to="/" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
+                <ArrowLeft className="h-5 w-5 text-muted-foreground" />
                 <img 
                   src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
                   alt="Fighter ID" 
-                  className="h-7 sm:h-8 w-auto cursor-pointer hover:opacity-80 transition-opacity"
+                  className="h-7 sm:h-8 w-auto"
                 />
               </Link>
               <div className="min-w-0 flex-1">
