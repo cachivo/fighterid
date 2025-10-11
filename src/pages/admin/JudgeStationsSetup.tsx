@@ -140,7 +140,8 @@ export default function JudgeStationsSetup() {
       await loadStationStatus();
     } catch (err) {
       console.error('Error generando PIN:', err);
-      toast.error('Error al generar PIN');
+      const errorMessage = (err as any)?.message ?? 'Error al generar PIN';
+      toast.error(errorMessage);
     } finally {
       setGeneratingPin(null);
     }
@@ -154,7 +155,7 @@ export default function JudgeStationsSetup() {
   const copyUrl = (stationNumber: number) => {
     const url = `${window.location.origin}/estacion/${stationNumber}`;
     navigator.clipboard.writeText(url);
-    toast.success('🔗 URL copiada al portapapeles');
+    toast.success(`URL copiada: /estacion/${stationNumber}`);
   };
 
   const getStationStatus = (station: StationData): StationStatus => {
@@ -286,7 +287,7 @@ export default function JudgeStationsSetup() {
                         <label className="text-sm font-medium">URL de Acceso</label>
                         <div className="flex items-center gap-2">
                           <code className="flex-1 text-sm p-2 bg-background rounded border truncate">
-                            /estacion{station.station_number}
+                            /estacion/{station.station_number}
                           </code>
                           <Button
                             variant="outline"
