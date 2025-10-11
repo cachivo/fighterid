@@ -114,7 +114,7 @@ const Hero = () => {
               {stats?.liveEvents && stats.liveEvents.length > 0 
                 ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO`
                 : stats?.nextEvent
-                  ? `PRÓXIMO EVENTO: ${format(new Date(stats.nextEvent.start_time), 'dd MMM yyyy', { locale: es }).toUpperCase()}`
+                  ? `${stats.nextEvent.name.toUpperCase()} - ${format(new Date(stats.nextEvent.start_time), 'dd MMM', { locale: es }).toUpperCase()}`
                   : 'PRÓXIMOS EVENTOS PRONTO'
               }
             </span>
