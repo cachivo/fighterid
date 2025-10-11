@@ -132,10 +132,10 @@ export default function Predicciones() {
       <div className="min-h-screen bg-background relative">
         <UrbanDecorations />
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-purple-neon-primary/20 rounded w-64"></div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20 space-y-6 sm:space-y-8">
+        <div className="animate-pulse space-y-4 sm:space-y-6">
+          <div className="h-8 bg-purple-neon-primary/20 rounded w-64"></div>
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="h-64 bg-card/20 border border-purple-neon-primary/20 rounded-lg animate-glow-neon"></div>
               ))}
@@ -152,7 +152,7 @@ export default function Predicciones() {
       <UrbanDecorations />
       <Header />
       
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20 space-y-6 sm:space-y-8">
         {/* Optimized Hero Section */}
         <PageHeader
           title="Predicciones BDG"
@@ -164,8 +164,8 @@ export default function Predicciones() {
 
         {/* Filters */}
         <Card variant="neon" className="backdrop-blur-sm bg-card/50">
-          <CardContent className="p-6">
-            <div className="grid gap-4 md:grid-cols-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-4">
               <Input
                 placeholder="Buscar eventos..."
                 value={searchTerm}
@@ -203,7 +203,7 @@ export default function Predicciones() {
         </Card>
 
         {/* Events Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredEvents.map((event) => {
             const stateBadge = getStateBadge(event.state);
             const totalPool = event.markets?.reduce((sum, market) => sum + (market.total_pool || 0), 0) || 0;

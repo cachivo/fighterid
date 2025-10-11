@@ -45,14 +45,14 @@ const Events = () => {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="container mx-auto px-4 py-8 pt-20">
-          <div className="space-y-6">
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20">
+          <div className="space-y-4 sm:space-y-6">
             <div className="text-center">
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                 Cargando Eventos...
               </h1>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
                 <Card key={i} className="border-border/50 animate-pulse">
                   <CardHeader className="space-y-3">
@@ -78,8 +78,8 @@ const Events = () => {
       <Header />
       
       {/* Optimized Hero Section */}
-      <section className="relative py-16 pt-24 bg-gradient-to-b from-background via-background/95 to-background">
-        <div className="container mx-auto px-4">
+      <section className="relative py-12 pt-20 bg-gradient-to-b from-background via-background/95 to-background">
+        <div className="container mx-auto px-3 sm:px-4">
           <PageHeader
             title="Eventos de Combate"
             subtitle="Descubre los próximos eventos, peleas en vivo y resultados de las mejores batallas de MMA."
@@ -91,8 +91,8 @@ const Events = () => {
 
 
       {/* Events Grid */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
+      <section className="py-8 sm:py-16">
+        <div className="container mx-auto px-3 sm:px-4">
           {events.length === 0 ? (
             <div className="text-center py-12">
               <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
@@ -102,7 +102,7 @@ const Events = () => {
               </p>
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
               {events.map((event) => (
                 <Card key={event.id} className="border-border/50 hover:border-primary/50 transition-colors group">
                   <CardHeader>

@@ -162,8 +162,8 @@ export default function Fighters() {
     return (
       <div className="min-h-screen bg-background">
         <Header />
-        <div className="max-w-7xl mx-auto p-6 pt-20">
-          <div className="flex justify-between items-center mb-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 pt-20">
+          <div className="flex justify-between items-center mb-6 sm:mb-8">
             <div className="space-y-3">
               <Skeleton className="h-10 w-48 animate-pulse" />
               <Skeleton className="h-6 w-64 animate-pulse" />
@@ -172,7 +172,7 @@ export default function Fighters() {
           </div>
           
           {/* Animated loading cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {[...Array(8)].map((_, i) => (
               <div 
                 key={i} 
@@ -212,7 +212,7 @@ export default function Fighters() {
       
       <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border-b border-border/50">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/2 via-transparent to-secondary/2 opacity-50"></div>
-        <div className="max-w-7xl mx-auto px-6 py-8 relative">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-8 pt-20 relative">
           <PageHeader
             title="Todos los Peleadores"
             subtitle="Descubre y conecta con los atletas más talentosos de la plataforma. Explora perfiles, estadísticas y trayectorias profesionales."
@@ -227,9 +227,9 @@ export default function Fighters() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         {/* Optimized Header with Create Profile */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="animate-fade-in">
             <h2 className="text-2xl font-bold text-foreground">Explorar Atletas</h2>
             <p className="text-muted-foreground">Filtra y encuentra el peleador perfecto</p>
@@ -257,7 +257,7 @@ export default function Fighters() {
         </div>
 
         {/* Filters */}
-        <div className="space-y-6 mb-8 animate-fade-in">
+        <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 animate-fade-in">
           {/* Search and Mobile Filter Toggle */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
