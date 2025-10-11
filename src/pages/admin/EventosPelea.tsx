@@ -357,6 +357,8 @@ export default function EventosPelea() {
   
   const hasEvents = Array.isArray(events) && events.length > 0;
   console.log('[EventosPelea] hasEvents:', hasEvents, 'events:', events);
+  
+  if (!hasEvents) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
