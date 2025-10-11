@@ -34,7 +34,7 @@ const Hero = () => {
             <img 
               src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
               alt="Fighter ID"
-              className="h-28 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto transition-all duration-500 animate-pulse-neon-intense"
+              className="h-32 sm:h-44 md:h-56 lg:h-64 w-auto mx-auto transition-all duration-500 animate-pulse-neon-intense"
             />
           </div>
           
@@ -102,7 +102,7 @@ const Hero = () => {
           <img 
             src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
             alt="Fighter ID Logo"
-            className="h-24 sm:h-32 md:h-40 lg:h-48 w-auto mx-auto animate-pulse-neon-intense"
+            className="h-28 sm:h-36 md:h-48 lg:h-56 w-auto mx-auto animate-pulse-neon-intense"
           />
         </div>
         
