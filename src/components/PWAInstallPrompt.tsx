@@ -23,16 +23,10 @@ const PWAInstallPrompt = () => {
       return;
     }
 
-    // Check if user already dismissed
-    const dismissed = localStorage.getItem('pwa-install-dismissed');
-    const dismissedTime = localStorage.getItem('pwa-install-dismissed-time');
-    
-    // Re-show after 7 days
-    if (dismissed && dismissedTime) {
-      const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismissed < 7) {
-        return;
-      }
+    // Check if dismissed in this session only (not persistent)
+    const sessionDismissed = sessionStorage.getItem('pwa-install-dismissed-session');
+    if (sessionDismissed) {
+      return;
     }
 
     // Listen for the beforeinstallprompt event
@@ -71,8 +65,8 @@ const PWAInstallPrompt = () => {
   };
 
   const handleDismiss = () => {
-    localStorage.setItem('pwa-install-dismissed', 'true');
-    localStorage.setItem('pwa-install-dismissed-time', Date.now().toString());
+    // Solo ocultar en esta sesión, no permanentemente
+    sessionStorage.setItem('pwa-install-dismissed-session', 'true');
     setShowPrompt(false);
     setShowManualInstructions(false);
   };
