@@ -94,8 +94,17 @@ export default function EventosPelea() {
   });
 
   useEffect(() => {
+    console.log('[EventosPelea] Component mounted, fetching fighters');
     fetchFighters();
   }, []);
+
+  useEffect(() => {
+    console.log('[EventosPelea] events updated:', events);
+  }, [events]);
+
+  useEffect(() => {
+    console.log('[EventosPelea] loading state changed:', loading);
+  }, [loading]);
 
   const fetchFighters = async () => {
     try {
@@ -330,7 +339,10 @@ export default function EventosPelea() {
     availableFighters.find(f => f.id === fighterId)
   ).filter(Boolean);
 
+  console.log('[EventosPelea] Render - loading:', loading, 'events:', events, 'events.length:', events?.length);
+
   if (loading) {
+    console.log('[EventosPelea] Showing loading state');
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -341,7 +353,10 @@ export default function EventosPelea() {
     );
   }
 
-  if (!events || events.length === 0) {
+  console.log('[EventosPelea] Not loading, checking events array');
+  
+  const hasEvents = Array.isArray(events) && events.length > 0;
+  console.log('[EventosPelea] hasEvents:', hasEvents, 'events:', events);
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
@@ -461,6 +476,8 @@ export default function EventosPelea() {
       </div>
     );
   }
+
+  console.log('[EventosPelea] Rendering events table with', events.length, 'events');
 
   return (
     <div className="space-y-6">
