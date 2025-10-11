@@ -32,11 +32,11 @@ const Hero = () => {
           {/* LOGO OPTIMIZADO PARA MÓVIL */}
           <div className="mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
             <img 
-              src="/lovable-uploads/fighter-id-logo-final.png" 
+              src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
               alt="Fighter ID"
               className="h-28 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto transition-all duration-500 animate-pulse-slow"
               style={{
-                filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 30px rgba(139, 92, 246, 0.4))'
+                filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 25px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 35px rgba(168, 85, 247, 0.4))'
               }}
             />
           </div>
@@ -103,11 +103,11 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="mb-3 sm:mb-4 md:mb-6 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
           <img 
-            src="/lovable-uploads/fighter-id-logo-final.png" 
+            src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
             alt="Fighter ID Logo"
             className="h-24 sm:h-32 md:h-40 lg:h-48 w-auto mx-auto animate-pulse-slow"
             style={{
-              filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 30px rgba(139, 92, 246, 0.4))'
+              filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 15px rgba(168, 85, 247, 0.8)) drop-shadow(0 0 25px rgba(59, 130, 246, 0.6)) drop-shadow(0 0 35px rgba(168, 85, 247, 0.4))'
             }}
           />
         </div>
