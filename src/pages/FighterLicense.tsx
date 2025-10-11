@@ -52,26 +52,26 @@ export function FighterLicense() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 p-2 sm:p-4">
+      <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <Button 
             variant="outline" 
             onClick={() => navigate('/fighters')}
             className="gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Volver
+            <span className="hidden xs:inline">Volver</span>
           </Button>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button variant="outline" size="sm">
-              <QrCode className="h-4 w-4 mr-2" />
-              QR Code
+              <QrCode className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">QR Code</span>
             </Button>
             <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Descargar PDF
+              <Download className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Descargar PDF</span>
             </Button>
           </div>
         </div>

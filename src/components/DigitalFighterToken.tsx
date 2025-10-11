@@ -70,9 +70,9 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
   };
 
   return (
-    <div className="relative w-full max-w-lg mx-auto">
+    <div className="relative w-full max-w-[95vw] sm:max-w-md lg:max-w-lg mx-auto">
       {/* Main Token Card */}
-      <div className="relative aspect-[1.6/1] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl">
+      <div className="relative aspect-[0.9/1] sm:aspect-[1.4/1] lg:aspect-[1.6/1] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden border border-slate-700/50 shadow-2xl">
         
         {/* Holographic overlay effect */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10 opacity-60" />
@@ -87,14 +87,14 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
         />
 
         {/* Content Container */}
-        <div className="relative h-full p-6 flex flex-col">
+        <div className="relative h-full p-4 sm:p-5 lg:p-6 flex flex-col">
           
           {/* Header Section */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start justify-between mb-3 sm:mb-4">
             {/* Avatar and Basic Info */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="relative">
-                <Avatar className="h-20 w-20 border-2 border-slate-600/50 ring-2 ring-purple-500/20">
+                <Avatar className="h-16 w-16 sm:h-18 sm:w-18 lg:h-20 lg:w-20 border-2 border-slate-600/50 ring-2 ring-purple-500/20">
                   <AvatarImage src={profile.avatar_url} alt={getFullName(profile.first_name, profile.last_name)} />
                   <AvatarFallback className="bg-slate-700 text-slate-200 font-semibold">
                     {getInitials(profile.first_name, profile.last_name)}
@@ -108,12 +108,12 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2 mb-0.5">
-                  <h2 className="text-white font-bold text-lg leading-tight truncate">
+                <div className="flex items-center space-x-1 sm:space-x-2 mb-0.5">
+                  <h2 className="text-white font-bold text-base sm:text-lg leading-tight truncate">
                     {getFullName(profile.first_name, profile.last_name)}
                   </h2>
                   {profile.country && (
-                    <span className="text-lg opacity-60">
+                    <span className="text-base sm:text-lg opacity-60">
                       {profile.country === 'Colombia' && '🇨🇴'}
                       {profile.country === 'Venezuela' && '🇻🇪'}
                       {profile.country === 'Mexico' && '🇲🇽'}
@@ -122,7 +122,7 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
                   )}
                 </div>
                 {profile.nickname && (
-                  <p className="text-purple-300 text-sm font-medium">
+                  <p className="text-purple-300 text-xs sm:text-sm font-medium">
                     "{profile.nickname}"
                   </p>
                 )}
@@ -132,56 +132,58 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
             {/* Active Status Badge */}
             <Badge 
               variant={profile.active ? 'default' : 'secondary'}
-              className={`bg-slate-800/80 border-green-500/30 px-2 py-1 text-xs font-medium ${
+              className={`bg-slate-800/80 border-green-500/30 px-1.5 py-0.5 sm:px-2 sm:py-1 text-[10px] sm:text-xs font-medium ${
                 profile.active ? 'text-green-400' : 'text-gray-400'
               }`}
             >
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              {profile.active ? 'Active' : 'Inactive'}
+              <CheckCircle2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
+              <span className="hidden sm:inline">{profile.active ? 'Active' : 'Inactive'}</span>
+              <span className="sm:hidden">{profile.active ? 'Act' : 'Inact'}</span>
             </Badge>
           </div>
 
           {/* Stats Row */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             {/* Fighting Record */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="text-center">
-                <div className="text-green-400 text-xl font-bold leading-none">
+                <div className="text-green-400 text-lg sm:text-xl font-bold leading-none">
                   {profile.record_wins}
                 </div>
-                <div className="text-slate-400 text-xs uppercase tracking-wide">W</div>
+                <div className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wide">W</div>
               </div>
-              <div className="text-slate-600 text-xl font-thin">-</div>
+              <div className="text-slate-600 text-lg sm:text-xl font-thin">-</div>
               <div className="text-center">
-                <div className="text-red-400 text-xl font-bold leading-none">
+                <div className="text-red-400 text-lg sm:text-xl font-bold leading-none">
                   {profile.record_losses}
                 </div>
-                <div className="text-slate-400 text-xs uppercase tracking-wide">L</div>
+                <div className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wide">L</div>
               </div>
-              <div className="text-slate-600 text-xl font-thin">-</div>
+              <div className="text-slate-600 text-lg sm:text-xl font-thin">-</div>
               <div className="text-center">
-                <div className="text-yellow-400 text-xl font-bold leading-none">
+                <div className="text-yellow-400 text-lg sm:text-xl font-bold leading-none">
                   {profile.record_draws}
                 </div>
-                <div className="text-slate-400 text-xs uppercase tracking-wide">D</div>
+                <div className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wide">D</div>
               </div>
             </div>
 
             {/* Weight, Discipline & Level */}
             <div className="text-right">
               {profile.level && (
-                <div className="text-purple-300 text-sm font-medium mb-1">
-                  <Award className="h-3 w-3 inline mr-1" />
-                  {profile.level}
+                <div className="text-purple-300 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">
+                  <Award className="h-2.5 w-2.5 sm:h-3 sm:w-3 inline mr-0.5 sm:mr-1" />
+                  <span className="hidden sm:inline">{profile.level}</span>
+                  <span className="sm:hidden">{profile.level?.substring(0, 3)}</span>
                 </div>
               )}
               {profile.weight_class && (
-                <div className="text-slate-300 text-sm font-medium">
+                <div className="text-slate-300 text-xs sm:text-sm font-medium">
                   {profile.weight_class}
                 </div>
               )}
               {profile.discipline && (
-                <div className="text-slate-500 text-xs uppercase tracking-wide">
+                <div className="text-slate-500 text-[10px] sm:text-xs uppercase tracking-wide">
                   {profile.discipline}
                 </div>
               )}
@@ -189,25 +191,25 @@ export function DigitalFighterToken({ profile }: DigitalFighterTokenProps) {
           </div>
 
           {/* License Section */}
-          <div className="mt-auto">
+          <div className="mt-auto min-h-[3rem] sm:min-h-[3.5rem]">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-purple-400" />
-                <span className="text-slate-400 text-xs uppercase tracking-wider">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <Shield className="h-3 w-3 sm:h-4 sm:w-4 text-purple-400" />
+                <span className="text-slate-400 text-[10px] sm:text-xs uppercase tracking-wider">
                   License
                 </span>
               </div>
               
               {profile.license_expiry_date && (
-                <div className="flex items-center space-x-1 text-slate-500 text-xs">
-                  <Calendar className="h-3 w-3" />
+                <div className="flex items-center space-x-0.5 sm:space-x-1 text-slate-500 text-[10px] sm:text-xs">
+                  <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   <span>Exp: {formatDate(profile.license_expiry_date)}</span>
                 </div>
               )}
             </div>
             
             {/* License Number */}
-            <div className="mt-2 font-mono text-purple-300 text-lg font-bold tracking-wider">
+            <div className="mt-1.5 sm:mt-2 font-mono text-purple-300 text-sm sm:text-base lg:text-lg font-bold tracking-wider">
               {profile.license_number || 'No asignado'}
             </div>
           </div>
