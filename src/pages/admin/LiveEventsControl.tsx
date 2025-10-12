@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertCircle, Eye, Play, Pause, Square, Users, Clock, Trophy, Activity, Settings } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { AlertCircle, Eye, Play, Pause, Square, Users, Clock, Trophy, Activity, Settings, Zap, TrendingUp, Target } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
 import { useFights } from '@/hooks/useEvents';
 import { useFightOfficials, useFightControl } from '@/hooks/useFightControl';
 import { useFightRealtime } from '@/hooks/useFightRealtime';
 import { useJudges } from '@/hooks/useJudges';
 import { useToast } from '@/hooks/use-toast';
+import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
+import { useAIInferenceSessions } from '@/hooks/useAIInferenceSessions';
 import { RoundControlPanel } from '@/components/admin/RoundControlPanel';
 import { PrepareFightDialog } from '@/components/admin/PrepareFightDialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,11 +32,17 @@ export default function LiveEventsControl() {
 
   const FightCard = ({ fight }: { fight: any }) => {
     const { officials, assignOfficial, removeOfficial } = useFightOfficials(fight.id);
-    const { realtimeData, getFightStatus } = useFightRealtime(fight.id);
+    const { realtimeData, getFightStatus, getCurrentRound } = useFightRealtime(fight.id);
+    const { activeSessions, hasActiveSession } = useAIInferenceSessions(fight.id);
+    const { events, stats } = useAIStrikeEvents(fight.id);
     
     const status = getFightStatus();
     const assignedJudges = officials.filter(o => o.role.startsWith('JUDGE_'));
     const assignedReferee = officials.find(o => o.role === 'REFEREE');
+    
+    const aiSessionActive = hasActiveSession(fight.id);
+    const activeSession = activeSessions.find(s => s.fight_id === fight.id);
+    const currentRound = getCurrentRound();
     
     const getStatusColor = (status: string) => {
       switch (status) {
@@ -68,10 +79,29 @@ export default function LiveEventsControl() {
             </div>
             
             <div className="flex gap-2">
+              {/* AI Badge Status */}
+              {aiSessionActive && (
+                <Badge variant="neon" className="animate-pulse">
+                  <Zap className="h-3 w-3 mr-1" />
+                  AI Active
+                </Badge>
+              )}
+              
               <PrepareFightDialog 
                 fight={fight} 
                 availableJudges={getActiveJudges()} 
               />
+              
+              {aiSessionActive && (
+                <AIStatsDialog 
+                  fight={fight} 
+                  events={events}
+                  stats={stats}
+                  session={activeSession}
+                  currentRound={currentRound}
+                />
+              )}
+              
               <Button 
                 size="sm" 
                 variant="outline"
@@ -175,7 +205,241 @@ export default function LiveEventsControl() {
     );
   };
 
-  const AssignOfficialDialog = ({ fightId, role, onAssign }: { 
+  // AI Stats Dialog Component
+  const AIStatsDialog = ({ fight, events, stats, session, currentRound }: {
+    fight: any;
+    events: any[];
+    stats: any[];
+    session: any;
+    currentRound?: number;
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    const statsA = stats.find(s => s.fighter === 'A') || {
+      attempted_count: 0,
+      connected_count: 0,
+      accuracy: 0,
+      last_strike_ms: 0
+    };
+    
+    const statsB = stats.find(s => s.fighter === 'B') || {
+      attempted_count: 0,
+      connected_count: 0,
+      accuracy: 0,
+      last_strike_ms: 0
+    };
+    
+    const recentEvents = events.slice(0, 10);
+    const totalEvents = events.length;
+    
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="cyber">
+            <Activity className="mr-2 h-3 w-3" />
+            Live AI Stats
+            {totalEvents > 0 && (
+              <Badge variant="glow" className="ml-2">
+                {totalEvents}
+              </Badge>
+            )}
+          </Button>
+        </DialogTrigger>
+        
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-purple-neon-primary" />
+              Estadísticas IA en Tiempo Real
+            </DialogTitle>
+            <DialogDescription>
+              Pelea #{fight.fight_number} • {fight.fighterA?.first_name} {fight.fighterA?.last_name} vs {fight.fighterB?.first_name} {fight.fighterB?.last_name}
+              {currentRound && ` • Round ${currentRound}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Session Info */}
+            {session && (
+              <Card variant="cyber">
+                <CardContent className="pt-4">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Estado</p>
+                      <Badge variant={session.status === 'running' ? 'neon' : 'secondary'}>
+                        {session.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">FPS Promedio</p>
+                      <p className="font-mono font-semibold">{session.avg_fps?.toFixed(1) || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Latencia</p>
+                      <p className="font-mono font-semibold">{session.avg_latency_ms?.toFixed(0) || 'N/A'}ms</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
+            {/* Fighter Stats Comparison */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card variant="neon">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center justify-between">
+                    <span>🔴 {fight.fighterA?.first_name} {fight.fighterA?.last_name}</span>
+                    <Target className="h-4 w-4 text-muted-foreground" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Intentados</span>
+                    <span className="font-mono font-semibold">{statsA.attempted_count}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Conectados</span>
+                    <span className="font-mono font-semibold text-green-500">{statsA.connected_count}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Precisión</span>
+                    <span className="font-mono font-bold text-purple-neon-primary">{statsA.accuracy}%</span>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card variant="neon">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center justify-between">
+                    <span>🔵 {fight.fighterB?.first_name} {fight.fighterB?.last_name}</span>
+                    <Target className="h-4 w-4 text-muted-foreground" />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Intentados</span>
+                    <span className="font-mono font-semibold">{statsB.attempted_count}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Conectados</span>
+                    <span className="font-mono font-semibold text-green-500">{statsB.connected_count}</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Precisión</span>
+                    <span className="font-mono font-bold text-purple-neon-primary">{statsB.accuracy}%</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* Visual Comparison Bar */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Comparación de Golpes Conectados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Fighter A</span>
+                      <span className="font-mono">{statsA.connected_count}</span>
+                    </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300"
+                        style={{ 
+                          width: `${statsA.connected_count > 0 ? (statsA.connected_count / Math.max(statsA.connected_count + statsB.connected_count, 1)) * 100 : 0}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Fighter B</span>
+                      <span className="font-mono">{statsB.connected_count}</span>
+                    </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+                        style={{ 
+                          width: `${statsB.connected_count > 0 ? (statsB.connected_count / Math.max(statsA.connected_count + statsB.connected_count, 1)) * 100 : 0}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Recent Events Timeline */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm">Últimos Eventos Detectados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-64">
+                  {recentEvents.length > 0 ? (
+                    <div className="space-y-2">
+                      {recentEvents.map((event, idx) => (
+                        <div 
+                          key={event.id} 
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs border-l-2 border-purple-neon-primary/50"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Badge variant={event.fighter === 'A' ? 'destructive' : 'default'} className="text-xs">
+                              {event.fighter === 'A' ? '🔴' : '🔵'} Fighter {event.fighter}
+                            </Badge>
+                            <span className="font-medium">
+                              {event.event_type === 'strike_connected' ? '✓ Conectado' : '○ Intentado'}
+                            </span>
+                            {event.strike_type && (
+                              <Badge variant="outline" className="text-xs">
+                                {event.strike_type}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <span className="font-mono">{(event.confidence * 100).toFixed(0)}%</span>
+                            <span className="font-mono">{(event.timestamp_ms / 1000).toFixed(1)}s</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay eventos detectados aún</p>
+                      <p className="text-xs mt-1">El sistema de IA comenzará a detectar golpes cuando la pelea esté activa</p>
+                    </div>
+                  )}
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsOpen(false)}>
+              Cerrar
+            </Button>
+            <Button variant="neon" asChild>
+              <Link to={`/admin/ai-strike-monitor?fightId=${fight.id}`}>
+                <Activity className="mr-2 h-4 w-4" />
+                Ver Monitor Completo
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  const AssignOfficialDialog = ({ fightId, role, onAssign }: {
     fightId: string; 
     role: string; 
     onAssign: (officialId: string, role: string) => void; 
