@@ -29,6 +29,8 @@ import LiveEventsControl from './pages/admin/LiveEventsControl';
 import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
 import PendingChangesHub from './pages/admin/PendingChangesHub';
 import ProfileChangeRequest from './pages/ProfileChangeRequest';
+import AIStrikeMonitor from './pages/admin/AIStrikeMonitor';
+import AIStrikeOverlay from './pages/AIStrikeOverlay';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { StationPinLogin } from '@/components/station/StationPinLogin';
@@ -130,6 +132,9 @@ const App = () => (
               
               {/* HUD Público de Scoring en Vivo */}
               <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
+              
+              {/* AI Strike Detection Overlay - Público para OBS/Transmisión */}
+              <Route path="/ai-overlay" element={<AIStrikeOverlay />} />
 
               {/* Rutas de Estaciones con PIN (sin autenticación) */}
               <Route path="/estacion/:stationNumber" element={<StationPinLogin />} />
@@ -246,6 +251,7 @@ const App = () => (
                           <UserRoles />
                         </Suspense>
                       } />
+                      <Route path="/ai-strike-monitor" element={<AIStrikeMonitor />} />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>

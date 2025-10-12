@@ -14,6 +14,217 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_config: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
+      ai_inference_logs: {
+        Row: {
+          fight_id: string | null
+          id: number
+          level: string
+          message: string
+          metadata: Json | null
+          session_id: string | null
+          timestamp: string | null
+        }
+        Insert: {
+          fight_id?: string | null
+          id?: number
+          level: string
+          message: string
+          metadata?: Json | null
+          session_id?: string | null
+          timestamp?: string | null
+        }
+        Update: {
+          fight_id?: string | null
+          id?: number
+          level?: string
+          message?: string
+          metadata?: Json | null
+          session_id?: string | null
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_inference_logs_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_inference_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_inference_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_inference_sessions: {
+        Row: {
+          avg_fps: number | null
+          avg_latency_ms: number | null
+          created_by: string | null
+          fight_id: string
+          id: string
+          metadata: Json | null
+          model_version: string
+          source_url: string
+          started_at: string | null
+          status: string
+          stopped_at: string | null
+          total_frames_processed: number | null
+        }
+        Insert: {
+          avg_fps?: number | null
+          avg_latency_ms?: number | null
+          created_by?: string | null
+          fight_id: string
+          id?: string
+          metadata?: Json | null
+          model_version: string
+          source_url: string
+          started_at?: string | null
+          status?: string
+          stopped_at?: string | null
+          total_frames_processed?: number | null
+        }
+        Update: {
+          avg_fps?: number | null
+          avg_latency_ms?: number | null
+          created_by?: string | null
+          fight_id?: string
+          id?: string
+          metadata?: Json | null
+          model_version?: string
+          source_url?: string
+          started_at?: string | null
+          status?: string
+          stopped_at?: string | null
+          total_frames_processed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_inference_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_model_versions: {
+        Row: {
+          created_at: string | null
+          deployed_at: string | null
+          f1_score: number | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          notes: string | null
+          precision_connected: number | null
+          recall_connected: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          deployed_at?: string | null
+          f1_score?: number | null
+          id: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          notes?: string | null
+          precision_connected?: number | null
+          recall_connected?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          deployed_at?: string | null
+          f1_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          notes?: string | null
+          precision_connected?: number | null
+          recall_connected?: number | null
+        }
+        Relationships: []
+      }
+      ai_strike_events: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          event_type: string
+          fight_id: string
+          fighter: string
+          id: number
+          metadata: Json | null
+          model_version: string
+          round_number: number
+          strike_type: string | null
+          timestamp_ms: number
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          event_type: string
+          fight_id: string
+          fighter: string
+          id?: number
+          metadata?: Json | null
+          model_version: string
+          round_number: number
+          strike_type?: string | null
+          timestamp_ms: number
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          event_type?: string
+          fight_id?: string
+          fighter?: string
+          id?: number
+          metadata?: Json | null
+          model_version?: string
+          round_number?: number
+          strike_type?: string | null
+          timestamp_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_strike_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_user: {
         Row: {
           auth_user_id: string | null
@@ -3540,6 +3751,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_old_ai_events: {
+        Args: { days_to_keep?: number }
+        Returns: number
+      }
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
@@ -3664,6 +3879,16 @@ export type Database = {
           expires_at: string
           pin_code: string
           session_id: string
+        }[]
+      }
+      get_ai_fight_stats: {
+        Args: { p_fight_id: string; p_round_number?: number }
+        Returns: {
+          accuracy: number
+          attempted_count: number
+          connected_count: number
+          fighter: string
+          last_strike_ms: number
         }[]
       }
       get_current_user_judge_id: {

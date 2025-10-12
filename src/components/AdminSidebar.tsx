@@ -53,6 +53,7 @@ const fightControlItems = [
   { title: 'Estaciones de Scoring', url: '/admin/scoring/stations', icon: Monitor },
   { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
   { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
+  { title: 'Monitor de IA', url: '/admin/ai-strike-monitor', icon: Activity },
 ];
 
 export function AdminSidebar() {
