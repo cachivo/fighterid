@@ -3,9 +3,106 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Mail, CheckCircle, AlertCircle, Clock, ExternalLink, RefreshCw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function EmailMonitoring() {
   const [refreshing, setRefreshing] = useState(false);
+  const [sendingTest, setSendingTest] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const testEmailHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; }
+    .badge { display: inline-block; background: #10b981; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .info-box { background: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0; }
+    .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1 style="margin: 0;">✅ Email de Prueba</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Fighter ID - Sistema de Correos</p>
+    </div>
+    <div class="content">
+      <p><span class="badge">PRUEBA EXITOSA</span></p>
+      
+      <h2>Sistema de Correos Operativo</h2>
+      <p>Este es un correo de prueba para verificar que el sistema de emails está funcionando correctamente.</p>
+      
+      <div class="info-box">
+        <p style="margin: 0 0 10px 0; font-weight: 600;">📊 Información del Envío:</p>
+        <p style="margin: 5px 0;"><strong>Remitente:</strong> notificaciones@fighter-id.org</p>
+        <p style="margin: 5px 0;"><strong>Dominio:</strong> fighter-id.org (Verificado ✓)</p>
+        <p style="margin: 5px 0;"><strong>Proveedor:</strong> Resend</p>
+        <p style="margin: 5px 0;"><strong>Fecha y Hora:</strong> ${new Date().toLocaleString('es-MX')}</p>
+      </div>
+      
+      <p style="color: #10b981; font-weight: 600;">✅ Si recibiste este correo en tu bandeja de entrada (no en spam), el sistema está funcionando correctamente.</p>
+      
+      <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+        <strong>Próximos pasos:</strong><br>
+        • Verifica que el correo llegó a tu inbox (no a spam)<br>
+        • Revisa el dashboard de Resend para métricas de entrega<br>
+        • Si hay problemas, revisa los logs de las edge functions
+      </p>
+    </div>
+    <div class="footer">
+      <p>Fighter ID © ${new Date().getFullYear()}</p>
+      <p>Este es un correo automático de prueba del sistema</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  const handleSendTestEmail = async () => {
+    setSendingTest(true);
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser?.email) {
+        throw new Error("No se pudo obtener el email del usuario");
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-mass-email', {
+        body: {
+          subject: '✅ Prueba del Sistema de Emails - Fighter ID',
+          html_content: testEmailHTML,
+          test_mode: true,
+          test_email: currentUser.email
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✅ Correo de prueba enviado",
+        description: `El correo se envió exitosamente a ${currentUser.email}. Revisa tu bandeja de entrada.`,
+      });
+
+      console.log("[TEST EMAIL] Success:", data);
+    } catch (error: any) {
+      console.error("[TEST EMAIL] Error:", error);
+      toast({
+        title: "❌ Error al enviar correo",
+        description: error.message || "No se pudo enviar el correo de prueba",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingTest(false);
+    }
+  };
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -188,7 +285,54 @@ export default function EmailMonitoring() {
             </a>
           </Button>
         </CardContent>
-      </Card>
+        </Card>
+
+        {/* Test Email Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Enviar Correo de Prueba
+            </CardTitle>
+            <CardDescription>
+              Verifica que el sistema de emails funcione correctamente
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+              <div>
+                <p className="font-medium">Destinatario</p>
+                <p className="text-sm text-muted-foreground">{user?.email || "Cargando..."}</p>
+              </div>
+              <Button 
+                onClick={handleSendTestEmail}
+                disabled={sendingTest || !user?.email}
+              >
+                {sendingTest ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Enviar Prueba
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            <div className="text-sm space-y-2">
+              <p className="font-medium">Qué incluye el correo de prueba:</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                <li>Verificación del remitente: notificaciones@fighter-id.org</li>
+                <li>Timestamp del envío</li>
+                <li>Estado de configuración del dominio</li>
+                <li>Prueba de formato HTML</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
 
       {/* Testing Section */}
       <Card>
