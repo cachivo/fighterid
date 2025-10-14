@@ -15,7 +15,8 @@ import {
   Gavel,
   Radio,
   Trophy,
-  Activity
+  Activity,
+  TestTube2
 } from 'lucide-react';
 import {
   Sidebar,
@@ -54,6 +55,7 @@ const fightControlItems = [
   { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
   { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
   { title: 'Monitor de IA', url: '/admin/ai-strike-monitor', icon: Activity },
+  { title: '🧪 Pruebas IA', url: '/admin/ai-strike-test', icon: TestTube2 },
 ];
 
 export function AdminSidebar() {

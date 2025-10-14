@@ -30,6 +30,7 @@ import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
 import PendingChangesHub from './pages/admin/PendingChangesHub';
 import ProfileChangeRequest from './pages/ProfileChangeRequest';
 import AIStrikeMonitor from './pages/admin/AIStrikeMonitor';
+import AIStrikeTestPanel from './pages/admin/AIStrikeTestPanel';
 import AIStrikeOverlay from './pages/AIStrikeOverlay';
 import { lazy, Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -252,6 +253,7 @@ const App = () => (
                         </Suspense>
                       } />
                       <Route path="/ai-strike-monitor" element={<AIStrikeMonitor />} />
+                      <Route path="/ai-strike-test" element={<AIStrikeTestPanel />} />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>
