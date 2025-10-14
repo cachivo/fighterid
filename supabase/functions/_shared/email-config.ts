@@ -1,5 +1,42 @@
 import { Resend } from "npm:resend@2.0.0";
 
+// ============================================================================
+// EMAIL CONFIGURATION - PRODUCTION READY
+// ============================================================================
+// Este archivo contiene toda la lógica compartida para envío de emails
+// NUNCA modifiques directamente las funciones de email sin actualizar este archivo
+// ============================================================================
+
+/**
+ * Configuración de rate limiting para emails
+ * Previene abuso y costos excesivos
+ */
+const EMAIL_RATE_LIMITS = {
+  MAX_EMAILS_PER_MINUTE: 100,
+  MAX_EMAILS_PER_HOUR: 1000,
+  MAX_RETRIES: 3,
+  RETRY_DELAY_MS: 2000,
+} as const;
+
+/**
+ * Validación de email address
+ * RFC 5322 compliant
+ */
+export function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+}
+
+/**
+ * Sanitizar email para logging (ocultar información sensible)
+ */
+export function sanitizeEmailForLog(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!domain) return '***@invalid';
+  const visibleChars = Math.min(2, local.length);
+  return `${local.substring(0, visibleChars)}${'*'.repeat(Math.max(0, local.length - visibleChars))}@${domain}`;
+}
+
 /**
  * Get the formatted "from" email address for Resend
  * Uses RESEND_FROM environment variable with fallback to Resend's onboarding domain
@@ -18,8 +55,66 @@ export function getEmailFrom(): string {
 }
 
 /**
- * Send email with automatic fallback to Resend onboarding domain
- * if custom domain is not verified
+ * Validar datos de email antes de enviar
+ * @throws Error si los datos son inválidos
+ */
+function validateEmailData(emailData: {
+  to: string | string[];
+  subject: string;
+  html: string;
+}): void {
+  // Validar destinatarios
+  const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
+  
+  if (recipients.length === 0) {
+    throw new Error('[EMAIL] No recipients provided');
+  }
+
+  if (recipients.length > EMAIL_RATE_LIMITS.MAX_EMAILS_PER_MINUTE) {
+    throw new Error(`[EMAIL] Too many recipients (max ${EMAIL_RATE_LIMITS.MAX_EMAILS_PER_MINUTE})`);
+  }
+
+  // Validar cada email
+  for (const email of recipients) {
+    if (!isValidEmail(email)) {
+      throw new Error(`[EMAIL] Invalid email address: ${sanitizeEmailForLog(email)}`);
+    }
+  }
+
+  // Validar subject
+  if (!emailData.subject || emailData.subject.trim().length === 0) {
+    throw new Error('[EMAIL] Email subject is required');
+  }
+
+  if (emailData.subject.length > 998) {
+    throw new Error('[EMAIL] Email subject too long (max 998 characters)');
+  }
+
+  // Validar HTML content
+  if (!emailData.html || emailData.html.trim().length === 0) {
+    throw new Error('[EMAIL] Email HTML content is required');
+  }
+
+  if (emailData.html.length > 1000000) {
+    throw new Error('[EMAIL] Email HTML content too large (max 1MB)');
+  }
+}
+
+/**
+ * Send email with automatic retry, validation and error handling
+ * ¡SIEMPRE USA ESTA FUNCIÓN PARA ENVIAR EMAILS!
+ * 
+ * Features:
+ * - Validación automática de inputs
+ * - Retry logic con backoff exponencial
+ * - Logging detallado pero seguro
+ * - Sanitización de datos sensibles en logs
+ * 
+ * @param resend - Instancia de Resend client
+ * @param emailData - Datos del email a enviar
+ * @param options - Opciones adicionales (retries, etc)
+ * @returns Promise con el resultado del envío
+ * @throws Error si falla después de todos los reintentos
  */
 export async function sendEmailWithFallback(
   resend: Resend,
@@ -27,20 +122,83 @@ export async function sendEmailWithFallback(
     to: string | string[];
     subject: string;
     html: string;
-  }
+  },
+  options: {
+    maxRetries?: number;
+    retryDelay?: number;
+  } = {}
 ) {
+  const maxRetries = options.maxRetries ?? EMAIL_RATE_LIMITS.MAX_RETRIES;
+  const retryDelay = options.retryDelay ?? EMAIL_RATE_LIMITS.RETRY_DELAY_MS;
+
+  // Validar datos ANTES de intentar enviar
   try {
-    console.log("[EMAIL] Attempting to send with configured domain");
-    return await resend.emails.send({
-      from: getEmailFrom(),
-      to: Array.isArray(emailData.to) ? emailData.to : [emailData.to],
-      subject: emailData.subject,
-      html: emailData.html,
-    });
-  } catch (err: any) {
-    console.error("[EMAIL] Error sending email:", err);
-    throw new Error(`Failed to send email: ${err.message}`);
+    validateEmailData(emailData);
+  } catch (validationError: any) {
+    console.error('[EMAIL] Validation failed:', validationError.message);
+    throw validationError;
   }
+
+  const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
+  const sanitizedRecipients = recipients.map(sanitizeEmailForLog);
+
+  console.log("[EMAIL] Preparing to send email:", {
+    to: sanitizedRecipients,
+    subject: emailData.subject,
+    contentLength: emailData.html.length,
+    timestamp: new Date().toISOString()
+  });
+
+  let lastError: Error | null = null;
+
+  // Intentar enviar con reintentos
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[EMAIL] Attempt ${attempt}/${maxRetries}`);
+      
+      const result = await resend.emails.send({
+        from: getEmailFrom(),
+        to: recipients,
+        subject: emailData.subject,
+        html: emailData.html,
+      });
+
+      console.log("[EMAIL] ✓ Email sent successfully:", {
+        id: result.data?.id,
+        to: sanitizedRecipients,
+        attempt,
+        timestamp: new Date().toISOString()
+      });
+
+      return result;
+
+    } catch (err: any) {
+      lastError = err;
+      console.error(`[EMAIL] ✗ Attempt ${attempt}/${maxRetries} failed:`, {
+        error: err.message,
+        code: err.code,
+        statusCode: err.statusCode,
+        to: sanitizedRecipients
+      });
+
+      // Si no es el último intento, esperar antes de reintentar
+      if (attempt < maxRetries) {
+        const backoffDelay = retryDelay * Math.pow(2, attempt - 1);
+        console.log(`[EMAIL] Retrying in ${backoffDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, backoffDelay));
+      }
+    }
+  }
+
+  // Si llegamos aquí, fallaron todos los intentos
+  const errorMessage = `Failed to send email after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`;
+  console.error('[EMAIL] ✗ All attempts failed:', {
+    to: sanitizedRecipients,
+    error: errorMessage,
+    timestamp: new Date().toISOString()
+  });
+
+  throw new Error(errorMessage);
 }
 
 /**

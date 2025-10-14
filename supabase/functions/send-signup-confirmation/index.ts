@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { sendEmailWithFallback } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -207,12 +208,6 @@ serve(async (req) => {
       redirectTo
     });
 
-    // Send email with Resend
-    // Get from email and ensure it has proper format
-    const fromEmail = Deno.env.get("RESEND_FROM") || "notificaciones@fighter-id.org";
-    const fromName = "Fighter ID";
-    const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
-    
     // Determine subject and template based on action type
     const isRecovery = String(emailActionType || '').toLowerCase().includes('recovery');
     const subject = isRecovery
@@ -222,21 +217,15 @@ serve(async (req) => {
       ? getRecoveryEmailHTML(confirmationLink, user.email)
       : getSignupEmailHTML(confirmationLink, user.email);
 
-    const emailResult = await resend.emails.send({
-      from: formattedFrom,
-      to: [user.email],
+    // Send email using shared email service with retry logic
+    await sendEmailWithFallback(resend, {
+      to: user.email,
       subject,
       html,
     });
 
-    if (emailResult.error) {
-      console.error("[SIGNUP] Error sending email:", emailResult.error);
-      throw new Error("Error al enviar el correo de confirmación");
-    }
-
-    console.log("[SIGNUP] Email sent successfully:", {
-      email: user.email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
-      emailId: emailResult.data?.id,
+    console.log("[SIGNUP] ✓ Email sent successfully:", {
+      to: user.email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
       timestamp: new Date().toISOString()
     });
 

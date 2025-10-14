@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
+import { sendEmailWithFallback } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -246,27 +247,15 @@ serve(async (req) => {
 
     const resetLink = recoveryData.properties.action_link;
 
-    // Send email with Resend
-    // Get from email and ensure it has proper format
-    const fromEmail = Deno.env.get("RESEND_FROM") || "notificaciones@fighter-id.org";
-    const fromName = "Fighter ID";
-    const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
-    
-    const emailResult = await resend.emails.send({
-      from: formattedFrom,
-      to: [email],
+    // Send email using shared email service with retry logic
+    await sendEmailWithFallback(resend, {
+      to: email,
       subject: "Recupera tu acceso a Fighter ID",
       html: getRecoveryEmailHTML(resetLink),
     });
 
-    if (emailResult.error) {
-      console.error("[RECOVERY] Error sending email:", emailResult.error);
-      throw new Error("Error al enviar el correo");
-    }
-
-    console.log("[RECOVERY] Email sent successfully:", { 
+    console.log("[RECOVERY] ✓ Email sent successfully:", { 
       email: email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
-      emailId: emailResult.data?.id,
       timestamp: new Date().toISOString()
     });
 
