@@ -82,6 +82,7 @@ import Comunidad from "./pages/admin/Comunidad";
 import Configuracion from "./pages/admin/Configuracion";
 import Votaciones from "./pages/admin/Votaciones";
 import Betting from "./pages/admin/Betting";
+import EmailMonitoring from "./pages/admin/EmailMonitoring";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 
@@ -244,6 +245,7 @@ const App = () => (
                       } />
                       <Route path="/votaciones" element={<Votaciones />} />
                       <Route path="/betting" element={<Betting />} />
+                      <Route path="/email-monitoring" element={<EmailMonitoring />} />
                       <Route path="/comunidad" element={<Comunidad />} />
                       <Route path="/configuracion" element={<Configuracion />} />
                       <Route path="/licencias" element={<ValidacionLicencias />} />

@@ -16,7 +16,8 @@ import {
   Radio,
   Trophy,
   Activity,
-  TestTube2
+  TestTube2,
+  Mail
 } from 'lucide-react';
 import {
   Sidebar,
@@ -43,6 +44,7 @@ const adminItems = [
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
+  { title: 'Monitoreo de Emails', url: '/admin/email-monitoring', icon: Mail },
   { title: 'Solicitudes de Cambio', url: '/admin/profile-requests', icon: Settings },
   { title: 'Gestión de Roles', url: '/admin/user-roles', icon: Shield },
   { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
