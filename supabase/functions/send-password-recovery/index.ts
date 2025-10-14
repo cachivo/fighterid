@@ -248,7 +248,7 @@ serve(async (req) => {
 
     // Send email with Resend
     // Get from email and ensure it has proper format
-    const fromEmail = Deno.env.get("RESEND_FROM") || "onboarding@resend.dev";
+    const fromEmail = Deno.env.get("RESEND_FROM") || "notificaciones@fighter-id.org";
     const fromName = "Fighter ID";
     const formattedFrom = fromEmail.includes("<") ? fromEmail : `${fromName} <${fromEmail}>`;
     

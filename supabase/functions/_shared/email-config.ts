@@ -5,7 +5,7 @@ import { Resend } from "npm:resend@2.0.0";
  * Uses RESEND_FROM environment variable with fallback to Resend's onboarding domain
  */
 export function getEmailFrom(): string {
-  const fromEmail = Deno.env.get("RESEND_FROM") || "onboarding@resend.dev";
+  const fromEmail = Deno.env.get("RESEND_FROM") || "notificaciones@fighter-id.org";
   const fromName = "Fighter ID";
   
   // If email already includes name format, use as-is
@@ -38,17 +38,8 @@ export async function sendEmailWithFallback(
       html: emailData.html,
     });
   } catch (err: any) {
-    // If domain verification fails, fallback to Resend's onboarding domain
-    if (err?.statusCode === 403 || err?.message?.includes("domain") || err?.message?.includes("verified")) {
-      console.log("[EMAIL] Domain not verified, falling back to onboarding@resend.dev");
-      return await resend.emails.send({
-        from: "Fighter ID <onboarding@resend.dev>",
-        to: Array.isArray(emailData.to) ? emailData.to : [emailData.to],
-        subject: emailData.subject,
-        html: emailData.html,
-      });
-    }
-    throw err;
+    console.error("[EMAIL] Error sending email:", err);
+    throw new Error(`Failed to send email: ${err.message}`);
   }
 }
 
