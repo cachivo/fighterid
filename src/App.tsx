@@ -136,6 +136,7 @@ const App = () => (
               
               {/* AI Strike Detection Overlay - Público para OBS/Transmisión */}
               <Route path="/ai-overlay" element={<AIStrikeOverlay />} />
+              <Route path="/ai-strike-overlay" element={<AIStrikeOverlay />} />
 
               {/* Rutas de Estaciones con PIN (sin autenticación) */}
               <Route path="/estacion/:stationNumber" element={<StationPinLogin />} />

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Zap, Play, Target, Activity } from 'lucide-react';
+import { Zap, Play, Target, Activity, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function AIStrikeTestPanel() {
@@ -247,8 +247,23 @@ export default function AIStrikeTestPanel() {
             <li>Selecciona el round, peleador y tipo de evento</li>
             <li>Haz clic en cualquier botón para simular eventos</li>
             <li>Ve al <strong>Monitor de IA</strong> para ver los eventos en tiempo real</li>
-            <li>Prueba los <strong>Overlays de OBS</strong> en <code>/ai-strike-overlay?fightId=UUID</code></li>
+            <li>Prueba los <strong>Overlays de OBS</strong> con el botón de abajo</li>
           </ol>
+          
+          {fightId && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-xs text-muted-foreground mb-2">Vista previa del overlay:</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full gap-2"
+                onClick={() => window.open(`/ai-overlay?fightId=${fightId}&layout=side-by-side`, '_blank')}
+              >
+                <ExternalLink className="h-4 w-4" />
+                Abrir Overlay con este Fight ID
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -4,11 +4,27 @@ import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { Badge } from '@/components/ui/badge';
 import { Zap, TrendingUp } from 'lucide-react';
 
+// Función para validar UUID v4
+const isValidUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export default function AIStrikeOverlay() {
   const [searchParams] = useSearchParams();
-  const fightId = searchParams.get('fightId') || 'demo-fight';
+  const rawFightId = searchParams.get('fightId') || 'demo-fight';
   const round = searchParams.get('round') ? parseInt(searchParams.get('round')!) : undefined;
   const layout = searchParams.get('layout') || 'side-by-side'; // 'side-by-side' | 'compact' | 'minimal'
+  
+  // Validar fightId antes de hacer la llamada
+  const fightId = rawFightId === 'demo-fight' || isValidUUID(rawFightId) ? rawFightId : 'demo-fight';
+  
+  // Log si el ID es inválido (para debugging)
+  useEffect(() => {
+    if (rawFightId !== 'demo-fight' && !isValidUUID(rawFightId)) {
+      console.warn(`⚠️ Fight ID inválido: ${rawFightId}. Usando 'demo-fight' por defecto.`);
+    }
+  }, [rawFightId]);
   
   const { stats } = useAIStrikeEvents(fightId, round);
 

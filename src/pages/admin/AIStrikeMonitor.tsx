@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { useAIInferenceSessions } from '@/hooks/useAIInferenceSessions';
 import { useAIConfig } from '@/hooks/useAIConfig';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Activity, 
   Zap, 
@@ -18,11 +19,22 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Target
+  Target,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function AIStrikeMonitor() {
+  const { toast } = useToast();
   const [selectedFightId, setSelectedFightId] = useState<string>('');
   const [selectedRound, setSelectedRound] = useState<number | undefined>();
   
@@ -40,6 +52,22 @@ export default function AIStrikeMonitor() {
     maxLatencyMs,
     targetFps
   } = useAIConfig();
+
+  const copyOverlayUrl = (layout: 'side-by-side' | 'compact' | 'minimal') => {
+    const fightId = selectedFightId || activeSessions[0]?.fight_id || 'demo-fight';
+    const url = `${window.location.origin}/ai-overlay?fightId=${fightId}&layout=${layout}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "✅ URL copiada",
+      description: `Overlay ${layout} listo para OBS`,
+    });
+  };
+
+  const openOverlay = (layout: 'side-by-side' | 'compact' | 'minimal') => {
+    const fightId = selectedFightId || activeSessions[0]?.fight_id || 'demo-fight';
+    const url = `/ai-overlay?fightId=${fightId}&layout=${layout}`;
+    window.open(url, '_blank');
+  };
 
   const getEventTypeColor = (eventType: string) => {
     return eventType === 'strike_connected' 
@@ -60,11 +88,53 @@ export default function AIStrikeMonitor() {
   return (
     <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Monitor de IA - Sistema de Visión</h1>
-        <p className="text-muted-foreground mt-1">
-          Monitoreo en tiempo real del sistema de detección de golpes por visión por computadora
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Monitor de IA - Sistema de Visión</h1>
+          <p className="text-muted-foreground mt-1">
+            Monitoreo en tiempo real del sistema de detección de golpes por visión por computadora
+          </p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <ExternalLink className="h-4 w-4" />
+              Abrir Overlay
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Overlay para OBS</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => openOverlay('side-by-side')}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Abrir Side-by-Side
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openOverlay('compact')}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Abrir Compact
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => openOverlay('minimal')}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Abrir Minimal
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              Copiar URL
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => copyOverlayUrl('side-by-side')}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Side-by-Side
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => copyOverlayUrl('compact')}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Compact
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => copyOverlayUrl('minimal')}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Minimal
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Quick Stats */}
