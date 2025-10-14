@@ -37,24 +37,39 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No authorization header");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Crear cliente con el token del usuario para verificar autenticación
+    const token = authHeader.replace("Bearer ", "");
+    const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    });
     
     // Verificar token y obtener usuario
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
     
     if (userError || !user) {
+      console.error("[MASS EMAIL] Auth error:", userError);
       throw new Error("Unauthorized");
     }
 
-    // Verificar que el usuario sea admin usando el sistema de roles unificado
-    const { data: isAdminResult, error: adminError } = await supabase
+    console.log("[MASS EMAIL] User authenticated:", user.id);
+
+    // Verificar que el usuario sea admin
+    const { data: isAdminResult, error: adminError } = await supabaseAuth
       .rpc('is_admin');
+
+    console.log("[MASS EMAIL] Admin check result:", { isAdminResult, adminError });
 
     if (adminError || !isAdminResult) {
       console.error("[MASS EMAIL] Admin check failed:", adminError);
       throw new Error("Only admins can send mass emails");
     }
+
+    // Crear cliente con service role para operaciones privilegiadas
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestData: MassEmailRequest = await req.json();
     console.log("[MASS EMAIL] Request data:", {
