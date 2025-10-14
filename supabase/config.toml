@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.ai-strike-ingest]
 verify_jwt = false
+
+[functions.ai-strike-test-simulator]
+verify_jwt = false
