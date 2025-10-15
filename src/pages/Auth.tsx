@@ -333,7 +333,7 @@ export default function Auth() {
               <div className="mt-4 text-center">
                 <Button
                   variant="link"
-                  className="text-sm text-muted-foreground"
+                  className="text-sm text-white/90 hover:text-white"
                   onClick={() => window.location.href = '/auth/forgot-password'}
                 >
                   ¿Olvidaste tu contraseña?
@@ -391,19 +391,19 @@ export default function Auth() {
                 <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <UserCheck className="h-5 w-5 text-primary" />
-                    <p className="text-sm font-medium">Invitación de Fighter ID</p>
+                    <p className="text-sm font-medium text-white">Invitación de Fighter ID</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/90">
                     Has sido invitado como: <strong>{invitation.first_name} {invitation.last_name}</strong>
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-white/80 mt-1">
                     Tu perfil de peleador se creará automáticamente al completar el registro
                   </p>
                 </div>
               )}
               {!invitation && (
                 <div className="mb-4 p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-white/90">
                     Después del registro podrás crear tu <strong>Fighter ID</strong> si deseas ser peleador profesional.
                   </p>
                 </div>
