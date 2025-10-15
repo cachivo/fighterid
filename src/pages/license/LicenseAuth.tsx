@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck, User } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,8 +144,11 @@ export default function LicenseAuth() {
     setIsResending(false);
   };
 
-  const handleNextStep = () => {
-    if (registrationStep === 0 && !selectedUserType) {
+  const handleNextStep = (userType?: 'user' | 'fighter') => {
+    // Si se pasa un userType, usarlo; si no, usar el estado actual
+    const typeToCheck = userType || selectedUserType;
+    
+    if (registrationStep === 0 && !typeToCheck) {
       toast({
         title: "Selecciona un tipo de cuenta",
         description: "Por favor, selecciona si eres usuario normal o fighter",
@@ -487,28 +490,28 @@ export default function LicenseAuth() {
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-center">Selecciona el tipo de cuenta</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <button
-                        onClick={() => {
-                          setSelectedUserType('user');
-                          handleNextStep();
-                        }}
-                        className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'user' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
-                      >
-                        <div className="text-center space-y-2">
-                          <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                            <Shield className="h-6 w-6 text-blue-600" />
-                          </div>
-                          <h4 className="font-semibold">Usuario Normal</h4>
-                          <p className="text-sm text-muted-foreground">Acceso al feed social y eventos</p>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedUserType('fighter');
-                          handleNextStep();
-                        }}
-                        className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'fighter' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
-                      >
+              <button
+                onClick={() => {
+                  setSelectedUserType('user');
+                  handleNextStep('user');
+                }}
+                className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'user' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
+              >
+                <div className="flex items-center space-x-4">
+                  <User className="w-12 h-12 text-primary" />
+                  <div className="text-left">
+                    <div className="font-bold text-lg">Usuario Normal</div>
+                    <div className="text-sm text-muted-foreground">Acceso a votaciones y contenido</div>
+                  </div>
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedUserType('fighter');
+                  handleNextStep('fighter');
+                }}
+                className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'fighter' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
+              >
                         <div className="text-center space-y-2">
                           <div className="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
                             <UserCheck className="h-6 w-6 text-red-600" />
@@ -583,7 +586,7 @@ export default function LicenseAuth() {
                       </Button>
                       <Button 
                         type="button" 
-                        onClick={selectedUserType === 'user' ? handleFinalSubmit : handleNextStep} 
+                        onClick={selectedUserType === 'user' ? handleFinalSubmit : () => handleNextStep()} 
                         className="flex-1"
                         disabled={isSubmitting}
                       >
