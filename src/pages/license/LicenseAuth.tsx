@@ -282,24 +282,10 @@ export default function LicenseAuth() {
       }
         
       if (existingUser) {
-        setError("Este email ya está en uso. Inicia sesión o reenvía la confirmación.");
+        setError("Este email ya está en uso. Inicia sesión o reenvía la confirmación desde la pantalla de login.");
         toast({
           title: "Email ya registrado",
-          description: (
-            <div className="space-y-2">
-              <p>Este email ya está en uso.</p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={async () => {
-                  await resendConfirmation(email);
-                  toast({ title: "Correo reenviado", description: "Revisa tu bandeja" });
-                }}
-              >
-                Reenviar confirmación
-              </Button>
-            </div>
-          ),
+          description: "Este email ya está en uso. Por favor inicia sesión o usa otro email.",
           variant: "destructive"
         });
         setIsSubmitting(false);
