@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck, User } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
 export default function LicenseAuth() {
@@ -21,11 +24,33 @@ export default function LicenseAuth() {
   const [validatingToken, setValidatingToken] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [registrationStep, setRegistrationStep] = useState(0); // 0: account type, 1: basic info, 2: fighter info
+  const [accountType, setAccountType] = useState<'fighter' | 'user' | null>(null);
+  
   const [formData, setFormData] = useState({
+    // Auth
     email: '',
     password: '',
-    phone: ''
+    // Basic info
+    phone: '',
+    firstName: '',
+    lastName: '',
+    // Fighter-specific
+    nickname: '',
+    country: 'HN',
+    weightClass: '',
+    heightCm: '',
+    weightKg: '',
+    reachCm: '',
+    martialArts: [] as string[],
+    gymName: '',
+    stance: '',
+    level: '',
+    birthdate: '',
+    gender: '',
+    bio: ''
   });
+  
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -114,123 +139,159 @@ export default function LicenseAuth() {
     setIsResending(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleNextStep = () => {
+    if (registrationStep === 0 && accountType) {
+      setRegistrationStep(1);
+    } else if (registrationStep === 1) {
+      if (accountType === 'user') {
+        handleSubmit();
+      } else {
+        setRegistrationStep(2);
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
     setError('');
     setRegistrationSuccess(false);
     setIsSubmitting(true);
 
     try {
-      if (isLogin) {
-        // Login flow
-        const { error } = await signIn(formData.email, formData.password);
-        if (error) {
-          setError(error.message);
+      // 1. Create auth account
+      const { error: signUpError, data: authData } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/license/dashboard`
         }
-      } else {
-        // Registration flow
-        const { error: signUpError } = await signUp(formData.email, formData.password);
+      });
 
-        if (signUpError) {
-          // Check for rate limiting or already registered
-          if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
-            setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
-            return;
-          }
-          if (signUpError.message?.includes('already registered')) {
-            toast({
-              title: 'Cuenta existente detectada',
-              description: 'Este email ya está registrado. Te llevamos a Iniciar Sesión.',
-            });
-            // Cambiar a login y prellenar el email
-            setIsLogin(true);
-            setError('');
-            setFormData(prev => ({ ...prev, email: formData.email, password: '' }));
-            return;
-          }
-          setError(signUpError.message);
+      if (signUpError) {
+        if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
+          setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
           return;
         }
+        if (signUpError.message?.includes('already registered')) {
+          toast({
+            title: 'Cuenta existente detectada',
+            description: 'Este email ya está registrado. Te llevamos a Iniciar Sesión.',
+          });
+          setIsLogin(true);
+          setError('');
+          setRegistrationStep(0);
+          return;
+        }
+        setError(signUpError.message);
+        return;
+      }
 
-        // If this is an invitation signup, create fighter profile automatically
-        if (invitation && inviteToken) {
-          console.info('[LicenseAuth] Creating fighter profile for invitation');
+      // 2. Wait for app_user trigger
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const { data: { user: newUser } } = await supabase.auth.getUser();
+      
+      if (newUser) {
+        const { data: appUser } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', newUser.id)
+          .single();
+
+        if (appUser && accountType === 'fighter') {
+          // 3. Create fighter profile with all data
+          const martialArtsString = formData.martialArts.join(',');
           
-          // Wait for auth trigger to create app_user
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Get the newly created user
-          const { data: { user: newUser } } = await supabase.auth.getUser();
-          
-          if (newUser) {
-            // Get app_user (created by trigger)
-            const { data: appUser, error: appUserError } = await supabase
-              .from('app_user')
-              .select('id')
-              .eq('auth_user_id', newUser.id)
-              .single();
+          const validDisciplines = ['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'] as const;
+          type ValidDiscipline = typeof validDisciplines[number];
+          const discipline: ValidDiscipline = formData.martialArts.length > 0 && 
+            validDisciplines.includes(formData.martialArts[0] as ValidDiscipline)
+              ? formData.martialArts[0] as ValidDiscipline
+              : 'MMA';
 
-            if (appUserError || !appUser) {
-              console.error('[LicenseAuth] App user not found:', appUserError);
-              throw new Error('Error configurando perfil de usuario');
-            }
+          await supabase.rpc('create_fighter_profile_with_license', {
+            p_first_name: formData.firstName,
+            p_last_name: formData.lastName,
+            p_country: formData.country,
+            p_weight_class: formData.weightClass,
+            p_height_cm: parseInt(formData.heightCm),
+            p_weight_kg: parseFloat(formData.weightKg),
+            p_phone: formData.phone || null,
+            p_birthdate: formData.birthdate || null,
+            p_nickname: formData.nickname || null,
+            p_reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
+            p_discipline: discipline,
+            p_martial_arts: martialArtsString,
+            p_gym_name: formData.gymName || null,
+            p_stance: formData.stance || null,
+            p_level: formData.level || null,
+            p_record_wins: 0,
+            p_record_losses: 0,
+            p_record_draws: 0,
+            p_record_type: 'Amateur',
+            p_gender: formData.gender || null,
+            p_bio: formData.bio || null
+          });
 
-            // Create fighter profile with invitation data
-            const { data: fighterProfile, error: profileError } = await supabase
-              .from('fighter_profiles')
-              .insert({
-                user_id: appUser.id,
-                first_name: invitation.first_name,
-                last_name: invitation.last_name,
-                weight_class: invitation.weight_class || 'Lightweight',
-                country: 'HN',
-              })
-              .select('id')
-              .single();
-
-            if (profileError) {
-              console.error('[LicenseAuth] Failed to create fighter profile:', profileError);
-              throw profileError;
-            }
-
-            // Mark invitation as accepted using secure RPC
-            const { error: acceptError } = await supabase.rpc('accept_fighter_invitation', {
-              p_token: inviteToken,
-              p_fighter_profile_id: fighterProfile.id,
-            });
-            
-            if (acceptError) {
-              console.error('[LicenseAuth] Failed to accept invitation:', acceptError);
-              throw acceptError;
-            }
-
-            console.info('[LicenseAuth] Fighter profile created successfully:', fighterProfile.id);
-            toast({
-              title: '✅ Perfil creado',
-              description: 'Tu Fighter ID ha sido creado exitosamente',
-            });
-          }
-        } else {
-          // Normal registration without invitation
-          setRegistrationSuccess(true);
-          setRegisteredEmail(formData.email);
-          setResendCooldown(60);
+          toast({
+            title: '✅ Fighter ID creado',
+            description: 'Tu perfil está pendiente de revisión',
+          });
         }
       }
+
+      setRegistrationSuccess(true);
+      setRegisteredEmail(formData.email);
+      setResendCooldown(60);
+      
     } catch (err: any) {
-      console.error('[LicenseAuth] Error in handleSubmit:', err);
+      console.error('[LicenseAuth] Error:', err);
       setError(err.message || 'Ha ocurrido un error inesperado');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) {
+        setError(error.message);
+      }
+    } catch (err: any) {
+      console.error('[LicenseAuth] Error:', err);
+      setError(err.message || 'Ha ocurrido un error inesperado');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData(prev => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
   };
+  
+  const handleMartialArtsChange = (art: string, checked: boolean) => {
+    if (checked) {
+      setFormData(prev => ({...prev, martialArts: [...prev.martialArts, art]}));
+    } else {
+      setFormData(prev => ({...prev, martialArts: prev.martialArts.filter(a => a !== art)}));
+    }
+  };
+
+  const weightClasses = [
+    'Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight',
+    'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
+  ];
+
+  const martialArts = [
+    'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
+  ];
 
   if (loading) {
     return (
@@ -332,52 +393,147 @@ export default function LicenseAuth() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="tu@correo.com"
-                  required
-                  disabled={!!invitation}
-                  className="h-11"
-                />
-              </div>
+            {!isLogin && !invitation && registrationStep === 0 && (
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold mb-2">¿Qué tipo de cuenta deseas?</h3>
+                  <p className="text-sm text-muted-foreground">Selecciona el tipo de perfil que mejor se adapte a ti</p>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('fighter')}
+                    className={`p-6 border-2 rounded-lg text-left transition-all hover:border-primary ${
+                      accountType === 'fighter' ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <Shield className="h-8 w-8 text-primary flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-lg mb-1">Fighter ID (Peleador)</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Crea tu perfil de peleador con licencia oficial, récord de peleas, y acceso a eventos
+                        </p>
+                      </div>
+                    </div>
+                  </button>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="••••••••"
-                    required
-                    className="h-11 pr-10"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setAccountType('user')}
+                    className={`p-6 border-2 rounded-lg text-left transition-all hover:border-primary ${
+                      accountType === 'user' ? 'border-primary bg-primary/5' : 'border-border'
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <User className="h-8 w-8 text-gray-600 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-lg mb-1">Usuario Común</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Acceso básico para seguir eventos, votar y participar en la comunidad
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                <Button
+                  type="button"
+                  className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+                  onClick={handleNextStep}
+                  disabled={!accountType}
+                >
+                  Continuar
+                </Button>
+              </div>
+            )}
+
+            {!isLogin && registrationStep === 1 && (
+              <div className="space-y-4">
+                <div className="mb-4">
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-11 w-11 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setRegistrationStep(0)}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
-                    )}
+                    ← Volver
                   </Button>
+                  <h3 className="text-lg font-semibold mt-2">
+                    Información Básica
+                    {accountType === 'fighter' && ' (Paso 1 de 2)'}
+                  </h3>
                 </div>
-              </div>
 
-              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="email">Correo Electrónico</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="tu@correo.com"
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••"
+                      required
+                      className="h-11 pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-11 w-11 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">Nombre</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Apellido</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="phone">Teléfono</Label>
                   <Input
@@ -391,22 +547,276 @@ export default function LicenseAuth() {
                     className="h-11"
                   />
                 </div>
-              )}
 
-              <Button
-                type="submit"
-                className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
-                disabled={isSubmitting || validatingToken}
-              >
-                {(isSubmitting || validatingToken) ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {validatingToken ? 'Validando invitación...' : isLogin ? 'Iniciando sesión...' : 'Creando cuenta...'}
-                  </>
-                ) : (
-                  invitation ? 'Completar Registro' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
-                )}
-              </Button>
+                <Button
+                  type="button"
+                  className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+                  onClick={handleNextStep}
+                  disabled={!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.phone || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando cuenta...
+                    </>
+                  ) : accountType === 'user' ? (
+                    'Crear Cuenta'
+                  ) : (
+                    'Continuar al Paso 2'
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {!isLogin && registrationStep === 2 && accountType === 'fighter' && (
+              <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="mb-4 sticky top-0 bg-card z-10 pb-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRegistrationStep(1)}
+                  >
+                    ← Volver
+                  </Button>
+                  <h3 className="text-lg font-semibold mt-2">Información de Peleador (Paso 2 de 2)</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="nickname">Apodo / Nickname (Opcional)</Label>
+                  <Input
+                    id="nickname"
+                    name="nickname"
+                    value={formData.nickname}
+                    onChange={handleInputChange}
+                    placeholder="El Tigre"
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="birthdate">Fecha de Nacimiento</Label>
+                    <Input
+                      id="birthdate"
+                      name="birthdate"
+                      type="date"
+                      value={formData.birthdate}
+                      onChange={handleInputChange}
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Género</Label>
+                    <Select value={formData.gender} onValueChange={(value) => setFormData(prev => ({...prev, gender: value}))}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">Masculino</SelectItem>
+                        <SelectItem value="F">Femenino</SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Artes Marciales</Label>
+                  <p className="text-sm text-muted-foreground mb-3">Selecciona todas las que practiques</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {martialArts.map((art) => (
+                      <div key={art} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={art}
+                          checked={formData.martialArts.includes(art)}
+                          onCheckedChange={(checked) => handleMartialArtsChange(art, checked as boolean)}
+                        />
+                        <Label htmlFor={art} className="text-sm font-normal cursor-pointer">
+                          {art}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="heightCm">Altura (cm)</Label>
+                    <Input
+                      id="heightCm"
+                      name="heightCm"
+                      type="number"
+                      value={formData.heightCm}
+                      onChange={handleInputChange}
+                      placeholder="170"
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="weightKg">Peso (kg)</Label>
+                    <Input
+                      id="weightKg"
+                      name="weightKg"
+                      type="number"
+                      step="0.1"
+                      value={formData.weightKg}
+                      onChange={handleInputChange}
+                      placeholder="70"
+                      required
+                      className="h-11"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="reachCm">Alcance (cm)</Label>
+                    <Input
+                      id="reachCm"
+                      name="reachCm"
+                      type="number"
+                      value={formData.reachCm}
+                      onChange={handleInputChange}
+                      placeholder="175"
+                      className="h-11"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="weightClass">Categoría de Peso</Label>
+                    <Select value={formData.weightClass} onValueChange={(value) => setFormData(prev => ({...prev, weightClass: value}))}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {weightClasses.map((wc) => (
+                          <SelectItem key={wc} value={wc}>{wc}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="level">Nivel</Label>
+                    <Select value={formData.level} onValueChange={(value) => setFormData(prev => ({...prev, level: value}))}>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Seleccionar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Amateur">Amateur</SelectItem>
+                        <SelectItem value="Semi-profesional">Semi-profesional</SelectItem>
+                        <SelectItem value="Profesional">Profesional</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gymName">Gimnasio/Academia (Opcional)</Label>
+                  <Input
+                    id="gymName"
+                    name="gymName"
+                    value={formData.gymName}
+                    onChange={handleInputChange}
+                    placeholder="Team Alpha"
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio / Descripción (Opcional)</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleInputChange}
+                    placeholder="Cuéntanos sobre ti..."
+                    rows={3}
+                  />
+                </div>
+
+                <Button
+                  type="button"
+                  className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+                  onClick={handleSubmit}
+                  disabled={!formData.birthdate || !formData.gender || !formData.heightCm || !formData.weightKg || !formData.weightClass || !formData.martialArts.length || isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creando Fighter ID...
+                    </>
+                  ) : (
+                    'Crear Mi Fighter ID'
+                  )}
+                </Button>
+              </div>
+            )}
+
+            <form onSubmit={handleLogin}>
+              {isLogin && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Correo Electrónico</Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="tu@correo.com"
+                      required
+                      disabled={!!invitation}
+                      className="h-11"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Contraseña</Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="••••••••"
+                        required
+                        className="h-11 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-11 w-11 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+                    disabled={isSubmitting || validatingToken}
+                  >
+                    {(isSubmitting || validatingToken) ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Iniciando sesión...
+                      </>
+                    ) : (
+                      'Iniciar Sesión'
+                    )}
+                  </Button>
+                </div>
+              )}
             </form>
 
             {isLogin && (
@@ -427,7 +837,28 @@ export default function LicenseAuth() {
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setError('');
-                  setFormData({ email: '', password: '', phone: '' });
+                  setRegistrationStep(0);
+                  setAccountType(null);
+                  setFormData({
+                    email: '',
+                    password: '',
+                    phone: '',
+                    firstName: '',
+                    lastName: '',
+                    nickname: '',
+                    country: 'HN',
+                    weightClass: '',
+                    heightCm: '',
+                    weightKg: '',
+                    reachCm: '',
+                    martialArts: [],
+                    gymName: '',
+                    stance: '',
+                    level: '',
+                    birthdate: '',
+                    gender: '',
+                    bio: ''
+                  });
                 }}
                 className="text-sm text-gray-700 hover:text-gray-900 font-medium underline underline-offset-4"
               >
