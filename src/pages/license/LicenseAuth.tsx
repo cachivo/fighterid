@@ -157,7 +157,7 @@ export default function LicenseAuth() {
       <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl" />
       
-      <Card className="w-full max-w-md bg-slate-900/90 border-gold-500/30 backdrop-blur-xl shadow-2xl relative z-10">
+      <Card className="w-full max-w-md bg-slate-950/95 border-gold-500/30 backdrop-blur-xl shadow-2xl relative z-10">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Shield className="w-12 h-12 text-gold-400" />
@@ -180,7 +180,7 @@ export default function LicenseAuth() {
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email" className="text-white">Email</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -192,7 +192,7 @@ export default function LicenseAuth() {
                 </div>
 
                 <div className="relative">
-                  <Label htmlFor="login-password">Contraseña</Label>
+                  <Label htmlFor="login-password" className="text-white">Contraseña</Label>
                   <Input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
@@ -276,7 +276,7 @@ export default function LicenseAuth() {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="firstName">Nombre</Label>
+                      <Label htmlFor="firstName" className="text-white">Nombre</Label>
                       <Input
                         id="firstName"
                         value={firstName}
@@ -286,7 +286,7 @@ export default function LicenseAuth() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Apellido</Label>
+                      <Label htmlFor="lastName" className="text-white">Apellido</Label>
                       <Input
                         id="lastName"
                         value={lastName}
@@ -298,7 +298,7 @@ export default function LicenseAuth() {
                   </div>
 
                   <div>
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email" className="text-white">Email</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -310,7 +310,7 @@ export default function LicenseAuth() {
                   </div>
 
                   <div className="relative">
-                    <Label htmlFor="signup-password">Contraseña</Label>
+                    <Label htmlFor="signup-password" className="text-white">Contraseña</Label>
                     <Input
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
@@ -333,7 +333,7 @@ export default function LicenseAuth() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="birthdate">Fecha de Nacimiento</Label>
+                      <Label htmlFor="birthdate" className="text-white">Fecha de Nacimiento</Label>
                       <Input
                         id="birthdate"
                         type="date"
@@ -343,7 +343,7 @@ export default function LicenseAuth() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="country">País</Label>
+                      <Label htmlFor="country" className="text-white">País</Label>
                       <Input
                         id="country"
                         value={country}
@@ -355,7 +355,7 @@ export default function LicenseAuth() {
                   </div>
 
                   <div>
-                    <Label htmlFor="avatar">Foto de Perfil (Opcional)</Label>
+                    <Label htmlFor="avatar" className="text-white">Foto de Perfil (Opcional)</Label>
                     <Input
                       id="avatar"
                       type="file"
