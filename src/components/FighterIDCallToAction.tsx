@@ -17,15 +17,15 @@ export function FighterIDCallToAction() {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <Card className="bg-slate-950/95 border-gold-500/30 backdrop-blur-sm shadow-2xl overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-blue-950/30 to-slate-900/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-slate-950/30 to-slate-900/50" />
         <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
         
         <CardHeader className="relative text-center pb-6">
           <div className="flex justify-center mb-4">
             <div className="relative">
-              <Trophy className="w-16 h-16 text-gold-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+              <Shield className="w-16 h-16 text-gold-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
               <div className="absolute inset-0 animate-ping">
-                <Trophy className="w-16 h-16 text-gold-400 opacity-20" />
+                <Shield className="w-16 h-16 text-gold-400 opacity-20" />
               </div>
             </div>
           </div>
@@ -72,7 +72,7 @@ export function FighterIDCallToAction() {
               onClick={() => navigate('/license/request')}
               className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
             >
-              <Trophy className="w-5 h-5 mr-2" />
+              <Shield className="w-5 h-5 mr-2" />
               Solicitar mi Fighter ID
             </Button>
             
