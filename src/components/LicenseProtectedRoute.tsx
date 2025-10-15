@@ -48,7 +48,7 @@ export default function LicenseProtectedRoute({
   }
 
   if (!user) {
-    return <Navigate to="/license/auth" replace />;
+    return <Navigate to="/license/auth?mode=signin" replace />;
   }
 
   // Redirect users with ACTIVE licenses away from pending/onboarding pages

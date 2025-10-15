@@ -133,7 +133,7 @@ export default function LicenseResetPassword() {
         title: 'Contraseña actualizada',
         description: 'Tu contraseña ha sido cambiada exitosamente',
       });
-      navigate('/license/auth');
+      navigate('/license/auth?mode=signin');
     }
   };
 

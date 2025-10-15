@@ -70,7 +70,7 @@ export default function LicenseWelcome() {
                 </div>
                 
                 <Button asChild className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold group-hover:scale-105 transition-transform">
-                  <Link to="/license/auth" className="flex items-center justify-center gap-2">
+                  <Link to="/license/auth?mode=signup" className="flex items-center justify-center gap-2">
                     Crear mi Fighter ID
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Link>

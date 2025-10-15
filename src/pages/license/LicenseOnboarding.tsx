@@ -73,6 +73,40 @@ export default function LicenseOnboarding() {
     }
   };
 
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const draft = localStorage.getItem('license_onboarding_draft');
+    if (draft) {
+      try {
+        const savedData = JSON.parse(draft);
+        setFormData(prev => ({ ...prev, ...savedData }));
+        console.info('[LicenseOnboarding] Loaded draft from localStorage');
+      } catch (e) {
+        console.error('[LicenseOnboarding] Failed to parse draft:', e);
+      }
+    }
+  }, []);
+
+  // Save draft to localStorage whenever formData changes
+  useEffect(() => {
+    if (formData.firstName || formData.lastName || formData.phone) {
+      localStorage.setItem('license_onboarding_draft', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  // Warn before leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (formData.firstName || formData.lastName) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formData]);
+
   // Simplified check for existing profile
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +114,7 @@ export default function LicenseOnboarding() {
     const quickProfileCheck = async () => {
       if (!user) {
         setCheckingExisting(false);
-        navigate('/license/auth', { replace: true });
+        navigate('/license/auth?mode=signin', { replace: true });
         return;
       }
 
@@ -130,6 +164,8 @@ export default function LicenseOnboarding() {
     const result = await createProfile(formData, files);
     
     if (result.success) {
+      // Clear the draft after successful submission
+      localStorage.removeItem('license_onboarding_draft');
       console.log('Profile created successfully!');
     } else {
       console.error('Profile creation failed:', result.error);

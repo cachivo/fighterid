@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { Shield, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 export default function LicenseAuth() {
   const { user, signIn, signUp, loading, resendConfirmation } = useLicenseAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,6 +26,18 @@ export default function LicenseAuth() {
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+
+  // Preselect tab based on mode query parameter
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'signup' || mode === 'register') {
+      setIsLogin(false);
+      console.info('[LicenseAuth] Preselected registration mode from URL');
+    } else if (mode === 'signin' || mode === 'login') {
+      setIsLogin(true);
+      console.info('[LicenseAuth] Preselected login mode from URL');
+    }
+  }, [searchParams]);
 
   // Redirect if already authenticated
   if (user && !loading) {
