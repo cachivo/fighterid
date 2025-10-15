@@ -30,11 +30,11 @@ export function FighterIDCallToAction() {
             </div>
           </div>
           
-          <CardTitle className="text-3xl sm:text-4xl font-bold text-white mb-2">
+          <CardTitle className="text-3xl sm:text-4xl font-bold text-white mb-2 drop-shadow-lg">
             ¿Eres Peleador?
           </CardTitle>
           
-          <CardDescription className="text-lg text-gold-200 max-w-2xl mx-auto">
+          <CardDescription className="text-lg text-white font-medium max-w-2xl mx-auto">
             Obtén tu <span className="font-bold text-gold-400">Fighter ID oficial</span> y accede a peleas profesionales, torneos y reconocimiento internacional
           </CardDescription>
         </CardHeader>
@@ -43,24 +43,24 @@ export function FighterIDCallToAction() {
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Shield className="w-10 h-10 text-blue-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Licencia Digital</h3>
-              <p className="text-sm text-white/70">
+              <h3 className="font-semibold text-white mb-2 text-base">Licencia Digital</h3>
+              <p className="text-sm text-white/90">
                 Código QR verificable con toda tu información oficial
               </p>
             </div>
 
             <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Trophy className="w-10 h-10 text-gold-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Acceso a Eventos</h3>
-              <p className="text-sm text-white/70">
+              <h3 className="font-semibold text-white mb-2 text-base">Acceso a Eventos</h3>
+              <p className="text-sm text-white/90">
                 Participa en peleas oficiales y torneos reconocidos
               </p>
             </div>
 
             <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Award className="w-10 h-10 text-purple-400 mx-auto mb-3" />
-              <h3 className="font-semibold text-white mb-2">Récord Oficial</h3>
-              <p className="text-sm text-white/70">
+              <h3 className="font-semibold text-white mb-2 text-base">Récord Oficial</h3>
+              <p className="text-sm text-white/90">
                 Tu historial de combates verificado y público
               </p>
             </div>
@@ -76,7 +76,7 @@ export function FighterIDCallToAction() {
               Solicitar mi Fighter ID
             </Button>
             
-            <p className="mt-4 text-sm text-white/60">
+            <p className="mt-4 text-sm text-white/80">
               Proceso de aprobación en 24-48 horas
             </p>
           </div>
