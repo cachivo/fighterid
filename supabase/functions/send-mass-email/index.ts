@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
-import { sendEmailWithFallback } from "../_shared/email-config.ts";
+import { sendEmailWithFallback, getEmailFrom, EmailTemplates } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -148,6 +148,10 @@ const handler = async (req: Request): Promise<Response> => {
       errors: [] as any[]
     };
 
+    // Usar el remitente configurado (desde variable de entorno RESEND_FROM)
+    const emailFrom = getEmailFrom();
+    console.log("[MASS EMAIL] Using sender:", emailFrom);
+
     // Enviar cada batch
     for (const batch of batches) {
       try {
@@ -157,6 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
             to: email,
             subject: requestData.subject,
             html: requestData.html_content,
+            from: emailFrom, // Usar remitente configurado
           }).catch(error => ({
             error: true,
             email,
