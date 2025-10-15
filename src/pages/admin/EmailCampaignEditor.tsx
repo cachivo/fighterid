@@ -12,6 +12,7 @@ import { Mail, Send, Users, Shield, TestTube2, Loader2, Eye } from 'lucide-react
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import EmailEditor, { EditorRef, EmailEditorProps } from 'react-email-editor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function EmailCampaignEditor() {
   const emailEditorRef = useRef<EditorRef>(null);
@@ -21,6 +22,7 @@ export default function EmailCampaignEditor() {
   const [testEmail, setTestEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [htmlPreview, setHtmlPreview] = useState('');
+  const [manualHtml, setManualHtml] = useState('');
 
   const exportHtml = () => {
     const unlayer = emailEditorRef.current?.editor;
@@ -42,12 +44,8 @@ export default function EmailCampaignEditor() {
       return;
     }
 
-    // Exportar HTML del editor
-    const unlayer = emailEditorRef.current?.editor;
-    
-    unlayer?.exportHtml(async (data) => {
-      const { html } = data;
-
+    // Función para enviar con el HTML proporcionado
+    const sendEmail = async (html: string) => {
       if (!html || html.trim() === '') {
         toast.error('El contenido del correo está vacío');
         return;
@@ -90,7 +88,9 @@ export default function EmailCampaignEditor() {
           if (result.results.failed === 0) {
             setSubject('');
             setTestEmail('');
+            setManualHtml('');
             // Reset del editor
+            const unlayer = emailEditorRef.current?.editor;
             unlayer?.loadBlank();
           }
         } else {
@@ -102,7 +102,20 @@ export default function EmailCampaignEditor() {
       } finally {
         setSending(false);
       }
-    });
+    };
+
+    // Priorizar HTML manual si está disponible
+    if (manualHtml.trim()) {
+      await sendEmail(manualHtml);
+    } else {
+      // Si no hay HTML manual, exportar del editor visual
+      const unlayer = emailEditorRef.current?.editor;
+      
+      unlayer?.exportHtml(async (data) => {
+        const { html } = data;
+        await sendEmail(html);
+      });
+    }
   };
 
   const onReady: EmailEditorProps['onReady'] = (unlayer) => {
@@ -135,8 +148,9 @@ export default function EmailCampaignEditor() {
         </Alert>
 
         <Tabs defaultValue="editor" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="editor">Editor Visual</TabsTrigger>
+            <TabsTrigger value="html">HTML Directo</TabsTrigger>
             <TabsTrigger value="settings">Configuración</TabsTrigger>
           </TabsList>
 
@@ -160,6 +174,51 @@ export default function EmailCampaignEditor() {
                     }}
                   />
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="html" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Pegar HTML Directo</CardTitle>
+                <CardDescription>
+                  Pega tu código HTML completo aquí y visualiza la vista previa en tiempo real
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-html">Código HTML *</Label>
+                  <Textarea
+                    id="manual-html"
+                    value={manualHtml}
+                    onChange={(e) => setManualHtml(e.target.value)}
+                    placeholder="Pega tu HTML aquí..."
+                    className="min-h-[400px] font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {manualHtml.length} caracteres
+                  </p>
+                </div>
+
+                {manualHtml && (
+                  <div className="space-y-2">
+                    <Label>Vista Previa del Email:</Label>
+                    <div className="border rounded-lg p-4 bg-white max-h-[600px] overflow-auto">
+                      <div dangerouslySetInnerHTML={{ __html: manualHtml }} />
+                    </div>
+                  </div>
+                )}
+
+                {!manualHtml && (
+                  <Alert>
+                    <Mail className="h-4 w-4" />
+                    <AlertTitle>Tip</AlertTitle>
+                    <AlertDescription>
+                      Pega aquí el código HTML completo de tu email. La vista previa aparecerá automáticamente debajo.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
