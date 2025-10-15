@@ -375,7 +375,7 @@ export default function LicenseAuth() {
                     {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                   </Button>
 
-                  <p className="text-sm text-center text-white/70 mt-4">
+                  <p className="text-sm text-center text-gold-400/90 mt-4 font-medium">
                     ¿Eres peleador? Podrás solicitar tu Fighter ID después del registro.
                   </p>
                 </form>
