@@ -70,7 +70,7 @@ export default function LicenseWelcome() {
                 </div>
                 
                 <Button asChild className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold group-hover:scale-105 transition-transform">
-                  <Link to="/license/auth?mode=signup" className="flex items-center justify-center gap-2">
+                  <Link to="/license/auth?mode=signup&type=fighter" className="flex items-center justify-center gap-2">
                     Crear mi Fighter ID
                     <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Link>
@@ -113,9 +113,9 @@ export default function LicenseWelcome() {
                   variant="outline" 
                   className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold"
                 >
-                  <Link to="/auth?mode=signup&from=welcome&type=explorer" className="flex items-center justify-center gap-2">
-                    Continuar explorando
-                    <Compass className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <Link to="/license/auth?mode=signup&type=user" className="flex items-center justify-center gap-2">
+                    Crear Cuenta Común
+                    <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </Link>
                 </Button>
               </CardContent>
@@ -127,7 +127,7 @@ export default function LicenseWelcome() {
             <p className="text-sm sm:text-base text-muted-foreground">
               ¿Ya tienes cuenta?{' '}
               <Link 
-                to="/auth?mode=signin" 
+                to="/license/auth?mode=signin" 
                 className="text-primary hover:text-primary/80 font-semibold underline underline-offset-4 transition-colors"
               >
                 Ingresa aquí

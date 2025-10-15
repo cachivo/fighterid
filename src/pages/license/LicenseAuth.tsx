@@ -92,12 +92,20 @@ export default function LicenseAuth() {
     checkInvitation();
   }, [inviteToken]);
 
-  // Preselect tab based on mode query parameter
+  // Preselect tab and account type based on query parameters
   useEffect(() => {
     const mode = searchParams.get('mode');
+    const type = searchParams.get('type');
+    
     if (mode === 'signup' || mode === 'register') {
       setIsLogin(false);
-      console.info('[LicenseAuth] Mode:', mode, 'Has invitation:', !!invitation);
+      // Pre-select account type if provided
+      if (type === 'fighter') {
+        setAccountType('fighter');
+      } else if (type === 'user') {
+        setAccountType('user');
+      }
+      console.info('[LicenseAuth] Mode:', mode, 'Type:', type, 'Has invitation:', !!invitation);
     } else if (mode === 'signin' || mode === 'login') {
       setIsLogin(true);
       console.info('[LicenseAuth] Mode:', mode, 'Has invitation:', !!invitation);
