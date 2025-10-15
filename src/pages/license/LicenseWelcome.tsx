@@ -127,6 +127,19 @@ export default function LicenseWelcome() {
             </Card>
           </div>
 
+          {/* Already have account link */}
+          <div className="text-center mb-8 sm:mb-12">
+            <p className="text-sm sm:text-base text-muted-foreground">
+              ¿Ya tienes cuenta?{' '}
+              <Link 
+                to="/auth?mode=signin" 
+                className="text-primary hover:text-primary/80 font-semibold underline underline-offset-4 transition-colors"
+              >
+                Ingresa aquí
+              </Link>
+            </p>
+          </div>
+
           {/* Additional Info */}
           <div className="text-center px-2 sm:px-4">
             <Card className="bg-muted/30 border-muted">
