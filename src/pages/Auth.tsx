@@ -61,6 +61,19 @@ export default function Auth() {
     },
   });
 
+  // Redirect users without profile type selection to LicenseWelcome
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    const fromWelcome = searchParams.get('from');
+    
+    // If user is trying to access auth without being redirected from welcome page
+    // and doesn't have an invitation, redirect them to choose profile type first
+    if (!user && !inviteToken && fromWelcome !== 'welcome' && mode === 'signup') {
+      console.info('[Auth] Redirecting to /license/welcome for profile type selection');
+      window.location.href = '/license/welcome';
+    }
+  }, [user, inviteToken, searchParams]);
+
   // Redirect fighter invitations to license auth flow
   useEffect(() => {
     if (inviteToken) {

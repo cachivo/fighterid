@@ -109,19 +109,14 @@ export default function LicenseWelcome() {
                 </div>
                 
                 <Button 
+                  asChild
                   variant="outline" 
                   className="w-full h-10 sm:h-12 text-sm sm:text-base font-semibold"
-                  onClick={() => {
-                    // Save user preference to avoid showing this page again
-                    localStorage.setItem("user_preference_explorer", "true");
-                    // Navigate to social feed
-                    window.location.href = "/social/feed";
-                  }}
                 >
-                  <span className="flex items-center justify-center gap-2">
+                  <Link to="/auth?mode=signup&from=welcome&type=explorer" className="flex items-center justify-center gap-2">
                     Continuar explorando
                     <Compass className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </span>
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
