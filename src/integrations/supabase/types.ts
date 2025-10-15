@@ -1439,6 +1439,7 @@ export type Database = {
           country: string | null
           created_at: string | null
           discipline: Database["public"]["Enums"]["discipline"] | null
+          document_image_url: string | null
           document_number: string | null
           document_type: string | null
           emergency_contact_name: string | null
@@ -1489,6 +1490,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
+          document_image_url?: string | null
           document_number?: string | null
           document_type?: string | null
           emergency_contact_name?: string | null
@@ -1539,6 +1541,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
+          document_image_url?: string | null
           document_number?: string | null
           document_type?: string | null
           emergency_contact_name?: string | null

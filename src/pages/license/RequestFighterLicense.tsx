@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { ArrowLeft, Trophy, User, Activity, Heart, FileText, Shield } from 'lucide-react';
+import { ArrowLeft, Trophy, User, Activity, Heart, FileText, Shield, Upload } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export default function RequestFighterLicense() {
@@ -25,7 +25,6 @@ export default function RequestFighterLicense() {
     nickname: '',
     birthplace: '',
     document_type: 'DUI',
-    document_number: '',
     phone: '',
     
     // Físico
@@ -66,6 +65,8 @@ export default function RequestFighterLicense() {
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string>('');
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentPreview, setDocumentPreview] = useState<string>('');
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -79,6 +80,23 @@ export default function RequestFighterLicense() {
     }
   };
 
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tamaño (máximo 5MB)
+      if (file.size > 5242880) {
+        toast.error('El archivo es muy grande. Máximo 5MB.');
+        return;
+      }
+      setDocumentFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDocumentPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!user) {
       toast.error('Debes iniciar sesión para solicitar tu Fighter ID');
@@ -86,6 +104,12 @@ export default function RequestFighterLicense() {
     }
 
     // Validaciones básicas
+    if (!documentFile) {
+      toast.error('Debes subir una imagen de tu documento de identidad');
+      setCurrentTab('personal');
+      return;
+    }
+
     if (!formData.weight_class) {
       toast.error('Debes seleccionar una categoría de peso');
       setCurrentTab('combat');
@@ -112,7 +136,28 @@ export default function RequestFighterLicense() {
         throw new Error('No se pudo obtener tu información de usuario');
       }
 
-      // 2. Subir avatar si existe
+      // 2. Subir documento de identidad si existe (PRIVADO)
+      let documentUrl = '';
+      if (documentFile) {
+        const fileExt = documentFile.name.split('.').pop();
+        const fileName = `${user.id}/document-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('identity_documents')
+          .upload(fileName, documentFile);
+
+        if (uploadError) {
+          throw new Error('Error al subir documento de identidad: ' + uploadError.message);
+        }
+
+        // Obtener URL privada (solo accesible por el usuario y admins)
+        const { data: urlData } = supabase.storage
+          .from('identity_documents')
+          .getPublicUrl(fileName);
+        documentUrl = urlData.publicUrl;
+      }
+
+      // 3. Subir avatar si existe
       let avatarUrl = '';
       if (photoFile) {
         const fileExt = photoFile.name.split('.').pop();
@@ -130,7 +175,7 @@ export default function RequestFighterLicense() {
         }
       }
 
-      // 3. Crear fighter profile
+      // 4. Crear fighter profile
       const { data: fighterProfile, error: profileError } = await supabase
         .from('fighter_profiles')
         .insert({
@@ -142,7 +187,7 @@ export default function RequestFighterLicense() {
           birthdate: appUser.birthdate,
           birthplace: formData.birthplace || null,
           document_type: formData.document_type || null,
-          document_number: formData.document_number || null,
+          document_image_url: documentUrl || null,
           
           // Físico
           height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
@@ -189,7 +234,7 @@ export default function RequestFighterLicense() {
         throw profileError;
       }
 
-      // 4. Crear licencia PENDING_REVIEW
+      // 5. Crear licencia PENDING_REVIEW
       const { error: licenseError } = await supabase
         .from('fighter_licenses')
         .insert({
@@ -321,15 +366,31 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="document_number">Número de Documento *</Label>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="document_image" className="text-gold-400">
+                      Imagen del Documento * 
+                      <span className="text-sm text-muted-foreground ml-2">(Solo visible para ti y administradores)</span>
+                    </Label>
                     <Input
-                      id="document_number"
-                      value={formData.document_number}
-                      onChange={(e) => setFormData({ ...formData, document_number: e.target.value })}
-                      placeholder="Ej: 0801-1990-12345"
+                      id="document_image"
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,application/pdf"
+                      onChange={handleDocumentChange}
                       required
+                      className="cursor-pointer"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sube una foto clara de tu {formData.document_type}. Máximo 5MB. Formatos: JPG, PNG, PDF
+                    </p>
+                    {documentPreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={documentPreview} 
+                          alt="Vista previa del documento" 
+                          className="w-full max-w-md h-auto object-contain rounded-lg border-2 border-gold-500/30" 
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="photo">Foto de Perfil de Peleador</Label>
