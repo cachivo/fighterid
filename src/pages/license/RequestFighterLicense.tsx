@@ -316,9 +316,9 @@ export default function RequestFighterLicense() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="px-6 pb-8">
+          <CardContent className="px-4 sm:px-6 pb-6">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="grid w-full grid-cols-5 mb-8 bg-slate-800/50 p-1">
+              <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-800/50 p-1">
                 <TabsTrigger 
                   value="personal" 
                   className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
@@ -357,9 +357,9 @@ export default function RequestFighterLicense() {
               </TabsList>
 
               {/* Tab Personal */}
-              <TabsContent value="personal" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+              <TabsContent value="personal" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
                     <Label htmlFor="nickname" className="text-gold-400 font-medium">Apodo / Nickname</Label>
                     <Input
                       id="nickname"
@@ -369,7 +369,7 @@ export default function RequestFighterLicense() {
                       className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="birthplace" className="text-gold-400 font-medium">Lugar de Nacimiento</Label>
                     <Input
                       id="birthplace"
@@ -379,7 +379,7 @@ export default function RequestFighterLicense() {
                       className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="document_type" className="text-gold-400 font-medium">Tipo de Documento</Label>
                     <Select value={formData.document_type} onValueChange={(v) => setFormData({ ...formData, document_type: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
@@ -392,12 +392,12 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="md:col-span-2 space-y-2">
+                  <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="document_image" className="text-gold-400 font-medium flex items-center gap-2">
                       Imagen del {formData.document_type} * 
                       <span className="text-sm text-white/80 font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
                       <Input
                         id="document_image"
                         type="file"
@@ -407,12 +407,12 @@ export default function RequestFighterLicense() {
                         required
                         className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold-500 file:text-white hover:file:bg-gold-600"
                       />
-                      <p className="text-xs text-white/80 mt-2">
+                      <p className="text-xs text-white/80 mt-1.5">
                         📸 Toma una foto o sube desde galería. Foto clara de tu {formData.document_type}. Máximo 5MB.
                       </p>
                     </div>
                     {documentPreview && (
-                      <div className="mt-4 p-2 bg-slate-800/50 rounded-lg border border-gold-500/30">
+                      <div className="mt-3 p-2 bg-slate-800/50 rounded-lg border border-gold-500/30">
                         <img 
                           src={documentPreview} 
                           alt="Vista previa del documento" 
@@ -421,9 +421,9 @@ export default function RequestFighterLicense() {
                       </div>
                     )}
                   </div>
-                  <div className="md:col-span-2 space-y-2">
+                  <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="photo" className="text-gold-400 font-medium">Foto de Perfil de Peleador</Label>
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
                       <Input
                         id="photo"
                         type="file"
@@ -432,18 +432,18 @@ export default function RequestFighterLicense() {
                         onChange={handlePhotoChange}
                         className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
                       />
-                      <p className="text-xs text-white/80 mt-2">
+                      <p className="text-xs text-white/80 mt-1.5">
                         📸 Toma una selfie o sube desde galería
                       </p>
                     </div>
                     {photoPreview && (
-                      <div className="mt-4 flex justify-center">
+                      <div className="mt-3 flex justify-center">
                         <img src={photoPreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border-2 border-gold-500/50 shadow-lg" />
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex justify-end mt-6 pt-6 border-t border-slate-700">
+                <div className="flex justify-end mt-4 pt-4 border-t border-slate-700">
                   <Button 
                     onClick={() => setCurrentTab('physical')}
                     className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
@@ -454,9 +454,9 @@ export default function RequestFighterLicense() {
               </TabsContent>
 
               {/* Tab Físico */}
-              <TabsContent value="physical" className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="space-y-2">
+              <TabsContent value="physical" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
                     <Label htmlFor="height_cm" className="text-gold-400 font-medium">Altura (cm) *</Label>
                     <Input
                       id="height_cm"
@@ -468,7 +468,7 @@ export default function RequestFighterLicense() {
                       className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="weight_kg" className="text-gold-400 font-medium">Peso (kg) *</Label>
                     <Input
                       id="weight_kg"
@@ -481,7 +481,7 @@ export default function RequestFighterLicense() {
                       className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="reach_cm" className="text-gold-400 font-medium">Alcance (cm)</Label>
                     <Input
                       id="reach_cm"
@@ -492,7 +492,7 @@ export default function RequestFighterLicense() {
                       className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label htmlFor="blood_type" className="text-gold-400 font-medium">Tipo de Sangre</Label>
                     <Select value={formData.blood_type} onValueChange={(v) => setFormData({ ...formData, blood_type: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
@@ -511,7 +511,7 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex justify-between mt-6 pt-6 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('personal')}
@@ -531,10 +531,10 @@ export default function RequestFighterLicense() {
               {/* Tab Combate */}
               <TabsContent value="combat" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="weight_class">Categoría de Peso *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="weight_class" className="text-gold-400 font-medium">Categoría de Peso *</Label>
                     <Select value={formData.weight_class} onValueChange={(v) => setFormData({ ...formData, weight_class: v })} required>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue placeholder="Seleccionar" />
                       </SelectTrigger>
                       <SelectContent>
@@ -550,10 +550,10 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="discipline">Disciplina *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="discipline" className="text-gold-400 font-medium">Disciplina *</Label>
                     <Select value={formData.discipline} onValueChange={(v) => setFormData({ ...formData, discipline: v })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -564,19 +564,20 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="fighting_style">Estilo de Pelea</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fighting_style" className="text-gold-400 font-medium">Estilo de Pelea</Label>
                     <Input
                       id="fighting_style"
                       value={formData.fighting_style}
                       onChange={(e) => setFormData({ ...formData, fighting_style: e.target.value })}
                       placeholder="Ej: Striker, Grappler"
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="stance">Guardia</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="stance" className="text-gold-400 font-medium">Guardia</Label>
                     <Select value={formData.stance} onValueChange={(v) => setFormData({ ...formData, stance: v })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -586,10 +587,10 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="level">Nivel *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="level" className="text-gold-400 font-medium">Nivel *</Label>
                     <Select value={formData.level} onValueChange={(v) => setFormData({ ...formData, level: v })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -598,44 +599,55 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="gym_name">Gimnasio / Academia</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="gym_name" className="text-gold-400 font-medium">Gimnasio / Academia</Label>
                     <Input
                       id="gym_name"
                       value={formData.gym_name}
                       onChange={(e) => setFormData({ ...formData, gym_name: e.target.value })}
                       placeholder="Ej: Team Alpha MMA"
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div className="md:col-span-2">
-                    <Label>Récord (Victorias - Derrotas - Empates)</Label>
-                    <div className="grid grid-cols-3 gap-2">
+                  <div className="md:col-span-2 space-y-1.5">
+                    <Label className="text-gold-400 font-medium">Récord (Victorias - Derrotas - Empates)</Label>
+                    <div className="grid grid-cols-3 gap-3">
                       <Input
                         type="number"
                         value={formData.record_wins}
                         onChange={(e) => setFormData({ ...formData, record_wins: e.target.value })}
                         placeholder="Victorias"
+                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                       <Input
                         type="number"
                         value={formData.record_losses}
                         onChange={(e) => setFormData({ ...formData, record_losses: e.target.value })}
                         placeholder="Derrotas"
+                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                       <Input
                         type="number"
                         value={formData.record_draws}
                         onChange={(e) => setFormData({ ...formData, record_draws: e.target.value })}
                         placeholder="Empates"
+                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between mt-6">
-                  <Button variant="outline" onClick={() => setCurrentTab('physical')}>
+                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentTab('physical')}
+                    className="border-slate-600 hover:bg-slate-800 text-white"
+                  >
                     Anterior
                   </Button>
-                  <Button onClick={() => setCurrentTab('medical')}>
+                  <Button 
+                    onClick={() => setCurrentTab('medical')}
+                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                  >
                     Siguiente
                   </Button>
                 </div>
@@ -644,87 +656,104 @@ export default function RequestFighterLicense() {
               {/* Tab Médico */}
               <TabsContent value="medical" className="space-y-4">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="medical_conditions">Condiciones Médicas</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="medical_conditions" className="text-gold-400 font-medium">Condiciones Médicas</Label>
                     <Textarea
                       id="medical_conditions"
                       value={formData.medical_conditions}
                       onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
                       placeholder="Cualquier condición médica relevante..."
                       rows={3}
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="medical_allergies">Alergias</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="medical_allergies" className="text-gold-400 font-medium">Alergias</Label>
                     <Textarea
                       id="medical_allergies"
                       value={formData.medical_allergies}
                       onChange={(e) => setFormData({ ...formData, medical_allergies: e.target.value })}
                       placeholder="Alergias conocidas..."
                       rows={2}
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="insurance_company">Compañía de Seguros</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="insurance_company" className="text-gold-400 font-medium">Compañía de Seguros</Label>
                       <Input
                         id="insurance_company"
                         value={formData.insurance_company}
                         onChange={(e) => setFormData({ ...formData, insurance_company: e.target.value })}
                         placeholder="Nombre de la aseguradora"
+                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="insurance_policy">Número de Póliza</Label>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="insurance_policy" className="text-gold-400 font-medium">Número de Póliza</Label>
                       <Input
                         id="insurance_policy"
                         value={formData.insurance_policy}
                         onChange={(e) => setFormData({ ...formData, insurance_policy: e.target.value })}
                         placeholder="Número de póliza"
+                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                     </div>
                   </div>
 
-                  <div className="border-t pt-4 mt-6">
-                    <h3 className="font-semibold text-white mb-4">Contacto de Emergencia *</h3>
+                  <div className="border-t border-slate-700 pt-4 mt-4">
+                    <h3 className="font-semibold text-gold-400 mb-3 flex items-center gap-2">
+                      <Heart className="w-5 h-5" />
+                      Contacto de Emergencia *
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="emergency_contact_name">Nombre Completo *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="emergency_contact_name" className="text-gold-400 font-medium">Nombre Completo *</Label>
                         <Input
                           id="emergency_contact_name"
                           value={formData.emergency_contact_name}
                           onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
                           placeholder="Nombre del contacto"
                           required
+                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="emergency_contact_phone">Teléfono *</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="emergency_contact_phone" className="text-gold-400 font-medium">Teléfono *</Label>
                         <Input
                           id="emergency_contact_phone"
                           value={formData.emergency_contact_phone}
                           onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
                           placeholder="+504 9999-9999"
                           required
+                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="emergency_contact_relation">Relación</Label>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="emergency_contact_relation" className="text-gold-400 font-medium">Relación</Label>
                         <Input
                           id="emergency_contact_relation"
                           value={formData.emergency_contact_relation}
                           onChange={(e) => setFormData({ ...formData, emergency_contact_relation: e.target.value })}
                           placeholder="Ej: Madre, Esposo/a"
+                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between mt-6">
-                  <Button variant="outline" onClick={() => setCurrentTab('combat')}>
+                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentTab('combat')}
+                    className="border-slate-600 hover:bg-slate-800 text-white"
+                  >
                     Anterior
                   </Button>
-                  <Button onClick={() => setCurrentTab('additional')}>
+                  <Button 
+                    onClick={() => setCurrentTab('additional')}
+                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                  >
                     Siguiente
                   </Button>
                 </div>
@@ -733,36 +762,39 @@ export default function RequestFighterLicense() {
               {/* Tab Adicional */}
               <TabsContent value="additional" className="space-y-4">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="bio">Biografía</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bio" className="text-gold-400 font-medium">Biografía</Label>
                     <Textarea
                       id="bio"
                       value={formData.bio}
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                       placeholder="Cuéntanos tu historia como peleador..."
                       rows={4}
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="boxrec_url">URL de BoxRec (opcional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="boxrec_url" className="text-gold-400 font-medium">URL de BoxRec (opcional)</Label>
                     <Input
                       id="boxrec_url"
                       value={formData.boxrec_url}
                       onChange={(e) => setFormData({ ...formData, boxrec_url: e.target.value })}
                       placeholder="https://boxrec.com/..."
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="tapology_url">URL de Tapology (opcional)</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="tapology_url" className="text-gold-400 font-medium">URL de Tapology (opcional)</Label>
                     <Input
                       id="tapology_url"
                       value={formData.tapology_url}
                       onChange={(e) => setFormData({ ...formData, tapology_url: e.target.value })}
                       placeholder="https://tapology.com/..."
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
                 </div>
-                <div className="flex justify-between mt-6 pt-6 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('medical')}
