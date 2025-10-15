@@ -24,7 +24,7 @@ export default function RequestFighterLicense() {
     // Personal
     nickname: '',
     birthplace: '',
-    document_type: 'DUI',
+    document_type: 'DNI',
     phone: '',
     
     // Físico
@@ -311,7 +311,7 @@ export default function RequestFighterLicense() {
             <CardTitle className="text-4xl font-bold text-white mb-2 relative">
               Solicitud de Fighter ID
             </CardTitle>
-            <CardDescription className="text-lg text-white/80 relative">
+            <CardDescription className="text-lg text-white/90 relative">
               Completa tu información para obtener tu licencia oficial de peleador
             </CardDescription>
           </CardHeader>
@@ -386,28 +386,29 @@ export default function RequestFighterLicense() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="DUI">DUI</SelectItem>
+                        <SelectItem value="DNI">DNI</SelectItem>
                         <SelectItem value="Pasaporte">Pasaporte</SelectItem>
-                        <SelectItem value="Licencia">Licencia</SelectItem>
+                        <SelectItem value="Licencia">Licencia de Conducir</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="document_image" className="text-gold-400 font-medium flex items-center gap-2">
-                      Imagen del Documento * 
-                      <span className="text-sm text-white/60 font-normal">(Solo visible para ti y administradores)</span>
+                      Imagen del {formData.document_type} * 
+                      <span className="text-sm text-white/80 font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
                     <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
                       <Input
                         id="document_image"
                         type="file"
                         accept="image/jpeg,image/png,image/jpg,application/pdf"
+                        capture="environment"
                         onChange={handleDocumentChange}
                         required
                         className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold-500 file:text-white hover:file:bg-gold-600"
                       />
-                      <p className="text-xs text-white/60 mt-2">
-                        Sube una foto clara de tu {formData.document_type}. Máximo 5MB. Formatos: JPG, PNG, PDF
+                      <p className="text-xs text-white/80 mt-2">
+                        📸 Toma una foto o sube desde galería. Foto clara de tu {formData.document_type}. Máximo 5MB.
                       </p>
                     </div>
                     {documentPreview && (
@@ -427,9 +428,13 @@ export default function RequestFighterLicense() {
                         id="photo"
                         type="file"
                         accept="image/*"
+                        capture="user"
                         onChange={handlePhotoChange}
                         className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
                       />
+                      <p className="text-xs text-white/80 mt-2">
+                        📸 Toma una selfie o sube desde galería
+                      </p>
                     </div>
                     {photoPreview && (
                       <div className="mt-4 flex justify-center">
