@@ -15,34 +15,29 @@ interface ProfileProgressWidgetProps {
 
 interface LevelConfig {
   icon: LucideIcon;
-  gradient: string;
+  iconColor: string;
   label: string;
-  borderColor: string;
 }
 
 const LEVEL_CONFIG: Record<CompletionLevel, LevelConfig> = {
   BRONZE: { 
     icon: Award, 
-    gradient: 'from-orange-800 to-orange-600',
-    borderColor: 'border-orange-600/30',
+    iconColor: 'text-orange-600/70',
     label: 'Bronce'
   },
   SILVER: { 
     icon: Medal, 
-    gradient: 'from-gray-400 to-gray-300',
-    borderColor: 'border-gray-400/30',
+    iconColor: 'text-gray-400',
     label: 'Plata'
   },
   GOLD: { 
     icon: Trophy, 
-    gradient: 'from-yellow-500 to-yellow-400',
-    borderColor: 'border-yellow-500/30',
+    iconColor: 'text-yellow-600/70',
     label: 'Oro'
   },
   DIAMOND: { 
     icon: Gem, 
-    gradient: 'from-blue-500 to-cyan-400',
-    borderColor: 'border-cyan-500/30',
+    iconColor: 'text-cyan-600/70',
     label: 'Diamante'
   }
 };
@@ -62,15 +57,15 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
   const highPriorityFields = missingFields.filter(f => f.priority === 'high').slice(0, 3);
 
   return (
-    <Card className={`border-2 ${currentLevelConfig.borderColor} bg-gradient-to-br ${currentLevelConfig.gradient} bg-opacity-5 shadow-lg`}>
+    <Card className="border shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-primary" />
+            <Trophy className="h-5 w-5 text-muted-foreground" />
             Progreso del Perfil
           </div>
           <Badge variant="outline" className="text-base px-3 py-1">
-            <LevelIcon className="h-4 w-4 mr-1" />
+            <LevelIcon className={`h-4 w-4 mr-1 ${currentLevelConfig.iconColor}`} />
             {currentLevelConfig.label}
           </Badge>
         </CardTitle>
@@ -87,7 +82,7 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
           </div>
           <Progress 
             value={score} 
-            className="h-3 shadow-inner" 
+            className="h-3" 
           />
         </div>
 
@@ -99,7 +94,7 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
               return (
                 <Badge 
                   key={idx} 
-                  variant={badge.variant}
+                  variant="outline"
                   className="animate-scale-in"
                 >
                   <BadgeIcon className="h-3 w-3 mr-1" />
@@ -119,13 +114,13 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
               return (
                 <div 
                   key={field.field}
-                  className="flex items-center justify-between p-3 rounded-lg bg-background/50 hover:bg-background/80 transition-colors border border-border/50"
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors border border-border/50"
                 >
                   <div className="flex items-center gap-2">
                     <FieldIcon className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-foreground">{field.label}</span>
                   </div>
-                  <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                  <Badge variant="outline">
                     +{field.points}%
                   </Badge>
                 </div>
@@ -136,12 +131,12 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
 
         {/* Reward Alert */}
         {level !== 'DIAMOND' && (
-          <Alert className="bg-amber-500/10 border-amber-500/30">
-            <Trophy className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-600 font-semibold">
+          <Alert className="bg-muted/50 border-border">
+            <Trophy className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-foreground font-semibold">
               Recompensa al {nextLevel}%
             </AlertTitle>
-            <AlertDescription className="text-sm text-amber-700">
+            <AlertDescription className="text-sm text-muted-foreground">
               {REWARD_TEXT[level]}
             </AlertDescription>
           </Alert>
@@ -149,12 +144,12 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
 
         {/* Success Message for Diamond */}
         {level === 'DIAMOND' && (
-          <Alert className="bg-cyan-500/10 border-cyan-500/30">
-            <Gem className="h-4 w-4 text-cyan-600" />
-            <AlertTitle className="text-cyan-600 font-semibold">
+          <Alert className="bg-muted/50 border-border">
+            <Gem className="h-4 w-4 text-primary" />
+            <AlertTitle className="text-foreground font-semibold">
               ¡Felicidades!
             </AlertTitle>
-            <AlertDescription className="text-sm text-cyan-700">
+            <AlertDescription className="text-sm text-muted-foreground">
               Has completado tu perfil al 100%. Gracias por mantener tu información actualizada.
             </AlertDescription>
           </Alert>
