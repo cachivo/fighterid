@@ -151,18 +151,22 @@ export default function LicenseAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950/30 to-slate-900 p-4 relative overflow-hidden">
-      {/* Background decorations */}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-4 relative overflow-hidden">
+      {/* Background decorations with animations */}
       <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
-      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       
-      <Card className="w-full max-w-md bg-slate-950/95 border-gold-500/30 backdrop-blur-xl shadow-2xl relative z-10">
+      <Card className="w-full max-w-md bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Shield className="w-12 h-12 text-gold-400" />
+          <div className="flex justify-center mb-4 animate-scale-in">
+            <div className="relative">
+              <Shield className="w-12 h-12 text-gold-400 relative z-10" />
+              <div className="absolute inset-0 bg-gold-400/30 blur-xl animate-pulse" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-white">
+          <CardTitle className="text-2xl font-bold text-white bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text">
             Fighter ID Portal
           </CardTitle>
           <CardDescription className="text-white/80">
@@ -172,15 +176,15 @@ export default function LicenseAuth() {
 
         <CardContent>
           <Tabs defaultValue={searchParams.get('mode') === 'signup' ? 'signup' : 'login'} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="signup">Registrarse</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-900/50 border border-purple-500/20">
+              <TabsTrigger value="login" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300">Iniciar Sesión</TabsTrigger>
+              <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300">Registrarse</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="login">
+            <TabsContent value="login" className="animate-fade-in">
               <form onSubmit={handleLogin} className="space-y-4">
-                <div>
-                  <Label htmlFor="login-email" className="text-white">Email</Label>
+                <div className="group">
+                  <Label htmlFor="login-email" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Email</Label>
                   <Input
                     id="login-email"
                     type="email"
@@ -188,11 +192,12 @@ export default function LicenseAuth() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="tu@email.com"
                     required
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                   />
                 </div>
 
-                <div className="relative">
-                  <Label htmlFor="login-password" className="text-white">Contraseña</Label>
+                <div className="relative group">
+                  <Label htmlFor="login-password" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Contraseña</Label>
                   <Input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
@@ -201,19 +206,20 @@ export default function LicenseAuth() {
                     placeholder="••••••••"
                     required
                     minLength={6}
+                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-6 h-9 w-9"
+                    className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300" disabled={loading}>
                   {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                 </Button>
 
@@ -230,7 +236,7 @@ export default function LicenseAuth() {
               </form>
             </TabsContent>
 
-            <TabsContent value="signup">
+            <TabsContent value="signup" className="animate-fade-in">
               {emailSuccess ? (
                 <div className="space-y-6 py-8">
                   <div className="flex flex-col items-center text-center space-y-4">
@@ -275,30 +281,32 @@ export default function LicenseAuth() {
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName" className="text-white">Nombre</Label>
+                    <div className="group">
+                      <Label htmlFor="firstName" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Nombre</Label>
                       <Input
                         id="firstName"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="Juan"
                         required
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="lastName" className="text-white">Apellido</Label>
+                    <div className="group">
+                      <Label htmlFor="lastName" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Apellido</Label>
                       <Input
                         id="lastName"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Pérez"
                         required
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="signup-email" className="text-white">Email</Label>
+                  <div className="group">
+                    <Label htmlFor="signup-email" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Email</Label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -306,11 +314,12 @@ export default function LicenseAuth() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
                       required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                     />
                   </div>
 
-                  <div className="relative">
-                    <Label htmlFor="signup-password" className="text-white">Contraseña</Label>
+                  <div className="relative group">
+                    <Label htmlFor="signup-password" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Contraseña</Label>
                     <Input
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
@@ -319,12 +328,13 @@ export default function LicenseAuth() {
                       placeholder="••••••••"
                       required
                       minLength={6}
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-6 h-9 w-9"
+                      className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -332,46 +342,49 @@ export default function LicenseAuth() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="birthdate" className="text-white">Fecha de Nacimiento</Label>
+                    <div className="group">
+                      <Label htmlFor="birthdate" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Fecha de Nacimiento</Label>
                       <Input
                         id="birthdate"
                         type="date"
                         value={birthdate}
                         onChange={(e) => setBirthdate(e.target.value)}
                         required
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="country" className="text-white">País</Label>
+                    <div className="group">
+                      <Label htmlFor="country" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">País</Label>
                       <Input
                         id="country"
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
                         placeholder="HN"
                         required
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <Label htmlFor="avatar" className="text-white">Foto de Perfil (Opcional)</Label>
+                  <div className="group">
+                    <Label htmlFor="avatar" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Foto de Perfil (Opcional)</Label>
                     <Input
                       id="avatar"
                       type="file"
                       accept="image/*"
                       onChange={handleAvatarChange}
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 transition-all duration-300"
                     />
                     {avatarPreview && (
                       <img 
                         src={avatarPreview} 
                         alt="Preview" 
-                        className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-gold-500" 
+                        className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)] animate-scale-in" 
                       />
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300" disabled={loading}>
                     {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                   </Button>
 
