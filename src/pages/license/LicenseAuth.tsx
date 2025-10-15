@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useSearchParams } from 'react-router-dom';
-import { Shield, Eye, EyeOff, Loader2, Mail } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
+import { useFighterInvitations } from '@/hooks/useFighterInvitations';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +15,10 @@ export default function LicenseAuth() {
   const { user, signIn, signUp, loading, resendConfirmation } = useLicenseAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const inviteToken = searchParams.get('invite');
+  const { validateToken } = useFighterInvitations();
+  const [invitation, setInvitation] = useState<any>(null);
+  const [validatingToken, setValidatingToken] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,17 +33,51 @@ export default function LicenseAuth() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
 
+  // Validate invitation token on mount if present
+  useEffect(() => {
+    const checkInvitation = async () => {
+      if (inviteToken) {
+        setValidatingToken(true);
+        console.info('[LicenseAuth] Validating invitation token:', inviteToken);
+        const invitationData = await validateToken(inviteToken);
+        
+        if (invitationData) {
+          setInvitation(invitationData);
+          setFormData(prev => ({
+            ...prev,
+            email: invitationData.email
+          }));
+          console.info('[LicenseAuth] Valid invitation found:', invitationData);
+          toast({
+            title: 'Invitación válida',
+            description: `Bienvenido ${invitationData.first_name}! Completa tu registro.`,
+          });
+        } else {
+          console.warn('[LicenseAuth] Invalid or expired invitation token');
+          toast({
+            title: 'Invitación inválida',
+            description: 'El link ha expirado o no es válido',
+            variant: 'destructive',
+          });
+        }
+        setValidatingToken(false);
+      }
+    };
+    
+    checkInvitation();
+  }, [inviteToken]);
+
   // Preselect tab based on mode query parameter
   useEffect(() => {
     const mode = searchParams.get('mode');
     if (mode === 'signup' || mode === 'register') {
       setIsLogin(false);
-      console.info('[LicenseAuth] Preselected registration mode from URL');
+      console.info('[LicenseAuth] Mode:', mode, 'Has invitation:', !!invitation);
     } else if (mode === 'signin' || mode === 'login') {
       setIsLogin(true);
-      console.info('[LicenseAuth] Preselected login mode from URL');
+      console.info('[LicenseAuth] Mode:', mode, 'Has invitation:', !!invitation);
     }
-  }, [searchParams]);
+  }, [searchParams, invitation]);
 
   // Redirect if already authenticated
   if (user && !loading) {
@@ -81,27 +121,96 @@ export default function LicenseAuth() {
     setIsSubmitting(true);
 
     try {
-      const { error } = isLogin 
-        ? await signIn(formData.email, formData.password)
-        : await signUp(formData.email, formData.password);
-
-      if (error) {
-        // Check for rate limiting or already registered
-        if (error.message?.includes('For security purposes') || error.message?.includes('email_send_rate_limit')) {
-          setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
-        } else if (error.message?.includes('already registered')) {
-          setError('Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.');
-        } else {
+      if (isLogin) {
+        // Login flow
+        const { error } = await signIn(formData.email, formData.password);
+        if (error) {
           setError(error.message);
         }
-      } else if (!isLogin) {
-        // Registration successful
-        setRegistrationSuccess(true);
-        setRegisteredEmail(formData.email);
-        setResendCooldown(60); // Start cooldown
+      } else {
+        // Registration flow
+        const { error: signUpError } = await signUp(formData.email, formData.password);
+
+        if (signUpError) {
+          // Check for rate limiting or already registered
+          if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
+            setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
+          } else if (signUpError.message?.includes('already registered')) {
+            setError('Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.');
+          } else {
+            setError(signUpError.message);
+          }
+          return;
+        }
+
+        // If this is an invitation signup, create fighter profile automatically
+        if (invitation && inviteToken) {
+          console.info('[LicenseAuth] Creating fighter profile for invitation');
+          
+          // Wait for auth trigger to create app_user
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Get the newly created user
+          const { data: { user: newUser } } = await supabase.auth.getUser();
+          
+          if (newUser) {
+            // Get app_user (created by trigger)
+            const { data: appUser, error: appUserError } = await supabase
+              .from('app_user')
+              .select('id')
+              .eq('auth_user_id', newUser.id)
+              .single();
+
+            if (appUserError || !appUser) {
+              console.error('[LicenseAuth] App user not found:', appUserError);
+              throw new Error('Error configurando perfil de usuario');
+            }
+
+            // Create fighter profile with invitation data
+            const { data: fighterProfile, error: profileError } = await supabase
+              .from('fighter_profiles')
+              .insert({
+                user_id: appUser.id,
+                first_name: invitation.first_name,
+                last_name: invitation.last_name,
+                weight_class: invitation.weight_class || 'Lightweight',
+                country: 'HN',
+              })
+              .select('id')
+              .single();
+
+            if (profileError) {
+              console.error('[LicenseAuth] Failed to create fighter profile:', profileError);
+              throw profileError;
+            }
+
+            // Mark invitation as accepted using secure RPC
+            const { error: acceptError } = await supabase.rpc('accept_fighter_invitation', {
+              p_token: inviteToken,
+              p_fighter_profile_id: fighterProfile.id,
+            });
+            
+            if (acceptError) {
+              console.error('[LicenseAuth] Failed to accept invitation:', acceptError);
+              throw acceptError;
+            }
+
+            console.info('[LicenseAuth] Fighter profile created successfully:', fighterProfile.id);
+            toast({
+              title: '✅ Perfil creado',
+              description: 'Tu Fighter ID ha sido creado exitosamente',
+            });
+          }
+        } else {
+          // Normal registration without invitation
+          setRegistrationSuccess(true);
+          setRegisteredEmail(formData.email);
+          setResendCooldown(60);
+        }
       }
-    } catch (err) {
-      setError('Ha ocurrido un error inesperado');
+    } catch (err: any) {
+      console.error('[LicenseAuth] Error in handleSubmit:', err);
+      setError(err.message || 'Ha ocurrido un error inesperado');
     } finally {
       setIsSubmitting(false);
     }
@@ -192,6 +301,28 @@ export default function LicenseAuth() {
               </Alert>
             )}
 
+            {invitation && !isLogin && (
+              <Alert className="bg-primary/10 border-primary/20">
+                <AlertDescription>
+                  <div className="flex items-center gap-2 mb-2">
+                    <UserCheck className="h-5 w-5 text-primary" />
+                    <p className="text-sm font-medium">Invitación de Fighter ID</p>
+                  </div>
+                  <p className="text-sm">
+                    Has sido invitado como: <strong>{invitation.first_name} {invitation.last_name}</strong>
+                  </p>
+                  {invitation.weight_class && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Categoría: {invitation.weight_class}
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tu perfil se creará automáticamente al completar el registro
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Correo Electrónico</Label>
@@ -203,6 +334,7 @@ export default function LicenseAuth() {
                   onChange={handleInputChange}
                   placeholder="tu@correo.com"
                   required
+                  disabled={!!invitation}
                   className="h-11"
                 />
               </div>
@@ -255,15 +387,15 @@ export default function LicenseAuth() {
               <Button
                 type="submit"
                 className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
-                disabled={isSubmitting}
+                disabled={isSubmitting || validatingToken}
               >
-                {isSubmitting ? (
+                {(isSubmitting || validatingToken) ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {isLogin ? 'Iniciando sesión...' : 'Creando cuenta...'}
+                    {validatingToken ? 'Validando invitación...' : isLogin ? 'Iniciando sesión...' : 'Creando cuenta...'}
                   </>
                 ) : (
-                  isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
+                  invitation ? 'Completar Registro' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'
                 )}
               </Button>
             </form>

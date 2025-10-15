@@ -98,9 +98,10 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Generar token único
     const inviteToken = crypto.randomUUID();
-    const registrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth?invite=${inviteToken}`;
+    const registrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/license/auth?mode=signup&invite=${inviteToken}`;
 
     console.log("[INVITATION] Creating invitation for:", email);
+    console.info("[INVITATION] Generated link:", registrationLink);
 
     // Insertar invitación en la base de datos
     const { data: invitation, error: dbError } = await supabaseClient
@@ -186,7 +187,8 @@ const handler = async (req: Request): Promise<Response> => {
           );
         }
 
-        const finalRegistrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/auth?invite=${linkToken}`;
+        const finalRegistrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/license/auth?mode=signup&invite=${linkToken}`;
+        console.info("[INVITATION] Resending with link:", finalRegistrationLink);
 
         // Reenviar correo con el enlace activo (reutilizado o renovado)
         try {

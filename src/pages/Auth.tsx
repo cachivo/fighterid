@@ -61,7 +61,15 @@ export default function Auth() {
     },
   });
 
-  // Validate invitation token on mount
+  // Redirect fighter invitations to license auth flow
+  useEffect(() => {
+    if (inviteToken) {
+      console.info('[Auth] Redirecting fighter invitation to /license/auth');
+      window.location.href = `/license/auth?mode=signup&invite=${inviteToken}`;
+    }
+  }, [inviteToken]);
+
+  // Validate invitation token on mount (for general users, though invitations should go to /license/auth)
   useEffect(() => {
     const checkInvitation = async () => {
       if (inviteToken) {
