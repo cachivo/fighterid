@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useFighterProfiles } from "@/hooks/useFighterProfiles";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Menu, Trophy, Calendar, Home, BarChart3, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell } from "lucide-react";
 
 const Header = () => {
@@ -21,6 +23,7 @@ const Header = () => {
   const [hasFighterProfile, setHasFighterProfile] = useState(false);
   const { user, signOut } = useAuth();
   const { getUserFighterProfile } = useFighterProfiles();
+  const { unreadCount } = useNotifications();
 
   const handleLogout = async () => {
     await signOut();
@@ -279,17 +282,38 @@ const Header = () => {
           {/* User Actions - Visible on all screens */}
           <div className="flex items-center gap-2">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 min-h-[44px] min-w-[44px] touch-manipulation">
-                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                      <AvatarImage src="" alt={user.email || 'Usuario'} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {user.email?.charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+              <>
+                {/* Notification Bell */}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative min-h-[44px] min-w-[44px] touch-manipulation" 
+                  asChild
+                >
+                  <Link to="/social/notifications">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                      >
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </Badge>
+                    )}
+                  </Link>
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0 min-h-[44px] min-w-[44px] touch-manipulation">
+                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                        <AvatarImage src="" alt={user.email || 'Usuario'} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {user.email?.charAt(0).toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 z-[100]">
                   <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                   <div className="px-2 py-1.5">
@@ -340,6 +364,7 @@ const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
               <Button variant="default" size="sm" asChild className="hidden sm:inline-flex">
                 <Link to="/auth">Iniciar Sesión</Link>
