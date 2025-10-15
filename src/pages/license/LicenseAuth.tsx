@@ -79,7 +79,15 @@ export default function LicenseAuth() {
     }
   }, [searchParams, invitation]);
 
-  // Redirect if already authenticated
+  // Cooldown timer - MUST be before early return
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Redirect if already authenticated - AFTER all hooks
   if (user && !loading) {
     return <Navigate to="/license/dashboard" replace />;
   }
@@ -105,14 +113,6 @@ export default function LicenseAuth() {
     }
     setIsResending(false);
   };
-
-  // Cooldown timer
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
