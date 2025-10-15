@@ -397,19 +397,29 @@ export default function RequestFighterLicense() {
                       Imagen del {formData.document_type} * 
                       <span className="text-sm text-white font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
-                      <Input
-                        id="document_image"
-                        type="file"
-                        accept="image/jpeg,image/png,image/jpg,application/pdf"
-                        capture="environment"
-                        onChange={handleDocumentChange}
-                        required
-                        className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold-500 file:text-white hover:file:bg-gold-600"
-                      />
-                      <p className="text-xs text-white/80 mt-1.5">
-                        📸 Toma una foto o sube desde galería. Foto clara de tu {formData.document_type}. Máximo 5MB.
-                      </p>
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                      <div className="flex flex-col items-center gap-3">
+                        <label 
+                          htmlFor="document_image" 
+                          className="cursor-pointer bg-white hover:bg-gray-100 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors inline-flex items-center gap-2"
+                        >
+                          <Upload className="w-5 h-5" />
+                          {documentFile ? documentFile.name : 'Seleccionar archivo'}
+                        </label>
+                        <Input
+                          id="document_image"
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg,application/pdf"
+                          capture="environment"
+                          onChange={handleDocumentChange}
+                          required
+                          className="hidden"
+                        />
+                        <p className="text-xs text-white/80 text-center">
+                          📸 Toma una foto o sube desde galería<br />
+                          Foto clara de tu {formData.document_type}. Máximo 5MB
+                        </p>
+                      </div>
                     </div>
                     {documentPreview && (
                       <div className="mt-3 p-2 bg-slate-800/50 rounded-lg border border-gold-500/30">
@@ -423,18 +433,27 @@ export default function RequestFighterLicense() {
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="photo" className="text-white font-medium">Foto de Perfil de Peleador</Label>
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
-                      <Input
-                        id="photo"
-                        type="file"
-                        accept="image/*"
-                        capture="user"
-                        onChange={handlePhotoChange}
-                        className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
-                      />
-                      <p className="text-xs text-white/80 mt-1.5">
-                        📸 Toma una selfie o sube desde galería
-                      </p>
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                      <div className="flex flex-col items-center gap-3">
+                        <label 
+                          htmlFor="photo" 
+                          className="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors inline-flex items-center gap-2"
+                        >
+                          <Upload className="w-5 h-5" />
+                          {photoFile ? photoFile.name : 'Seleccionar archivo'}
+                        </label>
+                        <Input
+                          id="photo"
+                          type="file"
+                          accept="image/*"
+                          capture="user"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                        />
+                        <p className="text-xs text-white/80 text-center">
+                          📸 Toma una selfie o sube desde galería
+                        </p>
+                      </div>
                     </div>
                     {photoPreview && (
                       <div className="mt-3 flex justify-center">
