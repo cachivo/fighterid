@@ -151,11 +151,11 @@ export default function LicenseAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-red-900/40 to-orange-950/30 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-blue-950/30 to-slate-900 p-4 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
-      <div className="absolute top-0 left-0 w-96 h-96 bg-red-600/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-600/15 rounded-full blur-3xl" />
       
       <Card className="w-full max-w-md bg-slate-900/90 border-gold-500/30 backdrop-blur-xl shadow-2xl relative z-10">
         <CardHeader className="text-center">
@@ -165,7 +165,7 @@ export default function LicenseAuth() {
           <CardTitle className="text-2xl font-bold text-white">
             Fighter ID Portal
           </CardTitle>
-          <CardDescription className="text-gold-200">
+          <CardDescription className="text-white/80">
             Accede a tu cuenta o crea una nueva
           </CardDescription>
         </CardHeader>
@@ -241,12 +241,12 @@ export default function LicenseAuth() {
                       <h3 className="text-2xl font-bold text-white mb-2">
                         ¡Revisa tu correo!
                       </h3>
-                      <p className="text-gray-300">
+                      <p className="text-white/90">
                         Hemos enviado un email de confirmación a
                       </p>
                       <p className="text-gold-400 font-semibold mt-1">{email}</p>
                     </div>
-                    <p className="text-sm text-gray-400 max-w-md">
+                    <p className="text-sm text-white/70 max-w-md">
                       Haz clic en el enlace del email para activar tu cuenta. Si no lo ves, revisa tu carpeta de spam.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
@@ -375,7 +375,7 @@ export default function LicenseAuth() {
                     {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
                   </Button>
 
-                  <p className="text-sm text-center text-gray-400 mt-4">
+                  <p className="text-sm text-center text-white/70 mt-4">
                     ¿Eres peleador? Podrás solicitar tu Fighter ID después del registro.
                   </p>
                 </form>
