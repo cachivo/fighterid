@@ -151,8 +151,13 @@ export default function LicenseAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-red-950/20 to-slate-950 p-4">
-      <Card className="w-full max-w-md bg-slate-900/80 border-gold-500/30 backdrop-blur">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-red-900/40 to-orange-950/30 p-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-red-600/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl" />
+      
+      <Card className="w-full max-w-md bg-slate-900/90 border-gold-500/30 backdrop-blur-xl shadow-2xl relative z-10">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <Shield className="w-12 h-12 text-gold-400" />
