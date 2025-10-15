@@ -410,7 +410,6 @@ export default function RequestFighterLicense() {
                           id="document_image"
                           type="file"
                           accept="image/jpeg,image/png,image/jpg,application/pdf"
-                          capture="environment"
                           onChange={handleDocumentChange}
                           required
                           className="hidden"
@@ -446,7 +445,6 @@ export default function RequestFighterLicense() {
                           id="photo"
                           type="file"
                           accept="image/*"
-                          capture="user"
                           onChange={handlePhotoChange}
                           className="hidden"
                         />
