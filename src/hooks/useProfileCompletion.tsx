@@ -40,8 +40,6 @@ const FIELD_CONFIG: Record<string, Omit<MissingField, 'field'>> = {
   weight_kg: { label: 'Peso', points: 5, priority: 'medium', icon: Weight },
   reach_cm: { label: 'Alcance', points: 5, priority: 'medium', icon: Maximize2 },
   bio: { label: 'Biografía (50+ caracteres)', points: 10, priority: 'medium', icon: BookOpen },
-  boxrec_url: { label: 'Link de BoxRec', points: 5, priority: 'low', icon: Link },
-  tapology_url: { label: 'Link de Tapology', points: 5, priority: 'low', icon: Link },
   martial_arts: { label: 'Artes marciales', points: 10, priority: 'medium', icon: Zap },
   recent_update: { label: 'Actualización reciente', points: 10, priority: 'low', icon: Shield },
 };
@@ -125,19 +123,33 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
       missingFields.push({ field: 'bio', ...FIELD_CONFIG.bio });
     }
 
-    // BoxRec (+5)
-    if (profile.boxrec_url) {
-      score += 5;
-    } else {
-      missingFields.push({ field: 'boxrec_url', ...FIELD_CONFIG.boxrec_url });
+    // Links externos según disciplina (+10)
+    if (profile.discipline === 'Boxeo') {
+      if (profile.boxrec_url) {
+        score += 10;
+      } else {
+        missingFields.push({ 
+          field: 'external_link', 
+          label: 'Link de BoxRec', 
+          points: 10, 
+          priority: 'low', 
+          icon: Link 
+        });
+      }
+    } else if (profile.discipline === 'MMA') {
+      if (profile.tapology_url) {
+        score += 10;
+      } else {
+        missingFields.push({ 
+          field: 'external_link', 
+          label: 'Link de Tapology', 
+          points: 10, 
+          priority: 'low', 
+          icon: Link 
+        });
+      }
     }
-
-    // Tapology (+5)
-    if (profile.tapology_url) {
-      score += 5;
-    } else {
-      missingFields.push({ field: 'tapology_url', ...FIELD_CONFIG.tapology_url });
-    }
+    // Para otras disciplinas no se requiere link externo
 
     // Artes marciales (+10)
     if (profile.martial_arts && Array.isArray(profile.martial_arts) && profile.martial_arts.length > 0) {

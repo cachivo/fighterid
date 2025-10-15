@@ -3,7 +3,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Trophy, Award, Medal, Gem } from 'lucide-react';
+import { Trophy, Award, Medal, Gem, AlertCircle, Star, Info } from 'lucide-react';
 import { useProfileCompletion, CompletionLevel } from '@/hooks/useProfileCompletion';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import type { LucideIcon } from 'lucide-react';
@@ -54,7 +54,9 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
   
   const currentLevelConfig = LEVEL_CONFIG[level];
   const LevelIcon = currentLevelConfig.icon;
-  const highPriorityFields = missingFields.filter(f => f.priority === 'high').slice(0, 3);
+  const highPriorityFields = missingFields.filter(f => f.priority === 'high');
+  const mediumPriorityFields = missingFields.filter(f => f.priority === 'medium');
+  const lowPriorityFields = missingFields.filter(f => f.priority === 'low');
 
   return (
     <Card className="border shadow-sm">
@@ -105,27 +107,102 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
           </div>
         )}
 
-        {/* Missing Fields (High Priority Only) */}
-        {highPriorityFields.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Para subir de nivel:</p>
-            {highPriorityFields.map((field) => {
-              const FieldIcon = field.icon;
-              return (
-                <div 
-                  key={field.field}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors border border-border/50"
-                >
-                  <div className="flex items-center gap-2">
-                    <FieldIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{field.label}</span>
-                  </div>
-                  <Badge variant="outline">
-                    +{field.points}%
-                  </Badge>
+        {/* Mostrar TODOS los campos faltantes agrupados por prioridad */}
+        {missingFields.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-foreground">
+                Campos faltantes ({missingFields.length})
+              </p>
+              <span className="text-sm text-muted-foreground">
+                +{missingFields.reduce((sum, f) => sum + f.points, 0)}% total
+              </span>
+            </div>
+
+            {/* Scroll si hay muchos campos */}
+            <div className="max-h-96 overflow-y-auto pr-2 space-y-3 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
+              
+              {/* Campos de Prioridad Alta (Críticos) */}
+              {highPriorityFields.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Información Crítica
+                  </p>
+                  {highPriorityFields.map((field) => {
+                    const FieldIcon = field.icon;
+                    return (
+                      <div 
+                        key={field.field}
+                        className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FieldIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <span className="text-sm text-foreground font-medium">{field.label}</span>
+                        </div>
+                        <Badge variant="destructive" className="bg-red-600">
+                          +{field.points}%
+                        </Badge>
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              )}
+
+              {/* Campos de Prioridad Media (Importantes) */}
+              {mediumPriorityFields.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    Información Importante
+                  </p>
+                  {mediumPriorityFields.map((field) => {
+                    const FieldIcon = field.icon;
+                    return (
+                      <div 
+                        key={field.field}
+                        className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FieldIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          <span className="text-sm text-foreground">{field.label}</span>
+                        </div>
+                        <Badge variant="outline" className="border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400">
+                          +{field.points}%
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Campos de Prioridad Baja (Opcionales) */}
+              {lowPriorityFields.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Información Adicional
+                  </p>
+                  {lowPriorityFields.map((field) => {
+                    const FieldIcon = field.icon;
+                    return (
+                      <div 
+                        key={field.field}
+                        className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800"
+                      >
+                        <div className="flex items-center gap-2">
+                          <FieldIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <span className="text-sm text-foreground">{field.label}</span>
+                        </div>
+                        <Badge variant="outline" className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400">
+                          +{field.points}%
+                        </Badge>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
