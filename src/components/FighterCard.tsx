@@ -3,12 +3,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Shield } from 'lucide-react';
+import { CreditCard, Shield, Award, Medal, Trophy, Gem } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface FighterCardProps {
   fighter: FighterProfile;
   onClick?: () => void;
 }
+
+const LEVEL_CONFIG: Record<string, { icon: LucideIcon; gradient: string; label: string }> = {
+  BRONZE: { icon: Award, gradient: 'from-orange-800 to-orange-600', label: 'Bronce' },
+  SILVER: { icon: Medal, gradient: 'from-gray-400 to-gray-300', label: 'Plata' },
+  GOLD: { icon: Trophy, gradient: 'from-yellow-500 to-yellow-400', label: 'Oro' },
+  DIAMOND: { icon: Gem, gradient: 'from-blue-500 to-cyan-400', label: 'Diamante' },
+};
 
 export function FighterCard({ fighter, onClick }: FighterCardProps) {
   const navigate = useNavigate();
@@ -23,11 +31,27 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
   };
   const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
   
+  // Get completion level config
+  const completionLevel = (fighter as any).completion_level || 'BRONZE';
+  const levelConfig = LEVEL_CONFIG[completionLevel];
+  const LevelIcon = levelConfig?.icon || Award;
+  
   return (
     <Card 
-      className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-card border-border hover:border-professional-accent/30 touch-manipulation"
+      className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-card border-border hover:border-professional-accent/30 touch-manipulation relative"
       onClick={onClick}
     >
+      {/* Level Badge - Only show for Silver and above */}
+      {completionLevel !== 'BRONZE' && levelConfig && (
+        <Badge 
+          variant="outline" 
+          className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm border-border/50 z-10"
+        >
+          <LevelIcon className="h-3 w-3 mr-1" />
+          {levelConfig.label}
+        </Badge>
+      )}
+      
       <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           {fighter.avatar_url ? (

@@ -11,7 +11,7 @@ import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { PageHeader } from '@/components/ui/page-header';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy } from 'lucide-react';
+import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy, CheckCircle, Gem } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -65,6 +65,7 @@ export default function Fighters() {
   const [selectedRecordType, setSelectedRecordType] = useState('Todos');
   const [includeInactive, setIncludeInactive] = useState(false);
   const [readyToFightOnly, setReadyToFightOnly] = useState(false);
+  const [completionFilter, setCompletionFilter] = useState('all');
   const [sortBy, setSortBy] = useState('name');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedFighter, setSelectedFighter] = useState<FighterProfile | null>(null);
@@ -128,8 +129,15 @@ export default function Fighters() {
         const matchesReadyToFight = 
           !readyToFightOnly || (fighter as any).ready_to_fight === true;
         
+        // New completion filter
+        const completionScore = (fighter as any).completion_score || 0;
+        const matchesCompletion = 
+          completionFilter === 'all' ||
+          (completionFilter === 'verified' && completionScore >= 70) ||
+          (completionFilter === 'diamond' && (fighter as any).completion_level === 'DIAMOND');
+        
         return matchesSearch && matchesWeightClass && matchesDiscipline && 
-               matchesFightingStyle && matchesRecordType && matchesReadyToFight;
+               matchesFightingStyle && matchesRecordType && matchesReadyToFight && matchesCompletion;
       })
       .sort((a, b) => {
         switch (sortBy) {
@@ -137,11 +145,13 @@ export default function Fighters() {
             return a.first_name.localeCompare(b.first_name);
           case 'wins':
             return b.record_wins - a.record_wins;
+          case 'completion':
+            return ((b as any).completion_score || 0) - ((a as any).completion_score || 0);
           default:
             return 0;
         }
       });
-  }, [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedFightingStyle, selectedRecordType, includeInactive, readyToFightOnly, sortBy]);
+  }, [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedFightingStyle, selectedRecordType, includeInactive, readyToFightOnly, completionFilter, sortBy]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -332,13 +342,24 @@ export default function Fighters() {
           </div>
 
           {/* Filter dropdowns */}
-          <div className={`grid grid-cols-1 md:grid-cols-5 gap-4 ${showFilters || 'hidden md:grid'}`}>
+          <div className={`grid grid-cols-1 md:grid-cols-6 gap-4 ${showFilters || 'hidden md:grid'}`}>
             {[
               { value: selectedWeightClass, onChange: setSelectedWeightClass, options: WEIGHT_CLASSES, placeholder: "División", icon: Filter },
               { value: selectedDiscipline, onChange: setSelectedDiscipline, options: DISCIPLINES, placeholder: "Disciplina", icon: Filter },
               { value: selectedFightingStyle, onChange: setSelectedFightingStyle, options: FIGHTING_STYLES, placeholder: "Estilo", icon: Filter },
               { value: selectedRecordType, onChange: setSelectedRecordType, options: RECORD_TYPES, placeholder: "Tipo", icon: Filter },
-              { value: sortBy, onChange: setSortBy, options: [{ value: 'name', label: 'Nombre' }, { value: 'wins', label: 'Victorias' }, { value: 'elo', label: 'Rating ELO' }], placeholder: "Ordenar por", icon: ArrowUpDown }
+              { 
+                value: completionFilter, 
+                onChange: setCompletionFilter, 
+                options: [
+                  { value: 'all', label: 'Todos los perfiles', icon: null },
+                  { value: 'verified', label: 'Solo verificados (70%+)', icon: CheckCircle },
+                  { value: 'diamond', label: 'Solo perfiles completos', icon: Gem }
+                ], 
+                placeholder: "Completitud", 
+                icon: Filter 
+              },
+              { value: sortBy, onChange: setSortBy, options: [{ value: 'name', label: 'Nombre' }, { value: 'wins', label: 'Victorias' }, { value: 'completion', label: 'Completitud' }], placeholder: "Ordenar por", icon: ArrowUpDown }
             ].map((filter, index) => (
               <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <Select value={filter.value} onValueChange={filter.onChange}>

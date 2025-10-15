@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, Activity, Users, Plus, ExternalLink, Eye, Camera, Edit, Info, Home } from 'lucide-react';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ProfileProgressWidget } from '@/components/ProfileProgressWidget';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -206,6 +207,14 @@ export default function MyProfile() {
               </Link>
             </Button>
           </div>
+        </div>
+
+        {/* Profile Progress Widget - Sticky */}
+        <div className="sticky top-20 z-10">
+          <ProfileProgressWidget 
+            profile={profile}
+            onEditClick={() => window.location.href = '/profile/request-changes'}
+          />
         </div>
 
         {/* Profile Overview Card */}

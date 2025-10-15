@@ -5,7 +5,7 @@ import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { useDopingTests } from '@/hooks/useDopingTests';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
 import { UserFighterProfileEditForm } from '@/components/UserFighterProfileEditForm';
-import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
+import { ProfileProgressWidget } from '@/components/ProfileProgressWidget';
 import FighterStatusUpdateForm from '@/components/FighterStatusUpdateForm';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 import { DopingTestCard } from '@/components/DopingTestCard';
@@ -346,6 +346,14 @@ export default function LicenseDashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Profile Progress Widget */}
+        {fighterProfile && (
+          <ProfileProgressWidget
+            profile={fighterProfile}
+            onEditClick={handleUpdateInfo}
+          />
+        )}
 
         {/* Reorganized Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 md:gap-6">

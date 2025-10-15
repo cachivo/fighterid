@@ -7,10 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { 
   User, FileText, Shield, Activity, Clock, Phone, Mail, 
   MapPin, Calendar, Weight, Ruler, Target, AlertTriangle,
-  CheckCircle, XCircle, Eye, Download, ExternalLink
+  CheckCircle, XCircle, Eye, Download, ExternalLink, Trophy
 } from 'lucide-react';
 import { useDetailedFighterData, DetailedFighterData } from '@/hooks/useDetailedFighterData';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -73,10 +74,20 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
         <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Información Completa del Peleador
-          </DialogTitle>
+          <div className="space-y-2">
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Información Completa del Peleador
+            </DialogTitle>
+            {data && (data.profile as any)?.completion_score !== undefined && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Trophy className="h-4 w-4" />
+                <span>Completitud:</span>
+                <Progress value={(data.profile as any).completion_score || 0} className="h-2 w-32" />
+                <span className="font-medium">{(data.profile as any).completion_score || 0}%</span>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-100px)]">

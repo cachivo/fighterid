@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Edit, User, Trash2, Eye, Plus } from 'lucide-react';
+import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +25,7 @@ export default function FightersProfiles() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
+  const [showIncomplete, setShowIncomplete] = useState(false);
   const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
   const [deletingFighter, setDeletingFighter] = useState<AdminFighterProfile | null>(null);
   const [viewingFighter, setViewingFighter] = useState<string | null>(null);
@@ -35,7 +37,9 @@ export default function FightersProfiles() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesWeight = selectedWeightClass === 'all' || fighter.weight_class === selectedWeightClass;
-      return matchesSearch && matchesWeight;
+      const completionScore = (fighter as any).completion_score || 0;
+      const matchesCompletion = !showIncomplete || completionScore < 70;
+      return matchesSearch && matchesWeight && matchesCompletion;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -45,10 +49,14 @@ export default function FightersProfiles() {
           return (a.weight_kg || 0) - (b.weight_kg || 0);
         case 'record':
           return (b.record_wins - b.record_losses) - (a.record_wins - a.record_losses);
+        case 'completion':
+          return ((b as any).completion_score || 0) - ((a as any).completion_score || 0);
         default:
           return a.first_name.localeCompare(b.first_name);
       }
     });
+  
+  const incompleteCount = fighters.filter(f => ((f as any).completion_score || 0) < 70).length;
 
   if (loading) {
     return (
@@ -97,6 +105,19 @@ export default function FightersProfiles() {
       {/* Filters */}
       <Card>
         <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-sm text-muted-foreground">
+              Mostrando {filteredFighters.length} de {fighters.length} peleadores
+            </p>
+            <Button
+              variant={showIncomplete ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowIncomplete(!showIncomplete)}
+            >
+              <AlertCircle className="h-4 w-4 mr-2" />
+              Perfiles Incompletos ({incompleteCount})
+            </Button>
+          </div>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -216,6 +237,15 @@ export default function FightersProfiles() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">
+                  {/* Completion Progress */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>Completitud:</span>
+                      <span className="font-medium">{(fighter as any).completion_score || 0}%</span>
+                    </div>
+                    <Progress value={(fighter as any).completion_score || 0} className="h-2" />
+                  </div>
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Récord:</span>
                     <Badge variant="secondary">

@@ -1395,6 +1395,8 @@ export type Database = {
           birthplace: string | null
           blood_type: string | null
           boxrec_url: string | null
+          completion_level: string | null
+          completion_score: number | null
           country: string | null
           created_at: string | null
           discipline: Database["public"]["Enums"]["discipline"] | null
@@ -1443,6 +1445,8 @@ export type Database = {
           birthplace?: string | null
           blood_type?: string | null
           boxrec_url?: string | null
+          completion_level?: string | null
+          completion_score?: number | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
@@ -1491,6 +1495,8 @@ export type Database = {
           birthplace?: string | null
           blood_type?: string | null
           boxrec_url?: string | null
+          completion_level?: string | null
+          completion_score?: number | null
           country?: string | null
           created_at?: string | null
           discipline?: Database["public"]["Enums"]["discipline"] | null
@@ -3745,6 +3751,10 @@ export type Database = {
       calculate_parimutuel_payout: {
         Args: { p_market_id: string; p_outcome_id: string; p_stake: number }
         Returns: number
+      }
+      calculate_profile_completion: {
+        Args: { p_fighter_id: string }
+        Returns: Json
       }
       check_doping_eligibility: {
         Args: { p_license_id: string }
