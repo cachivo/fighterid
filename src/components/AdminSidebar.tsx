@@ -45,6 +45,7 @@ const adminItems = [
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
+  { title: 'Monitor de Emails', url: '/admin/email-monitoring', icon: Mail },
   { title: 'Campañas de Email', url: '/admin/email-campaigns', icon: Mail },
   { title: 'Editor de Emails', url: '/admin/email-campaigns/editor', icon: Send },
   { title: 'Solicitudes de Cambio', url: '/admin/profile-requests', icon: Settings },
