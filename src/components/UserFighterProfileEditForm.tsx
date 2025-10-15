@@ -201,11 +201,29 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         if (requestedChanges.weight_kg) requestedChanges.weight_kg = Number(requestedChanges.weight_kg);
         if (requestedChanges.reach_cm) requestedChanges.reach_cm = Number(requestedChanges.reach_cm);
 
+        // CRÍTICO: profile_change_requests.user_id es FK a app_user.id (no auth.uid())
+        // Obtener app_user.id antes de insertar
+        const { data: appUser, error: userError } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .single();
+
+        if (userError || !appUser) {
+          console.error("User lookup error:", userError);
+          toast({
+            variant: "destructive",
+            title: "Error de autenticación",
+            description: "No se pudo identificar tu usuario. Por favor, vuelve a iniciar sesión."
+          });
+          return;
+        }
+
         const { error: requestError } = await supabase
           .from('profile_change_requests')
           .insert({
             fighter_profile_id: profile.id,
-            user_id: user.id,
+            user_id: appUser.id, // Usar app_user.id, NO auth.uid()
             requested_changes: requestedChanges,
             status: 'PENDING'
           });

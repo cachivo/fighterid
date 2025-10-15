@@ -85,7 +85,7 @@ export function useProfileChangeRequests() {
     }
 
     try {
-      // First get the user's app_user record
+      // ARQUITECTURA: Usar app_user.id (no auth.uid()) para FK consistency
       const { data: appUser, error: userError } = await supabase
         .from('app_user')
         .select('id')
@@ -99,7 +99,7 @@ export function useProfileChangeRequests() {
       const { data, error } = await supabase
         .from('profile_change_requests')
         .insert({
-          user_id: appUser.id,
+          user_id: appUser.id, // app_user.id, NO auth.uid()
           fighter_profile_id: fighterProfileId,
           requested_changes: requestedChanges,
           status: 'PENDING'
@@ -178,7 +178,7 @@ export function useProfileChangeRequests() {
 
       if (fetchError) throw fetchError;
 
-      // Get current user's app_user record to get the actual user ID (not auth_user_id)
+      // ARQUITECTURA: Obtener app_user.id del admin actual (no auth.uid())
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
 
@@ -248,7 +248,7 @@ export function useProfileChangeRequests() {
 
   const applyProfileChanges = async (fighterProfileId: string, changes: any) => {
     try {
-      // Get current app user for admin check
+      // ARQUITECTURA: Verificar app_user.id del admin (no auth.uid())
       const { data: appUser } = await supabase
         .from('app_user')
         .select('id')
