@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Search, Edit, ToggleLeft, ToggleRight, Mail, Phone, Award } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useJudges, type JudgeFormData } from '@/hooks/useJudges';
 import { useToast } from '@/hooks/use-toast';
 
@@ -239,16 +240,14 @@ export default function JudgesManagement() {
                       <div className="grid grid-cols-3 gap-2">
                         {specializationOptions.map((spec) => (
                           <label key={spec} className="flex items-center space-x-2 cursor-pointer">
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               checked={field.value.includes(spec)}
-                              onChange={(e) => {
-                                const updatedSpecs = e.target.checked
+                              onCheckedChange={(checked) => {
+                                const updatedSpecs = checked
                                   ? [...field.value, spec]
                                   : field.value.filter(s => s !== spec);
                                 field.onChange(updatedSpecs);
                               }}
-                              className="rounded border-gray-300"
                             />
                             <span className="text-sm">{spec}</span>
                           </label>

@@ -33,7 +33,7 @@ export default function Dashboard() {
     },
     {
       title: 'Licencias Activas',
-      value: stats?.totalFighters?.toString() || '0',
+      value: stats?.activeLicenses?.toString() || '0',
       description: 'Fighter IDs vigentes',
       icon: Shield,
     },

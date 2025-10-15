@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Search, Plus, FileText, Loader2, AlertCircle, User, Eye, Download, Calendar, Phone, MapPin, Award, Activity } from 'lucide-react';
 import { OptimizedImage } from '@/components/ui/optimized-image';
+import { LicenseCard } from '@/components/admin/LicenseCard';
 
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
@@ -280,83 +281,20 @@ export default function ValidacionLicencias() {
                   ) : (
                     pendingLicenses?.map(license => {
                       const displayStatus = optimisticUpdates[license.id] || license.status;
-                      const fighterPhoto = license.license_documents?.find(doc => doc.document_type === 'photo');
-                      const photoUrl = fighterPhoto ? 
-                        supabase.storage.from('fighter-photos').getPublicUrl(fighterPhoto.file_path).data.publicUrl :
-                        license.fighter?.avatar_url;
                       
                       return (
-                        <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-amber-200 bg-white">
-                          {/* Fighter Avatar */}
-                          <div className="flex-shrink-0">
-                            <OptimizedImage
-                              src={photoUrl || ''}
-                              alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
-                              className="w-12 h-12 rounded-full border-2 border-border object-cover"
-                              fallbackIcon={
-                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                                  <User className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                              }
-                              priority={false}
-                            />
-                          </div>
-                          
-                          {/* License Information */}
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-3">
-                              <div className="font-medium">{license.license_number}</div>
-                              <Badge className={getLicenseStatusColor(displayStatus)}>
-                                PENDIENTE REVISIÓN
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              <strong>Peleador:</strong> {license.fighter?.first_name} {license.fighter?.last_name}
-                              {license.fighter?.nickname ? ` "${license.fighter.nickname}"` : ''}
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              <strong>Categoría:</strong> {license.fighter?.weight_class} • 
-                              <strong> Disciplina:</strong> {license.discipline} • 
-                              <strong> Solicitada:</strong> {new Date(license.created_at).toLocaleDateString()}
-                            </div>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex-shrink-0 flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => openReviewModal(license)}
-                              className="border-blue-200 hover:bg-blue-50"
-                            >
-                              <Eye className="h-3 w-3 mr-1" />
-                              Revisar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => updateLicenseState(license.id, 'ACTIVE')}
-                              disabled={loadingStates[license.id] || !isAdmin}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              {loadingStates[license.id] && optimisticUpdates[license.id] === 'ACTIVE' ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : null}
-                              Aprobar
-                            </Button>
-                            <Button
-                              size="sm" 
-                              variant="destructive"
-                              onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
-                              disabled={loadingStates[license.id] || !isAdmin}
-                            >
-                              {loadingStates[license.id] && optimisticUpdates[license.id] === 'SUSPENDED' ? (
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              ) : null}
-                              Rechazar
-                            </Button>
-                          </div>
-                        </div>
+                        <LicenseCard
+                          key={license.id}
+                          license={license}
+                          isPending={true}
+                          onReview={openReviewModal}
+                          onApprove={(id) => updateLicenseState(id, 'ACTIVE')}
+                          onReject={(id) => updateLicenseState(id, 'SUSPENDED')}
+                          isLoading={loadingStates[license.id]}
+                          isAdmin={isAdmin}
+                          displayStatus={displayStatus}
+                          getLicenseStatusColor={getLicenseStatusColor}
+                        />
                       );
                     })
                   )}
@@ -387,108 +325,22 @@ export default function ValidacionLicencias() {
             <CardContent>
               <div className="space-y-3">
               {licenses?.map(license => {
-                // Use optimistic update if available, otherwise use actual status
                 const displayStatus = optimisticUpdates[license.id] || license.status;
                 
-                // Get the fighter photo from license documents (priority) or fighter profile avatar
-                const fighterPhoto = license.license_documents?.find(doc => doc.document_type === 'photo');
-                const photoUrl = fighterPhoto ? 
-                  supabase.storage.from('fighter-photos').getPublicUrl(fighterPhoto.file_path).data.publicUrl :
-                  license.fighter?.avatar_url;
-                
                 return (
-                  <div key={license.id} className="flex items-center gap-4 p-4 rounded-lg border border-border/50 bg-card/50">
-                    {/* Fighter Avatar */}
-                    <div className="flex-shrink-0">
-                      <OptimizedImage
-                        src={photoUrl || ''}
-                        alt={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
-                        className="w-12 h-12 rounded-full border-2 border-border object-cover"
-                        fallbackIcon={
-                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                            <User className="h-6 w-6 text-muted-foreground" />
-                          </div>
-                        }
-                        priority={false}
-                      />
-                      </div>
-                      
-                      {/* License Information */}
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-3">
-                          <div className="font-medium">{license.license_number}</div>
-                          <Badge className={getLicenseStatusColor(displayStatus)}>
-                            {displayStatus}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          <strong>Peleador:</strong> {license.fighter?.first_name} {license.fighter?.last_name}
-                          {license.fighter?.nickname ? ` "${license.fighter.nickname}"` : ''}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          <strong>Disciplina:</strong> {license.discipline} | 
-                          <strong> División:</strong> {license.fighter?.weight_class} | 
-                          <strong> Expira:</strong> {license.expires_at ? new Date(license.expires_at).toLocaleDateString() : 'N/A'}
-                        </div>
-                        {license.notes && (
-                          <div className="text-sm text-muted-foreground">
-                            <strong>Notas:</strong> {license.notes}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex gap-2 ml-4">
-                        {displayStatus !== 'ACTIVE' && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => updateLicenseState(license.id, 'ACTIVE')}
-                            disabled={loadingStates[license.id] || !isAdmin}
-                            className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50"
-                            title={!isAdmin ? "Solo administradores pueden activar licencias" : ""}
-                          >
-                            {loadingStates[license.id] ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                Activando...
-                              </>
-                            ) : (
-                              'Activar'
-                            )}
-                          </Button>
-                        )}
-                        {displayStatus === 'ACTIVE' && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => updateLicenseState(license.id, 'SUSPENDED')}
-                            disabled={loadingStates[license.id] || !isAdmin}
-                            className="text-red-600 border-red-600 hover:bg-red-600 hover:text-white disabled:opacity-50"
-                            title={!isAdmin ? "Solo administradores pueden suspender licencias" : ""}
-                          >
-                            {loadingStates[license.id] ? (
-                              <>
-                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                Suspendiendo...
-                              </>
-                            ) : (
-                              'Suspender'
-                            )}
-                          </Button>
-                        )}
-                        
-                        {/* Delete License Button */}
-                        <div className="ml-auto">
-                          <DeleteLicenseDialog
-                            licenseId={license.id}
-                            fighterName={`${license.fighter?.first_name} ${license.fighter?.last_name}`}
-                            onSuccess={() => refetch()}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  <LicenseCard
+                    key={license.id}
+                    license={license}
+                    isPending={false}
+                    onActivate={(id) => updateLicenseState(id, 'ACTIVE')}
+                    onSuspend={(id) => updateLicenseState(id, 'SUSPENDED')}
+                    isLoading={loadingStates[license.id]}
+                    isAdmin={isAdmin}
+                    displayStatus={displayStatus}
+                    getLicenseStatusColor={getLicenseStatusColor}
+                  />
+                );
+              })}
                 
                 {!licenses?.length && (
                   <div className="text-center py-8 text-muted-foreground">

@@ -106,7 +106,7 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
                       <OptimizedImage
                         src={data.profile?.avatar_url || ''}
                         alt={`${data.profile?.first_name} ${data.profile?.last_name}`}
-                        className="w-24 h-24 rounded-full border-4 border-border object-cover"
+                        className="w-24 h-24 rounded-full border-4 border-border object-cover aspect-square flex-shrink-0"
                         fallbackIcon={
                           <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center border-4 border-border">
                             <User className="h-12 w-12 text-muted-foreground" />

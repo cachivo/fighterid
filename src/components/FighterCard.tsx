@@ -34,7 +34,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             <img 
               src={fighter.avatar_url} 
               alt={`${fighter.first_name} ${fighter.last_name}`}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 aspect-square"
             />
           ) : (
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-professional-muted flex items-center justify-center flex-shrink-0">

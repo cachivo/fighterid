@@ -162,7 +162,7 @@ export default function FightersProfiles() {
                     <OptimizedImage
                       src={fighter.avatar_url || ''}
                       alt={`${fighter.first_name} ${fighter.last_name}`}
-                      className="w-12 h-12 rounded-full border-2 border-border object-cover"
+                      className="w-12 h-12 rounded-full border-2 border-border object-cover aspect-square flex-shrink-0"
                       fallbackIcon={
                         <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
                           <User className="h-6 w-6 text-muted-foreground" />
