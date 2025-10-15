@@ -135,11 +135,20 @@ export default function LicenseAuth() {
           // Check for rate limiting or already registered
           if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
             setError('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
-          } else if (signUpError.message?.includes('already registered')) {
-            setError('Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.');
-          } else {
-            setError(signUpError.message);
+            return;
           }
+          if (signUpError.message?.includes('already registered')) {
+            toast({
+              title: 'Cuenta existente detectada',
+              description: 'Este email ya está registrado. Te llevamos a Iniciar Sesión.',
+            });
+            // Cambiar a login y prellenar el email
+            setIsLogin(true);
+            setError('');
+            setFormData(prev => ({ ...prev, email: formData.email, password: '' }));
+            return;
+          }
+          setError(signUpError.message);
           return;
         }
 
