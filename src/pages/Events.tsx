@@ -14,6 +14,8 @@ import Footer from '@/components/Footer';
 
 const Events = () => {
   const { events, loading } = useEvents();
+  const [disciplineFilter, setDisciplineFilter] = useState<string>('all');
+  const [stateFilter, setStateFilter] = useState<string>('all');
 
   const getStateColor = (state: string) => {
     switch (state) {
@@ -32,6 +34,8 @@ const Events = () => {
     switch (state) {
       case 'draft':
         return 'Borrador';
+      case 'published':
+        return 'Próximo';
       case 'live':
         return 'EN VIVO';
       case 'finished':
@@ -40,6 +44,23 @@ const Events = () => {
         return state.toUpperCase();
     }
   };
+
+  // Filtrado mejorado
+  const filteredEvents = events.filter(event => {
+    // Filtro por disciplina
+    if (disciplineFilter !== 'all' && event.discipline !== disciplineFilter) {
+      return false;
+    }
+    
+    // Filtro por estado
+    if (stateFilter !== 'all') {
+      if (stateFilter === 'upcoming' && event.state !== 'published') return false;
+      if (stateFilter === 'live' && event.state !== 'live') return false;
+      if (stateFilter === 'finished' && event.state !== 'finished') return false;
+    }
+    
+    return true;
+  });
 
   if (loading) {
     return (
@@ -86,6 +107,46 @@ const Events = () => {
             backTo="/"
             backLabel="Volver al inicio"
           />
+          
+          {/* Indicador de sincronización en vivo */}
+          <div className="flex items-center gap-2 text-sm text-green-500 mt-4">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span>Sincronizado en tiempo real</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Filtros */}
+      <section className="py-4 border-b">
+        <div className="container mx-auto px-3 sm:px-4">
+          <div className="flex flex-wrap gap-4">
+            {/* Filtro por estado */}
+            <Select value={stateFilter} onValueChange={setStateFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="upcoming">Próximos</SelectItem>
+                <SelectItem value="live">En vivo</SelectItem>
+                <SelectItem value="finished">Finalizados</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Filtro por disciplina */}
+            <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filtrar por disciplina" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las disciplinas</SelectItem>
+                <SelectItem value="MMA">MMA</SelectItem>
+                <SelectItem value="Boxeo">Boxeo</SelectItem>
+                <SelectItem value="Kickboxing">Kickboxing</SelectItem>
+                <SelectItem value="Muay Thai">Muay Thai</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </section>
 
@@ -93,17 +154,19 @@ const Events = () => {
       {/* Events Grid */}
       <section className="py-8 sm:py-16">
         <div className="container mx-auto px-3 sm:px-4">
-          {events.length === 0 ? (
+          {filteredEvents.length === 0 ? (
             <div className="text-center py-12">
               <Trophy className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
               <h3 className="text-2xl font-bold mb-2">No hay eventos disponibles</h3>
               <p className="text-muted-foreground">
-                Pronto habrá nuevos eventos emocionantes.
+                {stateFilter !== 'all' || disciplineFilter !== 'all' 
+                  ? 'Intenta cambiar los filtros'
+                  : 'Pronto habrá nuevos eventos emocionantes.'}
               </p>
             </div>
           ) : (
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {events.map((event) => (
+              {filteredEvents.map((event) => (
                 <Card key={event.id} className="border-border/50 hover:border-primary/50 transition-colors group">
                   <CardHeader>
                     <div className="flex justify-between items-start mb-2">

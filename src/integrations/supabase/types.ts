@@ -343,6 +343,7 @@ export type Database = {
           id: string
           meta: Json | null
           name: string
+          published: boolean | null
           source_event_id: string | null
           start_time: string | null
           state: string
@@ -358,6 +359,7 @@ export type Database = {
           id?: string
           meta?: Json | null
           name: string
+          published?: boolean | null
           source_event_id?: string | null
           start_time?: string | null
           state?: string
@@ -373,6 +375,7 @@ export type Database = {
           id?: string
           meta?: Json | null
           name?: string
+          published?: boolean | null
           source_event_id?: string | null
           start_time?: string | null
           state?: string

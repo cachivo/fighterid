@@ -9,6 +9,7 @@ export interface BdgEvent {
   discipline: string;
   venue?: string;
   state: string;
+  published: boolean;
   start_time?: string;
   end_time?: string;
   created_at: string;
@@ -50,7 +51,7 @@ export function useEvents() {
       const { data, error } = await supabase
         .from('bdg_event')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('start_time', { ascending: true });
 
       console.log('[EVENTS] Query result:', { data, error, count: data?.length });
       
@@ -119,7 +120,57 @@ export function useEvents() {
 
   useEffect(() => {
     fetchEvents();
-  }, []);
+
+    // Suscripción a cambios en tiempo real
+    const channel = supabase
+      .channel('bdg_event_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'bdg_event'
+        },
+        (payload) => {
+          console.log('[EVENTS] Realtime change detected:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            const newEvent = payload.new as BdgEvent;
+            // Verificar si el evento es visible para el usuario actual
+            if (newEvent.published || newEvent.created_by === user?.id) {
+              setEvents(prev => [...prev, newEvent].sort((a, b) => 
+                new Date(a.start_time || 0).getTime() - new Date(b.start_time || 0).getTime()
+              ));
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedEvent = payload.new as BdgEvent;
+            setEvents(prev => {
+              // Si el evento ya está en la lista, actualizarlo
+              const exists = prev.some(e => e.id === updatedEvent.id);
+              if (exists) {
+                return prev.map(event => 
+                  event.id === updatedEvent.id ? updatedEvent : event
+                );
+              }
+              // Si no está y ahora es visible, agregarlo
+              if (updatedEvent.published || updatedEvent.created_by === user?.id) {
+                return [...prev, updatedEvent].sort((a, b) => 
+                  new Date(a.start_time || 0).getTime() - new Date(b.start_time || 0).getTime()
+                );
+              }
+              return prev;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            setEvents(prev => prev.filter(event => event.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const deleteEvent = async (eventId: string) => {
     try {
@@ -135,12 +186,27 @@ export function useEvents() {
     }
   };
 
+  const togglePublishEvent = async (eventId: string, shouldPublish: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('bdg_event')
+        .update({ published: shouldPublish })
+        .eq('id', eventId);
+
+      if (error) throw error;
+      await fetchEvents();
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Error desconocido');
+    }
+  };
+
   return {
     events,
     loading,
     error,
     createEvent,
     updateEventState,
+    togglePublishEvent,
     deleteEvent,
     refreshEvents: fetchEvents
   };

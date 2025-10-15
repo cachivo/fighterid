@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -63,7 +63,7 @@ interface FighterProfile {
 export default function EventosPelea() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { events, loading, createEvent, updateEventState, deleteEvent, refreshEvents } = useEvents();
+  const { events, loading, createEvent, updateEventState, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
   console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
   
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -302,6 +302,24 @@ export default function EventosPelea() {
       toast({
         title: 'Error',
         description: 'No se pudo eliminar el evento',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleTogglePublish = async (eventId: string, currentPublished: boolean) => {
+    try {
+      await togglePublishEvent(eventId, !currentPublished);
+      toast({
+        title: 'Éxito',
+        description: !currentPublished 
+          ? 'Evento publicado y visible al público' 
+          : 'Evento despublicado y ahora es privado',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'No se pudo cambiar la visibilidad del evento',
         variant: 'destructive',
       });
     }
@@ -601,6 +619,7 @@ export default function EventosPelea() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Disciplina</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead>Visibilidad</TableHead>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Sede</TableHead>
                 <TableHead>Acciones</TableHead>
@@ -622,6 +641,26 @@ export default function EventosPelea() {
                     <Badge className={getStateColor(event.state)}>
                       {getStateText(event.state)}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleTogglePublish(event.id, event.published)}
+                      className={event.published ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground'}
+                    >
+                      {event.published ? (
+                        <>
+                          <Eye className="h-4 w-4 mr-1" />
+                          Público
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="h-4 w-4 mr-1" />
+                          Privado
+                        </>
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell>
                     {event.start_time ? (
