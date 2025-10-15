@@ -16,7 +16,8 @@ export function FighterIDCallToAction() {
 
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <Card className="bg-gradient-to-br from-red-950/40 via-red-900/30 to-orange-950/40 border-red-500/30 backdrop-blur-sm shadow-2xl overflow-hidden">
+      <Card className="bg-slate-950/95 border-gold-500/30 backdrop-blur-sm shadow-2xl overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-blue-950/30 to-slate-900/50" />
         <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
         
         <CardHeader className="relative text-center pb-6">
@@ -40,26 +41,26 @@ export function FighterIDCallToAction() {
 
         <CardContent className="relative">
           <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+            <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Shield className="w-10 h-10 text-blue-400 mx-auto mb-3" />
               <h3 className="font-semibold text-white mb-2">Licencia Digital</h3>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-white/70">
                 Código QR verificable con toda tu información oficial
               </p>
             </div>
 
-            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+            <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Trophy className="w-10 h-10 text-gold-400 mx-auto mb-3" />
               <h3 className="font-semibold text-white mb-2">Acceso a Eventos</h3>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-white/70">
                 Participa en peleas oficiales y torneos reconocidos
               </p>
             </div>
 
-            <div className="text-center p-4 bg-white/5 rounded-lg border border-white/10 backdrop-blur-sm">
+            <div className="text-center p-4 bg-slate-900/80 rounded-lg border border-gold-500/20 backdrop-blur-sm">
               <Award className="w-10 h-10 text-purple-400 mx-auto mb-3" />
               <h3 className="font-semibold text-white mb-2">Récord Oficial</h3>
-              <p className="text-sm text-gray-300">
+              <p className="text-sm text-white/70">
                 Tu historial de combates verificado y público
               </p>
             </div>
@@ -75,7 +76,7 @@ export function FighterIDCallToAction() {
               Solicitar mi Fighter ID
             </Button>
             
-            <p className="mt-4 text-sm text-gray-400">
+            <p className="mt-4 text-sm text-white/60">
               Proceso de aprobación en 24-48 horas
             </p>
           </div>
