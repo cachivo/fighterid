@@ -26,12 +26,18 @@ export default function LicenseAuth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const inviteToken = searchParams.get('invite');
+  const mode = searchParams.get('mode'); // 'signin' o 'signup'
+  const type = searchParams.get('type'); // 'fighter' o 'user'
   const { validateToken } = useFighterInvitations();
   const [invitation, setInvitation] = useState<any>(null);
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(mode !== 'signup');
   const [showPassword, setShowPassword] = useState(false);
-  const [registrationStep, setRegistrationStep] = useState(0);
-  const [selectedUserType, setSelectedUserType] = useState<'user' | 'fighter' | null>(null);
+  const [registrationStep, setRegistrationStep] = useState(
+    mode === 'signup' && type ? 1 : 0
+  );
+  const [selectedUserType, setSelectedUserType] = useState<'user' | 'fighter' | null>(
+    type === 'fighter' ? 'fighter' : type === 'user' ? 'user' : null
+  );
   
   // Basic form data
   const [email, setEmail] = useState('');
@@ -89,10 +95,15 @@ export default function LicenseAuth() {
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
-    if (supabase.auth.getSession()) {
-      navigate('/license/dashboard');
-    }
-  }, []);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        navigate('/license/dashboard', { replace: true });
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   useEffect(() => {
     if (inviteToken) {
@@ -173,8 +184,48 @@ export default function LicenseAuth() {
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
+    setError('');
+    
+    // Validaciones antes de enviar
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast({
+        title: "Email inválido",
+        description: "Por favor ingresa un email válido",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: "Contraseña débil",
+        description: "La contraseña debe tener al menos 6 caracteres",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
+      // Verificar si el email ya existe
+      const { data: existingUser } = await supabase
+        .from('app_user')
+        .select('email')
+        .eq('email', email)
+        .single();
+        
+      if (existingUser) {
+        toast({
+          title: "Email ya registrado",
+          description: "Este email ya está en uso. Por favor inicia sesión o usa otro email.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
       if (selectedUserType === 'fighter') {
         if (!fighterData.weight_class || fighterData.martial_arts.length === 0) {
           toast({
@@ -294,10 +345,33 @@ export default function LicenseAuth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validación de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Por favor ingresa un email válido');
+      return;
+    }
+    
+    // Validación de contraseña
+    if (password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       const { error } = await signIn(email, password);
-      if (error) setError(error.message);
+      if (error) {
+        // Mensajes de error más amigables
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Email o contraseña incorrectos');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Por favor confirma tu email antes de iniciar sesión');
+        } else {
+          setError(error.message);
+        }
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -320,9 +394,9 @@ export default function LicenseAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/10 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/10 p-4 py-8">
       <div className="w-full max-w-2xl">
-        <Card className="border-0 shadow-2xl bg-card/95 backdrop-blur-sm">
+        <Card className="border-0 shadow-2xl bg-card/95 backdrop-blur-sm w-full">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10">
               <Shield className="h-8 w-8 text-primary" />
@@ -362,31 +436,44 @@ export default function LicenseAuth() {
             {isLogin && (
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
-                  <Label>Email</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email"
+                    type="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    autoComplete="email"
+                    inputMode="email"
+                    className="min-h-[48px]"
+                    required 
+                  />
                 </div>
                 <div>
-                  <Label>Contraseña</Label>
+                  <Label htmlFor="password">Contraseña</Label>
                   <div className="relative">
                     <Input 
+                      id="password"
                       type={showPassword ? "text" : "password"} 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
+                      autoComplete="current-password"
+                      className="min-h-[48px] pr-10"
                       required 
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 touch-manipulation"
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full min-h-[48px] touch-manipulation" disabled={isSubmitting}>
                   {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Ingresando...</> : 'Ingresar'}
                 </Button>
-                <Button type="button" variant="ghost" className="w-full" onClick={() => setIsLogin(false)}>
+                <Button type="button" variant="ghost" className="w-full min-h-[48px] touch-manipulation" onClick={() => setIsLogin(false)}>
                   ¿No tienes cuenta? Regístrate
                 </Button>
               </form>
@@ -399,13 +486,13 @@ export default function LicenseAuth() {
                 {registrationStep === 0 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-center">Selecciona el tipo de cuenta</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <button
                         onClick={() => {
                           setSelectedUserType('user');
                           handleNextStep();
                         }}
-                        className={`p-6 rounded-lg border-2 transition-all ${selectedUserType === 'user' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
+                        className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'user' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
                       >
                         <div className="text-center space-y-2">
                           <div className="mx-auto w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -420,7 +507,7 @@ export default function LicenseAuth() {
                           setSelectedUserType('fighter');
                           handleNextStep();
                         }}
-                        className={`p-6 rounded-lg border-2 transition-all ${selectedUserType === 'fighter' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}`}
+                        className={`p-6 rounded-lg border-2 transition-all min-h-[120px] touch-manipulation ${selectedUserType === 'fighter' ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 active:bg-primary/5'}`}
                       >
                         <div className="text-center space-y-2">
                           <div className="mx-auto w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">

@@ -28,17 +28,17 @@ const WelcomeScreen = () => {
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-md mt-8 sm:mt-12">
           <Button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/license/auth?mode=signin")}
             size="lg"
-            className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-white min-h-[48px]"
+            className="flex-1 h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-white min-h-[48px] touch-manipulation"
           >
             Iniciar Sesión
           </Button>
           <Button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/license/auth?mode=signup")}
             size="lg"
             variant="outline"
-            className="flex-1 h-12 text-base font-semibold bg-white/10 hover:bg-white/20 text-white border-white/30 min-h-[48px]"
+            className="flex-1 h-12 text-base font-semibold bg-white/10 hover:bg-white/20 text-white border-white/30 min-h-[48px] touch-manipulation"
           >
             Crear Cuenta
           </Button>
