@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, X, AlertCircle, Eye, MessageSquare, Clock } from 'lucide-react';
+import { Check, X, AlertCircle, Eye, MessageSquare, Clock, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -65,10 +67,48 @@ export default function ProfileChangeRequests() {
 
   const renderChangesComparison = (current: any, requested: any) => {
     const changes = Object.keys(requested);
+    const hasRecordChanges = changes.some(field => 
+      ['record_wins', 'record_losses', 'record_draws', 'record_type'].includes(field)
+    );
     
     return (
       <div className="space-y-4">
-        {changes.map((field) => (
+        {/* Alert para cambios de récord */}
+        {hasRecordChanges && (
+          <Alert className="bg-amber-50 border-amber-200">
+            <Trophy className="h-4 w-4 text-amber-600" />
+            <AlertTitle>Cambio de Récord de Peleas</AlertTitle>
+            <AlertDescription>
+              Licencia aprobada - Verificar resultado oficial de pelea antes de aprobar
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Comparación especial para récord */}
+        {hasRecordChanges && (
+          <div className="border rounded-lg p-4 bg-amber-50/50">
+            <h4 className="font-medium mb-4 text-amber-700">Récord de Peleas</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="font-semibold">Récord Actual</Label>
+                <p className="text-lg mt-1">
+                  {current.record_wins || 0}-{current.record_losses || 0}-{current.record_draws || 0} ({current.record_type || 'N/A'})
+                </p>
+              </div>
+              <div>
+                <Label className="font-semibold">Récord Solicitado</Label>
+                <p className="text-lg text-amber-600 font-semibold mt-1">
+                  {(requested.record_wins ?? current.record_wins) || 0}-
+                  {(requested.record_losses ?? current.record_losses) || 0}-
+                  {(requested.record_draws ?? current.record_draws) || 0} ({(requested.record_type ?? current.record_type) || 'N/A'})
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Resto de cambios */}
+        {changes.filter(field => !['record_wins', 'record_losses', 'record_draws', 'record_type'].includes(field)).map((field) => (
           <div key={field} className="border rounded-lg p-4">
             <h4 className="font-medium mb-2 capitalize">{field.replace(/_/g, ' ')}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -198,9 +238,16 @@ export default function ProfileChangeRequests() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(request.status)}>
-                      {getStatusText(request.status)}
-                    </Badge>
+                    <div className="flex gap-2">
+                      <Badge className={getStatusColor(request.status)}>
+                        {getStatusText(request.status)}
+                      </Badge>
+                      {request.requested_changes.record_wins && (
+                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                          🥊 Récord
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-sm text-muted-foreground">

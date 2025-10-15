@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
-import { Upload, Save, X } from 'lucide-react';
+import { Upload, Save, X, Lock, AlertCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFighterAvatar } from '@/lib/photoUtils';
 import { useAuth } from '@/hooks/useAuth';
@@ -64,6 +65,45 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [licenseStatus, setLicenseStatus] = useState<string | null>(null);
+  const [isRecordLocked, setIsRecordLocked] = useState(false);
+
+  // ============================================================================
+  // ARQUITECTURA DE RÉCORD DE PELEAS
+  // ============================================================================
+  // REGLA DE NEGOCIO:
+  // - SIN licencia o licencia NO aprobada → Usuario puede editar récord libremente
+  // - CON licencia ACTIVE (aprobada) → Récord BLOQUEADO, solo admin puede cambiar
+  // Estados de licencia que BLOQUEAN el récord: ACTIVE, SUSPENDED, EXPIRED, REVOKED
+  // Estados que PERMITEN edición: null, APPLIED, PENDING_REVIEW
+  // ============================================================================
+
+  // Obtener estado de la licencia primaria
+  useEffect(() => {
+    const fetchLicenseStatus = async () => {
+      if (!profile.primary_license_id) {
+        setLicenseStatus(null);
+        setIsRecordLocked(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('fighter_licenses')
+        .select('status')
+        .eq('id', profile.primary_license_id)
+        .single();
+
+      if (!error && data) {
+        setLicenseStatus(data.status);
+        
+        // Bloquear récord si la licencia está ACTIVE o fue aprobada previamente
+        const lockedStatuses = ['ACTIVE', 'SUSPENDED', 'EXPIRED', 'REVOKED'];
+        setIsRecordLocked(lockedStatuses.includes(data.status));
+      }
+    };
+
+    fetchLicenseStatus();
+  }, [profile.primary_license_id]);
 
   const form = useForm<FighterProfileFormData>({
     resolver: zodResolver(fighterProfileSchema),
@@ -122,87 +162,87 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
   };
 
   const onSubmit = async (data: FighterProfileFormData) => {
-    if (!user) return;
+    if (!user || !profile.id) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debes estar autenticado para actualizar tu perfil."
+      });
+      return;
+    }
 
     setIsLoading(true);
+
     try {
-      // Campos que se pueden actualizar directamente (sin aprobación)
-      const directUpdateFields = ['bio', 'boxrec_url', 'tapology_url'];
-      
-      // Campos que requieren aprobación admin
-      const criticalFields = [
-        'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace',
-        'height_cm', 'weight_kg', 'reach_cm', 'weight_class', 'fighting_style', 
-        'stance', 'gender', 'gym_name', 'martial_arts',
-        'document_type', 'document_number', 'blood_type',
+      const profileId = profile.id;
+
+      // ============================================================================
+      // ARQUITECTURA: Campos de actualización inmediata vs récord bloqueado
+      // ============================================================================
+      // Campos que se actualizan INMEDIATAMENTE (sin aprobación):
+      const immediateUpdateFields = [
+        'bio', 'boxrec_url', 'tapology_url',
+        'document_type', 'document_number',
+        'blood_type', 'medical_conditions', 'medical_allergies',
+        'insurance_company', 'insurance_policy',
         'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
-        'medical_conditions', 'medical_allergies', 
-        'insurance_company', 'insurance_policy'
+        'height_cm', 'weight_kg', 'reach_cm', 'stance',
+        'weight_class', 'fighting_style', 'gym_name', 'level',
+        'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace', 'gender'
       ];
 
-      // Separar cambios directos de cambios que requieren aprobación
-      const directUpdates: any = {};
-      const requestedChanges: any = {};
-      let hasAvatarChange = false;
+      // Campos de récord (bloqueados SI licencia está ACTIVE)
+      const recordFields = ['record_wins', 'record_losses', 'record_draws', 'record_type'];
+
+      // Separar cambios según lógica de licencia
+      const immediateUpdates: any = {};
+      const recordChanges: any = {};
 
       Object.entries(data).forEach(([key, value]) => {
         if (value !== profile[key as keyof typeof profile]) {
-          if (directUpdateFields.includes(key)) {
-            directUpdates[key] = value;
-          } else if (criticalFields.includes(key)) {
-            requestedChanges[key] = value;
+          if (immediateUpdateFields.includes(key)) {
+            immediateUpdates[key] = value;
+          } else if (recordFields.includes(key)) {
+            // Si el récord está bloqueado, va a solicitud; si no, actualización directa
+            if (isRecordLocked) {
+              recordChanges[key] = value;
+            } else {
+              immediateUpdates[key] = value;
+            }
           }
         }
       });
 
-      // Manejar avatar por separado
-      if (avatarFile) {
-        hasAvatarChange = true;
-        console.log("Avatar change detected, will be included in change request");
-        
-        const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profile.id, profile.avatar_url);
-        requestedChanges.avatar_url = newAvatarUrl;
-      }
+      // 1. APLICAR INMEDIATAMENTE todos los campos permitidos
+      if (Object.keys(immediateUpdates).length > 0 || avatarFile) {
+        const updates = { ...immediateUpdates };
 
-      // Aplicar actualizaciones directas si las hay
-      if (Object.keys(directUpdates).length > 0) {
-        const { error: directError } = await supabase
-          .from('fighter_profiles')
-          .update(directUpdates)
-          .eq('id', profile.id);
-
-        if (directError) {
-          console.error("Direct update error:", directError);
-          throw directError;
-        }
-      }
-
-      // Crear solicitud de cambio si hay campos críticos modificados
-      if (Object.keys(requestedChanges).length > 0 || hasAvatarChange) {
-        // Validar los cambios antes de crear la solicitud
-        const { data: validation } = await supabase.rpc('validate_profile_change_request', {
-          p_fighter_id: profile.id,
-          p_requested_changes: requestedChanges
-        });
-
-        const validationResult = validation as { valid: boolean; error?: string; field?: string } | null;
-
-        if (validationResult && !validationResult.valid) {
-          toast({
-            variant: "destructive",
-            title: "Error de validación",
-            description: validationResult.error
-          });
-          return;
+        // Incluir avatar si existe
+        if (avatarFile) {
+          const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profileId, profile.avatar_url);
+          updates.avatar_url = newAvatarUrl;
         }
 
         // Convertir valores numéricos
-        if (requestedChanges.height_cm) requestedChanges.height_cm = Number(requestedChanges.height_cm);
-        if (requestedChanges.weight_kg) requestedChanges.weight_kg = Number(requestedChanges.weight_kg);
-        if (requestedChanges.reach_cm) requestedChanges.reach_cm = Number(requestedChanges.reach_cm);
+        if (updates.height_cm) updates.height_cm = Number(updates.height_cm);
+        if (updates.weight_kg) updates.weight_kg = Number(updates.weight_kg);
+        if (updates.reach_cm) updates.reach_cm = Number(updates.reach_cm);
+        if (updates.record_wins) updates.record_wins = Number(updates.record_wins);
+        if (updates.record_losses) updates.record_losses = Number(updates.record_losses);
+        if (updates.record_draws) updates.record_draws = Number(updates.record_draws);
 
-        // CRÍTICO: profile_change_requests.user_id es FK a app_user.id (no auth.uid())
-        // Obtener app_user.id antes de insertar
+        const { error: updateError } = await supabase
+          .from('fighter_profiles')
+          .update(updates)
+          .eq('id', profileId);
+
+        if (updateError) throw updateError;
+
+        console.log("✅ Immediate updates applied, gamification score updated via trigger");
+      }
+
+      // 2. CREAR SOLICITUD para récord (solo si está bloqueado Y hay cambios)
+      if (isRecordLocked && Object.keys(recordChanges).length > 0) {
         const { data: appUser, error: userError } = await supabase
           .from('app_user')
           .select('id')
@@ -210,52 +250,50 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
           .single();
 
         if (userError || !appUser) {
-          console.error("User lookup error:", userError);
           toast({
             variant: "destructive",
             title: "Error de autenticación",
-            description: "No se pudo identificar tu usuario. Por favor, vuelve a iniciar sesión."
+            description: "No se pudo verificar tu usuario."
           });
           return;
         }
 
-        const { error: requestError } = await supabase
+        // Convertir valores numéricos del récord
+        if (recordChanges.record_wins) recordChanges.record_wins = Number(recordChanges.record_wins);
+        if (recordChanges.record_losses) recordChanges.record_losses = Number(recordChanges.record_losses);
+        if (recordChanges.record_draws) recordChanges.record_draws = Number(recordChanges.record_draws);
+
+        await supabase
           .from('profile_change_requests')
           .insert({
-            fighter_profile_id: profile.id,
-            user_id: appUser.id, // Usar app_user.id, NO auth.uid()
-            requested_changes: requestedChanges,
-            status: 'PENDING'
+            fighter_profile_id: profileId,
+            user_id: appUser.id,
+            requested_changes: recordChanges,
+            status: 'PENDING',
+            admin_notes: '🥊 CAMBIO DE RÉCORD - Licencia aprobada, requiere verificación administrativa'
           });
 
-        if (requestError) {
-          console.error("Change request error:", requestError);
-          throw requestError;
-        }
+        toast({
+          title: "Solicitud de cambio de récord enviada",
+          description: "Los cambios en tu récord de peleas serán revisados por un administrador."
+        });
+      }
 
+      // 3. Mensaje final al usuario
+      if (Object.keys(immediateUpdates).length > 0 || avatarFile) {
         toast({
-          title: "Solicitud enviada",
-          description: "Los cambios críticos serán revisados por un administrador. Los cambios no críticos se aplicaron inmediatamente."
-        });
-      } else if (Object.keys(directUpdates).length > 0) {
-        toast({
-          title: "Perfil actualizado",
-          description: "Los cambios se han guardado exitosamente"
-        });
-      } else {
-        toast({
-          title: "Sin cambios",
-          description: "No se detectaron modificaciones en el perfil"
+          title: "✅ Perfil actualizado",
+          description: "Los cambios se aplicaron inmediatamente y tu puntuación de gamificación se actualizó."
         });
       }
 
       onSuccess?.();
-    } catch (error) {
-      console.error('Error updating profile:', error);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
       toast({
-        title: "Error",
-        description: "No se pudo procesar la actualización",
         variant: "destructive",
+        title: "Error",
+        description: error.message || "No se pudo actualizar el perfil"
       });
     } finally {
       setIsLoading(false);
@@ -634,72 +672,108 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                 />
               </div>
               
-              <div>
-                <Label className="text-base font-semibold">Récord de Peleas</Label>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
-                  <FormField
-                    control={form.control}
-                    name="record_wins"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Victorias</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="record_losses"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Derrotas</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="record_draws"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Empates</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="record_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+              {/* Récord de Peleas - Condicional según estado de licencia */}
+              <Card className={isRecordLocked ? "border-l-4 border-l-amber-500 bg-muted/30" : ""}>
+                <CardHeader>
+                  <CardTitle className={`flex items-center gap-2 ${isRecordLocked ? 'text-amber-600' : ''}`}>
+                    {isRecordLocked && <Lock className="h-5 w-5" />}
+                    Récord de Peleas
+                  </CardTitle>
+                  {isRecordLocked && (
+                    <CardDescription className="flex items-center gap-2 text-amber-700">
+                      <AlertCircle className="h-4 w-4" />
+                      Tu licencia está aprobada. Los cambios en tu récord deben ser autorizados por un administrador.
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 ${isRecordLocked ? 'opacity-60' : ''}`}>
+                    <FormField
+                      control={form.control}
+                      name="record_wins"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Victorias</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Tipo" />
-                            </SelectTrigger>
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              {...field} 
+                              disabled={isRecordLocked}
+                              className={isRecordLocked ? 'cursor-not-allowed' : ''}
+                            />
                           </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Amateur">Amateur</SelectItem>
-                            <SelectItem value="Profesional">Profesional</SelectItem>
-                            <SelectItem value="Mixto">Mixto</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="record_losses"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Derrotas</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              {...field} 
+                              disabled={isRecordLocked}
+                              className={isRecordLocked ? 'cursor-not-allowed' : ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="record_draws"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Empates</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="number" 
+                              min="0" 
+                              {...field} 
+                              disabled={isRecordLocked}
+                              className={isRecordLocked ? 'cursor-not-allowed' : ''}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="record_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            disabled={isRecordLocked}
+                          >
+                            <FormControl>
+                              <SelectTrigger className={isRecordLocked ? 'cursor-not-allowed' : ''}>
+                                <SelectValue placeholder="Tipo" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Amateur">Amateur</SelectItem>
+                              <SelectItem value="Profesional">Profesional</SelectItem>
+                              <SelectItem value="Mixto">Mixto</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
 
               <FormField
                 control={form.control}
