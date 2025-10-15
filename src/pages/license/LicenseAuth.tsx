@@ -98,7 +98,18 @@ export default function LicenseAuth() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  // Helper to generate handle from name and email
+  const generateHandle = (firstName: string, lastName: string, email: string): string => {
+    const baseName = `${firstName}${lastName}`.toLowerCase().replace(/\s+/g, '');
+    if (baseName.length >= 3) {
+      return baseName.substring(0, 20);
+    }
+    const emailPart = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    return emailPart.substring(0, 20) || 'user' + Math.random().toString(36).substring(2, 8);
+  };
 
   useEffect(() => {
     const checkSession = async () => {
@@ -271,9 +282,24 @@ export default function LicenseAuth() {
       }
         
       if (existingUser) {
+        setError("Este email ya está en uso. Inicia sesión o reenvía la confirmación.");
         toast({
           title: "Email ya registrado",
-          description: "Este email ya está en uso. Por favor inicia sesión o usa otro email.",
+          description: (
+            <div className="space-y-2">
+              <p>Este email ya está en uso.</p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  await resendConfirmation(email);
+                  toast({ title: "Correo reenviado", description: "Revisa tu bandeja" });
+                }}
+              >
+                Reenviar confirmación
+              </Button>
+            </div>
+          ),
           variant: "destructive"
         });
         setIsSubmitting(false);
@@ -294,12 +320,16 @@ export default function LicenseAuth() {
         
         console.log('Starting fighter registration...');
         
-        // First create auth account
+        // Create auth account with metadata
         const { error: signUpError, data: authData } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/license/pending`
+            emailRedirectTo: `${window.location.origin}/license/pending`,
+            data: {
+              userType: 'fighter',
+              handle: generateHandle(firstName, lastName, email)
+            }
           }
         });
 
@@ -308,22 +338,24 @@ export default function LicenseAuth() {
           throw signUpError;
         }
         
-        console.log('Auth user created, waiting for user data...');
+        console.log('Auth user created:', authData.user?.id);
         
-        // Wait for user creation
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const { data: { user: newUser } } = await supabase.auth.getUser();
-        
-        if (!newUser) {
-          console.error('User not created after signup');
-          throw new Error('No se pudo crear el usuario. Intenta de nuevo.');
+        // Use authData.user.id directly (no need to wait or call getUser)
+        if (!authData.user?.id) {
+          // No user ID means confirmation email flow - still success
+          console.log('Email confirmation required, showing success screen');
+          setRegistrationSuccess(true);
+          setRegisteredEmail(email);
+          setResendCooldown(60);
+          setIsSubmitting(false);
+          return;
         }
 
-        console.log('Calling RPC function with user ID:', newUser.id);
+        console.log('Calling RPC function with user ID:', authData.user.id);
 
-        // Call RPC function
+        // Call RPC function with authData.user.id
         const { data, error } = await supabase.rpc('create_complete_fighter_registration', {
-          p_auth_user_id: newUser.id,
+          p_auth_user_id: authData.user.id,
           p_email: email,
           p_first_name: firstName,
           p_last_name: lastName,
@@ -367,6 +399,11 @@ export default function LicenseAuth() {
         
         console.log('Fighter registration completed successfully');
         
+        toast({
+          title: "Registro de Fighter creado",
+          description: "Confirma tu email para continuar"
+        });
+        
         setRegistrationSuccess(true);
         setRegisteredEmail(email);
         setResendCooldown(60);
@@ -374,12 +411,20 @@ export default function LicenseAuth() {
       } else {
         console.log('Starting normal user registration...');
         
-        // Normal user signup
-        const { error: signUpError } = await supabase.auth.signUp({
+        // Normal user signup with metadata
+        const { error: signUpError, data: authData } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              userType: 'user',
+              handle: generateHandle(firstName, lastName, email),
+              first_name: firstName,
+              last_name: lastName,
+              phone: phone || null,
+              country: country
+            }
           }
         });
 
@@ -388,33 +433,10 @@ export default function LicenseAuth() {
           throw signUpError;
         }
 
-        console.log('Auth user created, updating profile...');
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const { data: { user: newUser } } = await supabase.auth.getUser();
-        
-        if (newUser) {
-          const { error: updateError } = await supabase
-            .from('app_user')
-            .update({
-              first_name: firstName,
-              last_name: lastName,
-              phone,
-              country,
-              avatar_url: userExtraData.avatar_url || null,
-              birthdate: userExtraData.birthdate?.toISOString().split('T')[0] || null,
-              bio: userExtraData.bio || null
-            })
-            .eq('auth_user_id', newUser.id);
-            
-          if (updateError) {
-            console.error('Profile update error:', updateError);
-            throw new Error(`Error actualizando perfil: ${updateError.message}`);
-          }
-        }
-        
         console.log('User registration completed successfully');
         
+        // Don't update app_user here - will be done by trigger or after email confirmation
+        // Just show success screen
         setRegistrationSuccess(true);
         setRegisteredEmail(email);
         setResendCooldown(60);
@@ -1045,10 +1067,20 @@ export default function LicenseAuth() {
                         <div>
                           <Label className="text-sm">Foto de Perfil</Label>
                           <div className="space-y-2">
+                            {/* Input oculto para galería */}
                             <input
                               ref={fileInputRef}
                               type="file"
+                              accept="image/*,.heic"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                            />
+                            {/* Input oculto para cámara */}
+                            <input
+                              ref={cameraInputRef}
+                              type="file"
                               accept="image/*"
+                              capture="environment"
                               onChange={handlePhotoUpload}
                               className="hidden"
                             />
@@ -1067,27 +1099,39 @@ export default function LicenseAuth() {
                                   onClick={() => {
                                     setPhotoPreview('');
                                     if (fileInputRef.current) fileInputRef.current.value = '';
+                                    if (cameraInputRef.current) cameraInputRef.current.value = '';
                                   }}
                                 >
                                   Cambiar
                                 </Button>
                               </div>
                             ) : (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full min-h-[100px] flex-col gap-2"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={uploadingPhoto}
-                              >
-                                <Upload className="h-8 w-8" />
-                                <span className="text-sm">
-                                  {uploadingPhoto ? 'Procesando...' : 'Seleccionar Foto'}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  Desde cámara o galería
-                                </span>
-                              </Button>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full min-h-[100px] flex-col gap-2"
+                                  onClick={() => fileInputRef.current?.click()}
+                                  disabled={uploadingPhoto}
+                                >
+                                  <Upload className="h-8 w-8" />
+                                  <span className="text-sm">
+                                    {uploadingPhoto ? 'Procesando...' : 'Elegir de galería'}
+                                  </span>
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full min-h-[100px] flex-col gap-2"
+                                  onClick={() => cameraInputRef.current?.click()}
+                                  disabled={uploadingPhoto}
+                                >
+                                  <Camera className="h-8 w-8" />
+                                  <span className="text-sm">
+                                    {uploadingPhoto ? 'Procesando...' : 'Tomar foto'}
+                                  </span>
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
