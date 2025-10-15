@@ -205,6 +205,19 @@ export default function LicenseAuth() {
           .eq('auth_user_id', newUser.id)
           .single();
 
+        if (appUser) {
+          // Update app_user with basic info
+          await supabase
+            .from('app_user')
+            .update({
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              phone: formData.phone,
+              country: formData.country
+            })
+            .eq('id', appUser.id);
+        }
+
         if (appUser && accountType === 'fighter') {
           // 3. Create fighter profile with all data
           const martialArtsString = formData.martialArts.join(',');
@@ -554,6 +567,37 @@ export default function LicenseAuth() {
                     required
                     className="h-11"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="country">País</Label>
+                  <Select 
+                    value={formData.country} 
+                    onValueChange={(value) => setFormData(prev => ({...prev, country: value}))}
+                  >
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Selecciona tu país" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="HN">Honduras</SelectItem>
+                      <SelectItem value="SV">El Salvador</SelectItem>
+                      <SelectItem value="GT">Guatemala</SelectItem>
+                      <SelectItem value="NI">Nicaragua</SelectItem>
+                      <SelectItem value="CR">Costa Rica</SelectItem>
+                      <SelectItem value="PA">Panamá</SelectItem>
+                      <SelectItem value="MX">México</SelectItem>
+                      <SelectItem value="US">Estados Unidos</SelectItem>
+                      <SelectItem value="CO">Colombia</SelectItem>
+                      <SelectItem value="VE">Venezuela</SelectItem>
+                      <SelectItem value="EC">Ecuador</SelectItem>
+                      <SelectItem value="PE">Perú</SelectItem>
+                      <SelectItem value="CL">Chile</SelectItem>
+                      <SelectItem value="AR">Argentina</SelectItem>
+                      <SelectItem value="BR">Brasil</SelectItem>
+                      <SelectItem value="ES">España</SelectItem>
+                      <SelectItem value="OTHER">Otro</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Button
