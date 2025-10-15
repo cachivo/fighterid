@@ -321,35 +321,35 @@ export default function RequestFighterLicense() {
               <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-800/50 p-1">
                 <TabsTrigger 
                   value="personal" 
-                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
                 >
                   <User className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Personal</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="physical" 
-                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
                 >
                   <Activity className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Físico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="combat" 
-                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
                 >
                   <Shield className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Combate</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="medical" 
-                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
                 >
                   <Heart className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Médico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="additional" 
-                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
                 >
                   <FileText className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Adicional</span>
@@ -360,7 +360,7 @@ export default function RequestFighterLicense() {
               <TabsContent value="personal" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="nickname" className="text-gold-400 font-medium">Apodo / Nickname</Label>
+                    <Label htmlFor="nickname" className="text-white font-medium">Apodo / Nickname</Label>
                     <Input
                       id="nickname"
                       value={formData.nickname}
@@ -370,7 +370,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="birthplace" className="text-gold-400 font-medium">Lugar de Nacimiento</Label>
+                    <Label htmlFor="birthplace" className="text-white font-medium">Lugar de Nacimiento</Label>
                     <Input
                       id="birthplace"
                       value={formData.birthplace}
@@ -380,7 +380,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="document_type" className="text-gold-400 font-medium">Tipo de Documento</Label>
+                    <Label htmlFor="document_type" className="text-white font-medium">Tipo de Documento</Label>
                     <Select value={formData.document_type} onValueChange={(v) => setFormData({ ...formData, document_type: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
@@ -393,9 +393,9 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
-                    <Label htmlFor="document_image" className="text-gold-400 font-medium flex items-center gap-2">
+                    <Label htmlFor="document_image" className="text-white font-medium flex items-center gap-2">
                       Imagen del {formData.document_type} * 
-                      <span className="text-sm text-white/80 font-normal">(Solo visible para ti y administradores)</span>
+                      <span className="text-sm text-white font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
                     <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
                       <Input
@@ -422,7 +422,7 @@ export default function RequestFighterLicense() {
                     )}
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
-                    <Label htmlFor="photo" className="text-gold-400 font-medium">Foto de Perfil de Peleador</Label>
+                    <Label htmlFor="photo" className="text-white font-medium">Foto de Perfil de Peleador</Label>
                     <div className="border-2 border-dashed border-slate-700 rounded-lg p-4 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
                       <Input
                         id="photo"
@@ -457,7 +457,7 @@ export default function RequestFighterLicense() {
               <TabsContent value="physical" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="height_cm" className="text-gold-400 font-medium">Altura (cm) *</Label>
+                    <Label htmlFor="height_cm" className="text-white font-medium">Altura (cm) *</Label>
                     <Input
                       id="height_cm"
                       type="number"
@@ -469,7 +469,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="weight_kg" className="text-gold-400 font-medium">Peso (kg) *</Label>
+                    <Label htmlFor="weight_kg" className="text-white font-medium">Peso (kg) *</Label>
                     <Input
                       id="weight_kg"
                       type="number"
@@ -482,7 +482,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="reach_cm" className="text-gold-400 font-medium">Alcance (cm)</Label>
+                    <Label htmlFor="reach_cm" className="text-white font-medium">Alcance (cm)</Label>
                     <Input
                       id="reach_cm"
                       type="number"
@@ -493,7 +493,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="blood_type" className="text-gold-400 font-medium">Tipo de Sangre</Label>
+                    <Label htmlFor="blood_type" className="text-white font-medium">Tipo de Sangre</Label>
                     <Select value={formData.blood_type} onValueChange={(v) => setFormData({ ...formData, blood_type: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue placeholder="Seleccionar" />
@@ -532,7 +532,7 @@ export default function RequestFighterLicense() {
               <TabsContent value="combat" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="weight_class" className="text-gold-400 font-medium">Categoría de Peso *</Label>
+                    <Label htmlFor="weight_class" className="text-white font-medium">Categoría de Peso *</Label>
                     <Select value={formData.weight_class} onValueChange={(v) => setFormData({ ...formData, weight_class: v })} required>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue placeholder="Seleccionar" />
@@ -551,7 +551,7 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="discipline" className="text-gold-400 font-medium">Disciplina *</Label>
+                    <Label htmlFor="discipline" className="text-white font-medium">Disciplina *</Label>
                     <Select value={formData.discipline} onValueChange={(v) => setFormData({ ...formData, discipline: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
@@ -565,7 +565,7 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="fighting_style" className="text-gold-400 font-medium">Estilo de Pelea</Label>
+                    <Label htmlFor="fighting_style" className="text-white font-medium">Estilo de Pelea</Label>
                     <Input
                       id="fighting_style"
                       value={formData.fighting_style}
@@ -575,7 +575,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="stance" className="text-gold-400 font-medium">Guardia</Label>
+                    <Label htmlFor="stance" className="text-white font-medium">Guardia</Label>
                     <Select value={formData.stance} onValueChange={(v) => setFormData({ ...formData, stance: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
@@ -588,7 +588,7 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="level" className="text-gold-400 font-medium">Nivel *</Label>
+                    <Label htmlFor="level" className="text-white font-medium">Nivel *</Label>
                     <Select value={formData.level} onValueChange={(v) => setFormData({ ...formData, level: v })}>
                       <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
@@ -600,7 +600,7 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="gym_name" className="text-gold-400 font-medium">Gimnasio / Academia</Label>
+                    <Label htmlFor="gym_name" className="text-white font-medium">Gimnasio / Academia</Label>
                     <Input
                       id="gym_name"
                       value={formData.gym_name}
@@ -610,7 +610,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
-                    <Label className="text-gold-400 font-medium">Récord (Victorias - Derrotas - Empates)</Label>
+                    <Label className="text-white font-medium">Récord (Victorias - Derrotas - Empates)</Label>
                     <div className="grid grid-cols-3 gap-3">
                       <Input
                         type="number"
@@ -657,7 +657,7 @@ export default function RequestFighterLicense() {
               <TabsContent value="medical" className="space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="medical_conditions" className="text-gold-400 font-medium">Condiciones Médicas</Label>
+                    <Label htmlFor="medical_conditions" className="text-white font-medium">Condiciones Médicas</Label>
                     <Textarea
                       id="medical_conditions"
                       value={formData.medical_conditions}
@@ -668,7 +668,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="medical_allergies" className="text-gold-400 font-medium">Alergias</Label>
+                    <Label htmlFor="medical_allergies" className="text-white font-medium">Alergias</Label>
                     <Textarea
                       id="medical_allergies"
                       value={formData.medical_allergies}
@@ -680,7 +680,7 @@ export default function RequestFighterLicense() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="insurance_company" className="text-gold-400 font-medium">Compañía de Seguros</Label>
+                      <Label htmlFor="insurance_company" className="text-white font-medium">Compañía de Seguros</Label>
                       <Input
                         id="insurance_company"
                         value={formData.insurance_company}
@@ -690,7 +690,7 @@ export default function RequestFighterLicense() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="insurance_policy" className="text-gold-400 font-medium">Número de Póliza</Label>
+                      <Label htmlFor="insurance_policy" className="text-white font-medium">Número de Póliza</Label>
                       <Input
                         id="insurance_policy"
                         value={formData.insurance_policy}
@@ -702,13 +702,13 @@ export default function RequestFighterLicense() {
                   </div>
 
                   <div className="border-t border-slate-700 pt-4 mt-4">
-                    <h3 className="font-semibold text-gold-400 mb-3 flex items-center gap-2">
+                    <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                       <Heart className="w-5 h-5" />
                       Contacto de Emergencia *
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="emergency_contact_name" className="text-gold-400 font-medium">Nombre Completo *</Label>
+                        <Label htmlFor="emergency_contact_name" className="text-white font-medium">Nombre Completo *</Label>
                         <Input
                           id="emergency_contact_name"
                           value={formData.emergency_contact_name}
@@ -719,7 +719,7 @@ export default function RequestFighterLicense() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="emergency_contact_phone" className="text-gold-400 font-medium">Teléfono *</Label>
+                        <Label htmlFor="emergency_contact_phone" className="text-white font-medium">Teléfono *</Label>
                         <Input
                           id="emergency_contact_phone"
                           value={formData.emergency_contact_phone}
@@ -730,7 +730,7 @@ export default function RequestFighterLicense() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="emergency_contact_relation" className="text-gold-400 font-medium">Relación</Label>
+                        <Label htmlFor="emergency_contact_relation" className="text-white font-medium">Relación</Label>
                         <Input
                           id="emergency_contact_relation"
                           value={formData.emergency_contact_relation}
@@ -763,7 +763,7 @@ export default function RequestFighterLicense() {
               <TabsContent value="additional" className="space-y-4">
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="bio" className="text-gold-400 font-medium">Biografía</Label>
+                    <Label htmlFor="bio" className="text-white font-medium">Biografía</Label>
                     <Textarea
                       id="bio"
                       value={formData.bio}
@@ -774,7 +774,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="boxrec_url" className="text-gold-400 font-medium">URL de BoxRec (opcional)</Label>
+                    <Label htmlFor="boxrec_url" className="text-white font-medium">URL de BoxRec (opcional)</Label>
                     <Input
                       id="boxrec_url"
                       value={formData.boxrec_url}
@@ -784,7 +784,7 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="tapology_url" className="text-gold-400 font-medium">URL de Tapology (opcional)</Label>
+                    <Label htmlFor="tapology_url" className="text-white font-medium">URL de Tapology (opcional)</Label>
                     <Input
                       id="tapology_url"
                       value={formData.tapology_url}
