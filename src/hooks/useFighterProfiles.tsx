@@ -396,7 +396,7 @@ export function useFighterProfiles() {
       });
 
       if (error) {
-        console.error('Error en RPC admin_update_fighter_profile_v3:', error);
+        console.error('Error en RPC admin_update_fighter_profile:', error);
         throw error;
       }
 
