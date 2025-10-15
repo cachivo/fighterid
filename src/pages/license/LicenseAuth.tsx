@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Navigate, useSearchParams, useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck, User } from 'lucide-react';
+import { Shield, Eye, EyeOff, Loader2, Mail, UserCheck, User, Upload, Camera } from 'lucide-react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
+import { uploadFighterAvatar } from '@/lib/photoUtils';
 
 export default function LicenseAuth() {
   const { user, signIn, loading, resendConfirmation } = useLicenseAuth();
@@ -93,6 +94,10 @@ export default function LicenseAuth() {
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+  const [currentTab, setCurrentTab] = useState('personal');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -185,6 +190,45 @@ export default function LicenseAuth() {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    
+    try {
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // We'll upload after user is created, just store the file for now
+      if (selectedUserType === 'fighter') {
+        setFighterData(prev => ({ ...prev, avatar_file: file as any }));
+      } else {
+        setUserExtraData(prev => ({ ...prev, avatar_file: file as any }));
+      }
+      
+      toast({ title: "Foto seleccionada", description: "La foto se subirá al crear tu cuenta" });
+    } catch (error) {
+      console.error('Error selecting photo:', error);
+      toast({ title: "Error", description: "No se pudo seleccionar la foto", variant: "destructive" });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleTabContinue = () => {
+    const tabs = ['personal', 'physical', 'combat', 'medical', 'additional'];
+    const currentIndex = tabs.indexOf(currentTab);
+    
+    if (currentIndex < tabs.length - 1) {
+      setCurrentTab(tabs[currentIndex + 1]);
+    }
+  };
+
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     setError('');
@@ -231,6 +275,7 @@ export default function LicenseAuth() {
       
       if (selectedUserType === 'fighter') {
         if (!fighterData.weight_class || fighterData.martial_arts.length === 0) {
+          console.error('Validation failed: missing weight_class or martial_arts');
           toast({
             title: "Error",
             description: "Categoría de peso y al menos un arte marcial son obligatorios",
@@ -239,6 +284,8 @@ export default function LicenseAuth() {
           setIsSubmitting(false);
           return;
         }
+        
+        console.log('Starting fighter registration...');
         
         // First create auth account
         const { error: signUpError, data: authData } = await supabase.auth.signUp({
@@ -249,13 +296,23 @@ export default function LicenseAuth() {
           }
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          console.error('Sign up error:', signUpError);
+          throw signUpError;
+        }
+        
+        console.log('Auth user created, waiting for user data...');
         
         // Wait for user creation
         await new Promise(resolve => setTimeout(resolve, 2000));
         const { data: { user: newUser } } = await supabase.auth.getUser();
         
-        if (!newUser) throw new Error('User not created');
+        if (!newUser) {
+          console.error('User not created after signup');
+          throw new Error('No se pudo crear el usuario. Intenta de nuevo.');
+        }
+
+        console.log('Calling RPC function with user ID:', newUser.id);
 
         // Call RPC function
         const { data, error } = await supabase.rpc('create_complete_fighter_registration', {
@@ -296,13 +353,20 @@ export default function LicenseAuth() {
           p_avatar_url: fighterData.avatar_url || null
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error('RPC function error:', error);
+          throw new Error(`Error en registro: ${error.message}`);
+        }
+        
+        console.log('Fighter registration completed successfully');
         
         setRegistrationSuccess(true);
         setRegisteredEmail(email);
         setResendCooldown(60);
         
       } else {
+        console.log('Starting normal user registration...');
+        
         // Normal user signup
         const { error: signUpError } = await supabase.auth.signUp({
           email,
@@ -312,13 +376,18 @@ export default function LicenseAuth() {
           }
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          console.error('Sign up error:', signUpError);
+          throw signUpError;
+        }
+
+        console.log('Auth user created, updating profile...');
 
         await new Promise(resolve => setTimeout(resolve, 2000));
         const { data: { user: newUser } } = await supabase.auth.getUser();
         
         if (newUser) {
-          await supabase
+          const { error: updateError } = await supabase
             .from('app_user')
             .update({
               first_name: firstName,
@@ -330,16 +399,27 @@ export default function LicenseAuth() {
               bio: userExtraData.bio || null
             })
             .eq('auth_user_id', newUser.id);
+            
+          if (updateError) {
+            console.error('Profile update error:', updateError);
+            throw new Error(`Error actualizando perfil: ${updateError.message}`);
+          }
         }
+        
+        console.log('User registration completed successfully');
         
         setRegistrationSuccess(true);
         setRegisteredEmail(email);
         setResendCooldown(60);
       }
     } catch (error: any) {
-      console.error('Error:', error);
-      setError(error.message);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Registration error:', error);
+      setError(error.message || 'Error desconocido');
+      toast({ 
+        title: "Error en registro", 
+        description: error.message || 'Ocurrió un error al crear tu cuenta. Intenta de nuevo.', 
+        variant: "destructive" 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -630,7 +710,7 @@ export default function LicenseAuth() {
                 {registrationStep === 2 && selectedUserType === 'fighter' && (
                   <div className="space-y-3">
                     <h3 className="text-base sm:text-lg font-semibold">Información Completa de Fighter ID</h3>
-                    <Tabs defaultValue="personal" className="w-full">
+                    <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
                       <TabsList className="grid w-full grid-cols-5 h-auto text-xs sm:text-sm">
                         <TabsTrigger value="personal">Personal</TabsTrigger>
                         <TabsTrigger value="physical">Físico</TabsTrigger>
@@ -708,6 +788,13 @@ export default function LicenseAuth() {
                             className="min-h-[48px]"
                           />
                         </div>
+                        <Button 
+                          type="button" 
+                          onClick={handleTabContinue} 
+                          className="w-full min-h-[48px]"
+                        >
+                          Continuar
+                        </Button>
                       </TabsContent>
 
                       <TabsContent value="physical" className="space-y-3">
@@ -759,6 +846,13 @@ export default function LicenseAuth() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <Button 
+                          type="button" 
+                          onClick={handleTabContinue} 
+                          className="w-full min-h-[48px]"
+                        >
+                          Continuar
+                        </Button>
                       </TabsContent>
 
                       <TabsContent value="combat" className="space-y-3">
@@ -844,6 +938,13 @@ export default function LicenseAuth() {
                             />
                           </div>
                         </div>
+                        <Button 
+                          type="button" 
+                          onClick={handleTabContinue} 
+                          className="w-full min-h-[48px]"
+                        >
+                          Continuar
+                        </Button>
                       </TabsContent>
 
                       <TabsContent value="medical" className="space-y-3">
@@ -905,6 +1006,13 @@ export default function LicenseAuth() {
                             className="min-h-[48px]"
                           />
                         </div>
+                        <Button 
+                          type="button" 
+                          onClick={handleTabContinue} 
+                          className="w-full min-h-[48px]"
+                        >
+                          Continuar
+                        </Button>
                       </TabsContent>
 
                       <TabsContent value="additional" className="space-y-3">
@@ -918,13 +1026,51 @@ export default function LicenseAuth() {
                           />
                         </div>
                         <div>
-                          <Label className="text-sm">URL de Avatar/Foto</Label>
-                          <Input 
-                            value={fighterData.avatar_url} 
-                            onChange={(e) => handleFighterDataChange('avatar_url', e.target.value)} 
-                            placeholder="https://..."
-                            className="min-h-[48px]"
-                          />
+                          <Label className="text-sm">Foto de Perfil</Label>
+                          <div className="space-y-2">
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                            />
+                            {photoPreview ? (
+                              <div className="relative w-full aspect-square max-w-[200px] mx-auto">
+                                <img 
+                                  src={photoPreview} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-cover rounded-lg"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="sm"
+                                  className="absolute top-2 right-2"
+                                  onClick={() => {
+                                    setPhotoPreview('');
+                                    if (fileInputRef.current) fileInputRef.current.value = '';
+                                  }}
+                                >
+                                  Cambiar
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full min-h-[100px] flex-col gap-2"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploadingPhoto}
+                              >
+                                <Camera className="h-8 w-8" />
+                                <span className="text-sm">
+                                  {uploadingPhoto ? 'Procesando...' : 'Tomar/Subir Foto'}
+                                </span>
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </TabsContent>
                     </Tabs>
