@@ -397,22 +397,22 @@ export default function LicenseAuth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/10 p-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/10 p-2 sm:p-4 py-4 sm:py-8">
       <div className="w-full max-w-2xl">
         <Card className="border-0 shadow-2xl bg-card/95 backdrop-blur-sm w-full">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 p-3 rounded-full bg-primary/10">
-              <Shield className="h-8 w-8 text-primary" />
+          <CardHeader className="text-center pb-3 px-4 pt-6 sm:px-6">
+            <div className="mx-auto mb-3 p-2.5 sm:p-3 rounded-full bg-primary/10">
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold">
+            <CardTitle className="text-xl sm:text-2xl font-bold">
               {isLogin ? 'Acceso a tu Fighter ID' : 'Crear Cuenta'}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               {isLogin ? 'Ingresa a tu portal' : 'Solicita tu acceso'}
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3 px-4 sm:px-6 pb-6">
             {registrationSuccess && (
               <Alert className="bg-blue-50 border-blue-200">
                 <AlertDescription className="space-y-3">
@@ -526,48 +526,78 @@ export default function LicenseAuth() {
 
                 {/* STEP 1: Basic Info */}
                 {registrationStep === 1 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Información Básica</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h3 className="text-base sm:text-lg font-semibold">Información Básica</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <Label>Nombre *</Label>
-                        <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                        <Label className="text-sm">Nombre *</Label>
+                        <Input 
+                          value={firstName} 
+                          onChange={(e) => setFirstName(e.target.value)} 
+                          autoComplete="given-name"
+                          className="min-h-[48px]"
+                          required 
+                        />
                       </div>
                       <div>
-                        <Label>Apellido *</Label>
-                        <Input value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                        <Label className="text-sm">Apellido *</Label>
+                        <Input 
+                          value={lastName} 
+                          onChange={(e) => setLastName(e.target.value)}
+                          autoComplete="family-name"
+                          className="min-h-[48px]"
+                          required 
+                        />
                       </div>
                     </div>
                     <div>
-                      <Label>Email *</Label>
-                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                      <Label className="text-sm">Email *</Label>
+                      <Input 
+                        type="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)}
+                        autoComplete="email"
+                        inputMode="email"
+                        className="min-h-[48px]"
+                        required 
+                      />
                     </div>
                     <div>
-                      <Label>Contraseña *</Label>
+                      <Label className="text-sm">Contraseña *</Label>
                       <div className="relative">
                         <Input 
                           type={showPassword ? "text" : "password"} 
                           value={password} 
-                          onChange={(e) => setPassword(e.target.value)} 
+                          onChange={(e) => setPassword(e.target.value)}
+                          autoComplete="new-password"
+                          className="min-h-[48px] pr-12"
                           required 
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 touch-manipulation"
+                          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                     </div>
                     <div>
-                      <Label>Teléfono</Label>
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+                      <Label className="text-sm">Teléfono</Label>
+                      <Input 
+                        type="tel"
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)}
+                        autoComplete="tel"
+                        inputMode="tel"
+                        className="min-h-[48px]"
+                      />
                     </div>
                     <div>
-                      <Label>País *</Label>
+                      <Label className="text-sm">País *</Label>
                       <Select value={country} onValueChange={setCountry}>
-                        <SelectTrigger>
+                        <SelectTrigger className="min-h-[48px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -580,14 +610,14 @@ export default function LicenseAuth() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="outline" onClick={() => setRegistrationStep(0)} className="flex-1">
+                    <div className="flex gap-2 pt-2">
+                      <Button type="button" variant="outline" onClick={() => setRegistrationStep(0)} className="flex-1 min-h-[48px]">
                         Atrás
                       </Button>
                       <Button 
                         type="button" 
                         onClick={selectedUserType === 'user' ? handleFinalSubmit : () => handleNextStep()} 
-                        className="flex-1"
+                        className="flex-1 min-h-[48px]"
                         disabled={isSubmitting}
                       >
                         {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Procesando...</> : selectedUserType === 'user' ? 'Registrarse' : 'Continuar'}
@@ -598,10 +628,10 @@ export default function LicenseAuth() {
 
                 {/* STEP 2: Complete Fighter Info with Tabs */}
                 {registrationStep === 2 && selectedUserType === 'fighter' && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Información Completa de Fighter ID</h3>
+                  <div className="space-y-3">
+                    <h3 className="text-base sm:text-lg font-semibold">Información Completa de Fighter ID</h3>
                     <Tabs defaultValue="personal" className="w-full">
-                      <TabsList className="grid w-full grid-cols-5">
+                      <TabsList className="grid w-full grid-cols-5 h-auto text-xs sm:text-sm">
                         <TabsTrigger value="personal">Personal</TabsTrigger>
                         <TabsTrigger value="physical">Físico</TabsTrigger>
                         <TabsTrigger value="combat">Combate</TabsTrigger>
@@ -609,15 +639,19 @@ export default function LicenseAuth() {
                         <TabsTrigger value="additional">Adicional</TabsTrigger>
                       </TabsList>
 
-                      <TabsContent value="personal" className="space-y-4">
+                      <TabsContent value="personal" className="space-y-3">
                         <div>
-                          <Label>Apodo</Label>
-                          <Input value={fighterData.nickname} onChange={(e) => handleFighterDataChange('nickname', e.target.value)} />
+                          <Label className="text-sm">Apodo</Label>
+                          <Input 
+                            value={fighterData.nickname} 
+                            onChange={(e) => handleFighterDataChange('nickname', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Género</Label>
+                          <Label className="text-sm">Género</Label>
                           <Select value={fighterData.gender} onValueChange={(val) => handleFighterDataChange('gender', val)}>
-                            <SelectTrigger><SelectValue placeholder="Selecciona género" /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Selecciona género" /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Masculino">Masculino</SelectItem>
                               <SelectItem value="Femenino">Femenino</SelectItem>
@@ -626,70 +660,100 @@ export default function LicenseAuth() {
                           </Select>
                         </div>
                         <div>
-                          <Label>Fecha de Nacimiento</Label>
+                          <Label className="text-sm">Fecha de Nacimiento</Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              <Button variant="outline" className="w-full justify-start text-left font-normal min-h-[48px] text-sm">
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {fighterData.birthdate ? format(fighterData.birthdate, 'PP', { locale: es }) : 'Selecciona fecha'}
+                                {fighterData.birthdate ? format(fighterData.birthdate, 'dd/MM/yyyy') : 'Selecciona fecha'}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 pointer-events-auto">
+                            <PopoverContent className="w-auto p-0" align="start">
                               <Calendar
                                 mode="single"
                                 selected={fighterData.birthdate || undefined}
                                 onSelect={(date) => handleFighterDataChange('birthdate', date)}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
                                 initialFocus
-                                className="pointer-events-auto"
+                                captionLayout="dropdown-buttons"
+                                fromYear={1900}
+                                toYear={new Date().getFullYear()}
+                                className="p-3 pointer-events-auto"
                               />
                             </PopoverContent>
                           </Popover>
                         </div>
                         <div>
-                          <Label>Lugar de Nacimiento</Label>
-                          <Input value={fighterData.birthplace} onChange={(e) => handleFighterDataChange('birthplace', e.target.value)} />
+                          <Label className="text-sm">Lugar de Nacimiento</Label>
+                          <Input 
+                            value={fighterData.birthplace} 
+                            onChange={(e) => handleFighterDataChange('birthplace', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Tipo de Documento</Label>
+                          <Label className="text-sm">Tipo de Documento</Label>
                           <Select value={fighterData.document_type} onValueChange={(val) => handleFighterDataChange('document_type', val)}>
-                            <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
                             <SelectContent>
                               {documentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label>Número de Documento</Label>
-                          <Input value={fighterData.document_number} onChange={(e) => handleFighterDataChange('document_number', e.target.value)} />
+                          <Label className="text-sm">Número de Documento</Label>
+                          <Input 
+                            value={fighterData.document_number} 
+                            onChange={(e) => handleFighterDataChange('document_number', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="physical" className="space-y-4">
+                      <TabsContent value="physical" className="space-y-3">
                         <div>
-                          <Label>Altura (cm)</Label>
-                          <Input type="number" value={fighterData.height_cm} onChange={(e) => handleFighterDataChange('height_cm', parseInt(e.target.value))} />
+                          <Label className="text-sm">Altura (cm)</Label>
+                          <Input 
+                            type="number" 
+                            inputMode="numeric"
+                            value={fighterData.height_cm} 
+                            onChange={(e) => handleFighterDataChange('height_cm', parseInt(e.target.value))}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Peso (kg)</Label>
-                          <Input type="number" value={fighterData.weight_kg} onChange={(e) => handleFighterDataChange('weight_kg', parseFloat(e.target.value))} />
+                          <Label className="text-sm">Peso (kg)</Label>
+                          <Input 
+                            type="number" 
+                            inputMode="decimal"
+                            value={fighterData.weight_kg} 
+                            onChange={(e) => handleFighterDataChange('weight_kg', parseFloat(e.target.value))}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Alcance (cm)</Label>
-                          <Input type="number" value={fighterData.reach_cm} onChange={(e) => handleFighterDataChange('reach_cm', parseInt(e.target.value))} />
+                          <Label className="text-sm">Alcance (cm)</Label>
+                          <Input 
+                            type="number" 
+                            inputMode="numeric"
+                            value={fighterData.reach_cm} 
+                            onChange={(e) => handleFighterDataChange('reach_cm', parseInt(e.target.value))}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Tipo de Sangre</Label>
+                          <Label className="text-sm">Tipo de Sangre</Label>
                           <Select value={fighterData.blood_type} onValueChange={(val) => handleFighterDataChange('blood_type', val)}>
-                            <SelectTrigger><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Selecciona tipo" /></SelectTrigger>
                             <SelectContent>
                               {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label>Guardia</Label>
+                          <Label className="text-sm">Guardia</Label>
                           <Select value={fighterData.stance} onValueChange={(val) => handleFighterDataChange('stance', val)}>
-                            <SelectTrigger><SelectValue placeholder="Selecciona guardia" /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue placeholder="Selecciona guardia" /></SelectTrigger>
                             <SelectContent>
                               {stances.map(stance => <SelectItem key={stance} value={stance}>{stance}</SelectItem>)}
                             </SelectContent>
@@ -697,120 +761,182 @@ export default function LicenseAuth() {
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="combat" className="space-y-4">
+                      <TabsContent value="combat" className="space-y-3">
                         <div>
-                          <Label>Categoría de Peso *</Label>
+                          <Label className="text-sm">Categoría de Peso *</Label>
                           <Select value={fighterData.weight_class} onValueChange={(val) => handleFighterDataChange('weight_class', val)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {weightClasses.map(wc => <SelectItem key={wc} value={wc}>{wc}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label>Artes Marciales * (al menos una)</Label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <Label className="text-sm">Artes Marciales * (al menos una)</Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {martialArtsList.map(art => (
-                              <div key={art} className="flex items-center space-x-2">
+                              <div key={art} className="flex items-center space-x-2 min-h-[44px]">
                                 <Checkbox
                                   id={`art-${art}`}
                                   checked={fighterData.martial_arts.includes(art)}
                                   onCheckedChange={(checked) => handleMartialArtsChange(art, checked as boolean)}
+                                  className="min-w-[20px] min-h-[20px]"
                                 />
-                                <label htmlFor={`art-${art}`} className="text-sm">{art}</label>
+                                <label htmlFor={`art-${art}`} className="text-sm cursor-pointer flex-1">{art}</label>
                               </div>
                             ))}
                           </div>
                         </div>
                         <div>
-                          <Label>Gimnasio/Academia</Label>
-                          <Input value={fighterData.gym_name} onChange={(e) => handleFighterDataChange('gym_name', e.target.value)} />
+                          <Label className="text-sm">Gimnasio/Academia</Label>
+                          <Input 
+                            value={fighterData.gym_name} 
+                            onChange={(e) => handleFighterDataChange('gym_name', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Nivel</Label>
+                          <Label className="text-sm">Nivel</Label>
                           <Select value={fighterData.level} onValueChange={(val) => handleFighterDataChange('level', val)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="min-h-[48px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
                               {levels.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
                         <div>
-                          <Label>Estilo de Pelea</Label>
-                          <Input value={fighterData.fighting_style} onChange={(e) => handleFighterDataChange('fighting_style', e.target.value)} />
+                          <Label className="text-sm">Estilo de Pelea</Label>
+                          <Input 
+                            value={fighterData.fighting_style} 
+                            onChange={(e) => handleFighterDataChange('fighting_style', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-2">
                           <div>
-                            <Label>Victorias</Label>
-                            <Input type="number" value={fighterData.record_wins} onChange={(e) => handleFighterDataChange('record_wins', parseInt(e.target.value))} />
+                            <Label className="text-xs sm:text-sm">Victorias</Label>
+                            <Input 
+                              type="number" 
+                              inputMode="numeric"
+                              value={fighterData.record_wins} 
+                              onChange={(e) => handleFighterDataChange('record_wins', parseInt(e.target.value))}
+                              className="min-h-[48px]"
+                            />
                           </div>
                           <div>
-                            <Label>Derrotas</Label>
-                            <Input type="number" value={fighterData.record_losses} onChange={(e) => handleFighterDataChange('record_losses', parseInt(e.target.value))} />
+                            <Label className="text-xs sm:text-sm">Derrotas</Label>
+                            <Input 
+                              type="number" 
+                              inputMode="numeric"
+                              value={fighterData.record_losses} 
+                              onChange={(e) => handleFighterDataChange('record_losses', parseInt(e.target.value))}
+                              className="min-h-[48px]"
+                            />
                           </div>
                           <div>
-                            <Label>Empates</Label>
-                            <Input type="number" value={fighterData.record_draws} onChange={(e) => handleFighterDataChange('record_draws', parseInt(e.target.value))} />
+                            <Label className="text-xs sm:text-sm">Empates</Label>
+                            <Input 
+                              type="number" 
+                              inputMode="numeric"
+                              value={fighterData.record_draws} 
+                              onChange={(e) => handleFighterDataChange('record_draws', parseInt(e.target.value))}
+                              className="min-h-[48px]"
+                            />
                           </div>
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="medical" className="space-y-4">
+                      <TabsContent value="medical" className="space-y-3">
                         <div>
-                          <Label>Alergias Médicas</Label>
-                          <Textarea value={fighterData.medical_allergies} onChange={(e) => handleFighterDataChange('medical_allergies', e.target.value)} />
+                          <Label className="text-sm">Alergias Médicas</Label>
+                          <Textarea 
+                            value={fighterData.medical_allergies} 
+                            onChange={(e) => handleFighterDataChange('medical_allergies', e.target.value)}
+                            className="min-h-[100px]"
+                          />
                         </div>
                         <div>
-                          <Label>Condiciones Médicas</Label>
-                          <Textarea value={fighterData.medical_conditions} onChange={(e) => handleFighterDataChange('medical_conditions', e.target.value)} />
+                          <Label className="text-sm">Condiciones Médicas</Label>
+                          <Textarea 
+                            value={fighterData.medical_conditions} 
+                            onChange={(e) => handleFighterDataChange('medical_conditions', e.target.value)}
+                            className="min-h-[100px]"
+                          />
                         </div>
                         <div>
-                          <Label>Contacto de Emergencia (Nombre)</Label>
-                          <Input value={fighterData.emergency_contact_name} onChange={(e) => handleFighterDataChange('emergency_contact_name', e.target.value)} />
+                          <Label className="text-sm">Contacto de Emergencia (Nombre)</Label>
+                          <Input 
+                            value={fighterData.emergency_contact_name} 
+                            onChange={(e) => handleFighterDataChange('emergency_contact_name', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Contacto de Emergencia (Teléfono)</Label>
-                          <Input value={fighterData.emergency_contact_phone} onChange={(e) => handleFighterDataChange('emergency_contact_phone', e.target.value)} />
+                          <Label className="text-sm">Contacto de Emergencia (Teléfono)</Label>
+                          <Input 
+                            type="tel"
+                            inputMode="tel"
+                            value={fighterData.emergency_contact_phone} 
+                            onChange={(e) => handleFighterDataChange('emergency_contact_phone', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Relación con Contacto</Label>
-                          <Input value={fighterData.emergency_contact_relation} onChange={(e) => handleFighterDataChange('emergency_contact_relation', e.target.value)} />
+                          <Label className="text-sm">Relación con Contacto</Label>
+                          <Input 
+                            value={fighterData.emergency_contact_relation} 
+                            onChange={(e) => handleFighterDataChange('emergency_contact_relation', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Compañía de Seguro</Label>
-                          <Input value={fighterData.insurance_company} onChange={(e) => handleFighterDataChange('insurance_company', e.target.value)} />
+                          <Label className="text-sm">Compañía de Seguro</Label>
+                          <Input 
+                            value={fighterData.insurance_company} 
+                            onChange={(e) => handleFighterDataChange('insurance_company', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                         <div>
-                          <Label>Póliza de Seguro</Label>
-                          <Input value={fighterData.insurance_policy} onChange={(e) => handleFighterDataChange('insurance_policy', e.target.value)} />
+                          <Label className="text-sm">Póliza de Seguro</Label>
+                          <Input 
+                            value={fighterData.insurance_policy} 
+                            onChange={(e) => handleFighterDataChange('insurance_policy', e.target.value)}
+                            className="min-h-[48px]"
+                          />
                         </div>
                       </TabsContent>
 
-                      <TabsContent value="additional" className="space-y-4">
+                      <TabsContent value="additional" className="space-y-3">
                         <div>
-                          <Label>Biografía</Label>
+                          <Label className="text-sm">Biografía</Label>
                           <Textarea 
                             value={fighterData.bio} 
                             onChange={(e) => handleFighterDataChange('bio', e.target.value)} 
                             placeholder="Cuéntanos sobre tu trayectoria como peleador..."
-                            rows={4}
+                            className="min-h-[120px]"
                           />
                         </div>
                         <div>
-                          <Label>URL de Avatar/Foto</Label>
-                          <Input value={fighterData.avatar_url} onChange={(e) => handleFighterDataChange('avatar_url', e.target.value)} placeholder="https://..." />
+                          <Label className="text-sm">URL de Avatar/Foto</Label>
+                          <Input 
+                            value={fighterData.avatar_url} 
+                            onChange={(e) => handleFighterDataChange('avatar_url', e.target.value)} 
+                            placeholder="https://..."
+                            className="min-h-[48px]"
+                          />
                         </div>
                       </TabsContent>
                     </Tabs>
 
-                    <div className="flex gap-2 pt-4">
-                      <Button type="button" variant="outline" onClick={() => setRegistrationStep(1)} className="flex-1">
+                    <div className="flex gap-2 pt-2">
+                      <Button type="button" variant="outline" onClick={() => setRegistrationStep(1)} className="flex-1 min-h-[48px]">
                         Atrás
                       </Button>
                       <Button 
                         type="button" 
                         onClick={handleFinalSubmit} 
-                        className="flex-1"
+                        className="flex-1 min-h-[48px]"
                         disabled={isSubmitting || !fighterData.weight_class || fighterData.martial_arts.length === 0}
                       >
                         {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creando Fighter ID...</> : 'Crear Fighter ID'}
@@ -821,7 +947,7 @@ export default function LicenseAuth() {
 
                 {/* Back to login link */}
                 {registrationStep === 0 && (
-                  <Button type="button" variant="ghost" className="w-full" onClick={() => setIsLogin(true)}>
+                  <Button type="button" variant="ghost" className="w-full min-h-[48px]" onClick={() => setIsLogin(true)}>
                     ¿Ya tienes cuenta? Inicia sesión
                   </Button>
                 )}
