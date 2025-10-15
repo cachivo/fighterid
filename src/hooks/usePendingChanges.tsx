@@ -163,7 +163,7 @@ export function usePendingChanges() {
       if (status === 'APPROVED') {
         const change = profileChanges.find(c => c.id === requestId);
         if (change) {
-          const { error: applyError } = await supabase.rpc('admin_update_fighter_profile_v8', {
+          const { error: applyError } = await supabase.rpc('admin_update_fighter_profile', {
             p_fighter_id: change.fighter_profile_id,
             p_profile_data: change.requested_changes
           });
