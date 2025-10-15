@@ -257,7 +257,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/license/auth`;
+    const redirectUrl = `${window.location.origin}/license/onboarding`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -323,7 +323,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/license/auth`
+          emailRedirectTo: `${window.location.origin}/license/onboarding`
         }
       });
       
