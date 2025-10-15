@@ -44,6 +44,7 @@ export default function Auth() {
   const [registeredEmail, setRegisteredEmail] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
 
   const form = useForm<AuthFormData>({
     resolver: zodResolver(authSchema),
@@ -182,13 +183,31 @@ export default function Auth() {
       const { error: signUpError } = await signUp(data.email, data.password);
       
       if (signUpError) {
-        // Check for rate limiting or already registered
+        // Check for rate limiting
         if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
           throw new Error('Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.');
         }
+        
+        // Handle already registered - redirect to login
         if (signUpError.message?.includes('already registered')) {
-          throw new Error('Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.');
+          toast({
+            title: "✅ Cuenta existente detectada",
+            description: "Este email ya está registrado. Redirigiendo a inicio de sesión...",
+            duration: 3000,
+          });
+          
+          // Pre-fill login form with the email and switch tab
+          form.setValue('email', data.email);
+          
+          // Switch to signin tab immediately
+          setTimeout(() => {
+            setActiveTab('signin');
+          }, 1500);
+          
+          setLoading(false);
+          return;
         }
+        
         throw signUpError;
       }
 
@@ -269,7 +288,7 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Iniciar Sesión</TabsTrigger>
               <TabsTrigger value="signup">Registrarse</TabsTrigger>
