@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
-import { sendEmailWithFallback, EmailTemplates } from "../_shared/email-config.ts";
+import { sendEmailWithFallback, EmailTemplates, getEmailFrom } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -211,6 +211,7 @@ const handler = async (req: Request): Promise<Response> => {
             <strong>Nota:</strong> Esta invitación expira en 7 días.
           </p>
         `),
+            from: getEmailFrom(),
           });
           console.log("[INVITATION] Email re-sent successfully:", emailResult);
         } catch (emailError: any) {
@@ -273,6 +274,7 @@ const handler = async (req: Request): Promise<Response> => {
         to: email,
         subject: "🥊 Invitación para registrarte en Fighter ID",
         html: EmailTemplates.wrap(emailContent),
+        from: getEmailFrom(),
       });
 
       console.log("[INVITATION] Email sent successfully:", emailResult);

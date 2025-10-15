@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
-import { sendEmailWithFallback } from "../_shared/email-config.ts";
+import { sendEmailWithFallback, getEmailFrom } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -222,6 +222,7 @@ serve(async (req) => {
       to: user.email,
       subject,
       html,
+      from: getEmailFrom(),
     });
 
     console.log("[SIGNUP] ✓ Email sent successfully:", {

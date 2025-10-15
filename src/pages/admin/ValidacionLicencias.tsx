@@ -129,6 +129,49 @@ export default function ValidacionLicencias() {
         
         if (error) throw error;
         
+        // Send approval email
+        try {
+          // Get license data - pendingLicenses has full user info
+          let licenseData = pendingLicenses?.find(l => l.id === licenseId);
+          
+          // If not in pending (already moved to active), fetch it
+          if (!licenseData) {
+            const { data } = await supabase
+              .from('fighter_licenses')
+              .select(`
+                *,
+                fighter:fighter_id(
+                  *,
+                  user:user_id(email, phone, birthdate, country)
+                )
+              `)
+              .eq('id', licenseId)
+              .single();
+            licenseData = data as any;
+          }
+          
+          if (licenseData?.fighter?.user?.email) {
+            const { error: emailError } = await supabase.functions.invoke('send-license-approval', {
+              body: {
+                license_id: licenseId,
+                fighter_email: licenseData.fighter.user.email,
+                fighter_name: `${licenseData.fighter.first_name} ${licenseData.fighter.last_name}`,
+                license_number: licenseData.license_number,
+                license_level: licenseData.license_level || 'AMATEUR',
+                expires_at: licenseData.expires_at
+              }
+            });
+            
+            if (emailError) {
+              console.error('Error sending approval email:', emailError);
+              // Don't throw - email failure shouldn't prevent approval
+            }
+          }
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError);
+          // Continue - email is not critical
+        }
+        
       } else if (newStatus === 'SUSPENDED') {
         await suspendLicense.mutateAsync({ 
           licenseId, 

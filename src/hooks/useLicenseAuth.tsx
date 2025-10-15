@@ -301,8 +301,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const resetPassword = async (email: string) => {
     const redirectUrl = `${window.location.origin}/license/reset-password`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl
+    const { data, error } = await supabase.functions.invoke('send-password-recovery', {
+      body: { 
+        email,
+        redirectTo: redirectUrl
+      }
     });
     return { error };
   };
