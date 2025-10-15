@@ -283,80 +283,106 @@ export default function RequestFighterLicense() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-red-950/20 to-slate-950 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950/30 to-slate-900 py-12 px-4 relative overflow-hidden">
+      {/* Background decorations */}
+      <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-5 bg-cover bg-center" />
+      <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl" />
+      
+      <div className="max-w-4xl mx-auto relative z-10">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-6 text-white hover:text-gold-400"
+          className="mb-6 text-white hover:text-gold-400 hover:bg-white/5"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver al inicio
         </Button>
 
-        <Card className="bg-slate-900/80 border-gold-500/30 backdrop-blur">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Trophy className="w-16 h-16 text-gold-400" />
+        <Card className="bg-slate-900/95 border-gold-500/30 backdrop-blur-xl shadow-2xl">
+          <CardHeader className="text-center pb-8 relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-gold-500/5 to-transparent rounded-t-lg" />
+            <div className="flex justify-center mb-4 relative">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gold-400/20 blur-xl rounded-full" />
+                <Shield className="w-20 h-20 text-gold-400 relative drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]" />
+              </div>
             </div>
-            <CardTitle className="text-3xl font-bold text-white">
+            <CardTitle className="text-4xl font-bold text-white mb-2 relative">
               Solicitud de Fighter ID
             </CardTitle>
-            <CardDescription className="text-gold-200">
+            <CardDescription className="text-lg text-white/80 relative">
               Completa tu información para obtener tu licencia oficial de peleador
             </CardDescription>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="px-6 pb-8">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="grid w-full grid-cols-5 mb-8">
-                <TabsTrigger value="personal" className="text-xs sm:text-sm">
+              <TabsList className="grid w-full grid-cols-5 mb-8 bg-slate-800/50 p-1">
+                <TabsTrigger 
+                  value="personal" 
+                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                >
                   <User className="w-4 h-4 mr-1" />
-                  Personal
+                  <span className="hidden sm:inline">Personal</span>
                 </TabsTrigger>
-                <TabsTrigger value="physical" className="text-xs sm:text-sm">
+                <TabsTrigger 
+                  value="physical" 
+                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                >
                   <Activity className="w-4 h-4 mr-1" />
-                  Físico
+                  <span className="hidden sm:inline">Físico</span>
                 </TabsTrigger>
-                <TabsTrigger value="combat" className="text-xs sm:text-sm">
+                <TabsTrigger 
+                  value="combat" 
+                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                >
                   <Shield className="w-4 h-4 mr-1" />
-                  Combate
+                  <span className="hidden sm:inline">Combate</span>
                 </TabsTrigger>
-                <TabsTrigger value="medical" className="text-xs sm:text-sm">
+                <TabsTrigger 
+                  value="medical" 
+                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                >
                   <Heart className="w-4 h-4 mr-1" />
-                  Médico
+                  <span className="hidden sm:inline">Médico</span>
                 </TabsTrigger>
-                <TabsTrigger value="additional" className="text-xs sm:text-sm">
+                <TabsTrigger 
+                  value="additional" 
+                  className="text-xs sm:text-sm data-[state=active]:bg-gold-500/20 data-[state=active]:text-gold-400 transition-all"
+                >
                   <FileText className="w-4 h-4 mr-1" />
-                  Adicional
+                  <span className="hidden sm:inline">Adicional</span>
                 </TabsTrigger>
               </TabsList>
 
               {/* Tab Personal */}
-              <TabsContent value="personal" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nickname">Apodo / Nickname</Label>
+              <TabsContent value="personal" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname" className="text-gold-400 font-medium">Apodo / Nickname</Label>
                     <Input
                       id="nickname"
                       value={formData.nickname}
                       onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                       placeholder="Ej: El Tigre"
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="birthplace">Lugar de Nacimiento</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="birthplace" className="text-gold-400 font-medium">Lugar de Nacimiento</Label>
                     <Input
                       id="birthplace"
                       value={formData.birthplace}
                       onChange={(e) => setFormData({ ...formData, birthplace: e.target.value })}
                       placeholder="Ej: Tegucigalpa, Honduras"
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="document_type">Tipo de Documento</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="document_type" className="text-gold-400 font-medium">Tipo de Documento</Label>
                     <Select value={formData.document_type} onValueChange={(v) => setFormData({ ...formData, document_type: v })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -366,57 +392,67 @@ export default function RequestFighterLicense() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="document_image" className="text-gold-400">
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="document_image" className="text-gold-400 font-medium flex items-center gap-2">
                       Imagen del Documento * 
-                      <span className="text-sm text-muted-foreground ml-2">(Solo visible para ti y administradores)</span>
+                      <span className="text-sm text-white/60 font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
-                    <Input
-                      id="document_image"
-                      type="file"
-                      accept="image/jpeg,image/png,image/jpg,application/pdf"
-                      onChange={handleDocumentChange}
-                      required
-                      className="cursor-pointer"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Sube una foto clara de tu {formData.document_type}. Máximo 5MB. Formatos: JPG, PNG, PDF
-                    </p>
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                      <Input
+                        id="document_image"
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,application/pdf"
+                        onChange={handleDocumentChange}
+                        required
+                        className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gold-500 file:text-white hover:file:bg-gold-600"
+                      />
+                      <p className="text-xs text-white/60 mt-2">
+                        Sube una foto clara de tu {formData.document_type}. Máximo 5MB. Formatos: JPG, PNG, PDF
+                      </p>
+                    </div>
                     {documentPreview && (
-                      <div className="mt-2">
+                      <div className="mt-4 p-2 bg-slate-800/50 rounded-lg border border-gold-500/30">
                         <img 
                           src={documentPreview} 
                           alt="Vista previa del documento" 
-                          className="w-full max-w-md h-auto object-contain rounded-lg border-2 border-gold-500/30" 
+                          className="w-full max-w-md h-auto object-contain rounded-lg mx-auto" 
                         />
                       </div>
                     )}
                   </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="photo">Foto de Perfil de Peleador</Label>
-                    <Input
-                      id="photo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handlePhotoChange}
-                    />
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="photo" className="text-gold-400 font-medium">Foto de Perfil de Peleador</Label>
+                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                      <Input
+                        id="photo"
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoChange}
+                        className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-500 file:text-white hover:file:bg-blue-600"
+                      />
+                    </div>
                     {photoPreview && (
-                      <img src={photoPreview} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded-lg" />
+                      <div className="mt-4 flex justify-center">
+                        <img src={photoPreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border-2 border-gold-500/50 shadow-lg" />
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="flex justify-end mt-6">
-                  <Button onClick={() => setCurrentTab('physical')}>
+                <div className="flex justify-end mt-6 pt-6 border-t border-slate-700">
+                  <Button 
+                    onClick={() => setCurrentTab('physical')}
+                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                  >
                     Siguiente
                   </Button>
                 </div>
               </TabsContent>
 
               {/* Tab Físico */}
-              <TabsContent value="physical" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="height_cm">Altura (cm) *</Label>
+              <TabsContent value="physical" className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="height_cm" className="text-gold-400 font-medium">Altura (cm) *</Label>
                     <Input
                       id="height_cm"
                       type="number"
@@ -424,10 +460,11 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })}
                       placeholder="175"
                       required
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="weight_kg">Peso (kg) *</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="weight_kg" className="text-gold-400 font-medium">Peso (kg) *</Label>
                     <Input
                       id="weight_kg"
                       type="number"
@@ -436,22 +473,24 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
                       placeholder="70.5"
                       required
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="reach_cm">Alcance (cm)</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="reach_cm" className="text-gold-400 font-medium">Alcance (cm)</Label>
                     <Input
                       id="reach_cm"
                       type="number"
                       value={formData.reach_cm}
                       onChange={(e) => setFormData({ ...formData, reach_cm: e.target.value })}
                       placeholder="180"
+                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="blood_type">Tipo de Sangre</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="blood_type" className="text-gold-400 font-medium">Tipo de Sangre</Label>
                     <Select value={formData.blood_type} onValueChange={(v) => setFormData({ ...formData, blood_type: v })}>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
                         <SelectValue placeholder="Seleccionar" />
                       </SelectTrigger>
                       <SelectContent>
@@ -467,11 +506,18 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex justify-between mt-6">
-                  <Button variant="outline" onClick={() => setCurrentTab('personal')}>
+                <div className="flex justify-between mt-6 pt-6 border-t border-slate-700">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentTab('personal')}
+                    className="border-slate-600 hover:bg-slate-800 text-white"
+                  >
                     Anterior
                   </Button>
-                  <Button onClick={() => setCurrentTab('combat')}>
+                  <Button 
+                    onClick={() => setCurrentTab('combat')}
+                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                  >
                     Siguiente
                   </Button>
                 </div>
@@ -711,14 +757,18 @@ export default function RequestFighterLicense() {
                     />
                   </div>
                 </div>
-                <div className="flex justify-between mt-6">
-                  <Button variant="outline" onClick={() => setCurrentTab('medical')}>
+                <div className="flex justify-between mt-6 pt-6 border-t border-slate-700">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setCurrentTab('medical')}
+                    className="border-slate-600 hover:bg-slate-800 text-white"
+                  >
                     Anterior
                   </Button>
                   <Button 
                     onClick={handleSubmit} 
                     disabled={loading}
-                    className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700"
+                    className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 px-8 shadow-lg hover:shadow-xl transition-all hover:scale-105"
                   >
                     {loading ? (
                       <>
@@ -727,7 +777,7 @@ export default function RequestFighterLicense() {
                       </>
                     ) : (
                       <>
-                        <Trophy className="w-4 h-4 mr-2" />
+                        <Shield className="w-4 h-4 mr-2" />
                         Enviar Solicitud
                       </>
                     )}
