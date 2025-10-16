@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedImage } from '@/components/ui/optimized-image';
-import { User, Loader2, Eye } from 'lucide-react';
+import { User, Loader2, Eye, Calendar, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LicenseCardProps {
@@ -84,6 +84,40 @@ export const LicenseCard = ({
             </>
           )}
         </div>
+        
+        {/* Show upcoming fight event if exists */}
+        {!isPending && license.fight_bookings && license.fight_bookings.length > 0 && (
+          <div className="mt-2 p-2 bg-primary/5 rounded border border-primary/20">
+            <div className="flex items-start gap-2">
+              <Calendar className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+              <div className="text-sm space-y-0.5">
+                <div className="font-medium text-primary">
+                  {license.fight_bookings[0].event_name}
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <span>{new Date(license.fight_bookings[0].scheduled_date).toLocaleDateString('es-HN', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                  {license.fight_bookings[0].venue && (
+                    <>
+                      <span>•</span>
+                      <MapPin className="h-3 w-3 inline" />
+                      <span>{license.fight_bookings[0].venue}</span>
+                    </>
+                  )}
+                </div>
+                {license.fight_bookings[0].fight_type && (
+                  <Badge variant="outline" className="text-xs h-5">
+                    {license.fight_bookings[0].fight_type}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {license.notes && (
           <div className="text-sm text-muted-foreground">
             <strong>Notas:</strong> {license.notes}

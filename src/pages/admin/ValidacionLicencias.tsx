@@ -68,7 +68,17 @@ export default function ValidacionLicencias() {
         .select(`
           *,
           fighter:fighter_id(first_name, last_name, nickname, weight_class, avatar_url),
-          license_documents!license_documents_license_id_fkey(id, file_path, document_type)
+          license_documents!license_documents_license_id_fkey(id, file_path, document_type),
+          fight_bookings!fight_bookings_license_id_fkey(
+            id,
+            event_name,
+            scheduled_date,
+            venue,
+            status,
+            weight_class,
+            fight_type,
+            promoter
+          )
         `)
         .in('status', ['ACTIVE', 'SUSPENDED'])
         .order('created_at', { ascending: false });
