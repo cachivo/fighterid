@@ -31,7 +31,6 @@ export default function RequestFighterLicense() {
     phone: '',
     birthplace: '',
     document_type: 'DNI',
-    document_number: '',
     
     // Físico
     height_cm: '',
@@ -157,21 +156,6 @@ export default function RequestFighterLicense() {
         return;
       }
 
-      const birthDate = new Date(formData.birthdate);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-
-      if (age < 18) {
-        toast.error('Debes tener al menos 18 años para solicitar una licencia de peleador');
-        setCurrentTab('personal');
-        setLoading(false);
-        return;
-      }
-
       // Validar género
       if (!formData.gender) {
         toast.error('Debes seleccionar tu género');
@@ -183,14 +167,6 @@ export default function RequestFighterLicense() {
       // Validar teléfono
       if (!formData.phone.trim()) {
         toast.error('Debes proporcionar tu número de teléfono');
-        setCurrentTab('personal');
-        setLoading(false);
-        return;
-      }
-
-      // Validar número de documento
-      if (!formData.document_number.trim()) {
-        toast.error('Debes proporcionar el número de tu documento');
         setCurrentTab('personal');
         setLoading(false);
         return;
@@ -297,7 +273,6 @@ export default function RequestFighterLicense() {
         phone: formData.phone.trim(),
         birthplace: formData.birthplace || null,
         document_type: formData.document_type || null,
-        document_number: formData.document_number.trim(),
         document_image_url: documentUrl || null,
         
         // Físico - enviar null si vacío
@@ -577,7 +552,7 @@ export default function RequestFighterLicense() {
                       required
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
-                    <p className="text-xs text-white/60">Debes tener al menos 18 años</p>
+                    <p className="text-xs text-white/60">Requerida para categorización</p>
                   </div>
                   
                   <div className="space-y-1.5">
@@ -639,20 +614,6 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                   
-                  <div className="space-y-1.5">
-                    <Label htmlFor="document_number" className="text-white font-medium">
-                      Número de {formData.document_type} <span className="text-red-400">*</span>
-                    </Label>
-                    <Input
-                      id="document_number"
-                      type="text"
-                      value={formData.document_number}
-                      onChange={(e) => setFormData({ ...formData, document_number: e.target.value })}
-                      placeholder="Ej: 0801-1990-12345"
-                      required
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                    />
-                  </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="document_image" className="text-white font-medium flex items-center gap-2">
                       Imagen del {formData.document_type} * 
