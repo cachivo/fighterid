@@ -13,6 +13,7 @@ import { useExternalFighters } from '@/hooks/useExternalFighters';
 import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Switch } from '@/components/ui/switch';
+import { trimTransparentBorders } from '@/lib/imageUtils';
 import {
   Table,
   TableBody,
@@ -310,13 +311,16 @@ export default function EventosPelea() {
 
       // Subir foto de evento para peleador A (si existe nueva)
       if (eventImageFileA) {
-        const fileExt = eventImageFileA.name.split('.').pop();
+        // Recortar bordes transparentes automáticamente
+        const trimmedFileA = await trimTransparentBorders(eventImageFileA);
+        
+        const fileExt = trimmedFileA.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadErrorA } = await supabase.storage
           .from('event-fighter-images')
-          .upload(filePath, eventImageFileA);
+          .upload(filePath, trimmedFileA);
 
         if (uploadErrorA) throw uploadErrorA;
 
@@ -329,13 +333,16 @@ export default function EventosPelea() {
 
       // Subir foto de evento para peleador B (si existe nueva)
       if (eventImageFileB) {
-        const fileExt = eventImageFileB.name.split('.').pop();
+        // Recortar bordes transparentes automáticamente
+        const trimmedFileB = await trimTransparentBorders(eventImageFileB);
+        
+        const fileExt = trimmedFileB.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadErrorB } = await supabase.storage
           .from('event-fighter-images')
-          .upload(filePath, eventImageFileB);
+          .upload(filePath, trimmedFileB);
 
         if (uploadErrorB) throw uploadErrorB;
 
@@ -1186,6 +1193,44 @@ export default function EventosPelea() {
                     </Select>
                     <div className="mt-2">
                       <Label className="text-xs text-muted-foreground">Foto para miniatura 3D (opcional)</Label>
+                      
+                      {/* Preview de imagen existente */}
+                      {editingFight?.fighter_a_event_image_url && !eventImageFileA && (
+                        <div className="mb-2 p-2 border rounded bg-muted/20">
+                          <img 
+                            src={editingFight.fighter_a_event_image_url} 
+                            alt="Preview A"
+                            className="h-24 w-auto mx-auto object-contain mb-2"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs"
+                              onClick={async () => {
+                                const confirmed = confirm('¿Eliminar la imagen del evento? Se usará la foto del perfil.');
+                                if (confirmed) {
+                                  setEditingFight((prev: any) => ({...prev, fighter_a_event_image_url: null}));
+                                  // Actualizar en BD
+                                  await supabase
+                                    .from('fights')
+                                    .update({ fighter_a_event_image_url: null })
+                                    .eq('id', editingFight.id);
+                                  toast({
+                                    title: 'Imagen eliminada',
+                                    description: 'Se usará la foto del perfil del peleador',
+                                  });
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Eliminar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
                       <FileUpload
                         accept="image/*"
                         onFileSelect={setEventImageFileA}
@@ -1195,8 +1240,34 @@ export default function EventosPelea() {
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Si no subes foto, se usará la del perfil del peleador (máx. 50MB)
+                        {eventImageFileA ? '✂️ Se recortarán bordes transparentes automáticamente' : 'Si no subes foto, se usará la del perfil (máx. 50MB)'}
                       </p>
+                      
+                      {/* Botón para usar avatar del perfil */}
+                      {fightData.fighter_a_id && !eventImageFileA && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-full mt-1 text-xs"
+                          onClick={async () => {
+                            const fighter = availableFighters.find(f => f.id === fightData.fighter_a_id);
+                            if (fighter?.avatar_url) {
+                              await supabase
+                                .from('fights')
+                                .update({ fighter_a_event_image_url: fighter.avatar_url })
+                                .eq('id', editingFight?.id);
+                              setEditingFight((prev: any) => ({...prev, fighter_a_event_image_url: fighter.avatar_url}));
+                              toast({
+                                title: 'Avatar copiado',
+                                description: 'Se usará la foto del perfil como imagen del evento',
+                              });
+                            }
+                          }}
+                        >
+                          Usar foto del perfil
+                        </Button>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -1246,6 +1317,44 @@ export default function EventosPelea() {
                     </Select>
                     <div className="mt-2">
                       <Label className="text-xs text-muted-foreground">Foto para miniatura 3D (opcional)</Label>
+                      
+                      {/* Preview de imagen existente */}
+                      {editingFight?.fighter_b_event_image_url && !eventImageFileB && (
+                        <div className="mb-2 p-2 border rounded bg-muted/20">
+                          <img 
+                            src={editingFight.fighter_b_event_image_url} 
+                            alt="Preview B"
+                            className="h-24 w-auto mx-auto object-contain mb-2"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-xs"
+                              onClick={async () => {
+                                const confirmed = confirm('¿Eliminar la imagen del evento? Se usará la foto del perfil.');
+                                if (confirmed) {
+                                  setEditingFight((prev: any) => ({...prev, fighter_b_event_image_url: null}));
+                                  // Actualizar en BD
+                                  await supabase
+                                    .from('fights')
+                                    .update({ fighter_b_event_image_url: null })
+                                    .eq('id', editingFight.id);
+                                  toast({
+                                    title: 'Imagen eliminada',
+                                    description: 'Se usará la foto del perfil del peleador',
+                                  });
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Eliminar
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
                       <FileUpload
                         accept="image/*"
                         onFileSelect={setEventImageFileB}
@@ -1255,8 +1364,34 @@ export default function EventosPelea() {
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Si no subes foto, se usará la del perfil del peleador (máx. 50MB)
+                        {eventImageFileB ? '✂️ Se recortarán bordes transparentes automáticamente' : 'Si no subes foto, se usará la del perfil (máx. 50MB)'}
                       </p>
+                      
+                      {/* Botón para usar avatar del perfil */}
+                      {fightData.fighter_b_id && !eventImageFileB && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-full mt-1 text-xs"
+                          onClick={async () => {
+                            const fighter = availableFighters.find(f => f.id === fightData.fighter_b_id);
+                            if (fighter?.avatar_url) {
+                              await supabase
+                                .from('fights')
+                                .update({ fighter_b_event_image_url: fighter.avatar_url })
+                                .eq('id', editingFight?.id);
+                              setEditingFight((prev: any) => ({...prev, fighter_b_event_image_url: fighter.avatar_url}));
+                              toast({
+                                title: 'Avatar copiado',
+                                description: 'Se usará la foto del perfil como imagen del evento',
+                              });
+                            }
+                          }}
+                        >
+                          Usar foto del perfil
+                        </Button>
+                      )}
                     </div>
                   </>
                 ) : (

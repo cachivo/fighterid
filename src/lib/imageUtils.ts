@@ -135,3 +135,100 @@ export const getImageDimensions = (file: File): Promise<{ width: number; height:
     img.src = URL.createObjectURL(file);
   });
 };
+
+/**
+ * Recorta automáticamente los bordes transparentes de una imagen PNG
+ * @param file - Archivo de imagen a recortar
+ * @returns Nueva imagen recortada sin bordes transparentes
+ */
+export const trimTransparentBorders = async (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      reject(new Error('No se pudo obtener el contexto del canvas'));
+      return;
+    }
+
+    img.onload = () => {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
+
+      // Crear canvas temporal con imagen original
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const pixels = imageData.data;
+
+      // Encontrar el bounding box de píxeles no transparentes
+      let minX = width;
+      let minY = height;
+      let maxX = 0;
+      let maxY = 0;
+
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const alpha = pixels[(y * width + x) * 4 + 3];
+          if (alpha > 0) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+      }
+
+      // Si no hay píxeles no transparentes, devolver el archivo original
+      if (minX > maxX || minY > maxY) {
+        resolve(file);
+        return;
+      }
+
+      // Calcular dimensiones del recorte
+      const cropWidth = maxX - minX + 1;
+      const cropHeight = maxY - minY + 1;
+
+      // Crear canvas final con imagen recortada
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+      ctx.clearRect(0, 0, cropWidth, cropHeight);
+      
+      // Redibujar solo la parte no transparente
+      ctx.drawImage(
+        img,
+        minX, minY, cropWidth, cropHeight,
+        0, 0, cropWidth, cropHeight
+      );
+
+      // Convertir a blob PNG
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Error al procesar la imagen'));
+            return;
+          }
+
+          const trimmedFile = new File([blob], file.name, {
+            type: 'image/png',
+            lastModified: Date.now()
+          });
+
+          console.log(`[trimTransparentBorders] Recortado: ${width}x${height} → ${cropWidth}x${cropHeight}`);
+          resolve(trimmedFile);
+        },
+        'image/png',
+        1.0
+      );
+    };
+
+    img.onerror = () => {
+      reject(new Error('Error al cargar la imagen'));
+    };
+
+    img.src = URL.createObjectURL(file);
+  });
+};

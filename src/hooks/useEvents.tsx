@@ -30,6 +30,7 @@ export interface Fight {
   fighter_a_event_image_url?: string;
   fighter_b_event_image_url?: string;
   weight_class: string;
+  card_position?: string;
   scheduled_time?: string;
   status: string;
   winner_id?: string;

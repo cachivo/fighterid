@@ -221,6 +221,16 @@ const EventDetail = () => {
                         <Badge variant="outline" className="text-lg font-bold px-3 py-1">
                           #{fight.fight_number}
                         </Badge>
+                        {fight.card_position === 'main_event' && (
+                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0">
+                            ⭐ ESTELAR
+                          </Badge>
+                        )}
+                        {fight.card_position === 'co_main_event' && (
+                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
+                            ⭐ CO-ESTELAR
+                          </Badge>
+                        )}
                         <Badge className={getFightTypeColor(fight.fight_type)}>
                           {fight.fight_type}
                         </Badge>
