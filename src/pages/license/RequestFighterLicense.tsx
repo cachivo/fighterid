@@ -44,7 +44,7 @@ export default function RequestFighterLicense() {
     record_wins: '0',
     record_losses: '0',
     record_draws: '0',
-    record_type: 'amateur',
+    record_type: 'Amateur',
     
     // Médico
     medical_conditions: '',
@@ -670,8 +670,8 @@ export default function RequestFighterLicense() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="amateur">Amateur</SelectItem>
-                        <SelectItem value="professional">Profesional</SelectItem>
+                        <SelectItem value="Amateur">Amateur</SelectItem>
+                        <SelectItem value="Profesional">Profesional</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
