@@ -612,6 +612,7 @@ export default function RequestFighterLicense() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Amateur">Amateur</SelectItem>
+                        <SelectItem value="Semi-Profesional">Semi-Profesional</SelectItem>
                         <SelectItem value="Professional">Professional</SelectItem>
                       </SelectContent>
                     </Select>
@@ -651,6 +652,18 @@ export default function RequestFighterLicense() {
                         className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
                       />
                     </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="record_type" className="text-white font-medium">Tipo de Récord *</Label>
+                    <Select value={formData.record_type} onValueChange={(v) => setFormData({ ...formData, record_type: v })}>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="amateur">Amateur</SelectItem>
+                        <SelectItem value="professional">Profesional</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
