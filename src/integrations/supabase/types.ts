@@ -1742,10 +1742,10 @@ export type Database = {
           fight_type: string
           fighter_a_event_image_url: string | null
           fighter_a_external_id: string | null
-          fighter_a_id: string
+          fighter_a_id: string | null
           fighter_b_event_image_url: string | null
           fighter_b_external_id: string | null
-          fighter_b_id: string
+          fighter_b_id: string | null
           finish_method: string | null
           finish_round: number | null
           finish_time: string | null
@@ -1765,10 +1765,10 @@ export type Database = {
           fight_type?: string
           fighter_a_event_image_url?: string | null
           fighter_a_external_id?: string | null
-          fighter_a_id: string
+          fighter_a_id?: string | null
           fighter_b_event_image_url?: string | null
           fighter_b_external_id?: string | null
-          fighter_b_id: string
+          fighter_b_id?: string | null
           finish_method?: string | null
           finish_round?: number | null
           finish_time?: string | null
@@ -1788,10 +1788,10 @@ export type Database = {
           fight_type?: string
           fighter_a_event_image_url?: string | null
           fighter_a_external_id?: string | null
-          fighter_a_id?: string
+          fighter_a_id?: string | null
           fighter_b_event_image_url?: string | null
           fighter_b_external_id?: string | null
-          fighter_b_id?: string
+          fighter_b_id?: string | null
           finish_method?: string | null
           finish_round?: number | null
           finish_time?: string | null
