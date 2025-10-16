@@ -57,11 +57,11 @@ export function useOptimizedOnboarding() {
     
     try {
       // Prepare discipline based on martial arts - ensure it's a valid enum value
-      const validDisciplines = ['Baile', 'Boxeo', 'Canto'] as const;
+      const validDisciplines = ['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'] as const;
       type ValidDiscipline = typeof validDisciplines[number];
       const discipline: ValidDiscipline = formData.martialArts.length > 0 && validDisciplines.includes(formData.martialArts[0] as ValidDiscipline)
         ? formData.martialArts[0] as ValidDiscipline
-        : 'Boxeo';
+        : 'MMA';
 
       // Calculate record based on level
       const isProLevel = formData.level === 'Profesional';

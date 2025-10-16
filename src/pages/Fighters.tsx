@@ -30,9 +30,14 @@ const WEIGHT_CLASSES = [
 
 const DISCIPLINES = [
   'Todas',
-  'Baile',
+  'MMA',
   'Boxeo',
-  'Canto'
+  'Judo',
+  'JiuJitsu',
+  'Kickboxing',
+  'MuayThai',
+  'Grappling',
+  'Otro'
 ];
 
 const FIGHTING_STYLES = [

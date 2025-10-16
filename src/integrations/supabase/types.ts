@@ -4203,7 +4203,15 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user" | "judge"
       corner: "red" | "blue"
-      discipline: "Baile" | "Boxeo" | "Canto"
+      discipline:
+        | "MMA"
+        | "Boxeo"
+        | "Judo"
+        | "JiuJitsu"
+        | "Kickboxing"
+        | "MuayThai"
+        | "Grappling"
+        | "Otro"
       discipline_type:
         | "MMA"
         | "Boxeo"
@@ -4375,7 +4383,16 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user", "judge"],
       corner: ["red", "blue"],
-      discipline: ["Baile", "Boxeo", "Canto"],
+      discipline: [
+        "MMA",
+        "Boxeo",
+        "Judo",
+        "JiuJitsu",
+        "Kickboxing",
+        "MuayThai",
+        "Grappling",
+        "Otro",
+      ],
       discipline_type: [
         "MMA",
         "Boxeo",

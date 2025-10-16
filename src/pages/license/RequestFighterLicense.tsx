@@ -35,7 +35,7 @@ export default function RequestFighterLicense() {
     
     // Combate
     weight_class: '',
-    discipline: 'Boxeo',
+    discipline: 'MMA',
     fighting_style: '',
     stance: 'Orthodox',
     level: 'Amateur',
@@ -579,9 +579,14 @@ export default function RequestFighterLicense() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Baile">Baile</SelectItem>
+                        <SelectItem value="MMA">MMA</SelectItem>
                         <SelectItem value="Boxeo">Boxeo</SelectItem>
-                        <SelectItem value="Canto">Canto</SelectItem>
+                        <SelectItem value="Judo">Judo</SelectItem>
+                        <SelectItem value="JiuJitsu">Jiu-Jitsu</SelectItem>
+                        <SelectItem value="Kickboxing">Kickboxing</SelectItem>
+                        <SelectItem value="MuayThai">Muay Thai</SelectItem>
+                        <SelectItem value="Grappling">Grappling</SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

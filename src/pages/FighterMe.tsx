@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, Activity, Users, Plus, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const DISCIPLINES = ['Baile', 'Boxeo', 'Canto'];
+const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
 export default function FighterMe() {
   const { user } = useAuth();
@@ -74,7 +74,7 @@ export default function FighterMe() {
       await createRequest.mutateAsync({
         from_fighter_id: fighterProfile.id,
         to_fighter_id: String(fd.get('to_fighter_id') || '') || null,
-        discipline: String(fd.get('sp_discipline') || 'Boxeo') as 'Baile' | 'Boxeo' | 'Canto',
+        discipline: String(fd.get('sp_discipline') || 'MMA') as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro',
         weight_range: String(fd.get('weight_range') || '') || undefined,
         proposed_at: String(fd.get('proposed_at') || '') || undefined,
         location: String(fd.get('location') || '') || undefined,

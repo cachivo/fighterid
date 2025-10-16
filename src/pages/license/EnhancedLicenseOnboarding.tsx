@@ -72,7 +72,7 @@ export default function EnhancedLicenseOnboarding() {
   ];
 
   const martialArts = [
-    'Baile', 'Boxeo', 'Canto'
+    'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
   ];
 
   const documentTypes = ['Cedula', 'Pasaporte', 'Licencia'];
@@ -236,7 +236,7 @@ export default function EnhancedLicenseOnboarding() {
         height_cm: parseInt(formData.heightCm),
         weight_kg: parseFloat(formData.weightKg),
         reach_cm: formData.reachCm ? parseInt(formData.reachCm) : null,
-        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'Baile' | 'Boxeo' | 'Canto' : null,
+        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
         martial_arts: formData.martialArts,
         gym_name: formData.gymName || null,
         fighting_style: formData.fightingStyle || null,
@@ -281,7 +281,7 @@ export default function EnhancedLicenseOnboarding() {
 
       const licenseData = {
         fighter_id: profile.id,
-        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'Baile' | 'Boxeo' | 'Canto' : null,
+        discipline: formData.martialArts.length > 0 ? formData.martialArts[0] as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' : null,
         license_level: 'AMATEUR' as const,
         status: 'PENDING_REVIEW' as const,
         is_primary: true,

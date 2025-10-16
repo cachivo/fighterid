@@ -23,7 +23,7 @@ export interface AdminFighterProfile {
   created_at: string;
   updated_at: string;
   user_id?: string;
-  discipline?: 'Baile' | 'Boxeo' | 'Canto';
+  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
 }
 
 export interface AdminFighterFormData {

@@ -62,7 +62,7 @@ export default function LicenseOnboarding() {
   ];
 
   const martialArts = [
-    'Baile', 'Boxeo', 'Canto'
+    'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
   ];
 
   const handleMartialArtsChange = (art: string, checked: boolean) => {
