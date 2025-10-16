@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,6 +73,7 @@ export default function EventosPelea() {
   const [fighters, setFighters] = useState<FighterProfile[]>([]);
   const [availableFighters, setAvailableFighters] = useState<FighterProfile[]>([]);
   const [eventFighters, setEventFighters] = useState<string[]>([]);
+  const [fighterSearchTerm, setFighterSearchTerm] = useState('');
   
   // Form states
   const [formData, setFormData] = useState({
@@ -790,8 +791,27 @@ export default function EventosPelea() {
 
             <div>
               <h4 className="font-medium mb-2">Peleadores Disponibles</h4>
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Buscar por nombre o apodo..."
+                  value={fighterSearchTerm}
+                  onChange={(e) => setFighterSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               <div className="max-h-64 overflow-y-auto space-y-2">
-                {availableFighters.filter(f => !eventFighters.includes(f.id)).map((fighter) => (
+                {availableFighters
+                  .filter(f => !eventFighters.includes(f.id))
+                  .filter(f => {
+                    if (!fighterSearchTerm) return true;
+                    const searchLower = fighterSearchTerm.toLowerCase();
+                    const fullName = `${f.first_name} ${f.last_name}`.toLowerCase();
+                    const nickname = f.nickname?.toLowerCase() || '';
+                    return fullName.includes(searchLower) || nickname.includes(searchLower);
+                  })
+                  .map((fighter) => (
                   <div key={fighter.id} className="flex items-center justify-between p-2 border rounded">
                     <div>
                       <span className="font-medium">{fighter.first_name} {fighter.last_name}</span>
