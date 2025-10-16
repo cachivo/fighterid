@@ -185,9 +185,9 @@ export default function RequestFighterLicense() {
         document_image_url: documentUrl || null,
         
         // Físico
-        height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
-        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
-        reach_cm: formData.reach_cm ? parseInt(formData.reach_cm) : null,
+        height_cm: formData.height_cm ? (parseInt(formData.height_cm) || null) : null,
+        weight_kg: formData.weight_kg ? (parseFloat(formData.weight_kg) || null) : null,
+        reach_cm: formData.reach_cm ? (parseInt(formData.reach_cm) || null) : null,
         blood_type: formData.blood_type || null,
         
         // Combate
@@ -197,7 +197,7 @@ export default function RequestFighterLicense() {
         stance: formData.stance || null,
         level: formData.level || null,
         gym_name: formData.gym_name || null,
-        martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts.join(',') : null,
+        martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts : [],
         record_wins: parseInt(formData.record_wins) || 0,
         record_losses: parseInt(formData.record_losses) || 0,
         record_draws: parseInt(formData.record_draws) || 0,
@@ -226,7 +226,14 @@ export default function RequestFighterLicense() {
         discipline: formData.discipline,
       };
 
-      // 6. Llamar a la función de base de datos que maneja la creación segura
+      // 6. Debug: Log datos antes de enviar
+      console.log('Enviando datos de perfil:', {
+        ...fighterProfileData,
+        martial_arts: fighterProfileData.martial_arts
+      });
+      console.log('Enviando datos de licencia:', licenseData);
+
+      // 7. Llamar a la función de base de datos que maneja la creación segura
       const { data: result, error: createError } = await supabase.rpc('request_fighter_license', {
         p_fighter_profile_data: fighterProfileData,
         p_license_data: licenseData,
