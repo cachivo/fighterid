@@ -234,8 +234,8 @@ export default function RequestFighterLicense() {
 
       // 6. Preparar payload sanitizado
       const fighterProfileData = {
-        first_name: appUserData.first_name,
-        last_name: appUserData.last_name,
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
         nickname: formData.nickname || null,
         country: appUserData.country,
         birthdate: appUserData.birthdate || null,
