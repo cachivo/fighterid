@@ -42,7 +42,7 @@ export interface FighterProfile {
   level?: string;
   // Phase 1: Critical Safety Information
   document_type?: string;
-  document_number?: string;
+  document_image_url?: string;
   birthdate?: string;
   birthplace?: string;
   blood_type?: string;

@@ -149,8 +149,6 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         emergency_contact_relation: fighter.emergency_contact_relation || '',
         insurance_company: fighter.insurance_company || '',
         insurance_policy: fighter.insurance_policy || '',
-        document_type: fighter.document_type || '',
-        document_number: fighter.document_number || '',
         stance: fighter.stance || '',
         boxrec_url: fighter.boxrec_url || '',
         tapology_url: fighter.tapology_url || '',

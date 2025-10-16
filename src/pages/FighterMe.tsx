@@ -153,7 +153,7 @@ export default function FighterMe() {
                   </h4>
                   
                   {/* Check if critical info is missing */}
-                  {(!fighterProfile?.emergency_contact_name || !fighterProfile?.blood_type || !fighterProfile?.document_number) && (
+                  {(!fighterProfile?.emergency_contact_name || !fighterProfile?.blood_type) && (
                     <div className="mb-4 p-3 bg-yellow-950/30 border border-yellow-600 rounded-lg">
                       <div className="flex items-center gap-2 text-yellow-400 mb-2">
                         <AlertTriangle className="h-4 w-4" />
@@ -170,10 +170,15 @@ export default function FighterMe() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-gray-300">Documento de Identidad</label>
-                      <p className="text-white">{fighterProfile?.document_number || 'No especificado'}</p>
-                      {fighterProfile?.document_type && (
-                        <p className="text-xs text-gray-400">({fighterProfile.document_type})</p>
+                      <label className="text-sm font-medium text-gray-300">Imagen de Identidad</label>
+                      {fighterProfile?.document_image_url ? (
+                        <img 
+                          src={fighterProfile.document_image_url} 
+                          alt="Documento de identidad" 
+                          className="mt-2 max-w-full h-auto rounded-lg border border-gray-600"
+                        />
+                      ) : (
+                        <p className="text-white">No especificado</p>
                       )}
                     </div>
                     

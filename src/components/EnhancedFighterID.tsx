@@ -198,12 +198,6 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
                 Información Personal
               </h4>
               <div className="space-y-2 text-sm">
-                {profile.document_type && profile.document_number && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">{profile.document_type}:</span>
-                    <span className="font-mono">{profile.document_number}</span>
-                  </div>
-                )}
                 {profile.birthdate && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Fecha de Nacimiento:</span>

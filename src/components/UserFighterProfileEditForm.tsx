@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
-import { Upload, Save, X, Lock, AlertCircle } from 'lucide-react';
+import { Upload, Save, X, Lock, AlertCircle, ImageIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFighterAvatar } from '@/lib/photoUtils';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,8 +25,7 @@ const fighterProfileSchema = z.object({
   country: z.string().optional().or(z.literal('')),
   birthdate: z.string().optional().or(z.literal('')),
   birthplace: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
-  document_type: z.string().optional().or(z.literal('')),
-  document_number: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
+  phone: z.string().max(20, 'Máximo 20 caracteres').optional().or(z.literal('')),
   blood_type: z.string().optional().or(z.literal('')),
   weight_class: z.string().optional().or(z.literal('')),
   height_cm: z.string().optional().or(z.literal('')),
@@ -65,6 +64,8 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [documentImageFile, setDocumentImageFile] = useState<File | null>(null);
+  const [documentImagePreview, setDocumentImagePreview] = useState<string | null>(null);
   const [licenseStatus, setLicenseStatus] = useState<string | null>(null);
   const [isRecordLocked, setIsRecordLocked] = useState(false);
 
@@ -115,8 +116,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       country: profile.country || 'HN',
       birthdate: profile.birthdate || '',
       birthplace: profile.birthplace || '',
-      document_type: profile.document_type || '',
-      document_number: profile.document_number || '',
+      phone: profile.phone || '',
       blood_type: profile.blood_type || '',
       weight_class: profile.weight_class || '',
       height_cm: profile.height_cm ? profile.height_cm.toString() : '',
@@ -161,6 +161,24 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
     }
   };
 
+  const handleDocumentImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({
+          title: "Error",
+          description: "La imagen no puede superar los 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setDocumentImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => setDocumentImagePreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = async (data: FighterProfileFormData) => {
     if (!user || !profile.id) {
       toast({
@@ -182,7 +200,6 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       // Campos que se actualizan INMEDIATAMENTE (sin aprobación):
       const immediateUpdateFields = [
         'bio', 'boxrec_url', 'tapology_url',
-        'document_type', 'document_number',
         'blood_type', 'medical_conditions', 'medical_allergies',
         'insurance_company', 'insurance_policy',
         'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
@@ -214,13 +231,34 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       });
 
       // 1. APLICAR INMEDIATAMENTE todos los campos permitidos
-      if (Object.keys(immediateUpdates).length > 0 || avatarFile) {
+      if (Object.keys(immediateUpdates).length > 0 || avatarFile || documentImageFile || data.phone !== profile.phone) {
         const updates = { ...immediateUpdates };
 
         // Incluir avatar si existe
         if (avatarFile) {
           const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profileId, profile.avatar_url);
           updates.avatar_url = newAvatarUrl;
+        }
+
+        // Incluir imagen de documento si existe
+        if (documentImageFile) {
+          const fileExt = documentImageFile.name.split('.').pop();
+          const fileName = `${user.id}/document-${Date.now()}.${fileExt}`;
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('fighter-photos')
+            .upload(fileName, documentImageFile, {
+              cacheControl: '3600',
+              upsert: true
+            });
+
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('fighter-photos')
+            .getPublicUrl(fileName);
+
+          updates.document_image_url = publicUrl;
         }
 
         // Convertir valores numéricos
@@ -237,6 +275,16 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
           .eq('id', profileId);
 
         if (updateError) throw updateError;
+
+        // Actualizar teléfono en app_user si cambió
+        if (data.phone !== profile.phone) {
+          const { error: phoneError } = await supabase
+            .from('app_user')
+            .update({ phone: data.phone || null })
+            .eq('id', profile.user_id);
+
+          if (phoneError) throw phoneError;
+        }
 
         console.log("✅ Immediate updates applied, gamification score updated via trigger");
       }
@@ -414,35 +462,12 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                 />
                 <FormField
                   control={form.control}
-                  name="document_type"
+                  name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tipo de Documento</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar tipo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="DNI">DNI</SelectItem>
-                          <SelectItem value="Cédula">Cédula</SelectItem>
-                          <SelectItem value="Pasaporte">Pasaporte</SelectItem>
-                          <SelectItem value="Licencia">Licencia</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="document_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número de Documento</FormLabel>
+                      <FormLabel>Teléfono</FormLabel>
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} type="tel" placeholder="+504 1234-5678" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -509,6 +534,55 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                     </FormItem>
                   )}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Imagen de Identidad */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="h-5 w-5" />
+                Imagen de Identidad
+              </CardTitle>
+              <CardDescription>
+                Sube una foto clara de tu documento de identidad (DNI, Cédula, Pasaporte)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  {(documentImagePreview || profile.document_image_url) && (
+                    <div className="relative">
+                      <img
+                        src={documentImagePreview || profile.document_image_url || ''}
+                        alt="Documento de identidad"
+                        className="h-40 w-auto max-w-full rounded-lg object-contain border-2 border-border bg-muted"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <Label htmlFor="document-upload" className="cursor-pointer">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors">
+                        <Upload className="h-4 w-4" />
+                        {profile.document_image_url ? 'Cambiar Imagen' : 'Subir Imagen'}
+                      </div>
+                    </Label>
+                    <input
+                      id="document-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDocumentImageChange}
+                      className="hidden"
+                    />
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Máximo 5MB. Formatos: JPG, PNG, WebP
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Asegúrate de que la imagen sea clara y legible
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
