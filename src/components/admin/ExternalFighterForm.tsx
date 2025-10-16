@@ -67,11 +67,13 @@ export const ExternalFighterForm = ({
           accept="image/*"
           onFileSelect={handleImageSelect}
           onRemoveFile={handleImageRemove}
-          maxSize={5}
+          maxSize={50}
           preview={imagePreview}
+          autoResize={false}
+          showResizeInfo={false}
         />
         <p className="text-xs text-muted-foreground mt-1">
-          Preferiblemente foto en posición de pelea sin fondo
+          Preferiblemente foto en posición de pelea sin fondo (máx. 50MB)
         </p>
       </div>
 

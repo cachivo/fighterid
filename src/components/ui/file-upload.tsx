@@ -146,12 +146,12 @@ export function FileUpload({
       />
       
       {(preview || localPreview) ? (
-        <div className="relative">
+        <div className="relative max-h-40">
           <div className="group relative border-2 border-dashed border-border rounded-lg overflow-hidden">
             <img
               src={(preview || localPreview) as string}
               alt="Preview"
-              className="w-full h-32 object-cover"
+              className="w-full h-32 object-cover max-h-32"
             />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-colors duration-200 flex items-center justify-center">
               <Button
