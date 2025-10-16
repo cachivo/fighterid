@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { ArrowLeft, Trophy, User, Activity, Heart, FileText, Shield, Upload } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { z } from 'zod';
 
 export default function RequestFighterLicense() {
   const navigate = useNavigate();
@@ -106,27 +107,61 @@ export default function RequestFighterLicense() {
       return;
     }
 
-    // Validación adicional para móviles: limpiar y validar campos numéricos
-    const cleanRecordValue = (value: string): string => {
-      const cleaned = value.replace(/[^0-9]/g, '');
-      return cleaned || '0';
+    // Normalización y limpieza de campos numéricos
+    const normalizeWeight = (value: string): string => {
+      return value.replace(/,/g, '.').replace(/[^0-9.]/g, '');
+    };
+
+    const normalizeInteger = (value: string): string => {
+      return value.replace(/[^0-9]/g, '');
     };
 
     // Limpiar valores antes de validar
     const cleanedData = {
       ...formData,
-      record_wins: cleanRecordValue(formData.record_wins),
-      record_losses: cleanRecordValue(formData.record_losses),
-      record_draws: cleanRecordValue(formData.record_draws),
-      height_cm: formData.height_cm.replace(/[^0-9]/g, ''),
-      weight_kg: formData.weight_kg.replace(/[^0-9.]/g, ''),
-      reach_cm: formData.reach_cm.replace(/[^0-9]/g, ''),
+      record_wins: normalizeInteger(formData.record_wins) || '0',
+      record_losses: normalizeInteger(formData.record_losses) || '0',
+      record_draws: normalizeInteger(formData.record_draws) || '0',
+      height_cm: normalizeInteger(formData.height_cm),
+      weight_kg: normalizeWeight(formData.weight_kg),
+      reach_cm: normalizeInteger(formData.reach_cm),
     };
+
+    // Schema de validación con Zod
+    const validationSchema = z.object({
+      record_wins: z.string().regex(/^\d+$/, 'Victorias debe ser un número entero').transform(Number),
+      record_losses: z.string().regex(/^\d+$/, 'Derrotas debe ser un número entero').transform(Number),
+      record_draws: z.string().regex(/^\d+$/, 'Empates debe ser un número entero').transform(Number),
+      height_cm: z.string().optional().refine(
+        (val) => !val || /^\d+$/.test(val),
+        'Altura debe ser solo números (ejemplo: 175)'
+      ),
+      weight_kg: z.string().optional().refine(
+        (val) => !val || /^\d+(\.\d{1,2})?$/.test(val),
+        'Peso debe ser un número decimal válido (ejemplo: 70.5)'
+      ),
+      reach_cm: z.string().optional().refine(
+        (val) => !val || /^\d+$/.test(val),
+        'Alcance debe ser solo números (ejemplo: 180)'
+      ),
+    });
+
+    // Validar datos
+    try {
+      validationSchema.parse(cleanedData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.issues[0];
+        toast.error(firstError.message);
+        setCurrentTab('combat'); // Ir a la pestaña de combate donde están la mayoría de estos campos
+        return;
+      }
+    }
 
     // Actualizar formData con valores limpios
     setFormData(cleanedData);
 
-    console.log('[MOBILE FIX] Valores limpios antes de enviar:', {
+    console.log('[VALIDATION] Valores validados y limpios:', {
       record_wins: cleanedData.record_wins,
       record_losses: cleanedData.record_losses,
       record_draws: cleanedData.record_draws,
@@ -312,31 +347,33 @@ export default function RequestFighterLicense() {
         stack: error.stack
       });
       
-      // Mostrar mensaje de error más específico y claro
+      // Mensajes de error específicos y claros por campo
       let errorMessage = 'Error al enviar la solicitud';
       
       if (error.message) {
-        // Errores específicos de validación de datos
         if (error.message.includes('invalid input syntax for type integer')) {
-          errorMessage = 'Por favor verifica que los campos de récord (victorias, derrotas, empates) contengan solo números';
+          errorMessage = '❌ Récord inválido: Victorias, derrotas y empates deben ser números enteros (ejemplo: 5, 2, 0)';
+          setCurrentTab('combat');
         } else if (error.message.includes('invalid input syntax for type numeric')) {
-          errorMessage = 'Por favor verifica que altura, peso y alcance contengan solo números';
+          errorMessage = '❌ Datos físicos inválidos: Revisa altura, peso y alcance. El peso puede tener decimales (ejemplo: 70.5)';
+          setCurrentTab('physical');
         } else if (error.message.includes('document')) {
-          errorMessage = 'Error al subir el documento. Intenta con una imagen más pequeña (máximo 5MB)';
+          errorMessage = '❌ Error al subir documento. Intenta con una imagen más pequeña (máximo 15MB)';
+          setCurrentTab('personal');
         } else if (error.message.includes('storage')) {
-          errorMessage = 'Error al subir archivos. Verifica tu conexión a internet e intenta nuevamente';
+          errorMessage = '❌ Error al subir archivos. Verifica tu conexión a internet';
         } else if (error.message.includes('PGRST')) {
-          errorMessage = 'Error de conexión con la base de datos. Por favor intenta nuevamente';
+          errorMessage = '❌ Error de conexión. Por favor intenta nuevamente';
         } else if (error.message.includes('No se pudo obtener')) {
-          errorMessage = error.message;
+          errorMessage = '❌ ' + error.message;
         } else if (error.message.includes('request_fighter_license')) {
-          errorMessage = 'Error al procesar tu solicitud. Verifica que todos los campos estén completos';
+          errorMessage = '❌ Verifica que todos los campos requeridos estén completos';
+          setCurrentTab('personal');
         } else {
-          errorMessage = error.message;
+          errorMessage = '❌ ' + error.message;
         }
       } else {
-        // Si no hay mensaje, proporcionar contexto
-        errorMessage = 'Ocurrió un error inesperado. Por favor verifica tu conexión e intenta nuevamente';
+        errorMessage = '❌ Error inesperado. Verifica tu conexión e intenta nuevamente';
       }
       
       toast.error(errorMessage);
@@ -504,7 +541,7 @@ export default function RequestFighterLicense() {
                         />
                         <p className="text-xs text-white/80 text-center">
                           📸 Toma una foto o sube desde galería<br />
-                          Foto clara de tu {formData.document_type}. Máximo 5MB
+                          Foto clara de tu {formData.document_type}. Máximo 15MB
                         </p>
                       </div>
                     </div>
@@ -565,10 +602,9 @@ export default function RequestFighterLicense() {
                     <Label htmlFor="height_cm" className="text-white font-medium">Altura (cm) *</Label>
                     <Input
                       id="height_cm"
-                      type="number"
+                      type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      min="0"
                       value={formData.height_cm}
                       onChange={(e) => {
                         const value = e.target.value.replace(/[^0-9]/g, '');
@@ -583,16 +619,23 @@ export default function RequestFighterLicense() {
                     <Label htmlFor="weight_kg" className="text-white font-medium">Peso (kg) *</Label>
                     <Input
                       id="weight_kg"
-                      type="number"
+                      type="text"
                       inputMode="decimal"
-                      step="0.1"
-                      min="0"
                       value={formData.weight_kg}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9.]/g, '');
+                        let value = e.target.value;
+                        // Normalizar coma a punto
+                        value = value.replace(/,/g, '.');
+                        // Permitir solo números y punto
+                        value = value.replace(/[^0-9.]/g, '');
+                        // Permitir solo un punto decimal
+                        const parts = value.split('.');
+                        if (parts.length > 2) {
+                          value = parts[0] + '.' + parts.slice(1).join('');
+                        }
                         setFormData({ ...formData, weight_kg: value });
                       }}
-                      placeholder="70.5"
+                      placeholder="70.5 o 70,5"
                       required
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
@@ -601,10 +644,9 @@ export default function RequestFighterLicense() {
                     <Label htmlFor="reach_cm" className="text-white font-medium">Alcance (cm)</Label>
                     <Input
                       id="reach_cm"
-                      type="number"
+                      type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      min="0"
                       value={formData.reach_cm}
                       onChange={(e) => {
                         const value = e.target.value.replace(/[^0-9]/g, '');
