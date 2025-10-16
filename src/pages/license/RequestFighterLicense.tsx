@@ -26,9 +26,12 @@ export default function RequestFighterLicense() {
     first_name: '',
     last_name: '',
     nickname: '',
+    birthdate: '',
+    gender: '',
+    phone: '',
     birthplace: '',
     document_type: 'DNI',
-    phone: '',
+    document_number: '',
     
     // Físico
     height_cm: '',
@@ -146,6 +149,53 @@ export default function RequestFighterLicense() {
         return;
       }
 
+      // Validar fecha de nacimiento (edad mínima 18 años)
+      if (!formData.birthdate) {
+        toast.error('Debes proporcionar tu fecha de nacimiento');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
+      const birthDate = new Date(formData.birthdate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 18) {
+        toast.error('Debes tener al menos 18 años para solicitar una licencia de peleador');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
+      // Validar género
+      if (!formData.gender) {
+        toast.error('Debes seleccionar tu género');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
+      // Validar teléfono
+      if (!formData.phone.trim()) {
+        toast.error('Debes proporcionar tu número de teléfono');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
+      // Validar número de documento
+      if (!formData.document_number.trim()) {
+        toast.error('Debes proporcionar el número de tu documento');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
       if (!documentFile) {
         toast.error('Debes subir una imagen de tu documento de identidad');
         setCurrentTab('personal');
@@ -242,9 +292,12 @@ export default function RequestFighterLicense() {
         last_name: formData.last_name.trim(),
         nickname: formData.nickname || null,
         country: appUserData.country,
-        birthdate: appUserData.birthdate || null,
+        birthdate: formData.birthdate,
+        gender: formData.gender,
+        phone: formData.phone.trim(),
         birthplace: formData.birthplace || null,
         document_type: formData.document_type || null,
+        document_number: formData.document_number.trim(),
         document_image_url: documentUrl || null,
         
         // Físico - enviar null si vacío
@@ -510,6 +563,58 @@ export default function RequestFighterLicense() {
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="birthdate" className="text-white font-medium">
+                      Fecha de Nacimiento <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="birthdate"
+                      type="date"
+                      value={formData.birthdate}
+                      onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
+                      max={new Date().toISOString().split('T')[0]}
+                      required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
+                    <p className="text-xs text-white/60">Debes tener al menos 18 años</p>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="gender" className="text-white font-medium">
+                      Género <span className="text-red-400">*</span>
+                    </Label>
+                    <Select 
+                      value={formData.gender} 
+                      onValueChange={(v) => setFormData({ ...formData, gender: v })}
+                    >
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                        <SelectValue placeholder="Selecciona género" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Masculino">Masculino</SelectItem>
+                        <SelectItem value="Femenino">Femenino</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone" className="text-white font-medium">
+                      Teléfono <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      inputMode="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="+504 9999-9999"
+                      required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
+                    <p className="text-xs text-white/60">Incluye código de país</p>
+                  </div>
+                  
                   <div className="space-y-1.5">
                     <Label htmlFor="birthplace" className="text-white font-medium">Lugar de Nacimiento</Label>
                     <Input
@@ -532,6 +637,21 @@ export default function RequestFighterLicense() {
                         <SelectItem value="Licencia">Licencia de Conducir</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="document_number" className="text-white font-medium">
+                      Número de {formData.document_type} <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="document_number"
+                      type="text"
+                      value={formData.document_number}
+                      onChange={(e) => setFormData({ ...formData, document_number: e.target.value })}
+                      placeholder="Ej: 0801-1990-12345"
+                      required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
                     <Label htmlFor="document_image" className="text-white font-medium flex items-center gap-2">
