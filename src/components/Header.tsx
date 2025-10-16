@@ -58,14 +58,14 @@ const Header = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-12 sm:h-14 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
         {/* Logo + Título */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer">
+          <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer min-h-[44px] flex items-center">
             <img 
               src="/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png" 
               alt="Fighter ID" 
-              className="h-6 sm:h-7 md:h-8 w-auto"
+              className="h-7 sm:h-8 md:h-9 w-auto"
             />
           </Link>
           <div className="hidden sm:block">
@@ -322,7 +322,7 @@ const Header = () => {
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 z-[100]">
+                <DropdownMenuContent align="end" className="w-64 bg-background/95 backdrop-blur-md z-[100]">
                   <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
                   <div className="px-2 py-1.5">
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>

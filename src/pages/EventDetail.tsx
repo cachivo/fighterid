@@ -315,27 +315,27 @@ const EventDetail = () => {
                       />
                     </div>
                     
-                    <CardHeader className="relative pb-4 border-b border-primary/10">
+                    <CardHeader className="relative p-3 sm:p-4 md:pb-4 border-b border-primary/10">
                       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <Badge variant="outline" className="text-2xl font-black px-4 py-2 border-2 border-primary/30 bg-primary/10 text-white">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <Badge variant="outline" className="text-xl sm:text-2xl font-black px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-primary/30 bg-primary/10 text-white">
                             #{fight.fight_number}
                           </Badge>
                           {fight.card_position === 'main_event' && (
-                            <Badge className="text-sm font-bold px-4 py-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0 shadow-lg shadow-yellow-500/50 animate-pulse">
+                            <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0 shadow-lg shadow-yellow-500/50 animate-pulse">
                               ⭐ PELEA ESTELAR
                             </Badge>
                           )}
                           {fight.card_position === 'co_main_event' && (
-                            <Badge className="text-sm font-bold px-4 py-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/50">
+                            <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/50">
                               ⭐ CO-ESTELAR
                             </Badge>
                           )}
-                          <Badge className={`${getFightTypeColor(fight.fight_type)} px-4 py-2 font-bold text-sm`}>
+                          <Badge className={`${getFightTypeColor(fight.fight_type)} px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-xs sm:text-sm`}>
                             {fight.fight_type}
                           </Badge>
-                          <Badge variant="secondary" className="px-4 py-2 font-semibold">
-                            <Weight className="w-4 h-4 mr-2" />
+                          <Badge variant="secondary" className="px-3 sm:px-4 py-1.5 sm:py-2 font-semibold text-xs sm:text-sm">
+                            <Weight className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             {fight.weight_class}
                           </Badge>
                         </div>
@@ -351,20 +351,20 @@ const EventDetail = () => {
                       </div>
                     </CardHeader>
                   
-                    <CardContent className="relative pt-8 pb-6">
-                      <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-12">
+                    <CardContent className="relative pt-6 sm:pt-8 pb-4 sm:pb-6 p-3 sm:p-4 md:p-6">
+                      <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 md:gap-12">
                         {/* Mobile Layout - Horizontal */}
                         <div className="flex md:hidden justify-between items-center gap-2 relative">
                           {/* Fighter A - Mobile */}
                           <div className="flex-1 flex flex-col items-center">
-                            <Badge className="bg-red-600/90 text-white font-bold px-3 py-0.5 text-xs mb-2">
+                            <Badge className="bg-red-600/90 text-white font-bold px-2.5 py-0.5 text-xs mb-2">
                               ROJA
                             </Badge>
-                            <div className="relative w-full max-w-[140px] h-[160px] flex items-end justify-center">
+                            <div className="relative w-full max-w-[120px] h-[140px] flex items-end justify-center">
                               {/* Country Code Background */}
                               {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
-                                  <span className="text-[5rem] font-black text-white">
+                                  <span className="text-[3.5rem] sm:text-[4rem] font-black text-white">
                                     {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
                                   </span>
                                 </div>
@@ -409,14 +409,14 @@ const EventDetail = () => {
 
                           {/* Fighter B - Mobile */}
                           <div className="flex-1 flex flex-col items-center">
-                            <Badge className="bg-blue-600/90 text-white font-bold px-3 py-0.5 text-xs mb-2">
+                            <Badge className="bg-blue-600/90 text-white font-bold px-2.5 py-0.5 text-xs mb-2">
                               AZUL
                             </Badge>
-                            <div className="relative w-full max-w-[140px] h-[160px] flex items-end justify-center">
+                            <div className="relative w-full max-w-[120px] h-[140px] flex items-end justify-center">
                               {/* Country Code Background */}
                               {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
-                                  <span className="text-[5rem] font-black text-white">
+                                  <span className="text-[3.5rem] sm:text-[4rem] font-black text-white">
                                     {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
                                   </span>
                                 </div>

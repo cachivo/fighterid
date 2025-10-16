@@ -52,17 +52,17 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
         </Badge>
       )}
       
-      <CardHeader className="pb-3 p-4 sm:p-6">
+      <CardHeader className="pb-3 p-3 sm:p-4 md:p-6">
         <div className="flex items-center gap-3 sm:gap-4">
           {fighter.avatar_url ? (
             <img 
               src={fighter.avatar_url} 
               alt={`${fighter.first_name} ${fighter.last_name}`}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0 aspect-square"
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0 aspect-square"
             />
           ) : (
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-professional-muted flex items-center justify-center flex-shrink-0">
-              <span className="text-lg sm:text-xl font-bold text-professional-primary">
+            <div className="w-16 h-16 rounded-full bg-professional-muted flex items-center justify-center flex-shrink-0">
+              <span className="text-xl font-bold text-professional-primary">
                 {fighter.first_name[0]}{fighter.last_name[0]}
               </span>
             </div>
@@ -89,7 +89,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="p-4 sm:p-6">
+      <CardContent className="p-3 sm:p-4 md:p-6">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
           <div>
             <p className="text-muted-foreground text-xs sm:text-sm">Record</p>
@@ -151,7 +151,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             navigate(`/fighters/license/${fighter.id}`);
           }}
         >
-          <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-professional-accent" />
+          <CreditCard className="h-5 w-5 mr-2 text-professional-accent" />
           <span className="text-sm">Ver Licencia</span>
         </Button>
       </CardContent>

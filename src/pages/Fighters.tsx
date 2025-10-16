@@ -182,7 +182,7 @@ export default function Fighters() {
           </div>
           
           {/* Animated loading cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <div 
                 key={i} 
@@ -289,7 +289,7 @@ export default function Fighters() {
             
             <Button
               variant="outline"
-              className="md:hidden bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card"
+              className="md:hidden bg-primary/10 backdrop-blur-sm border-border/50 hover:bg-primary/20"
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="mr-2 h-4 w-4" />
@@ -363,7 +363,7 @@ export default function Fighters() {
             ].map((filter, index) => (
               <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <Select value={filter.value} onValueChange={filter.onChange}>
-                  <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300">
+                  <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300 text-sm sm:text-base">
                     <filter.icon className="mr-2 h-4 w-4 text-muted-foreground" />
                     <SelectValue placeholder={filter.placeholder} />
                   </SelectTrigger>

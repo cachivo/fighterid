@@ -242,7 +242,7 @@ export default function SocialFeed() {
       
       {/* Optimized Header */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
               <Link to="/" className="flex-shrink-0 flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -328,7 +328,7 @@ export default function SocialFeed() {
         {/* Create Post Section */}
         {canCreatePost && (
           <Card className="border-border/50">
-            <CardContent className="p-3 sm:pt-6">
+            <CardContent className="p-3 sm:p-4 md:p-6">
               {showCreateForm ? (
                 <CreatePostForm
                   onSubmit={handleCreatePost}
@@ -369,19 +369,19 @@ export default function SocialFeed() {
         <Card className="border-border/50">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 w-full bg-muted/30">
-              <TabsTrigger value="all" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <TabsTrigger value="all" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base min-h-[48px]">
                 <TrendingUp className="h-4 w-4" />
                 <span className="hidden sm:inline">Todos</span>
               </TabsTrigger>
-              <TabsTrigger value="friends" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <TabsTrigger value="friends" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base min-h-[48px]">
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">Amigos</span>
               </TabsTrigger>
-              <TabsTrigger value="news" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <TabsTrigger value="news" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base min-h-[48px]">
                 <Rss className="h-4 w-4" />
                 <span className="hidden sm:inline">Noticias</span>
               </TabsTrigger>
-              <TabsTrigger value="featured" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+              <TabsTrigger value="featured" className="flex items-center gap-1 sm:gap-2 text-sm sm:text-base min-h-[48px]">
                 <Star className="h-4 w-4" />
                 <span className="hidden sm:inline">Destacados</span>
               </TabsTrigger>
@@ -390,7 +390,7 @@ export default function SocialFeed() {
         </Card>
 
         {/* Posts Feed */}
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-6">
           {loading && posts.length === 0 ? (
             <div className="flex justify-center py-12">
               <LoadingSpinner />
