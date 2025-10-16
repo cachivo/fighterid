@@ -78,6 +78,7 @@ export default function EventosPelea() {
   const [availableFighters, setAvailableFighters] = useState<FighterProfile[]>([]);
   const [eventFighters, setEventFighters] = useState<string[]>([]);
   const [fighterSearchTerm, setFighterSearchTerm] = useState('');
+  const [editingFight, setEditingFight] = useState<any | null>(null);
   
   // External fighters hook
   const { externalFighters, createExternalFighter, searchExternalFighters } = useExternalFighters();
@@ -207,12 +208,12 @@ export default function EventosPelea() {
     });
   };
 
-  const handleCreateFight = async () => {
+  const handleSaveFight = async () => {
     // 1. VALIDACIÓN COMPLETA
     if (!user) {
       toast({
         title: 'Error de autenticación',
-        description: 'Debes iniciar sesión para crear peleas',
+        description: 'Debes iniciar sesión para gestionar peleas',
         variant: 'destructive',
       });
       return;
@@ -245,18 +246,22 @@ export default function EventosPelea() {
         }
         fighterAId = fightData.fighter_a_id;
       } else {
-        // Crear peleador externo A
-        if (!externalFighterAData.name || !externalFighterAData.weight_class) {
-          toast({
-            title: 'Error',
-            description: 'Debes completar nombre y categoría del Peleador A',
-            variant: 'destructive',
-          });
-          return;
+        // Crear o mantener peleador externo A
+        if (editingFight?.fighter_a_external_id) {
+          fighterAExternalId = editingFight.fighter_a_external_id;
+        } else {
+          if (!externalFighterAData.name || !externalFighterAData.weight_class) {
+            toast({
+              title: 'Error',
+              description: 'Debes completar nombre y categoría del Peleador A',
+              variant: 'destructive',
+            });
+            return;
+          }
+          const externalId = await createExternalFighter(externalFighterAData, imageFileA);
+          if (!externalId) return;
+          fighterAExternalId = externalId;
         }
-        const externalId = await createExternalFighter(externalFighterAData, imageFileA);
-        if (!externalId) return;
-        fighterAExternalId = externalId;
       }
 
       // 3. PROCESAR PELEADOR B
@@ -280,25 +285,29 @@ export default function EventosPelea() {
         }
         fighterBId = fightData.fighter_b_id;
       } else {
-        // Crear peleador externo B
-        if (!externalFighterBData.name || !externalFighterBData.weight_class) {
-          toast({
-            title: 'Error',
-            description: 'Debes completar nombre y categoría del Peleador B',
-            variant: 'destructive',
-          });
-          return;
+        // Crear o mantener peleador externo B
+        if (editingFight?.fighter_b_external_id) {
+          fighterBExternalId = editingFight.fighter_b_external_id;
+        } else {
+          if (!externalFighterBData.name || !externalFighterBData.weight_class) {
+            toast({
+              title: 'Error',
+              description: 'Debes completar nombre y categoría del Peleador B',
+              variant: 'destructive',
+            });
+            return;
+          }
+          const externalId = await createExternalFighter(externalFighterBData, imageFileB);
+          if (!externalId) return;
+          fighterBExternalId = externalId;
         }
-        const externalId = await createExternalFighter(externalFighterBData, imageFileB);
-        if (!externalId) return;
-        fighterBExternalId = externalId;
       }
 
       // 4. SUBIR FOTOS ESPECÍFICAS DEL EVENTO
-      let fighterAEventImageUrl: string | null = null;
-      let fighterBEventImageUrl: string | null = null;
+      let fighterAEventImageUrl: string | null = editingFight?.fighter_a_event_image_url || null;
+      let fighterBEventImageUrl: string | null = editingFight?.fighter_b_event_image_url || null;
 
-      // Subir foto de evento para peleador A (si existe)
+      // Subir foto de evento para peleador A (si existe nueva)
       if (eventImageFileA) {
         const fileExt = eventImageFileA.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -317,7 +326,7 @@ export default function EventosPelea() {
         fighterAEventImageUrl = publicUrlA;
       }
 
-      // Subir foto de evento para peleador B (si existe)
+      // Subir foto de evento para peleador B (si existe nueva)
       if (eventImageFileB) {
         const fileExt = eventImageFileB.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -336,91 +345,137 @@ export default function EventosPelea() {
         fighterBEventImageUrl = publicUrlB;
       }
 
-      // 5. CREAR PELEA
-      const { data, error } = await supabase
-        .from('fights')
-        .insert({
-          event_id: selectedEvent.id,
-          fight_number: fightData.fight_number,
-          fight_type: fightData.fight_type,
-          fighter_a_id: fighterAId,
-          fighter_b_id: fighterBId,
-          fighter_a_external_id: fighterAExternalId,
-          fighter_b_external_id: fighterBExternalId,
-          fighter_a_event_image_url: fighterAEventImageUrl,
-          fighter_b_event_image_url: fighterBEventImageUrl,
-          weight_class: fightData.weight_class,
-          status: 'scheduled',
-          card_position: fightData.card_position
-        })
-        .select()
-        .single();
+      // 5. CREAR O ACTUALIZAR PELEA
+      if (editingFight) {
+        // ACTUALIZAR pelea existente
+        const { error } = await supabase
+          .from('fights')
+          .update({
+            fight_number: fightData.fight_number,
+            fight_type: fightData.fight_type,
+            fighter_a_id: fighterAId,
+            fighter_b_id: fighterBId,
+            fighter_a_external_id: fighterAExternalId,
+            fighter_b_external_id: fighterBExternalId,
+            fighter_a_event_image_url: fighterAEventImageUrl,
+            fighter_b_event_image_url: fighterBEventImageUrl,
+            weight_class: fightData.weight_class,
+            card_position: fightData.card_position
+          })
+          .eq('id', editingFight.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      // 6. VERIFICAR QUE SE CREARON LOS ROUNDS
-      const { data: rounds, error: roundsError } = await supabase
-        .from('fight_rounds')
-        .select('id, number, status')
-        .eq('fight_id', data.id)
-        .order('number');
-
-      if (roundsError || !rounds || rounds.length !== 3) {
-        console.error('Warning: Fight created but rounds not auto-created', { fightId: data.id, rounds });
         toast({
-          title: 'Advertencia',
-          description: `Pelea creada pero solo se generaron ${rounds?.length || 0}/3 rounds`,
-          variant: 'destructive',
+          title: '✅ Pelea actualizada',
+          description: `Pelea #${fightData.fight_number} actualizada correctamente`,
         });
       } else {
-        toast({
-          title: '✅ Éxito',
-          description: `Pelea #${data.fight_number} creada con 3 rounds automáticos`,
-        });
+        // CREAR pelea nueva
+        const { data, error } = await supabase
+          .from('fights')
+          .insert({
+            event_id: selectedEvent.id,
+            fight_number: fightData.fight_number,
+            fight_type: fightData.fight_type,
+            fighter_a_id: fighterAId,
+            fighter_b_id: fighterBId,
+            fighter_a_external_id: fighterAExternalId,
+            fighter_b_external_id: fighterBExternalId,
+            fighter_a_event_image_url: fighterAEventImageUrl,
+            fighter_b_event_image_url: fighterBEventImageUrl,
+            weight_class: fightData.weight_class,
+            status: 'scheduled',
+            card_position: fightData.card_position
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // 6. VERIFICAR QUE SE CREARON LOS ROUNDS
+        const { data: rounds, error: roundsError } = await supabase
+          .from('fight_rounds')
+          .select('id, number, status')
+          .eq('fight_id', data.id)
+          .order('number');
+
+        if (roundsError || !rounds || rounds.length !== 3) {
+          console.error('Warning: Fight created but rounds not auto-created', { fightId: data.id, rounds });
+          toast({
+            title: 'Advertencia',
+            description: `Pelea creada pero solo se generaron ${rounds?.length || 0}/3 rounds`,
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: '✅ Éxito',
+            description: `Pelea #${data.fight_number} creada con 3 rounds automáticos`,
+          });
+        }
       }
 
       // 7. RESET FORM Y CERRAR DIALOG
-      setFightData({
-        fight_number: fightData.fight_number + 1,
-        fight_type: 'AMATEUR',
-        fighter_a_id: '',
-        fighter_b_id: '',
-        weight_class: '',
-        card_position: 'regular'
-      });
-      setFighterAIsRegistered(true);
-      setFighterBIsRegistered(true);
-      setExternalFighterAData({
-        name: '',
-        nickname: '',
-        weight_class: '',
-        gym: '',
-        country: 'HN',
-        record: { wins: 0, losses: 0, draws: 0 }
-      });
-      setExternalFighterBData({
-        name: '',
-        nickname: '',
-        weight_class: '',
-        gym: '',
-        country: 'HN',
-        record: { wins: 0, losses: 0, draws: 0 }
-      });
-      setImageFileA(undefined);
-      setImageFileB(undefined);
-      setEventImageFileA(undefined);
-      setEventImageFileB(undefined);
-
+      resetFightForm();
       setShowFightsDialog(false);
 
     } catch (error: any) {
-      console.error('Fight creation error:', error);
+      console.error('Fight save error:', error);
       toast({
         title: 'Error',
-        description: error.message || 'No se pudo crear la pelea',
+        description: error.message || 'No se pudo guardar la pelea',
         variant: 'destructive',
       });
     }
+  };
+
+  const resetFightForm = () => {
+    setFightData({
+      fight_number: editingFight ? fightData.fight_number : fightData.fight_number + 1,
+      fight_type: 'AMATEUR',
+      fighter_a_id: '',
+      fighter_b_id: '',
+      weight_class: '',
+      card_position: 'regular'
+    });
+    setFighterAIsRegistered(true);
+    setFighterBIsRegistered(true);
+    setExternalFighterAData({
+      name: '',
+      nickname: '',
+      weight_class: '',
+      gym: '',
+      country: 'HN',
+      record: { wins: 0, losses: 0, draws: 0 }
+    });
+    setExternalFighterBData({
+      name: '',
+      nickname: '',
+      weight_class: '',
+      gym: '',
+      country: 'HN',
+      record: { wins: 0, losses: 0, draws: 0 }
+    });
+    setImageFileA(undefined);
+    setImageFileB(undefined);
+    setEventImageFileA(undefined);
+    setEventImageFileB(undefined);
+    setEditingFight(null);
+  };
+
+  const handleEditFight = (fight: any) => {
+    setEditingFight(fight);
+    setFightData({
+      fight_number: fight.fight_number,
+      fight_type: fight.fight_type,
+      fighter_a_id: fight.fighter_a_id || '',
+      fighter_b_id: fight.fighter_b_id || '',
+      weight_class: fight.weight_class,
+      card_position: fight.card_position || 'regular'
+    });
+    setFighterAIsRegistered(!!fight.fighter_a_id);
+    setFighterBIsRegistered(!!fight.fighter_b_id);
+    // No cargar datos de peleadores externos por ahora
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -828,11 +883,12 @@ export default function EventosPelea() {
                         <Users className="w-4 h-4 mr-1" />
                         Peleadores
                       </Button>
-                      <Button 
+                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => {
                           setSelectedEvent(event);
+                          resetFightForm();
                           setShowFightsDialog(true);
                         }}
                       >
@@ -975,11 +1031,13 @@ export default function EventosPelea() {
 
       {/* Fights Management Dialog */}
       <Dialog open={showFightsDialog} onOpenChange={setShowFightsDialog}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[900px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Crear Peleas - {selectedEvent?.name}</DialogTitle>
+            <DialogTitle>
+              {editingFight ? 'Editar Pelea' : 'Crear Peleas'} - {selectedEvent?.name}
+            </DialogTitle>
             <DialogDescription>
-              Crea peleas entre los peleadores del evento
+              {editingFight ? 'Modifica los datos de la pelea' : 'Crea peleas entre los peleadores del evento'}
             </DialogDescription>
           </DialogHeader>
           
@@ -1162,15 +1220,23 @@ export default function EventosPelea() {
             </div>
 
             {/* Peleas Existentes */}
-            {selectedEvent && <FightsListPreview eventId={selectedEvent.id} />}
+            {selectedEvent && <FightsListPreview eventId={selectedEvent.id} onEditFight={handleEditFight} />}
           </div>
           
           <DialogFooter className="sticky bottom-0 bg-background border-t pt-4 mt-4">
-            <Button variant="outline" onClick={() => setShowFightsDialog(false)}>
+            <Button variant="outline" onClick={() => {
+              resetFightForm();
+              setShowFightsDialog(false);
+            }}>
               Cerrar
             </Button>
-            <Button onClick={handleCreateFight}>
-              Crear Pelea
+            {editingFight && (
+              <Button variant="outline" onClick={resetFightForm}>
+                Cancelar Edición
+              </Button>
+            )}
+            <Button onClick={handleSaveFight}>
+              {editingFight ? 'Actualizar Pelea' : 'Crear Pelea'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1180,7 +1246,7 @@ export default function EventosPelea() {
 }
 
 // Componente para mostrar peleas existentes con indicador de rounds
-const FightsListPreview = ({ eventId }: { eventId: string }) => {
+const FightsListPreview = ({ eventId, onEditFight }: { eventId: string; onEditFight: (fight: any) => void }) => {
   const { fights, loading } = useFights(eventId);
   const [roundsData, setRoundsData] = useState<Record<string, number>>({});
 
@@ -1225,16 +1291,26 @@ const FightsListPreview = ({ eventId }: { eventId: string }) => {
       <h4 className="font-semibold mb-2">Peleas del Evento ({fights.length})</h4>
       <div className="space-y-2 max-h-48 overflow-y-auto">
         {fights.map(fight => (
-          <div key={fight.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
+          <div key={fight.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded hover:bg-muted/80 transition-colors">
             <div className="flex items-center gap-2">
               <Trophy className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium">Pelea #{fight.fight_number}</span>
+              <Badge variant="secondary" className="text-xs">{fight.fight_type}</Badge>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">{fight.weight_class}</Badge>
               <Badge variant={roundsData[fight.id] === 3 ? 'default' : 'destructive'}>
                 {roundsData[fight.id] || 0}/3 rounds
               </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEditFight(fight)}
+                className="h-7 px-2"
+              >
+                <Edit className="h-3 w-3 mr-1" />
+                Editar
+              </Button>
             </div>
           </div>
         ))}
