@@ -22,7 +22,7 @@ import { ProfileProgressWidget } from '@/components/ProfileProgressWidget';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
+const DISCIPLINES = ['Baile', 'Boxeo', 'Canto'];
 
 export default function MyProfile() {
   const { user } = useAuth();
@@ -149,7 +149,7 @@ export default function MyProfile() {
       await createRequest.mutateAsync({
         from_fighter_id: profile.id,
         to_fighter_id: String(fd.get('to_fighter_id') || '') || null,
-        discipline: String(fd.get('sp_discipline') || 'MMA') as 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro',
+        discipline: String(fd.get('sp_discipline') || 'Boxeo') as 'Baile' | 'Boxeo' | 'Canto',
         weight_range: String(fd.get('weight_range') || '') || undefined,
         proposed_at: String(fd.get('proposed_at') || '') || undefined,
         location: String(fd.get('location') || '') || undefined,

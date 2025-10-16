@@ -19,7 +19,7 @@ import { Shield, Search, Plus, FileText, Loader2, AlertCircle, User, Eye, Downlo
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { LicenseCard } from '@/components/admin/LicenseCard';
 
-const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
+const DISCIPLINES = ['Baile', 'Boxeo', 'Canto'];
 
 export default function ValidacionLicencias() {
   const { toast } = useToast();

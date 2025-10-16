@@ -30,7 +30,7 @@ export interface FighterProfile {
   license_expires_date?: string;
   license_status?: string;
   primary_license_id?: string;
-  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  discipline?: 'Baile' | 'Boxeo' | 'Canto';
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
@@ -67,7 +67,7 @@ export interface FighterProfileData {
   gym_name?: string;
   bio?: string;
   avatar_url?: string;
-  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  discipline?: 'Baile' | 'Boxeo' | 'Canto';
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
@@ -98,7 +98,7 @@ export interface AdminFighterFormData {
   country?: string;
   weight_class: string;
   avatar_url?: string;
-  discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+  discipline?: 'Baile' | 'Boxeo' | 'Canto';
   martial_arts?: string[];
   record_wins?: number;
   record_losses?: number;

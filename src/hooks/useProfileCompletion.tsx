@@ -136,18 +136,6 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
           icon: Link 
         });
       }
-    } else if (profile.discipline === 'MMA') {
-      if (profile.tapology_url) {
-        score += 10;
-      } else {
-        missingFields.push({ 
-          field: 'external_link', 
-          label: 'Link de Tapology', 
-          points: 10, 
-          priority: 'low', 
-          icon: Link 
-        });
-      }
     }
     // Para otras disciplinas no se requiere link externo
 

@@ -24,7 +24,7 @@ export function useFighterLicenses(fighterId: string | null) {
     mutationFn: async (payload: {
       fighter_id: string;
       organization_id?: string | null;
-      discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro' | null;
+      discipline?: 'Baile' | 'Boxeo' | 'Canto' | null;
       license_number: string;
       state?: 'active' | 'pending' | 'suspended' | 'expired';
       expires_at?: string;

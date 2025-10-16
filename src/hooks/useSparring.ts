@@ -27,7 +27,7 @@ export function useSparring(fighterId: string | null) {
     mutationFn: async (payload: {
       from_fighter_id: string;
       to_fighter_id?: string | null;
-      discipline: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+      discipline: 'Baile' | 'Boxeo' | 'Canto';
       weight_range?: string;
       proposed_at?: string;
       location?: string;

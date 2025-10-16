@@ -3918,88 +3918,32 @@ export type Database = {
         Returns: Json
       }
       create_fighter_profile_with_license: {
-        Args:
-          | {
-              p_auth_user_id: string
-              p_bio?: string
-              p_birthdate?: string
-              p_country: string
-              p_discipline?: Database["public"]["Enums"]["discipline_type"]
-              p_email: string
-              p_fighting_style?: string
-              p_first_name: string
-              p_gender?: string
-              p_gym_name?: string
-              p_height_cm: number
-              p_last_name: string
-              p_level?: string
-              p_martial_arts?: string[]
-              p_nickname?: string
-              p_phone?: string
-              p_reach_cm?: number
-              p_record_draws?: number
-              p_record_losses?: number
-              p_record_type?: string
-              p_record_wins?: number
-              p_stance?: string
-              p_weight_class: string
-              p_weight_kg: number
-            }
-          | {
-              p_bio?: string
-              p_birthdate?: string
-              p_birthplace?: string
-              p_blood_type?: string
-              p_country?: string
-              p_discipline?: Database["public"]["Enums"]["discipline"]
-              p_document_number?: string
-              p_document_type?: string
-              p_emergency_contact_name?: string
-              p_emergency_contact_phone?: string
-              p_emergency_contact_relation?: string
-              p_fighting_style?: string
-              p_first_name: string
-              p_gym_name?: string
-              p_height_cm?: number
-              p_insurance_company?: string
-              p_insurance_policy?: string
-              p_last_name: string
-              p_level?: string
-              p_martial_arts?: string
-              p_medical_allergies?: string
-              p_medical_conditions?: string
-              p_nickname?: string
-              p_record_draws?: number
-              p_record_losses?: number
-              p_record_type?: string
-              p_record_wins?: number
-              p_weight_class?: string
-              p_weight_kg?: number
-            }
-          | {
-              p_bio?: string
-              p_birthdate?: string
-              p_country: string
-              p_discipline?: Database["public"]["Enums"]["discipline"]
-              p_fighting_style?: string
-              p_first_name: string
-              p_gender?: string
-              p_gym_name?: string
-              p_height_cm: number
-              p_last_name: string
-              p_level?: string
-              p_martial_arts?: string
-              p_nickname?: string
-              p_phone?: string
-              p_reach_cm?: number
-              p_record_draws?: number
-              p_record_losses?: number
-              p_record_type?: string
-              p_record_wins?: number
-              p_stance?: string
-              p_weight_class: string
-              p_weight_kg: number
-            }
+        Args: {
+          p_auth_user_id: string
+          p_bio?: string
+          p_birthdate?: string
+          p_country: string
+          p_discipline?: Database["public"]["Enums"]["discipline"]
+          p_email: string
+          p_fighting_style?: string
+          p_first_name: string
+          p_gender?: string
+          p_gym_name?: string
+          p_height_cm: number
+          p_last_name: string
+          p_level?: string
+          p_martial_arts?: string[]
+          p_nickname?: string
+          p_phone?: string
+          p_reach_cm?: number
+          p_record_draws?: number
+          p_record_losses?: number
+          p_record_type?: string
+          p_record_wins?: number
+          p_stance?: string
+          p_weight_class: string
+          p_weight_kg: number
+        }
         Returns: Json
       }
       create_friendship: {
@@ -4259,15 +4203,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user" | "judge"
       corner: "red" | "blue"
-      discipline:
-        | "MMA"
-        | "Boxeo"
-        | "Judo"
-        | "JiuJitsu"
-        | "Kickboxing"
-        | "MuayThai"
-        | "Grappling"
-        | "Otro"
+      discipline: "Baile" | "Boxeo" | "Canto"
       discipline_type:
         | "MMA"
         | "Boxeo"
@@ -4439,16 +4375,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user", "judge"],
       corner: ["red", "blue"],
-      discipline: [
-        "MMA",
-        "Boxeo",
-        "Judo",
-        "JiuJitsu",
-        "Kickboxing",
-        "MuayThai",
-        "Grappling",
-        "Otro",
-      ],
+      discipline: ["Baile", "Boxeo", "Canto"],
       discipline_type: [
         "MMA",
         "Boxeo",

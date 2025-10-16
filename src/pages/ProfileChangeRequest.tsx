@@ -29,7 +29,7 @@ const MARTIAL_ARTS = [
   'Lucha Libre', 'Karate', 'Taekwondo', 'MMA', 'Grappling'
 ] as const;
 
-const DISCIPLINES = ['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'] as const;
+const DISCIPLINES = ['Baile', 'Boxeo', 'Canto'] as const;
 
 export default function ProfileChangeRequest() {
   const navigate = useNavigate();
