@@ -13,7 +13,7 @@ export function FighterIDCallToAction() {
   }
 
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+    <section id="solicitar-licencia" className="relative py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
       {/* Background subtle */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-950/20 to-transparent" />
       

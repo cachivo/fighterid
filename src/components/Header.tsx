@@ -110,11 +110,19 @@ const Header = () => {
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/license/auth?mode=signup" className="cursor-pointer">
-                        <CreditCard className="mr-2 h-4 w-4" />
-                        Obtén tu licencia
-                      </Link>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        const section = document.getElementById('solicitar-licencia');
+                        if (section) {
+                          section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        } else {
+                          window.location.href = '/#solicitar-licencia';
+                        }
+                      }}
+                      className="cursor-pointer"
+                    >
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Obtén tu licencia
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/profile" className="cursor-pointer">

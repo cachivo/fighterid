@@ -42,6 +42,19 @@ const Index = () => {
     queryClient.refetchQueries({ queryKey: ['realtime-stats'] });
   }, [queryClient]);
 
+  // Scroll to section if hash is present
+  useEffect(() => {
+    if (window.location.hash) {
+      const id = window.location.hash.replace('#', '');
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    }
+  }, [user, loading]);
+
   // Show loading state
   if (loading) {
     return (
