@@ -173,7 +173,14 @@ export default function RequestFighterLicense() {
         }
       }
 
-      // 4. Preparar datos del perfil de peleador
+      // 4. Preparar datos del perfil de peleador - con validación estricta
+      // Validar y limpiar valores de récord
+      const parseRecordValue = (value: string): number => {
+        if (!value || value.trim() === '') return 0;
+        const parsed = parseInt(value, 10);
+        return isNaN(parsed) ? 0 : Math.max(0, parsed); // Asegurar que sea >= 0
+      };
+
       const fighterProfileData = {
         first_name: appUser.first_name,
         last_name: appUser.last_name,
@@ -185,9 +192,9 @@ export default function RequestFighterLicense() {
         document_image_url: documentUrl || null,
         
         // Físico
-        height_cm: formData.height_cm ? (parseInt(formData.height_cm) || null) : null,
+        height_cm: formData.height_cm ? (parseInt(formData.height_cm, 10) || null) : null,
         weight_kg: formData.weight_kg ? (parseFloat(formData.weight_kg) || null) : null,
-        reach_cm: formData.reach_cm ? (parseInt(formData.reach_cm) || null) : null,
+        reach_cm: formData.reach_cm ? (parseInt(formData.reach_cm, 10) || null) : null,
         blood_type: formData.blood_type || null,
         
         // Combate
@@ -198,9 +205,10 @@ export default function RequestFighterLicense() {
         level: formData.level || null,
         gym_name: formData.gym_name || null,
         martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts : [],
-        record_wins: parseInt(formData.record_wins) || 0,
-        record_losses: parseInt(formData.record_losses) || 0,
-        record_draws: parseInt(formData.record_draws) || 0,
+        // Validación robusta de récord con función auxiliar
+        record_wins: parseRecordValue(formData.record_wins),
+        record_losses: parseRecordValue(formData.record_losses),
+        record_draws: parseRecordValue(formData.record_draws),
         record_type: formData.record_type || null,
         
         // Médico
@@ -227,11 +235,19 @@ export default function RequestFighterLicense() {
       };
 
       // 6. Debug: Log datos antes de enviar
-      console.log('Enviando datos de perfil:', {
-        ...fighterProfileData,
-        martial_arts: fighterProfileData.martial_arts
+      console.log('[LICENSE REQUEST] Validando datos antes de enviar:', {
+        record_wins: fighterProfileData.record_wins,
+        record_losses: fighterProfileData.record_losses,
+        record_draws: fighterProfileData.record_draws,
+        record_types: {
+          wins: typeof fighterProfileData.record_wins,
+          losses: typeof fighterProfileData.record_losses,
+          draws: typeof fighterProfileData.record_draws
+        }
       });
-      console.log('Enviando datos de licencia:', licenseData);
+
+      console.log('[LICENSE REQUEST] Enviando datos de perfil');
+      console.log('[LICENSE REQUEST] Enviando datos de licencia:', licenseData);
 
       // 7. Llamar a la función de base de datos que maneja la creación segura
       const { data: result, error: createError } = await supabase.rpc('request_fighter_license', {
@@ -254,8 +270,26 @@ export default function RequestFighterLicense() {
       navigate('/');
       
     } catch (error: any) {
-      console.error('Error requesting fighter license:', error);
-      toast.error(error.message || 'Error al enviar la solicitud');
+      console.error('[LICENSE REQUEST] Error completo:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        stack: error.stack
+      });
+      
+      // Mostrar mensaje de error más específico
+      let errorMessage = 'Error al enviar la solicitud';
+      
+      if (error.message.includes('invalid input syntax for type integer')) {
+        errorMessage = 'Por favor verifica que todos los campos numéricos (récord, altura, peso, etc.) contengan solo números válidos';
+      } else if (error.message.includes('document')) {
+        errorMessage = 'Error al subir el documento de identidad. Por favor intenta con otro archivo';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
