@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { FighterProfile } from './useFighterProfiles';
 import { 
-  Camera, FileText, Droplet, Shield, Ruler, Weight, 
-  Maximize2, BookOpen, Link, Zap, CheckCircle, Star, Award
+  Camera, Droplet, Shield, Ruler, Weight, 
+  Maximize2, BookOpen, Link, Zap, CheckCircle, Star, Award, Calendar, User, Phone
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -33,7 +33,9 @@ export interface CompletionData {
 
 const FIELD_CONFIG: Record<string, Omit<MissingField, 'field'>> = {
   avatar_url: { label: 'Foto de perfil', points: 15, priority: 'high', icon: Camera },
-  document_number: { label: 'Documento de identidad', points: 10, priority: 'high', icon: FileText },
+  birthdate: { label: 'Fecha de nacimiento', points: 10, priority: 'high', icon: Calendar },
+  gender: { label: 'Género', points: 10, priority: 'high', icon: User },
+  phone: { label: 'Teléfono', points: 10, priority: 'high', icon: Phone },
   blood_type: { label: 'Tipo de sangre', points: 10, priority: 'high', icon: Droplet },
   emergency_contact: { label: 'Contacto de emergencia', points: 10, priority: 'high', icon: Shield },
   height_cm: { label: 'Altura', points: 5, priority: 'medium', icon: Ruler },
@@ -74,11 +76,25 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
       missingFields.push({ field: 'avatar_url', ...FIELD_CONFIG.avatar_url });
     }
 
-    // Documento (+10)
-    if (profile.document_number) {
+    // Fecha de nacimiento (+10)
+    if (profile.birthdate) {
       score += 10;
     } else {
-      missingFields.push({ field: 'document_number', ...FIELD_CONFIG.document_number });
+      missingFields.push({ field: 'birthdate', ...FIELD_CONFIG.birthdate });
+    }
+
+    // Género (+10)
+    if (profile.gender) {
+      score += 10;
+    } else {
+      missingFields.push({ field: 'gender', ...FIELD_CONFIG.gender });
+    }
+
+    // Teléfono (+10) - desde app_user
+    if ((profile as any).phone) {
+      score += 10;
+    } else {
+      missingFields.push({ field: 'phone', ...FIELD_CONFIG.phone });
     }
 
     // Tipo de sangre (+10)

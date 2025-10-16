@@ -684,6 +684,13 @@ export type Database = {
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "doping_tests_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
+          },
         ]
       }
       email_campaign_log: {
@@ -878,11 +885,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fight_bookings_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
+          },
+          {
             foreignKeyName: "fight_bookings_opponent_license_id_fkey"
             columns: ["opponent_license_id"]
             isOneToOne: false
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_bookings_opponent_license_id_fkey"
+            columns: ["opponent_license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
           },
         ]
       }
@@ -937,6 +958,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fighter_affected_fkey"
+            columns: ["fighter_affected"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
           {
             foreignKeyName: "fight_control_events_referee_id_fkey"
@@ -1121,6 +1149,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_results_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -1319,6 +1354,13 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fight_statistics_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
         ]
       }
       fighter_invitations: {
@@ -1374,6 +1416,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_invitations_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -1460,6 +1509,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_licenses_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
           {
             foreignKeyName: "fighter_licenses_organization_id_fkey"
@@ -1640,6 +1696,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fighter_profiles_primary_license_id_fkey"
+            columns: ["primary_license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
+          },
+          {
             foreignKeyName: "fighter_profiles_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
@@ -1690,6 +1753,13 @@ export type Database = {
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
         ]
       }
       fighter_updates: {
@@ -1730,6 +1800,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -1826,6 +1903,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
             foreignKeyName: "fights_fighter_b_external_id_fkey"
             columns: ["fighter_b_external_id"]
             isOneToOne: false
@@ -1840,11 +1924,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
             foreignKeyName: "fights_winner_id_fkey"
             columns: ["winner_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -1906,6 +2004,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fights_history_blue_fighter_id_fkey"
+            columns: ["blue_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
             foreignKeyName: "fights_history_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1918,6 +2023,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_red_fighter_id_fkey"
+            columns: ["red_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -2217,6 +2329,13 @@ export type Database = {
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "license_audit_log_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
+          },
         ]
       }
       license_documents: {
@@ -2273,6 +2392,13 @@ export type Database = {
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "license_documents_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
+          },
         ]
       }
       license_verification_tokens: {
@@ -2304,6 +2430,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "license_verification_tokens_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
           },
         ]
       }
@@ -2493,6 +2626,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_licenses"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_certifications_license_id_fkey"
+            columns: ["license_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["license_id"]
           },
         ]
       }
@@ -2866,6 +3006,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
           {
             foreignKeyName: "profile_change_requests_reviewed_by_fkey"
@@ -3285,11 +3432,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
+            columns: ["from_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
             foreignKeyName: "sparring_requests_to_fighter_id_fkey"
             columns: ["to_fighter_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
+            columns: ["to_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
           },
         ]
       }
@@ -3808,7 +3969,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      incomplete_fighter_profiles: {
+        Row: {
+          approved_at: string | null
+          birthdate: string | null
+          blood_type: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          fighter_id: string | null
+          first_name: string | null
+          gender: string | null
+          last_name: string | null
+          license_created_at: string | null
+          license_id: string | null
+          license_number: string | null
+          license_status: Database["public"]["Enums"]["license_status"] | null
+          missing_fields: string[] | null
+          user_phone: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_fighter_invitation: {

@@ -71,8 +71,8 @@ export default function LicenseDashboard() {
   const getMissingFields = (profile: any) => {
     const requiredFields = [
       { key: 'birthdate', label: 'Fecha de Nacimiento' },
-      { key: 'document_type', label: 'Tipo de Documento' },
-      { key: 'document_number', label: 'Número de Documento' },
+      { key: 'gender', label: 'Género' },
+      { key: 'phone', label: 'Teléfono' },
       { key: 'blood_type', label: 'Tipo de Sangre' },
       { key: 'height_cm', label: 'Altura' },
       { key: 'weight_kg', label: 'Peso' },

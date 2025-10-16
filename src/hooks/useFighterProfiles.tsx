@@ -34,6 +34,7 @@ export interface FighterProfile {
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
+  phone?: string; // From app_user table
   boxrec_url?: string;
   tapology_url?: string;
   record_type?: string;

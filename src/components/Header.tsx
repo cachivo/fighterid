@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useFighterProfiles } from "@/hooks/useFighterProfiles";
 import { useNotifications } from "@/hooks/useNotifications";
+import { ProfileIncompleteNotification } from "@/components/ProfileIncompleteNotification";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -57,8 +58,10 @@ const Header = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+    <>
+      <ProfileIncompleteNotification />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
         {/* Logo + Título */}
         <div className="flex items-center gap-2 sm:gap-3">
           <Link to="/" className="hover:scale-105 hover:opacity-90 transition-all duration-300 ease-out drop-shadow-lg touch-manipulation cursor-pointer min-h-[44px] flex items-center">
@@ -382,6 +385,7 @@ const Header = () => {
         </div>
       </div>
     </header>
+    </>
   );
 };
 

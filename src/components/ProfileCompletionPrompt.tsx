@@ -15,8 +15,9 @@ export function ProfileCompletionPrompt({ profile, className, onRefreshProfile }
   // Check which critical information is missing
   const missingFields = [];
   
-  if (!profile.document_number) missingFields.push('Documento de Identidad');
   if (!profile.birthdate) missingFields.push('Fecha de Nacimiento');
+  if (!profile.gender) missingFields.push('Género');
+  if (!(profile as any).phone) missingFields.push('Teléfono');
   if (!profile.blood_type) missingFields.push('Tipo de Sangre');
   if (!profile.emergency_contact_name) missingFields.push('Contacto de Emergencia');
   if (!profile.emergency_contact_phone) missingFields.push('Teléfono de Emergencia');
@@ -26,7 +27,7 @@ export function ProfileCompletionPrompt({ profile, className, onRefreshProfile }
     return null;
   }
 
-  const completionPercentage = Math.round(((5 - missingFields.length) / 5) * 100);
+  const completionPercentage = Math.round(((6 - missingFields.length) / 6) * 100);
 
   return (
     <Card className={`border-l-4 border-l-professional-danger bg-professional-danger/5 ${className}`}>
