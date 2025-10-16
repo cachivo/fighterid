@@ -545,9 +545,57 @@ export default function EventosPelea() {
       card_position: fight.card_position || 'regular',
       number_of_rounds: count || 3
     });
+    
+    // Determinar si los peleadores son registrados o externos
     setFighterAIsRegistered(!!fight.fighter_a_id);
     setFighterBIsRegistered(!!fight.fighter_b_id);
-    // No cargar datos de peleadores externos por ahora
+    
+    // Cargar datos de peleadores externos si existen
+    if (fight.fighter_a_external_id) {
+      const { data: externalA } = await supabase
+        .from('external_fighters')
+        .select('*')
+        .eq('id', fight.fighter_a_external_id)
+        .single();
+      
+      if (externalA) {
+        const recordA = typeof externalA.record === 'object' && externalA.record !== null
+          ? externalA.record as { wins: number; losses: number; draws: number }
+          : { wins: 0, losses: 0, draws: 0 };
+          
+        setExternalFighterAData({
+          name: externalA.name || '',
+          nickname: externalA.nickname || '',
+          weight_class: externalA.weight_class || '',
+          gym: externalA.gym || '',
+          country: externalA.country || 'HN',
+          record: recordA
+        });
+      }
+    }
+    
+    if (fight.fighter_b_external_id) {
+      const { data: externalB } = await supabase
+        .from('external_fighters')
+        .select('*')
+        .eq('id', fight.fighter_b_external_id)
+        .single();
+      
+      if (externalB) {
+        const recordB = typeof externalB.record === 'object' && externalB.record !== null
+          ? externalB.record as { wins: number; losses: number; draws: number }
+          : { wins: 0, losses: 0, draws: 0 };
+          
+        setExternalFighterBData({
+          name: externalB.name || '',
+          nickname: externalB.nickname || '',
+          weight_class: externalB.weight_class || '',
+          gym: externalB.gym || '',
+          country: externalB.country || 'HN',
+          record: recordB
+        });
+      }
+    }
   };
 
   const handleDeleteEvent = async (eventId: string) => {
