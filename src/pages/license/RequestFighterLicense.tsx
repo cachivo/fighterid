@@ -59,8 +59,6 @@ export default function RequestFighterLicense() {
     
     // Adicional
     bio: '',
-    boxrec_url: '',
-    tapology_url: '',
   });
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -218,8 +216,6 @@ export default function RequestFighterLicense() {
         
         // Adicional
         bio: formData.bio || null,
-        boxrec_url: formData.boxrec_url || null,
-        tapology_url: formData.tapology_url || null,
         avatar_url: avatarUrl || null,
       };
 
@@ -810,26 +806,6 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                       placeholder="Cuéntanos tu historia como peleador..."
                       rows={4}
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="boxrec_url" className="text-white font-medium">URL de BoxRec (opcional)</Label>
-                    <Input
-                      id="boxrec_url"
-                      value={formData.boxrec_url}
-                      onChange={(e) => setFormData({ ...formData, boxrec_url: e.target.value })}
-                      placeholder="https://boxrec.com/..."
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="tapology_url" className="text-white font-medium">URL de Tapology (opcional)</Label>
-                    <Input
-                      id="tapology_url"
-                      value={formData.tapology_url}
-                      onChange={(e) => setFormData({ ...formData, tapology_url: e.target.value })}
-                      placeholder="https://tapology.com/..."
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
