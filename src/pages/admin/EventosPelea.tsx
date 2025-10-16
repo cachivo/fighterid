@@ -1046,6 +1046,7 @@ export default function EventosPelea() {
                         onFileSelect={setEventImageFileA}
                         onRemoveFile={() => setEventImageFileA(undefined)}
                         maxSize={50}
+                        autoResize={false}
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
@@ -1105,6 +1106,7 @@ export default function EventosPelea() {
                         onFileSelect={setEventImageFileB}
                         onRemoveFile={() => setEventImageFileB(undefined)}
                         maxSize={50}
+                        autoResize={false}
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
