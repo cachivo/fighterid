@@ -27,6 +27,8 @@ export interface Fight {
   fighter_b_id: string;
   fighter_a_external_id?: string;
   fighter_b_external_id?: string;
+  fighter_a_event_image_url?: string;
+  fighter_b_event_image_url?: string;
   weight_class: string;
   scheduled_time?: string;
   status: string;

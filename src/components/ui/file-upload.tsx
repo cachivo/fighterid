@@ -132,7 +132,7 @@ export function FileUpload({
       
       {preview ? (
         <div className="relative">
-          <div className="group relative border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+          <div className="group relative border-2 border-dashed border-border rounded-lg overflow-hidden">
             <img
               src={preview}
               alt="Preview"
@@ -144,7 +144,7 @@ export function FileUpload({
                 variant="ghost"
                 size="sm"
                 onClick={handleRemove}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-red-500"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-destructive"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -171,31 +171,28 @@ export function FileUpload({
           onDragOver={handleDrag}
           onDrop={handleDrop}
           className={cn(
-            "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200",
-            dragActive ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400",
+            "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors duration-200",
+            dragActive ? "border-primary bg-primary/5" : "border-border hover:border-border/80",
             disabled || loading || processing ? "cursor-not-allowed opacity-50" : "",
-            "bg-gray-50 hover:bg-gray-100"
+            "bg-muted/20 hover:bg-muted/40"
           )}
         >
           <div className="flex flex-col items-center gap-2">
             {loading || processing ? (
-              <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+              <Loader2 className="h-6 w-6 text-muted-foreground animate-spin" />
             ) : (
-              <FileImage className="h-8 w-8 text-gray-400" />
+              <FileImage className="h-6 w-6 text-muted-foreground" />
             )}
-            <div className="text-sm text-gray-600">
+            <div className="text-xs text-muted-foreground">
               {loading ? (
-                "Subiendo archivo..."
+                "Subiendo..."
               ) : processing ? (
-                "Procesando imagen..."
+                "Procesando..."
               ) : (
                 <>
-                  <p><strong>Haz clic para subir</strong> o arrastra el archivo aquí</p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Máximo {maxSize}MB. {accept === 'image/*' ? 'Solo imágenes' : accept}
-                    {autoResize && accept === 'image/*' && (
-                      <span className="block">Las imágenes se optimizarán automáticamente</span>
-                    )}
+                  <p><strong>Subir foto</strong> o arrastrar aquí</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Máx {maxSize}MB
                   </p>
                 </>
               )}

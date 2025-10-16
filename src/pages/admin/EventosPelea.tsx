@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEvents, useFights, BdgEvent } from '@/hooks/useEvents';
 import { useExternalFighters } from '@/hooks/useExternalFighters';
 import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
+import { FileUpload } from '@/components/ui/file-upload';
 import { Switch } from '@/components/ui/switch';
 import {
   Table,
@@ -102,6 +103,8 @@ export default function EventosPelea() {
   });
   const [imageFileA, setImageFileA] = useState<File | undefined>();
   const [imageFileB, setImageFileB] = useState<File | undefined>();
+  const [eventImageFileA, setEventImageFileA] = useState<File | undefined>();
+  const [eventImageFileB, setEventImageFileB] = useState<File | undefined>();
   
   // Form states
   const [formData, setFormData] = useState({
@@ -291,7 +294,49 @@ export default function EventosPelea() {
         fighterBExternalId = externalId;
       }
 
-      // 4. CREAR PELEA CON TIMESTAMP CORRECTO
+      // 4. SUBIR FOTOS ESPECÍFICAS DEL EVENTO
+      let fighterAEventImageUrl: string | null = null;
+      let fighterBEventImageUrl: string | null = null;
+
+      // Subir foto de evento para peleador A (si existe)
+      if (eventImageFileA) {
+        const fileExt = eventImageFileA.name.split('.').pop();
+        const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadErrorA } = await supabase.storage
+          .from('event-fighter-images')
+          .upload(filePath, eventImageFileA);
+
+        if (uploadErrorA) throw uploadErrorA;
+
+        const { data: { publicUrl: publicUrlA } } = supabase.storage
+          .from('event-fighter-images')
+          .getPublicUrl(filePath);
+
+        fighterAEventImageUrl = publicUrlA;
+      }
+
+      // Subir foto de evento para peleador B (si existe)
+      if (eventImageFileB) {
+        const fileExt = eventImageFileB.name.split('.').pop();
+        const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadErrorB } = await supabase.storage
+          .from('event-fighter-images')
+          .upload(filePath, eventImageFileB);
+
+        if (uploadErrorB) throw uploadErrorB;
+
+        const { data: { publicUrl: publicUrlB } } = supabase.storage
+          .from('event-fighter-images')
+          .getPublicUrl(filePath);
+
+        fighterBEventImageUrl = publicUrlB;
+      }
+
+      // 5. CREAR PELEA CON TIMESTAMP CORRECTO
       let scheduledDateTime = null;
       if (fightData.scheduled_time && selectedEvent.start_time) {
         const eventDate = new Date(selectedEvent.start_time);
@@ -310,6 +355,8 @@ export default function EventosPelea() {
           fighter_b_id: fighterBId,
           fighter_a_external_id: fighterAExternalId,
           fighter_b_external_id: fighterBExternalId,
+          fighter_a_event_image_url: fighterAEventImageUrl,
+          fighter_b_event_image_url: fighterBEventImageUrl,
           weight_class: fightData.weight_class,
           scheduled_time: scheduledDateTime,
           status: 'scheduled'
@@ -319,7 +366,7 @@ export default function EventosPelea() {
 
       if (error) throw error;
 
-      // 5. VERIFICAR QUE SE CREARON LOS ROUNDS
+      // 6. VERIFICAR QUE SE CREARON LOS ROUNDS
       const { data: rounds, error: roundsError } = await supabase
         .from('fight_rounds')
         .select('id, number, status')
@@ -340,7 +387,7 @@ export default function EventosPelea() {
         });
       }
 
-      // 6. RESET FORM Y CERRAR DIALOG
+      // 7. RESET FORM Y CERRAR DIALOG
       setFightData({
         fight_number: fightData.fight_number + 1,
         fight_type: 'AMATEUR',
@@ -369,6 +416,8 @@ export default function EventosPelea() {
       });
       setImageFileA(undefined);
       setImageFileB(undefined);
+      setEventImageFileA(undefined);
+      setEventImageFileB(undefined);
 
       setShowFightsDialog(false);
 
@@ -983,20 +1032,35 @@ export default function EventosPelea() {
                   </div>
                 </div>
                 
-                {fighterAIsRegistered ? (
-                  <Select value={fightData.fighter_a_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_a_id: value}))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar peleador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFighters.map((fighter) => (
-                        <SelectItem key={fighter.id} value={fighter.id}>
-                          {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
-                          <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                 {fighterAIsRegistered ? (
+                  <>
+                    <Select value={fightData.fighter_a_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_a_id: value}))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar peleador" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableFighters.map((fighter) => (
+                          <SelectItem key={fighter.id} value={fighter.id}>
+                            {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
+                            <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <div className="mt-2">
+                      <Label className="text-xs text-muted-foreground">Foto para miniatura 3D (opcional)</Label>
+                      <FileUpload
+                        accept="image/*"
+                        onFileSelect={setEventImageFileA}
+                        onRemoveFile={() => setEventImageFileA(undefined)}
+                        maxSize={5}
+                        showResizeInfo={false}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Si no subes foto, se usará la del perfil del peleador
+                      </p>
+                    </div>
+                  </>
                 ) : (
                   <div className="border rounded-lg p-3 bg-muted/30">
                     <ExternalFighterForm
@@ -1025,22 +1089,37 @@ export default function EventosPelea() {
                 </div>
                 
                 {fighterBIsRegistered ? (
-                  <Select value={fightData.fighter_b_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_b_id: value}))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar peleador" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableFighters
-                        .filter(f => f.id !== fightData.fighter_a_id)
-                        .map((fighter) => (
-                          <SelectItem key={fighter.id} value={fighter.id}>
-                            {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
-                            <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
-                          </SelectItem>
-                        ))
-                      }
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={fightData.fighter_b_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_b_id: value}))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar peleador" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableFighters
+                          .filter(f => f.id !== fightData.fighter_a_id)
+                          .map((fighter) => (
+                            <SelectItem key={fighter.id} value={fighter.id}>
+                              {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
+                              <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
+                            </SelectItem>
+                          ))
+                        }
+                      </SelectContent>
+                    </Select>
+                    <div className="mt-2">
+                      <Label className="text-xs text-muted-foreground">Foto para miniatura 3D (opcional)</Label>
+                      <FileUpload
+                        accept="image/*"
+                        onFileSelect={setEventImageFileB}
+                        onRemoveFile={() => setEventImageFileB(undefined)}
+                        maxSize={5}
+                        showResizeInfo={false}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Si no subes foto, se usará la del perfil del peleador
+                      </p>
+                    </div>
+                  </>
                 ) : (
                   <div className="border rounded-lg p-3 bg-muted/30">
                     <ExternalFighterForm

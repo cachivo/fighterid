@@ -1739,8 +1739,10 @@ export type Database = {
           event_id: string
           fight_number: number
           fight_type: string
+          fighter_a_event_image_url: string | null
           fighter_a_external_id: string | null
           fighter_a_id: string
+          fighter_b_event_image_url: string | null
           fighter_b_external_id: string | null
           fighter_b_id: string
           finish_method: string | null
@@ -1759,8 +1761,10 @@ export type Database = {
           event_id: string
           fight_number: number
           fight_type?: string
+          fighter_a_event_image_url?: string | null
           fighter_a_external_id?: string | null
           fighter_a_id: string
+          fighter_b_event_image_url?: string | null
           fighter_b_external_id?: string | null
           fighter_b_id: string
           finish_method?: string | null
@@ -1779,8 +1783,10 @@ export type Database = {
           event_id?: string
           fight_number?: number
           fight_type?: string
+          fighter_a_event_image_url?: string | null
           fighter_a_external_id?: string | null
           fighter_a_id?: string
+          fighter_b_event_image_url?: string | null
           fighter_b_external_id?: string | null
           fighter_b_id?: string
           finish_method?: string | null

@@ -249,13 +249,13 @@ const EventDetail = () => {
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer">
-                                {(fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
-                                  <img 
-                                    src={fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url} 
-                                    alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
-                                    className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
-                                  />
-                                ) : (
+                        {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
+                          <img 
+                            src={fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url} 
+                            alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
+                            className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
+                          />
+                        ) : (
                                   <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
                                     <span className="text-xl font-bold text-muted-foreground">
                                       {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
@@ -337,13 +337,13 @@ const EventDetail = () => {
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer">
-                                {(fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
-                                  <img 
-                                    src={fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url} 
-                                    alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
-                                    className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
-                                  />
-                                ) : (
+                        {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
+                          <img 
+                            src={fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url} 
+                            alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
+                            className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
+                          />
+                        ) : (
                                   <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
                                     <span className="text-xl font-bold text-muted-foreground">
                                       {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
