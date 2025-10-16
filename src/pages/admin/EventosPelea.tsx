@@ -527,14 +527,13 @@ export default function EventosPelea() {
   };
 
   const handleEditFight = async (fight: any) => {
-    setEditingFight(fight);
-    
     // Obtener el número de rounds actuales
     const { count } = await supabase
       .from('fight_rounds')
       .select('*', { count: 'exact', head: true })
       .eq('fight_id', fight.id);
     
+    setEditingFight(fight);
     setFightData({
       fight_number: fight.fight_number,
       fight_type: fight.fight_type,
@@ -1393,7 +1392,9 @@ const FightsListPreview = ({ eventId, onEditFight }: { eventId: string; onEditFi
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onEditFight(fight)}
+                onClick={async () => {
+                  await onEditFight(fight);
+                }}
                 className="h-7 px-2"
               >
                 <Edit className="h-3 w-3 mr-1" />
