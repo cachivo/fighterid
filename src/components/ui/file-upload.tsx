@@ -37,6 +37,14 @@ export function FileUpload({
   const [dragActive, setDragActive] = useState(false);
   const [resizeInfo, setResizeInfo] = useState<ImageResizeResult | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
+
+  // Cleanup object URL when it changes or on unmount
+  React.useEffect(() => {
+    return () => {
+      if (localPreview) URL.revokeObjectURL(localPreview);
+    };
+  }, [localPreview]);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -66,6 +74,11 @@ export function FileUpload({
         finalFile = resizeResult.file;
         setResizeInfo(resizeResult);
       }
+
+      // Create local preview URL
+      if (localPreview) URL.revokeObjectURL(localPreview);
+      const url = URL.createObjectURL(finalFile);
+      setLocalPreview(url);
 
       onFileSelect(finalFile);
     } catch (error) {
@@ -115,6 +128,8 @@ export function FileUpload({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    if (localPreview) URL.revokeObjectURL(localPreview);
+    setLocalPreview(null);
     setResizeInfo(null);
   };
 
@@ -130,11 +145,11 @@ export function FileUpload({
         required={required}
       />
       
-      {preview ? (
+      {(preview || localPreview) ? (
         <div className="relative">
           <div className="group relative border-2 border-dashed border-border rounded-lg overflow-hidden">
             <img
-              src={preview}
+              src={(preview || localPreview) as string}
               alt="Preview"
               className="w-full h-32 object-cover"
             />
