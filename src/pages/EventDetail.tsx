@@ -177,10 +177,32 @@ const EventDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      {/* Header */}
-      <section className="border-b border-border/50 pt-16">
+    <div className="min-h-screen bg-black relative">
+      {/* Dark spatial background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {/* Deep space effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-950 to-black"></div>
+        
+        {/* Nebula effects */}
+        <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-900/8 rounded-full blur-[150px] animate-pulse"></div>
+        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-blue-900/6 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-indigo-900/5 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '4s' }}></div>
+        
+        {/* Subtle stars effect */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent), radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.6), transparent), radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4), transparent), radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.7), transparent), radial-gradient(1.5px 1.5px at 90% 60%, rgba(255,255,255,0.5), transparent)',
+          backgroundSize: '200px 200px, 300px 300px, 250px 250px, 280px 280px, 220px 220px',
+          backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px'
+        }}></div>
+        
+        {/* Subtle vignette for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
+      </div>
+      
+      <div className="relative z-10">
+        <Header /></div>
+        {/* Header */}
+        <section className="border-b border-white/5 pt-16 bg-black/40 backdrop-blur-sm">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
           <div className="flex gap-2 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -245,13 +267,13 @@ const EventDetail = () => {
             )}
           </div>
         </div>
-      </section>
+        </section>
 
-      {/* Fight Card */}
-      <section className="relative py-12 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(var(--primary-rgb),0.1),transparent_50%)]"></div>
+        {/* Fight Card */}
+        <section className="relative py-12 overflow-hidden">
+          {/* Subtle Background Effects */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-purple-950/5 to-black/50"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.03),transparent_70%)]"></div>
         
         <div className="container mx-auto px-4 relative z-10">
           {/* UCC Logo Header */}
