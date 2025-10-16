@@ -778,79 +778,120 @@ export default function RequestFighterLicense() {
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
-                    <div className="md:col-span-2 space-y-1.5">
-                    <Label className="text-white font-medium">Récord (Victorias - Derrotas - Empates)</Label>
+                    <div className="md:col-span-2 space-y-2">
+                    <Label className="text-white font-medium">Récord de Peleas</Label>
                     <div className="grid grid-cols-3 gap-3">
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={formData.record_wins}
-                        onFocus={(e) => {
-                          if (formData.record_wins === '0') {
-                            setFormData({ ...formData, record_wins: '' });
-                            setTimeout(() => e.target.select(), 0);
-                          }
-                        }}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_wins: value });
-                        }}
-                        onBlur={(e) => {
-                          if (!e.target.value || e.target.value === '') {
-                            setFormData({ ...formData, record_wins: '0' });
-                          }
-                        }}
-                        placeholder="Victorias"
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                      />
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={formData.record_losses}
-                        onFocus={(e) => {
-                          if (formData.record_losses === '0') {
-                            setFormData({ ...formData, record_losses: '' });
-                            setTimeout(() => e.target.select(), 0);
-                          }
-                        }}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_losses: value });
-                        }}
-                        onBlur={(e) => {
-                          if (!e.target.value || e.target.value === '') {
-                            setFormData({ ...formData, record_losses: '0' });
-                          }
-                        }}
-                        placeholder="Derrotas"
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                      />
-                      <Input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={formData.record_draws}
-                        onFocus={(e) => {
-                          if (formData.record_draws === '0') {
-                            setFormData({ ...formData, record_draws: '' });
-                            setTimeout(() => e.target.select(), 0);
-                          }
-                        }}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_draws: value });
-                        }}
-                        onBlur={(e) => {
-                          if (!e.target.value || e.target.value === '') {
-                            setFormData({ ...formData, record_draws: '0' });
-                          }
-                        }}
-                        placeholder="Empates"
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                      />
+                      {/* Victorias */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-white/70">Victorias</Label>
+                        <div className="flex items-center gap-2 bg-slate-900/50 border border-purple-500/30 rounded-md p-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_wins) || 0;
+                              if (current > 0) {
+                                setFormData({ ...formData, record_wins: String(current - 1) });
+                              }
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            -
+                          </Button>
+                          <div className="flex-1 text-center text-white font-semibold text-lg">
+                            {formData.record_wins}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_wins) || 0;
+                              setFormData({ ...formData, record_wins: String(current + 1) });
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Derrotas */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-white/70">Derrotas</Label>
+                        <div className="flex items-center gap-2 bg-slate-900/50 border border-purple-500/30 rounded-md p-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_losses) || 0;
+                              if (current > 0) {
+                                setFormData({ ...formData, record_losses: String(current - 1) });
+                              }
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            -
+                          </Button>
+                          <div className="flex-1 text-center text-white font-semibold text-lg">
+                            {formData.record_losses}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_losses) || 0;
+                              setFormData({ ...formData, record_losses: String(current + 1) });
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Empates */}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-white/70">Empates</Label>
+                        <div className="flex items-center gap-2 bg-slate-900/50 border border-purple-500/30 rounded-md p-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_draws) || 0;
+                              if (current > 0) {
+                                setFormData({ ...formData, record_draws: String(current - 1) });
+                              }
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            -
+                          </Button>
+                          <div className="flex-1 text-center text-white font-semibold text-lg">
+                            {formData.record_draws}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const current = parseInt(formData.record_draws) || 0;
+                              setFormData({ ...formData, record_draws: String(current + 1) });
+                            }}
+                            className="h-8 w-8 p-0 text-white hover:bg-purple-600/30 hover:text-white"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
                     </div>
+                    <p className="text-xs text-white/60 text-center">
+                      Usa los botones + y - para ajustar tu récord
+                    </p>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="record_type" className="text-white font-medium">Tipo de Récord *</Label>
