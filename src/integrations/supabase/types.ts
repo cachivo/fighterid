@@ -4137,6 +4137,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      request_fighter_license: {
+        Args: { p_fighter_profile_data: Json; p_license_data: Json }
+        Returns: Json
+      }
       settle_market_payouts: {
         Args: { p_market_id: string; p_winning_outcome_id: string }
         Returns: undefined

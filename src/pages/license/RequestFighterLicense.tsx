@@ -175,80 +175,76 @@ export default function RequestFighterLicense() {
         }
       }
 
-      // 4. Crear fighter profile
-      const { data: fighterProfile, error: profileError } = await supabase
-        .from('fighter_profiles')
-        .insert({
-          user_id: appUser.id,
-          first_name: appUser.first_name,
-          last_name: appUser.last_name,
-          nickname: formData.nickname || null,
-          country: appUser.country,
-          birthdate: appUser.birthdate,
-          birthplace: formData.birthplace || null,
-          document_type: formData.document_type || null,
-          document_image_url: documentUrl || null,
-          
-          // Físico
-          height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
-          weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
-          reach_cm: formData.reach_cm ? parseInt(formData.reach_cm) : null,
-          blood_type: formData.blood_type || null,
-          
-          // Combate
-          weight_class: formData.weight_class,
-          discipline: formData.discipline as any,
-          fighting_style: formData.fighting_style || null,
-          stance: formData.stance || null,
-          level: formData.level || null,
-          gym_name: formData.gym_name || null,
-          martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts : null,
-          record_wins: parseInt(formData.record_wins) || 0,
-          record_losses: parseInt(formData.record_losses) || 0,
-          record_draws: parseInt(formData.record_draws) || 0,
-          record_type: formData.record_type || null,
-          
-          // Médico
-          medical_conditions: formData.medical_conditions || null,
-          medical_allergies: formData.medical_allergies || null,
-          insurance_company: formData.insurance_company || null,
-          insurance_policy: formData.insurance_policy || null,
-          
-          // Emergencia
-          emergency_contact_name: formData.emergency_contact_name,
-          emergency_contact_phone: formData.emergency_contact_phone,
-          emergency_contact_relation: formData.emergency_contact_relation || null,
-          
-          // Adicional
-          bio: formData.bio || null,
-          boxrec_url: formData.boxrec_url || null,
-          tapology_url: formData.tapology_url || null,
-          avatar_url: avatarUrl || null,
-          
-          active: true,
-        })
-        .select()
-        .single();
+      // 4. Preparar datos del perfil de peleador
+      const fighterProfileData = {
+        first_name: appUser.first_name,
+        last_name: appUser.last_name,
+        nickname: formData.nickname || null,
+        country: appUser.country,
+        birthdate: appUser.birthdate,
+        birthplace: formData.birthplace || null,
+        document_type: formData.document_type || null,
+        document_image_url: documentUrl || null,
+        
+        // Físico
+        height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
+        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
+        reach_cm: formData.reach_cm ? parseInt(formData.reach_cm) : null,
+        blood_type: formData.blood_type || null,
+        
+        // Combate
+        weight_class: formData.weight_class,
+        discipline: formData.discipline,
+        fighting_style: formData.fighting_style || null,
+        stance: formData.stance || null,
+        level: formData.level || null,
+        gym_name: formData.gym_name || null,
+        martial_arts: formData.martial_arts.length > 0 ? JSON.stringify(formData.martial_arts) : null,
+        record_wins: parseInt(formData.record_wins) || 0,
+        record_losses: parseInt(formData.record_losses) || 0,
+        record_draws: parseInt(formData.record_draws) || 0,
+        record_type: formData.record_type || null,
+        
+        // Médico
+        medical_conditions: formData.medical_conditions || null,
+        medical_allergies: formData.medical_allergies || null,
+        insurance_company: formData.insurance_company || null,
+        insurance_policy: formData.insurance_policy || null,
+        
+        // Emergencia
+        emergency_contact_name: formData.emergency_contact_name,
+        emergency_contact_phone: formData.emergency_contact_phone,
+        emergency_contact_relation: formData.emergency_contact_relation || null,
+        
+        // Adicional
+        bio: formData.bio || null,
+        boxrec_url: formData.boxrec_url || null,
+        tapology_url: formData.tapology_url || null,
+        avatar_url: avatarUrl || null,
+      };
 
-      if (profileError) {
-        throw profileError;
+      // 5. Preparar datos de la licencia
+      const licenseData = {
+        license_number: `FGT-${new Date().getFullYear()}-PENDING`,
+        license_level: formData.level === 'Professional' ? 'PROFESSIONAL' : 'AMATEUR',
+        discipline: formData.discipline,
+      };
+
+      // 6. Llamar a la función de base de datos que maneja la creación segura
+      const { data: result, error: createError } = await supabase.rpc('request_fighter_license', {
+        p_fighter_profile_data: fighterProfileData,
+        p_license_data: licenseData,
+      });
+
+      if (createError) {
+        throw new Error(createError.message || 'Error al crear la solicitud');
       }
 
-      // 5. Crear licencia PENDING_REVIEW
-      const { error: licenseError } = await supabase
-        .from('fighter_licenses')
-        .insert({
-          fighter_id: fighterProfile.id,
-          license_number: `FGT-${new Date().getFullYear()}-PENDING`,
-          status: 'PENDING_REVIEW',
-          license_level: formData.level === 'Professional' ? 'PROFESSIONAL' : 'AMATEUR',
-          discipline: formData.discipline as any,
-          is_primary: true,
-        });
-
-      if (licenseError) {
-        console.error('Error creating license:', licenseError);
-        // No falla si no se crea la licencia, el perfil ya existe
+      // Verificar que result sea un objeto con la estructura esperada
+      const resultData = result as { success: boolean; fighter_profile_id?: string; license_id?: string } | null;
+      
+      if (!resultData || !resultData.success) {
+        throw new Error('No se pudo completar la solicitud');
       }
 
       toast.success('¡Solicitud enviada! Tu Fighter ID será revisada en 24-48 horas');
