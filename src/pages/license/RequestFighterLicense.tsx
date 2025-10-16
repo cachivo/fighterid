@@ -101,6 +101,35 @@ export default function RequestFighterLicense() {
       return;
     }
 
+    // Validación adicional para móviles: limpiar y validar campos numéricos
+    const cleanRecordValue = (value: string): string => {
+      const cleaned = value.replace(/[^0-9]/g, '');
+      return cleaned || '0';
+    };
+
+    // Limpiar valores antes de validar
+    const cleanedData = {
+      ...formData,
+      record_wins: cleanRecordValue(formData.record_wins),
+      record_losses: cleanRecordValue(formData.record_losses),
+      record_draws: cleanRecordValue(formData.record_draws),
+      height_cm: formData.height_cm.replace(/[^0-9]/g, ''),
+      weight_kg: formData.weight_kg.replace(/[^0-9.]/g, ''),
+      reach_cm: formData.reach_cm.replace(/[^0-9]/g, ''),
+    };
+
+    // Actualizar formData con valores limpios
+    setFormData(cleanedData);
+
+    console.log('[MOBILE FIX] Valores limpios antes de enviar:', {
+      record_wins: cleanedData.record_wins,
+      record_losses: cleanedData.record_losses,
+      record_draws: cleanedData.record_draws,
+      height_cm: cleanedData.height_cm,
+      weight_kg: cleanedData.weight_kg,
+      reach_cm: cleanedData.reach_cm,
+    });
+
     // Validaciones básicas
     if (!documentFile) {
       toast.error('Debes subir una imagen de tu documento de identidad');
@@ -108,13 +137,13 @@ export default function RequestFighterLicense() {
       return;
     }
 
-    if (!formData.weight_class) {
+    if (!cleanedData.weight_class) {
       toast.error('Debes seleccionar una categoría de peso');
       setCurrentTab('combat');
       return;
     }
 
-    if (!formData.emergency_contact_name || !formData.emergency_contact_phone) {
+    if (!cleanedData.emergency_contact_name || !cleanedData.emergency_contact_phone) {
       toast.error('Debes proporcionar información de contacto de emergencia');
       setCurrentTab('medical');
       return;
@@ -184,54 +213,54 @@ export default function RequestFighterLicense() {
       const fighterProfileData = {
         first_name: appUser.first_name,
         last_name: appUser.last_name,
-        nickname: formData.nickname || null,
+        nickname: cleanedData.nickname || null,
         country: appUser.country,
         birthdate: appUser.birthdate,
-        birthplace: formData.birthplace || null,
-        document_type: formData.document_type || null,
+        birthplace: cleanedData.birthplace || null,
+        document_type: cleanedData.document_type || null,
         document_image_url: documentUrl || null,
         
-        // Físico
-        height_cm: formData.height_cm ? (parseInt(formData.height_cm, 10) || null) : null,
-        weight_kg: formData.weight_kg ? (parseFloat(formData.weight_kg) || null) : null,
-        reach_cm: formData.reach_cm ? (parseInt(formData.reach_cm, 10) || null) : null,
-        blood_type: formData.blood_type || null,
+        // Físico - usar cleanedData
+        height_cm: cleanedData.height_cm ? (parseInt(cleanedData.height_cm, 10) || null) : null,
+        weight_kg: cleanedData.weight_kg ? (parseFloat(cleanedData.weight_kg) || null) : null,
+        reach_cm: cleanedData.reach_cm ? (parseInt(cleanedData.reach_cm, 10) || null) : null,
+        blood_type: cleanedData.blood_type || null,
         
-        // Combate
-        weight_class: formData.weight_class,
-        discipline: formData.discipline,
-        fighting_style: formData.fighting_style || null,
-        stance: formData.stance || null,
-        level: formData.level || null,
-        gym_name: formData.gym_name || null,
-        martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts : [],
-        // Validación robusta de récord con función auxiliar
-        record_wins: parseRecordValue(formData.record_wins),
-        record_losses: parseRecordValue(formData.record_losses),
-        record_draws: parseRecordValue(formData.record_draws),
-        record_type: formData.record_type || null,
+        // Combate - usar cleanedData
+        weight_class: cleanedData.weight_class,
+        discipline: cleanedData.discipline,
+        fighting_style: cleanedData.fighting_style || null,
+        stance: cleanedData.stance || null,
+        level: cleanedData.level || null,
+        gym_name: cleanedData.gym_name || null,
+        martial_arts: cleanedData.martial_arts.length > 0 ? cleanedData.martial_arts : [],
+        // Validación robusta de récord con función auxiliar - usar cleanedData
+        record_wins: parseRecordValue(cleanedData.record_wins),
+        record_losses: parseRecordValue(cleanedData.record_losses),
+        record_draws: parseRecordValue(cleanedData.record_draws),
+        record_type: cleanedData.record_type || null,
         
         // Médico
-        medical_conditions: formData.medical_conditions || null,
-        medical_allergies: formData.medical_allergies || null,
-        insurance_company: formData.insurance_company || null,
-        insurance_policy: formData.insurance_policy || null,
+        medical_conditions: cleanedData.medical_conditions || null,
+        medical_allergies: cleanedData.medical_allergies || null,
+        insurance_company: cleanedData.insurance_company || null,
+        insurance_policy: cleanedData.insurance_policy || null,
         
         // Emergencia
-        emergency_contact_name: formData.emergency_contact_name,
-        emergency_contact_phone: formData.emergency_contact_phone,
-        emergency_contact_relation: formData.emergency_contact_relation || null,
+        emergency_contact_name: cleanedData.emergency_contact_name,
+        emergency_contact_phone: cleanedData.emergency_contact_phone,
+        emergency_contact_relation: cleanedData.emergency_contact_relation || null,
         
         // Adicional
-        bio: formData.bio || null,
+        bio: cleanedData.bio || null,
         avatar_url: avatarUrl || null,
       };
 
       // 5. Preparar datos de la licencia
       const licenseData = {
         license_number: `FGT-${new Date().getFullYear()}-PENDING`,
-        license_level: formData.level === 'Professional' ? 'PROFESSIONAL' : 'AMATEUR',
-        discipline: formData.discipline,
+        license_level: cleanedData.level === 'Professional' ? 'PROFESSIONAL' : 'AMATEUR',
+        discipline: cleanedData.discipline,
       };
 
       // 6. Debug: Log datos antes de enviar
@@ -517,8 +546,14 @@ export default function RequestFighterLicense() {
                     <Input
                       id="height_cm"
                       type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min="0"
                       value={formData.height_cm}
-                      onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, height_cm: value });
+                      }}
                       placeholder="175"
                       required
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
@@ -529,9 +564,14 @@ export default function RequestFighterLicense() {
                     <Input
                       id="weight_kg"
                       type="number"
+                      inputMode="decimal"
                       step="0.1"
+                      min="0"
                       value={formData.weight_kg}
-                      onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.]/g, '');
+                        setFormData({ ...formData, weight_kg: value });
+                      }}
                       placeholder="70.5"
                       required
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
@@ -542,8 +582,14 @@ export default function RequestFighterLicense() {
                     <Input
                       id="reach_cm"
                       type="number"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      min="0"
                       value={formData.reach_cm}
-                      onChange={(e) => setFormData({ ...formData, reach_cm: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        setFormData({ ...formData, reach_cm: value });
+                      }}
                       placeholder="180"
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
@@ -675,22 +721,55 @@ export default function RequestFighterLicense() {
                     <div className="grid grid-cols-3 gap-3">
                       <Input
                         type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        min="0"
                         value={formData.record_wins}
-                        onChange={(e) => setFormData({ ...formData, record_wins: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setFormData({ ...formData, record_wins: value || '0' });
+                        }}
+                        onBlur={(e) => {
+                          if (!e.target.value || e.target.value === '') {
+                            setFormData({ ...formData, record_wins: '0' });
+                          }
+                        }}
                         placeholder="Victorias"
                         className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
                         type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        min="0"
                         value={formData.record_losses}
-                        onChange={(e) => setFormData({ ...formData, record_losses: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setFormData({ ...formData, record_losses: value || '0' });
+                        }}
+                        onBlur={(e) => {
+                          if (!e.target.value || e.target.value === '') {
+                            setFormData({ ...formData, record_losses: '0' });
+                          }
+                        }}
                         placeholder="Derrotas"
                         className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
                         type="number"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        min="0"
                         value={formData.record_draws}
-                        onChange={(e) => setFormData({ ...formData, record_draws: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setFormData({ ...formData, record_draws: value || '0' });
+                        }}
+                        onBlur={(e) => {
+                          if (!e.target.value || e.target.value === '') {
+                            setFormData({ ...formData, record_draws: '0' });
+                          }
+                        }}
                         placeholder="Empates"
                         className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
