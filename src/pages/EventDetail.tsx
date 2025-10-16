@@ -230,17 +230,17 @@ const EventDetail = () => {
                 </Badge>
               </div>
               
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white drop-shadow-lg">
                 {event.name}
               </h1>
               
               {event.description && (
-                <p className="text-lg text-muted-foreground mb-4">
+                <p className="text-lg text-gray-200 mb-4">
                   {event.description}
                 </p>
               )}
               
-              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              <div className="flex flex-wrap gap-4 text-sm text-gray-300">
                 {event.venue && (
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
@@ -284,15 +284,15 @@ const EventDetail = () => {
               className="w-48 md:w-64 mb-6 animate-fade-in opacity-90"
             />
             <div className="text-center space-y-2">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent animate-fade-in">
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-2xl animate-fade-in">
                 FIGHT CARD
               </h2>
               <div className="flex items-center justify-center gap-4">
-                <div className="h-px w-12 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
-                <p className="text-lg text-muted-foreground font-semibold">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+                <p className="text-lg text-gray-200 font-semibold">
                   {fights.length} COMBATES PROGRAMADOS
                 </p>
-                <div className="h-px w-12 bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+                <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
               </div>
             </div>
           </div>
@@ -301,8 +301,8 @@ const EventDetail = () => {
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
               <CardContent className="py-12 text-center">
                 <Trophy className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No hay peleas programadas</h3>
-                <p className="text-muted-foreground">Las peleas se añadirán próximamente.</p>
+                <h3 className="text-lg font-semibold mb-2 text-white">No hay peleas programadas</h3>
+                <p className="text-gray-300">Las peleas se añadirán próximamente.</p>
               </CardContent>
             </Card>
           ) : (
@@ -353,7 +353,7 @@ const EventDetail = () => {
                         </div>
                         
                         {fight.scheduled_time && (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
+                          <div className="flex items-center gap-2 text-sm text-gray-200 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
                             <Clock className="w-4 h-4" />
                             <span className="font-semibold">
                               {format(new Date(fight.scheduled_time), 'HH:mm')}
@@ -407,13 +407,13 @@ const EventDetail = () => {
                                         }}
                                       />
                                     </div>
-                                  ) : (
-                                    <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-red-500/20 to-muted/50 rounded-lg flex items-center justify-center border-2 border-red-500/30 shadow-2xl backdrop-blur-sm">
-                                      <span className="text-7xl font-bold text-foreground/80">
-                                        {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
-                                      </span>
-                                    </div>
-                                  )}
+                                   ) : (
+                                     <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-red-500/30 shadow-2xl backdrop-blur-sm">
+                                       <span className="text-7xl font-bold text-white drop-shadow-lg">
+                                         {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
+                                       </span>
+                                     </div>
+                                   )}
                                 </div>
                               </HoverCardTrigger>
                             <HoverCardContent className="w-80">
@@ -437,48 +437,48 @@ const EventDetail = () => {
                         
                           {/* Enhanced Info Bar */}
                           <div className="w-full max-w-sm">
-                            <div className="relative bg-gradient-to-br from-card/95 via-card to-card/90 backdrop-blur-xl border-2 border-red-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-red-500/50 transition-colors">
+                            <div className="relative bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-xl border-2 border-red-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-red-500/50 transition-colors">
                               {/* Corner accent */}
                               <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-red-500 rounded-tl-2xl"></div>
                               <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-red-500 rounded-br-2xl"></div>
                               
-                              <h3 className="font-black text-lg md:text-xl truncate tracking-wide">
+                              <h3 className="font-black text-lg md:text-xl truncate tracking-wide text-white drop-shadow-lg">
                                 {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
                               </h3>
                               
                               {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && (
-                                <p className="text-sm font-semibold text-muted-foreground truncate italic">
+                                <p className="text-sm font-semibold text-gray-300 truncate italic">
                                   "{fight.fighter_a?.nickname || fight.fighter_a_external?.nickname}"
                                 </p>
                               )}
                               
                               <div className="flex items-center justify-center gap-2 pt-2">
                                 {fight.fighter_a ? (
-                                  <Badge className="bg-green-600/20 text-green-600 border-green-600/40 font-bold px-3 py-1">
+                                  <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
                                     <Shield className="w-3 h-3 mr-1" />
                                     VERIFICADO
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="font-bold px-3 py-1">
+                                  <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
                                     INVITADO
                                   </Badge>
                                 )}
                               </div>
                               
-                              <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-border/30">
-                                <span className="text-green-500 flex items-center gap-1">
+                              <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-white/10">
+                                <span className="text-green-400 flex items-center gap-1">
                                   <span className="text-xs">V:</span>
                                   {fight.fighter_a?.record_wins || fight.fighter_a_external?.record?.wins || 0}
                                 </span>
-                                <span className="text-muted-foreground">•</span>
-                                <span className="text-destructive flex items-center gap-1">
+                                <span className="text-gray-300">•</span>
+                                <span className="text-red-400 flex items-center gap-1">
                                   <span className="text-xs">D:</span>
                                   {fight.fighter_a?.record_losses || fight.fighter_a_external?.record?.losses || 0}
                                 </span>
                                 {((fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws || 0) > 0) && (
                                   <>
-                                    <span className="text-muted-foreground">•</span>
-                                    <span className="text-muted-foreground flex items-center gap-1">
+                                    <span className="text-gray-300">•</span>
+                                    <span className="text-yellow-400 flex items-center gap-1">
                                       <span className="text-xs">E:</span>
                                       {fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws}
                                     </span>
@@ -561,13 +561,13 @@ const EventDetail = () => {
                                         }}
                                       />
                                     </div>
-                                  ) : (
-                                    <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-blue-500/20 to-muted/50 rounded-lg flex items-center justify-center border-2 border-blue-500/30 shadow-2xl backdrop-blur-sm">
-                                      <span className="text-7xl font-bold text-foreground/80">
-                                        {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
-                                      </span>
-                                    </div>
-                                  )}
+                                   ) : (
+                                     <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-blue-500/30 shadow-2xl backdrop-blur-sm">
+                                       <span className="text-7xl font-bold text-white drop-shadow-lg">
+                                         {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
+                                       </span>
+                                     </div>
+                                   )}
                                 </div>
                               </HoverCardTrigger>
                             <HoverCardContent className="w-80">
@@ -591,53 +591,53 @@ const EventDetail = () => {
                           
                           {/* Enhanced Info Bar */}
                           <div className="w-full max-w-sm">
-                            <div className="relative bg-gradient-to-br from-card/95 via-card to-card/90 backdrop-blur-xl border-2 border-blue-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-blue-500/50 transition-colors">
+                            <div className="relative bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-blue-500/50 transition-colors">
                               {/* Corner accent */}
                               <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-blue-500 rounded-tr-2xl"></div>
                               <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-blue-500 rounded-bl-2xl"></div>
                               
-                              <h3 className="font-black text-lg md:text-xl truncate tracking-wide">
+                              <h3 className="font-black text-lg md:text-xl truncate tracking-wide text-white drop-shadow-lg">
                                 {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
                               </h3>
                               
                               {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && (
-                                <p className="text-sm font-semibold text-muted-foreground truncate italic">
+                                <p className="text-sm font-semibold text-gray-300 truncate italic">
                                   "{fight.fighter_b?.nickname || fight.fighter_b_external?.nickname}"
                                 </p>
                               )}
                               
                               <div className="flex items-center justify-center gap-2 pt-2">
                                 {fight.fighter_b ? (
-                                  <Badge className="bg-green-600/20 text-green-600 border-green-600/40 font-bold px-3 py-1">
+                                  <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
                                     <Shield className="w-3 h-3 mr-1" />
                                     VERIFICADO
                                   </Badge>
                                 ) : (
-                                  <Badge variant="outline" className="font-bold px-3 py-1">
+                                  <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
                                     INVITADO
                                   </Badge>
                                 )}
                               </div>
                               
-                              <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-border/30">
-                                <span className="text-green-500 flex items-center gap-1">
+                              <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-white/10">
+                                <span className="text-green-400 flex items-center gap-1">
                                   <span className="text-xs">V:</span>
                                   {fight.fighter_b?.record_wins || fight.fighter_b_external?.record?.wins || 0}
                                 </span>
-                                <span className="text-muted-foreground">•</span>
-                                <span className="text-destructive flex items-center gap-1">
+                                <span className="text-gray-300">•</span>
+                                <span className="text-red-400 flex items-center gap-1">
                                   <span className="text-xs">D:</span>
                                   {fight.fighter_b?.record_losses || fight.fighter_b_external?.record?.losses || 0}
                                 </span>
                                 {((fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws || 0) > 0) && (
                                   <>
-                                    <span className="text-muted-foreground">•</span>
-                                    <span className="text-muted-foreground flex items-center gap-1">
+                                    <span className="text-gray-300">•</span>
+                                    <span className="text-yellow-400 flex items-center gap-1">
                                       <span className="text-xs">E:</span>
                                       {fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws}
                                     </span>
                                   </>
-                                )}
+                                 )}
                               </div>
                             </div>
                           </div>
@@ -646,11 +646,11 @@ const EventDetail = () => {
 
                     {/* Winner & Finish */}
                     {fight.winner_id && (
-                      <div className="mt-8 pt-6 border-t border-border/50">
+                      <div className="mt-8 pt-6 border-t border-white/10">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div>
-                            <p className="text-sm text-muted-foreground mb-1">Ganador</p>
-                            <p className="font-bold text-lg">
+                            <p className="text-sm text-gray-300 mb-1">Ganador</p>
+                            <p className="font-bold text-lg text-yellow-400 drop-shadow-lg">
                               {fight.winner_id === (fight.fighter_a_id || fight.fighter_a_external_id) 
                                 ? (fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name)
                                 : (fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name)
@@ -660,8 +660,8 @@ const EventDetail = () => {
                           
                           {fight.finish_method && (
                             <div>
-                              <p className="text-sm text-muted-foreground mb-1">Método</p>
-                              <Badge variant="outline" className="text-sm">
+                              <p className="text-sm text-gray-300 mb-1">Método</p>
+                              <Badge variant="outline" className="text-sm text-white border-white/30 bg-white/10">
                                 {fight.finish_method}
                                 {fight.finish_round && ` - Round ${fight.finish_round}`}
                                 {fight.finish_time && ` (${fight.finish_time})`}
