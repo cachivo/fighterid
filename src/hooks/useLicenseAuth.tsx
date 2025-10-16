@@ -61,13 +61,24 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      // 2) Get fighter profile for this user
-      const { data: profile, error: profileErr } = await supabase
+      // 2) Get fighter profile for this user (including phone from app_user)
+      const { data: profileData, error: profileErr } = await supabase
         .from('fighter_profiles')
-        .select('*')
+        .select(`
+          *,
+          app_user!inner (
+            phone
+          )
+        `)
         .eq('user_id', appUser.id)
         .eq('active', true)
         .maybeSingle();
+
+      // Flatten the app_user data into the profile
+      const profile = profileData ? {
+        ...profileData,
+        phone: (profileData as any).app_user?.phone
+      } : null;
 
       console.log('[LICENSE AUTH] Fighter profile result:', { 
         found: !!profile,
