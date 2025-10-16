@@ -122,7 +122,8 @@ export default function EventosPelea() {
     fighter_a_id: '',
     fighter_b_id: '',
     weight_class: '',
-    scheduled_time: ''
+    scheduled_time: '',
+    card_position: 'regular' as 'main_event' | 'co_main_event' | 'regular'
   });
 
   useEffect(() => {
@@ -359,7 +360,8 @@ export default function EventosPelea() {
           fighter_b_event_image_url: fighterBEventImageUrl,
           weight_class: fightData.weight_class,
           scheduled_time: scheduledDateTime,
-          status: 'scheduled'
+          status: 'scheduled',
+          card_position: fightData.card_position
         })
         .select()
         .single();
@@ -394,7 +396,8 @@ export default function EventosPelea() {
         fighter_a_id: '',
         fighter_b_id: '',
         weight_class: '',
-        scheduled_time: ''
+        scheduled_time: '',
+        card_position: 'regular'
       });
       setFighterAIsRegistered(true);
       setFighterBIsRegistered(true);
@@ -992,7 +995,7 @@ export default function EventosPelea() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Número de Pelea</Label>
                 <Input
@@ -1011,6 +1014,19 @@ export default function EventosPelea() {
                   <SelectContent>
                     <SelectItem value="AMATEUR">Amateur</SelectItem>
                     <SelectItem value="PROFESSIONAL">Profesional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Importancia</Label>
+                <Select value={fightData.card_position} onValueChange={(value: 'main_event' | 'co_main_event' | 'regular') => setFightData(prev => ({...prev, card_position: value}))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="regular">Normal</SelectItem>
+                    <SelectItem value="co_main_event">Co-Estelar</SelectItem>
+                    <SelectItem value="main_event">Estelar ⭐</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

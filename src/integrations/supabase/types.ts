@@ -1735,6 +1735,7 @@ export type Database = {
       }
       fights: {
         Row: {
+          card_position: string | null
           created_at: string
           event_id: string
           fight_number: number
@@ -1757,6 +1758,7 @@ export type Database = {
           winner_id: string | null
         }
         Insert: {
+          card_position?: string | null
           created_at?: string
           event_id: string
           fight_number: number
@@ -1779,6 +1781,7 @@ export type Database = {
           winner_id?: string | null
         }
         Update: {
+          card_position?: string | null
           created_at?: string
           event_id?: string
           fight_number?: number
