@@ -538,7 +538,7 @@ export default function RequestFighterLicense() {
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('personal')}
-                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
+                    className="bg-slate-900/70 border-purple-500/50 hover:bg-purple-900/50 text-white hover:border-purple-400 transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                   >
                     Anterior
                   </Button>
@@ -684,7 +684,7 @@ export default function RequestFighterLicense() {
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('physical')}
-                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
+                    className="bg-slate-900/70 border-purple-500/50 hover:bg-purple-900/50 text-white hover:border-purple-400 transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                   >
                     Anterior
                   </Button>
@@ -790,7 +790,7 @@ export default function RequestFighterLicense() {
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('combat')}
-                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
+                    className="bg-slate-900/70 border-purple-500/50 hover:bg-purple-900/50 text-white hover:border-purple-400 transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                   >
                     Anterior
                   </Button>
@@ -842,7 +842,7 @@ export default function RequestFighterLicense() {
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('medical')}
-                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
+                    className="bg-slate-900/70 border-purple-500/50 hover:bg-purple-900/50 text-white hover:border-purple-400 transition-all duration-300 shadow-[0_0_10px_rgba(168,85,247,0.2)]"
                   >
                     Anterior
                   </Button>
