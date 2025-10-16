@@ -32,6 +32,10 @@ const colorMap = {
 export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: NotificationCardProps) => {
   const Icon = iconMap[notification.type] || Bell;
   const iconColor = colorMap[notification.type] || 'text-muted-foreground';
+  
+  // Check if notification has redirect action
+  const redirectPath = notification.data?.redirect;
+  const hasAction = notification.data?.action === 'update_discipline';
 
   return (
     <Card 
@@ -64,6 +68,16 @@ export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: Notif
           </p>
 
           <div className="flex items-center gap-2 pt-2">
+            {hasAction && redirectPath && (
+              <Button
+                variant="default"
+                size="sm"
+                asChild
+                className="text-xs"
+              >
+                <a href={redirectPath}>Actualizar ahora</a>
+              </Button>
+            )}
             {!notification.read && (
               <Button
                 variant="ghost"
