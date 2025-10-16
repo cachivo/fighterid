@@ -214,7 +214,7 @@ const EventDetail = () => {
           ) : (
             <div className="space-y-4">
               {fights.map((fight) => (
-                <Card key={fight.id} className="border-border/50 hover:border-primary/50 transition-colors">
+                <Card key={fight.id} className="border-border/50 hover:border-primary/50 transition-colors overflow-visible">
                   <CardHeader className="pb-4">
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
@@ -242,22 +242,24 @@ const EventDetail = () => {
                   </CardHeader>
                   
                   <CardContent>
-                    <div className="grid md:grid-cols-3 gap-6 items-center">
+                    <div className="grid md:grid-cols-[1fr_auto_1fr] gap-8 items-end">
                       {/* Fighter A */}
-                      <div className="text-center">
-                        <div className="mb-3">
+                      <div className="flex flex-col items-center">
+                        {/* Image Container with 3D effect */}
+                        <div className="relative h-48 md:h-64 w-full flex items-end justify-center mb-4 overflow-visible">
                           <HoverCard>
                             <HoverCardTrigger asChild>
-                              <div className="cursor-pointer">
-                        {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
-                          <img 
-                            src={fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url} 
-                            alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
-                            className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
-                          />
-                        ) : (
-                                  <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
-                                    <span className="text-xl font-bold text-muted-foreground">
+                              <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20">
+                                {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
+                                  <img 
+                                    src={fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url} 
+                                    alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
+                                    className="h-56 md:h-72 w-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                                    style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }}
+                                  />
+                                ) : (
+                                  <div className="h-56 md:h-72 w-48 bg-muted/50 rounded-lg flex items-center justify-center border-2 border-border drop-shadow-2xl">
+                                    <span className="text-6xl font-bold text-muted-foreground">
                                       {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
                                     </span>
                                   </div>
@@ -283,29 +285,32 @@ const EventDetail = () => {
                           </HoverCard>
                         </div>
                         
-                        <h3 className="font-bold text-lg">
-                          {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
-                        </h3>
-                        
-                        {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            "{fight.fighter_a?.nickname || fight.fighter_a_external?.nickname}"
-                          </p>
-                        )}
-                        
-                        {fight.fighter_a ? (
-                          <Badge className="mb-2 bg-green-600/20 text-green-600 border-green-600/30">
-                            <Shield className="w-3 h-3 mr-1" />
-                            Fighter ID Verificado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="mb-2">
-                            Peleador Invitado
-                          </Badge>
-                        )}
-                        
-                        <div className="space-y-1 text-sm">
-                          <div className="flex justify-center items-center gap-2">
+                        {/* Info Bar - Oval */}
+                        <div className="w-full max-w-xs rounded-full bg-background/90 backdrop-blur-md border border-border/50 shadow-lg px-6 py-3 text-center space-y-1">
+                          <h3 className="font-bold text-base md:text-lg truncate">
+                            {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
+                          </h3>
+                          
+                          {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              "{fight.fighter_a?.nickname || fight.fighter_a_external?.nickname}"
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center justify-center gap-2 pt-1">
+                            {fight.fighter_a ? (
+                              <Badge className="bg-green-600/20 text-green-600 border-green-600/30 text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Verificado
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                Invitado
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex justify-center items-center gap-2 text-sm pt-1">
                             <span className="text-green-500 font-semibold">
                               {fight.fighter_a?.record_wins || fight.fighter_a_external?.record?.wins || 0}W
                             </span>
@@ -321,9 +326,9 @@ const EventDetail = () => {
                         </div>
                       </div>
 
-                      {/* VS */}
-                      <div className="text-center">
-                        <div className="text-3xl font-bold text-primary">VS</div>
+                      {/* VS Divider */}
+                      <div className="flex flex-col items-center justify-center px-4 md:px-8">
+                        <div className="text-3xl md:text-4xl font-bold text-primary">VS</div>
                         {fight.status !== 'scheduled' && (
                           <Badge variant="outline" className="mt-2">
                             {fight.status.toUpperCase()}
@@ -332,20 +337,22 @@ const EventDetail = () => {
                       </div>
 
                       {/* Fighter B */}
-                      <div className="text-center">
-                        <div className="mb-3">
+                      <div className="flex flex-col items-center">
+                        {/* Image Container with 3D effect */}
+                        <div className="relative h-48 md:h-64 w-full flex items-end justify-center mb-4 overflow-visible">
                           <HoverCard>
                             <HoverCardTrigger asChild>
-                              <div className="cursor-pointer">
-                        {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
-                          <img 
-                            src={fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url} 
-                            alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
-                            className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
-                          />
-                        ) : (
-                                  <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
-                                    <span className="text-xl font-bold text-muted-foreground">
+                              <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20">
+                                {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
+                                  <img 
+                                    src={fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url} 
+                                    alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
+                                    className="h-56 md:h-72 w-auto object-contain drop-shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                                    style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }}
+                                  />
+                                ) : (
+                                  <div className="h-56 md:h-72 w-48 bg-muted/50 rounded-lg flex items-center justify-center border-2 border-border drop-shadow-2xl">
+                                    <span className="text-6xl font-bold text-muted-foreground">
                                       {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
                                     </span>
                                   </div>
@@ -371,29 +378,32 @@ const EventDetail = () => {
                           </HoverCard>
                         </div>
                         
-                        <h3 className="font-bold text-lg">
-                          {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
-                        </h3>
-                        
-                        {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            "{fight.fighter_b?.nickname || fight.fighter_b_external?.nickname}"
-                          </p>
-                        )}
-                        
-                        {fight.fighter_b ? (
-                          <Badge className="mb-2 bg-green-600/20 text-green-600 border-green-600/30">
-                            <Shield className="w-3 h-3 mr-1" />
-                            Fighter ID Verificado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="mb-2">
-                            Peleador Invitado
-                          </Badge>
-                        )}
-                        
-                        <div className="space-y-1 text-sm">
-                          <div className="flex justify-center items-center gap-2">
+                        {/* Info Bar - Oval */}
+                        <div className="w-full max-w-xs rounded-full bg-background/90 backdrop-blur-md border border-border/50 shadow-lg px-6 py-3 text-center space-y-1">
+                          <h3 className="font-bold text-base md:text-lg truncate">
+                            {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
+                          </h3>
+                          
+                          {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              "{fight.fighter_b?.nickname || fight.fighter_b_external?.nickname}"
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center justify-center gap-2 pt-1">
+                            {fight.fighter_b ? (
+                              <Badge className="bg-green-600/20 text-green-600 border-green-600/30 text-xs">
+                                <Shield className="w-3 h-3 mr-1" />
+                                Verificado
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                Invitado
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex justify-center items-center gap-2 text-sm pt-1">
                             <span className="text-green-500 font-semibold">
                               {fight.fighter_b?.record_wins || fight.fighter_b_external?.record?.wins || 0}W
                             </span>
@@ -410,21 +420,29 @@ const EventDetail = () => {
                       </div>
                     </div>
 
+                    {/* Winner & Finish */}
                     {fight.winner_id && (
-                      <div className="mt-6 pt-6 border-t border-border/50">
-                        <div className="text-center">
-                          <Badge className="bg-green-600 text-white">
-                            Ganador: {fight.winner_id === fight.fighter_a_id 
-                              ? `${fight.fighter_a?.first_name} ${fight.fighter_a?.last_name}`
-                              : `${fight.fighter_b?.first_name} ${fight.fighter_b?.last_name}`
-                            }
-                          </Badge>
-                          {fight.finish_method && (
-                            <p className="text-sm text-muted-foreground mt-2">
-                              Por {fight.finish_method}
-                              {fight.finish_round && ` - Ronda ${fight.finish_round}`}
-                              {fight.finish_time && ` (${fight.finish_time})`}
+                      <div className="mt-8 pt-6 border-t border-border/50">
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground mb-1">Ganador</p>
+                            <p className="font-bold text-lg">
+                              {fight.winner_id === (fight.fighter_a_id || fight.fighter_a_external_id) 
+                                ? (fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name)
+                                : (fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name)
+                              }
                             </p>
+                          </div>
+                          
+                          {fight.finish_method && (
+                            <div>
+                              <p className="text-sm text-muted-foreground mb-1">Método</p>
+                              <Badge variant="outline" className="text-sm">
+                                {fight.finish_method}
+                                {fight.finish_round && ` - Round ${fight.finish_round}`}
+                                {fight.finish_time && ` (${fight.finish_time})`}
+                              </Badge>
+                            </div>
                           )}
                         </div>
                       </div>
