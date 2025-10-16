@@ -70,9 +70,9 @@ export default function RequestFighterLicense() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar tamaño (máximo 15MB)
-      if (file.size > 15728640) {
-        toast.error('La foto es muy grande. Máximo 15MB.');
+      // Validar tamaño (máximo 50MB)
+      if (file.size > 52428800) {
+        toast.error('La foto es muy grande. Máximo 50MB.');
         return;
       }
       setPhotoFile(file);
@@ -87,9 +87,9 @@ export default function RequestFighterLicense() {
   const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar tamaño (máximo 15MB)
-      if (file.size > 15728640) {
-        toast.error('El documento es muy grande. Máximo 15MB.');
+      // Validar tamaño (máximo 50MB)
+      if (file.size > 52428800) {
+        toast.error('El documento es muy grande. Máximo 50MB.');
         return;
       }
       setDocumentFile(file);
@@ -492,7 +492,7 @@ export default function RequestFighterLicense() {
                         />
                         <p className="text-xs text-white/80 text-center">
                           📸 Toma una foto o sube desde galería<br />
-                          Foto clara de tu {formData.document_type}. Máximo 15MB
+                          Foto clara de tu {formData.document_type}. Máximo 50MB
                         </p>
                       </div>
                     </div>
