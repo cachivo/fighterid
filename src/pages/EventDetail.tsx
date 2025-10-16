@@ -16,32 +16,54 @@ import Footer from '@/components/Footer';
 const getCountryFlag = (countryCode: string) => {
   if (!countryCode) return '';
   
-  // Map of country names to ISO codes
+  // Map of country names/codes to ISO codes
   const countryMap: Record<string, string> = {
     'Honduras': 'HN',
+    'HN': 'HN',
+    'hn': 'HN',
     'Nicaragua': 'NI',
+    'NI': 'NI',
+    'ni': 'NI',
     'El Salvador': 'SV',
+    'SV': 'SV',
+    'sv': 'SV',
     'Guatemala': 'GT',
+    'GT': 'GT',
+    'gt': 'GT',
     'Costa Rica': 'CR',
+    'CR': 'CR',
+    'cr': 'CR',
     'Panama': 'PA',
     'Panamá': 'PA',
+    'PA': 'PA',
+    'pa': 'PA',
     'Mexico': 'MX',
     'México': 'MX',
+    'MX': 'MX',
+    'mx': 'MX',
     'USA': 'US',
+    'US': 'US',
+    'us': 'US',
     'United States': 'US',
   };
   
-  // Get ISO code if full name is provided
-  const isoCode = countryMap[countryCode] || countryCode;
+  // Get ISO code
+  const isoCode = countryMap[countryCode] || countryCode.toUpperCase();
   
-  // Convert to uppercase and get flag emoji
-  const code = isoCode.toUpperCase();
-  if (code.length !== 2) return '';
+  // Validate it's a 2-letter code
+  if (isoCode.length !== 2) return '';
   
-  const codePoints = code
-    .split('')
-    .map(char => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
+  try {
+    // Convert to flag emoji using regional indicator symbols
+    const codePoints = isoCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+  } catch (error) {
+    console.error('Error converting country code to flag:', countryCode, error);
+    return '';
+  }
 };
 
 const EventDetail = () => {
