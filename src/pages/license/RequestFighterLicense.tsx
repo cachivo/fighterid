@@ -259,6 +259,11 @@ export default function RequestFighterLicense() {
         discipline: formData.discipline || null,
       };
 
+      // Construir arreglo de documentos para evitar ambigüedad en el RPC
+      const documentUrls = documentUrl
+        ? [{ type: 'ID_DOCUMENT', url: documentUrl }]
+        : [];
+
       // 6. Debug logging
       console.log('[DEBUG] Payload completo a enviar:', {
         ...fighterProfileData,
@@ -272,10 +277,11 @@ export default function RequestFighterLicense() {
         }
       });
 
-      // 7. Llamar RPC
+      // 7. Llamar RPC (pasando siempre p_document_urls para evitar overload)
       const { data: rpcResult, error: rpcError } = await supabase.rpc('request_fighter_license', {
         p_fighter_profile_data: fighterProfileData,
         p_license_data: licenseData,
+        p_document_urls: documentUrls,
       });
 
       if (rpcError) {
