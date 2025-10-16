@@ -22,6 +22,33 @@ interface MassEmailRequest {
   test_email?: string;
 }
 
+// Rate limiting helpers
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const RATE_LIMIT_DELAY = 600; // 600ms entre emails (1.6 emails/seg, bajo el límite de 2/seg)
+
+// Función de reintento con backoff exponencial para manejar 429 Rate Limit
+async function sendEmailWithRetry(
+  resend: Resend,
+  emailData: any,
+  maxRetries = 3
+): Promise<any> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await sendEmailWithFallback(resend, emailData);
+    } catch (error: any) {
+      // Si es rate limit y quedan intentos, esperar y reintentar
+      if (error.statusCode === 429 && attempt < maxRetries) {
+        const backoffDelay = 1000 * attempt; // 1s, 2s, 3s
+        console.log(`[RETRY] Rate limit hit, waiting ${backoffDelay}ms (attempt ${attempt}/${maxRetries})`);
+        await delay(backoffDelay);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -132,15 +159,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No recipients found");
     }
 
-    // Resend tiene un límite de envíos por batch, así que dividimos en lotes
-    const BATCH_SIZE = 100;
-    const batches = [];
-    
-    for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-      batches.push(recipients.slice(i, i + BATCH_SIZE));
-    }
-
-    console.log("[MASS EMAIL] Sending in", batches.length, "batches");
+    console.log("[MASS EMAIL] Sending emails sequentially with rate limiting...");
 
     const results = {
       success: 0,
@@ -151,47 +170,41 @@ const handler = async (req: Request): Promise<Response> => {
     // Usar el remitente configurado (desde variable de entorno RESEND_FROM)
     const emailFrom = getEmailFrom();
     console.log("[MASS EMAIL] Using sender:", emailFrom);
+    
+    const totalEmails = recipients.length;
 
-    // Enviar cada batch
-    for (const batch of batches) {
+    // Envío secuencial con rate limiting
+    for (let i = 0; i < recipients.length; i++) {
+      const email = recipients[i];
+      
       try {
-        // Enviar correos individuales para mejor control de errores
-        const batchPromises = batch.map(email => 
-          sendEmailWithFallback(resend, {
-            to: email,
-            subject: requestData.subject,
-            html: requestData.html_content,
-            from: emailFrom, // Usar remitente configurado
-          }).catch(error => ({
-            error: true,
-            email,
-            message: error.message
-          }))
-        );
-
-        const batchResults = await Promise.all(batchPromises);
-
-        // Contar resultados
-        batchResults.forEach((result: any) => {
-          if (result.error) {
-            results.failed++;
-            results.errors.push(result);
-          } else {
-            results.success++;
-          }
+        await sendEmailWithRetry(resend, {
+          to: email,
+          subject: requestData.subject,
+          html: requestData.html_content,
+          from: emailFrom,
         });
-
-        // Pequeña pausa entre batches para no sobrecargar
-        if (batches.length > 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        results.success++;
+        
+        // Log de progreso cada 10 emails
+        if ((i + 1) % 10 === 0 || i === recipients.length - 1) {
+          const percentage = Math.round(((i + 1) / totalEmails) * 100);
+          console.log(`[PROGRESS] ${i + 1}/${totalEmails} emails sent (${percentage}%)`);
         }
-      } catch (batchError: any) {
-        console.error("[MASS EMAIL] Batch error:", batchError);
-        results.failed += batch.length;
+        
+      } catch (error: any) {
+        results.failed++;
         results.errors.push({
-          batch: true,
-          message: batchError.message
+          email,
+          message: error.message
         });
+        console.error(`[ERROR] Failed to send to ${email}:`, error.message);
+      }
+      
+      // Delay entre emails (excepto el último)
+      if (i < recipients.length - 1) {
+        await delay(RATE_LIMIT_DELAY);
       }
     }
 
