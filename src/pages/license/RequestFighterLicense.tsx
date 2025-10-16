@@ -307,15 +307,31 @@ export default function RequestFighterLicense() {
         stack: error.stack
       });
       
-      // Mostrar mensaje de error más específico
+      // Mostrar mensaje de error más específico y claro
       let errorMessage = 'Error al enviar la solicitud';
       
-      if (error.message.includes('invalid input syntax for type integer')) {
-        errorMessage = 'Por favor verifica que todos los campos numéricos (récord, altura, peso, etc.) contengan solo números válidos';
-      } else if (error.message.includes('document')) {
-        errorMessage = 'Error al subir el documento de identidad. Por favor intenta con otro archivo';
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error.message) {
+        // Errores específicos de validación de datos
+        if (error.message.includes('invalid input syntax for type integer')) {
+          errorMessage = 'Por favor verifica que los campos de récord (victorias, derrotas, empates) contengan solo números';
+        } else if (error.message.includes('invalid input syntax for type numeric')) {
+          errorMessage = 'Por favor verifica que altura, peso y alcance contengan solo números';
+        } else if (error.message.includes('document')) {
+          errorMessage = 'Error al subir el documento. Intenta con una imagen más pequeña (máximo 5MB)';
+        } else if (error.message.includes('storage')) {
+          errorMessage = 'Error al subir archivos. Verifica tu conexión a internet e intenta nuevamente';
+        } else if (error.message.includes('PGRST')) {
+          errorMessage = 'Error de conexión con la base de datos. Por favor intenta nuevamente';
+        } else if (error.message.includes('No se pudo obtener')) {
+          errorMessage = error.message;
+        } else if (error.message.includes('request_fighter_license')) {
+          errorMessage = 'Error al procesar tu solicitud. Verifica que todos los campos estén completos';
+        } else {
+          errorMessage = error.message;
+        }
+      } else {
+        // Si no hay mensaje, proporcionar contexto
+        errorMessage = 'Ocurrió un error inesperado. Por favor verifica tu conexión e intenta nuevamente';
       }
       
       toast.error(errorMessage);
@@ -345,82 +361,81 @@ export default function RequestFighterLicense() {
   }
 
   return (
-    <div className="min-h-screen bg-black py-12 px-4 relative overflow-hidden">
-      {/* Fondo espacial con nebulosas */}
+    <div className="min-h-screen bg-black py-4 sm:py-8 md:py-12 px-3 sm:px-4 md:px-6 relative overflow-hidden">
+      {/* Fondo espacial con nebulosas - optimizado para móvil */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-950 to-black" />
       <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-[0.02] bg-cover bg-center" />
       
-      {/* Nebulosas animadas - efecto espacial suave */}
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }} />
-      <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-indigo-600/12 rounded-full blur-[110px] animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/8 rounded-full blur-[130px] animate-pulse" style={{ animationDelay: '6s', animationDuration: '14s' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-cyan-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s', animationDuration: '9s' }} />
+      {/* Nebulosas animadas - reducidas en móvil para mejor rendimiento */}
+      <div className="absolute top-0 left-0 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-purple-600/15 rounded-full blur-[80px] sm:blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute top-1/4 right-0 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-blue-600/10 rounded-full blur-[100px] sm:blur-[120px] animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }} />
+      <div className="absolute bottom-0 left-1/4 w-[280px] sm:w-[450px] h-[280px] sm:h-[450px] bg-indigo-600/12 rounded-full blur-[90px] sm:blur-[110px] animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }} />
       
       <div className="max-w-4xl mx-auto relative z-10">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-6 text-white/70 hover:text-white hover:bg-purple-900/30 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
+          className="mb-4 sm:mb-6 text-white/70 hover:text-white hover:bg-purple-900/30 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 w-full sm:w-auto"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver al inicio
         </Button>
 
         <Card className="bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
-          <CardHeader className="text-center pb-8 relative">
+          <CardHeader className="text-center pb-4 sm:pb-6 md:pb-8 relative px-4 sm:px-6">
             <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent rounded-t-lg" />
-            <div className="flex justify-center mb-4 relative">
+            <div className="flex justify-center mb-3 sm:mb-4 relative">
               <div className="relative">
                 <div className="absolute inset-0 bg-purple-400/20 blur-xl rounded-full animate-pulse" />
-                <Shield className="w-20 h-20 text-purple-400 relative drop-shadow-[0_0_20px_rgba(192,132,252,0.5)]" />
+                <Shield className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 text-purple-400 relative drop-shadow-[0_0_20px_rgba(192,132,252,0.5)]" />
               </div>
             </div>
-            <CardTitle className="text-4xl font-bold text-white mb-2 relative">
-              Fighter ID - Licencia Universal de Peleador
+            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 relative leading-tight">
+              Fighter ID
+              <span className="block text-lg sm:text-xl md:text-2xl mt-1 text-purple-300">Licencia Universal de Peleador</span>
             </CardTitle>
-            <CardDescription className="text-lg text-white/90 relative">
-              Completa tu información para obtener tu licencia oficial universal
+            <CardDescription className="text-sm sm:text-base md:text-lg text-white/90 relative px-2">
+              Completa tu información para obtener tu licencia oficial
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="px-4 sm:px-6 pb-6">
+          <CardContent className="px-3 sm:px-4 md:px-6 pb-4 sm:pb-6">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-900/50 p-1 border border-purple-500/20">
+              <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-900/50 p-0.5 sm:p-1 border border-purple-500/20 gap-0.5 sm:gap-1">
                 <TabsTrigger 
                   value="personal" 
-                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
+                  className="text-[10px] sm:text-xs md:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300 px-1 sm:px-2 py-2 flex-col sm:flex-row gap-0.5 sm:gap-1"
                 >
-                  <User className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Personal</span>
+                  <User className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Personal</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="physical" 
-                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
+                  className="text-[10px] sm:text-xs md:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300 px-1 sm:px-2 py-2 flex-col sm:flex-row gap-0.5 sm:gap-1"
                 >
-                  <Activity className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Físico</span>
+                  <Activity className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Físico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="combat" 
-                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
+                  className="text-[10px] sm:text-xs md:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300 px-1 sm:px-2 py-2 flex-col sm:flex-row gap-0.5 sm:gap-1"
                 >
-                  <Shield className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Combate</span>
+                  <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Combate</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="medical" 
-                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
+                  className="text-[10px] sm:text-xs md:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300 px-1 sm:px-2 py-2 flex-col sm:flex-row gap-0.5 sm:gap-1"
                 >
-                  <Heart className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Médico</span>
+                  <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Médico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="additional" 
-                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
+                  className="text-[10px] sm:text-xs md:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300 px-1 sm:px-2 py-2 flex-col sm:flex-row gap-0.5 sm:gap-1"
                 >
-                  <FileText className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Adicional</span>
+                  <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Adicional</span>
                 </TabsTrigger>
               </TabsList>
 
