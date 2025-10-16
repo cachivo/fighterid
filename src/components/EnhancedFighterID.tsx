@@ -61,22 +61,22 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
       {/* Main Fighter ID Card */}
       <Card className="bg-gradient-professional border-professional-border/30 shadow-professional">
         <CardHeader className="pb-3 md:pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3 md:gap-4">
-              <div className="relative">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
+              <div className="relative shrink-0">
                 <img
                   src={profile.avatar_url || '/placeholder-avatar.png'}
                   alt={`${profile.first_name} ${profile.last_name}`}
-                  className="h-24 w-24 md:h-32 md:w-32 rounded-xl object-cover border-2 border-professional-accent/40"
+                  className="h-16 w-16 xs:h-20 xs:w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 rounded-xl object-cover border-2 border-professional-accent/40"
                 />
                 <Badge 
-                  className={`absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 text-xs ${getStatusColor(profile.license_status)}`}
+                  className={`absolute -bottom-1 -right-1 text-[10px] xs:text-xs ${getStatusColor(profile.license_status)}`}
                 >
                   {profile.license_status?.toUpperCase() || 'ACTIVE'}
                 </Badge>
               </div>
-              <div className="space-y-1">
-                <h2 className="text-xl md:text-2xl font-bold text-professional-primary">
+              <div className="space-y-1 min-w-0 flex-1">
+                <h2 className="text-base xs:text-lg sm:text-xl md:text-2xl font-bold text-professional-primary break-words leading-tight">
                   {profile.first_name} {profile.last_name}
                 </h2>
                 {profile.nickname && (
@@ -131,28 +131,28 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           </div>
 
           {/* Enhanced Fight Stats */}
-          <div className="grid grid-cols-3 gap-3 md:gap-4 lg:gap-6 mb-4 md:mb-6">
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+          <div className="grid grid-cols-3 gap-2 xs:gap-3 sm:gap-4 lg:gap-6 mb-3 sm:mb-4 md:mb-6 max-w-full">
+            <div className="text-center min-w-0">
+              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                 {calculateRecord(recordType).wins}
               </div>
-              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Victorias
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+            <div className="text-center min-w-0">
+              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
                 {calculateRecord(recordType).losses}
               </div>
-              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Derrotas
               </div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl lg:text-5xl font-bold text-professional-muted font-mono mb-1 md:mb-2 drop-shadow-2xl" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+            <div className="text-center min-w-0">
+              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-professional-muted font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
                 {calculateRecord(recordType).draws}
               </div>
-              <div className="text-xs md:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
                 Empates
               </div>
             </div>

@@ -182,57 +182,58 @@ export default function LicenseDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-3 sm:p-4">
-      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5 md:space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/10 p-2 xs:p-3 sm:p-4 mobile-edge-padding">
+      <div className="max-w-6xl mx-auto space-y-3 sm:space-y-4 md:space-y-5">
         {/* Admin Header */}
-        <div className="bg-card border rounded-lg p-3 sm:p-4 md:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-            <div>
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
-                <Shield className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-primary" />
-                Fighter ID - Información Administrativa
+        <div className="bg-card border rounded-lg p-2 xs:p-3 sm:p-4 md:p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-2 min-w-0">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-foreground flex items-center gap-1.5 sm:gap-2 leading-tight break-words">
+                <Shield className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-primary shrink-0" />
+                <span className="break-words">Fighter ID - Info Admin</span>
               </h1>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Vista completa de licencia {licenseData.license_number}
+              <p className="text-[10px] xs:text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 break-all">
+                Licencia {licenseData.license_number}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Button 
                 onClick={refreshData}
                 variant="outline"
                 size="sm"
                 disabled={isRefreshing}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
               >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden xs:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
               </Button>
               {missingFields.length > 0 && (
-                <div className="text-right">
-                  <Button 
-                    onClick={handleUpdateInfo}
-                    variant="professional"
-                    size="sm"
-                    className="mb-2"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Actualizar Información
-                  </Button>
-                  <div className="text-xs text-muted-foreground">
-                    {missingFields.length} campo{missingFields.length > 1 ? 's' : ''} faltante{missingFields.length > 1 ? 's' : ''}
-                  </div>
-                </div>
+                <Button 
+                  onClick={handleUpdateInfo}
+                  variant="professional"
+                  size="sm"
+                  className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
+                >
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Actualizar</span>
+                  <span className="xs:hidden">Editar</span>
+                </Button>
               )}
-              <div className="text-right space-y-1">
-                <Badge className={getStatusColor(licenseData.status)}>
+              <div className="flex flex-wrap gap-1 shrink-0">
+                <Badge className={`${getStatusColor(licenseData.status)} text-[10px] xs:text-xs whitespace-nowrap`}>
                   {getStatusText(licenseData.status)}
                 </Badge>
-                <Badge className={getLevelColor(licenseData.license_level)} variant="outline">
+                <Badge className={`${getLevelColor(licenseData.license_level)} text-[10px] xs:text-xs whitespace-nowrap`} variant="outline">
                   {licenseData.license_level}
                 </Badge>
               </div>
             </div>
           </div>
+          {missingFields.length > 0 && (
+            <div className="text-[10px] xs:text-xs text-muted-foreground mt-2 text-right">
+              {missingFields.length} campo{missingFields.length > 1 ? 's' : ''} faltante{missingFields.length > 1 ? 's' : ''}
+            </div>
+          )}
         </div>
 
         {/* Prominent Fighter Profile Section */}

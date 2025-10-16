@@ -56,15 +56,15 @@ export default function LicenseLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-urban-light">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-urban-light overflow-x-hidden">
         {/* Header with trigger */}
-        <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-4">
-          <SidebarTrigger className="text-primary" />
-          <Link to="/" className="ml-4 flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <Shield className="h-6 w-6 text-professional-primary" />
-            <span className="font-bold text-lg">Fighter ID</span>
+        <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-4 pt-[env(safe-area-inset-top)] min-w-0">
+          <SidebarTrigger className="text-primary shrink-0" />
+          <Link to="/" className="ml-2 sm:ml-4 flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity shrink-0 min-w-0">
+            <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-professional-primary" />
+            <span className="font-bold text-base sm:text-lg truncate">Fighter ID</span>
           </Link>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
             <Button
               variant="ghost"
               size="sm"
@@ -158,8 +158,8 @@ export default function LicenseLayout() {
         </Sidebar>
 
         {/* Main Content */}
-        <main className="flex-1 mt-16 p-4">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 mt-16 p-4 overflow-x-hidden w-full">
+          <div className="max-w-6xl mx-auto w-full">
             <Outlet />
           </div>
         </main>

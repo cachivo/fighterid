@@ -10,24 +10,29 @@ All colors MUST be HSL.
 
 /* Mobile optimization - prevent horizontal scroll */
 * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
-html {
-  overflow-x: hidden;
-  width: 100%;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
+html, body {
   overflow-x: hidden;
   width: 100%;
   position: relative;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 #root {
   overflow-x: hidden;
   width: 100%;
+  position: relative;
 }
 
 /* Prevent zoom on input focus (iOS) */
@@ -35,6 +40,19 @@ input,
 select,
 textarea {
   font-size: 16px !important;
+}
+
+/* Responsive images and videos */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Mobile edge padding utility */
+.mobile-edge-padding {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 @layer base {
