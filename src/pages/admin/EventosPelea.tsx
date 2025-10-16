@@ -525,7 +525,7 @@ export default function EventosPelea() {
                 Nuevo Evento de Pelea
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Crear Nuevo Evento de Pelea</DialogTitle>
                 <DialogDescription>
@@ -647,7 +647,7 @@ export default function EventosPelea() {
               Nuevo Evento de Pelea
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Crear Nuevo Evento de Pelea</DialogTitle>
               <DialogDescription>
@@ -885,7 +885,7 @@ export default function EventosPelea() {
 
       {/* Fighters Management Dialog */}
       <Dialog open={showFightersDialog} onOpenChange={setShowFightersDialog}>
-        <DialogContent className="sm:max-w-[800px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Gestionar Peleadores - {selectedEvent?.name}</DialogTitle>
             <DialogDescription>
@@ -975,7 +975,7 @@ export default function EventosPelea() {
 
       {/* Fights Management Dialog */}
       <Dialog open={showFightsDialog} onOpenChange={setShowFightsDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Crear Peleas - {selectedEvent?.name}</DialogTitle>
             <DialogDescription>
@@ -1055,7 +1055,7 @@ export default function EventosPelea() {
                     </div>
                   </>
                 ) : (
-                  <div className="border rounded-lg p-3 bg-muted/30">
+                  <div className="border rounded-lg p-3 bg-muted/30 max-h-[50vh] overflow-y-auto">
                     <ExternalFighterForm
                       formData={externalFighterAData}
                       imageFile={imageFileA}
@@ -1115,7 +1115,7 @@ export default function EventosPelea() {
                     </div>
                   </>
                 ) : (
-                  <div className="border rounded-lg p-3 bg-muted/30">
+                  <div className="border rounded-lg p-3 bg-muted/30 max-h-[50vh] overflow-y-auto">
                     <ExternalFighterForm
                       formData={externalFighterBData}
                       imageFile={imageFileB}
@@ -1165,7 +1165,7 @@ export default function EventosPelea() {
             {selectedEvent && <FightsListPreview eventId={selectedEvent.id} />}
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 bg-background border-t pt-4 mt-4">
             <Button variant="outline" onClick={() => setShowFightsDialog(false)}>
               Cerrar
             </Button>
