@@ -299,19 +299,19 @@ export default function RequestFighterLicense() {
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-6 text-white hover:text-gold-400 hover:bg-white/5"
+          className="mb-6 text-white/70 hover:text-white hover:bg-purple-900/30 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver al inicio
         </Button>
 
-        <Card className="bg-slate-900/95 border-gold-500/30 backdrop-blur-xl shadow-2xl">
+        <Card className="bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
           <CardHeader className="text-center pb-8 relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-gold-500/5 to-transparent rounded-t-lg" />
+            <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 to-transparent rounded-t-lg" />
             <div className="flex justify-center mb-4 relative">
               <div className="relative">
-                <div className="absolute inset-0 bg-gold-400/20 blur-xl rounded-full" />
-                <Shield className="w-20 h-20 text-gold-400 relative drop-shadow-[0_0_20px_rgba(251,191,36,0.5)]" />
+                <div className="absolute inset-0 bg-purple-400/20 blur-xl rounded-full animate-pulse" />
+                <Shield className="w-20 h-20 text-purple-400 relative drop-shadow-[0_0_20px_rgba(192,132,252,0.5)]" />
               </div>
             </div>
             <CardTitle className="text-4xl font-bold text-white mb-2 relative">
@@ -324,38 +324,38 @@ export default function RequestFighterLicense() {
 
           <CardContent className="px-4 sm:px-6 pb-6">
             <Tabs value={currentTab} onValueChange={setCurrentTab}>
-              <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-800/50 p-1">
+              <TabsList className="grid w-full grid-cols-5 mb-4 bg-slate-900/50 p-1 border border-purple-500/20">
                 <TabsTrigger 
                   value="personal" 
-                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
+                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
                 >
                   <User className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Personal</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="physical" 
-                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
+                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
                 >
                   <Activity className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Físico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="combat" 
-                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
+                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
                 >
                   <Shield className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Combate</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="medical" 
-                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
+                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
                 >
                   <Heart className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Médico</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="additional" 
-                  className="text-xs sm:text-sm text-white data-[state=active]:bg-gold-500/20 data-[state=active]:text-white transition-all"
+                  className="text-xs sm:text-sm text-white/70 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/30 data-[state=active]:to-blue-600/30 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-purple-500/50 transition-all duration-300"
                 >
                   <FileText className="w-4 h-4 mr-1" />
                   <span className="hidden sm:inline">Adicional</span>
@@ -372,7 +372,7 @@ export default function RequestFighterLicense() {
                       value={formData.nickname}
                       onChange={(e) => setFormData({ ...formData, nickname: e.target.value })}
                       placeholder="Ej: El Tigre"
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -382,13 +382,13 @@ export default function RequestFighterLicense() {
                       value={formData.birthplace}
                       onChange={(e) => setFormData({ ...formData, birthplace: e.target.value })}
                       placeholder="Ej: Tegucigalpa, Honduras"
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="document_type" className="text-white font-medium">Tipo de Documento</Label>
                     <Select value={formData.document_type} onValueChange={(v) => setFormData({ ...formData, document_type: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -403,11 +403,11 @@ export default function RequestFighterLicense() {
                       Imagen del {formData.document_type} * 
                       <span className="text-sm text-white font-normal">(Solo visible para ti y administradores)</span>
                     </Label>
-                    <div className="border-2 border-dashed border-slate-700 rounded-lg p-6 bg-slate-800/30 hover:border-gold-500/50 transition-colors">
+                    <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-6 bg-slate-900/30 hover:border-purple-500/50 hover:bg-slate-900/50 transition-all duration-300">
                       <div className="flex flex-col items-center gap-3">
                         <label 
                           htmlFor="document_image" 
-                          className="cursor-pointer bg-white hover:bg-gray-100 text-slate-900 font-semibold py-3 px-6 rounded-lg transition-colors inline-flex items-center gap-2"
+                          className="cursor-pointer bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 inline-flex items-center gap-2 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)]"
                         >
                           <Upload className="w-5 h-5" />
                           {documentFile ? documentFile.name : 'Seleccionar archivo'}
@@ -427,8 +427,8 @@ export default function RequestFighterLicense() {
                       </div>
                     </div>
                     {documentPreview && (
-                      <div className="mt-3 p-2 bg-slate-800/50 rounded-lg border border-gold-500/30">
-                        <img 
+                      <div className="mt-3 p-2 bg-slate-900/50 rounded-lg border border-purple-500/30">
+                        <img
                           src={documentPreview} 
                           alt="Vista previa del documento" 
                           className="w-full max-w-md h-auto object-contain rounded-lg mx-auto" 
@@ -469,7 +469,7 @@ export default function RequestFighterLicense() {
                 <div className="flex justify-end mt-4 pt-4 border-t border-slate-700">
                   <Button 
                     onClick={() => setCurrentTab('physical')}
-                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
                   >
                     Siguiente
                   </Button>
@@ -488,7 +488,7 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, height_cm: e.target.value })}
                       placeholder="175"
                       required
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -501,7 +501,7 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
                       placeholder="70.5"
                       required
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -512,13 +512,13 @@ export default function RequestFighterLicense() {
                       value={formData.reach_cm}
                       onChange={(e) => setFormData({ ...formData, reach_cm: e.target.value })}
                       placeholder="180"
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="blood_type" className="text-white font-medium">Tipo de Sangre</Label>
                     <Select value={formData.blood_type} onValueChange={(v) => setFormData({ ...formData, blood_type: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue placeholder="Seleccionar" />
                       </SelectTrigger>
                       <SelectContent>
@@ -534,17 +534,17 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-purple-500/20">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('personal')}
-                    className="border-slate-600 hover:bg-slate-800 text-white"
+                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
                   >
                     Anterior
                   </Button>
                   <Button 
                     onClick={() => setCurrentTab('combat')}
-                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
                   >
                     Siguiente
                   </Button>
@@ -557,7 +557,7 @@ export default function RequestFighterLicense() {
                   <div className="space-y-1.5">
                     <Label htmlFor="weight_class" className="text-white font-medium">Categoría de Peso *</Label>
                     <Select value={formData.weight_class} onValueChange={(v) => setFormData({ ...formData, weight_class: v })} required>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue placeholder="Seleccionar" />
                       </SelectTrigger>
                       <SelectContent>
@@ -576,7 +576,7 @@ export default function RequestFighterLicense() {
                   <div className="space-y-1.5">
                     <Label htmlFor="discipline" className="text-white font-medium">Disciplina *</Label>
                     <Select value={formData.discipline} onValueChange={(v) => setFormData({ ...formData, discipline: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -602,13 +602,13 @@ export default function RequestFighterLicense() {
                       value={formData.fighting_style}
                       onChange={(e) => setFormData({ ...formData, fighting_style: e.target.value })}
                       placeholder="Ej: Striker, Grappler"
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="stance" className="text-white font-medium">Guardia</Label>
                     <Select value={formData.stance} onValueChange={(v) => setFormData({ ...formData, stance: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -621,7 +621,7 @@ export default function RequestFighterLicense() {
                   <div className="space-y-1.5">
                     <Label htmlFor="level" className="text-white font-medium">Nivel *</Label>
                     <Select value={formData.level} onValueChange={(v) => setFormData({ ...formData, level: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -638,7 +638,7 @@ export default function RequestFighterLicense() {
                       value={formData.gym_name}
                       onChange={(e) => setFormData({ ...formData, gym_name: e.target.value })}
                       placeholder="Ej: Team Alpha MMA"
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="md:col-span-2 space-y-1.5">
@@ -649,28 +649,28 @@ export default function RequestFighterLicense() {
                         value={formData.record_wins}
                         onChange={(e) => setFormData({ ...formData, record_wins: e.target.value })}
                         placeholder="Victorias"
-                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
                         type="number"
                         value={formData.record_losses}
                         onChange={(e) => setFormData({ ...formData, record_losses: e.target.value })}
                         placeholder="Derrotas"
-                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
                         type="number"
                         value={formData.record_draws}
                         onChange={(e) => setFormData({ ...formData, record_draws: e.target.value })}
                         placeholder="Empates"
-                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="record_type" className="text-white font-medium">Tipo de Récord *</Label>
                     <Select value={formData.record_type} onValueChange={(v) => setFormData({ ...formData, record_type: v })}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white">
+                      <SelectTrigger className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -680,17 +680,17 @@ export default function RequestFighterLicense() {
                     </Select>
                   </div>
                 </div>
-                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-purple-500/20">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('physical')}
-                    className="border-slate-600 hover:bg-slate-800 text-white"
+                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
                   >
                     Anterior
                   </Button>
                   <Button 
                     onClick={() => setCurrentTab('medical')}
-                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
                   >
                     Siguiente
                   </Button>
@@ -708,7 +708,7 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, medical_conditions: e.target.value })}
                       placeholder="Cualquier condición médica relevante..."
                       rows={3}
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -719,7 +719,7 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, medical_allergies: e.target.value })}
                       placeholder="Alergias conocidas..."
                       rows={2}
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -730,7 +730,7 @@ export default function RequestFighterLicense() {
                         value={formData.insurance_company}
                         onChange={(e) => setFormData({ ...formData, insurance_company: e.target.value })}
                         placeholder="Nombre de la aseguradora"
-                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -740,7 +740,7 @@ export default function RequestFighterLicense() {
                         value={formData.insurance_policy}
                         onChange={(e) => setFormData({ ...formData, insurance_policy: e.target.value })}
                         placeholder="Número de póliza"
-                        className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                     </div>
                   </div>
@@ -759,7 +759,7 @@ export default function RequestFighterLicense() {
                           onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
                           placeholder="Nombre del contacto"
                           required
-                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                          className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -770,7 +770,7 @@ export default function RequestFighterLicense() {
                           onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
                           placeholder="+504 9999-9999"
                           required
-                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                          className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -780,23 +780,23 @@ export default function RequestFighterLicense() {
                           value={formData.emergency_contact_relation}
                           onChange={(e) => setFormData({ ...formData, emergency_contact_relation: e.target.value })}
                           placeholder="Ej: Madre, Esposo/a"
-                          className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                          className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-purple-500/20">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('combat')}
-                    className="border-slate-600 hover:bg-slate-800 text-white"
+                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
                   >
                     Anterior
                   </Button>
                   <Button 
                     onClick={() => setCurrentTab('additional')}
-                    className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white px-8"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white px-8 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300"
                   >
                     Siguiente
                   </Button>
@@ -814,7 +814,7 @@ export default function RequestFighterLicense() {
                       onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                       placeholder="Cuéntanos tu historia como peleador..."
                       rows={4}
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -824,7 +824,7 @@ export default function RequestFighterLicense() {
                       value={formData.boxrec_url}
                       onChange={(e) => setFormData({ ...formData, boxrec_url: e.target.value })}
                       placeholder="https://boxrec.com/..."
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                   <div className="space-y-1.5">
@@ -834,22 +834,22 @@ export default function RequestFighterLicense() {
                       value={formData.tapology_url}
                       onChange={(e) => setFormData({ ...formData, tapology_url: e.target.value })}
                       placeholder="https://tapology.com/..."
-                      className="bg-slate-800/50 border-slate-700 focus:border-gold-500 text-white"
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
                 </div>
-                <div className="flex justify-between mt-4 pt-4 border-t border-slate-700">
+                <div className="flex justify-between mt-4 pt-4 border-t border-purple-500/20">
                   <Button 
                     variant="outline" 
                     onClick={() => setCurrentTab('medical')}
-                    className="border-slate-600 hover:bg-slate-800 text-white"
+                    className="border-purple-500/30 hover:bg-purple-900/30 text-white hover:border-purple-500/50 transition-all duration-300"
                   >
                     Anterior
                   </Button>
                   <Button 
                     onClick={handleSubmit} 
                     disabled={loading}
-                    className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 px-8 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 px-8 shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105"
                   >
                     {loading ? (
                       <>
