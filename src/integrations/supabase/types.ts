@@ -778,6 +778,51 @@ export type Database = {
           },
         ]
       }
+      external_fighters: {
+        Row: {
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          gym: string | null
+          id: string
+          image_url: string | null
+          metadata: Json | null
+          name: string
+          nickname: string | null
+          record: Json | null
+          updated_at: string | null
+          weight_class: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gym?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name: string
+          nickname?: string | null
+          record?: Json | null
+          updated_at?: string | null
+          weight_class?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          gym?: string | null
+          id?: string
+          image_url?: string | null
+          metadata?: Json | null
+          name?: string
+          nickname?: string | null
+          record?: Json | null
+          updated_at?: string | null
+          weight_class?: string | null
+        }
+        Relationships: []
+      }
       fight_bookings: {
         Row: {
           created_at: string | null
@@ -1694,7 +1739,9 @@ export type Database = {
           event_id: string
           fight_number: number
           fight_type: string
+          fighter_a_external_id: string | null
           fighter_a_id: string
+          fighter_b_external_id: string | null
           fighter_b_id: string
           finish_method: string | null
           finish_round: number | null
@@ -1712,7 +1759,9 @@ export type Database = {
           event_id: string
           fight_number: number
           fight_type?: string
+          fighter_a_external_id?: string | null
           fighter_a_id: string
+          fighter_b_external_id?: string | null
           fighter_b_id: string
           finish_method?: string | null
           finish_round?: number | null
@@ -1730,7 +1779,9 @@ export type Database = {
           event_id?: string
           fight_number?: number
           fight_type?: string
+          fighter_a_external_id?: string | null
           fighter_a_id?: string
+          fighter_b_external_id?: string | null
           fighter_b_id?: string
           finish_method?: string | null
           finish_round?: number | null
@@ -1752,10 +1803,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fights_fighter_a_external_id_fkey"
+            columns: ["fighter_a_external_id"]
+            isOneToOne: false
+            referencedRelation: "external_fighters"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fights_fighter_a_id_fkey"
             columns: ["fighter_a_id"]
             isOneToOne: false
             referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_external_id_fkey"
+            columns: ["fighter_b_external_id"]
+            isOneToOne: false
+            referencedRelation: "external_fighters"
             referencedColumns: ["id"]
           },
           {

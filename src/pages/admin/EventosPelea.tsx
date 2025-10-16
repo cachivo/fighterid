@@ -9,6 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useEvents, useFights, BdgEvent } from '@/hooks/useEvents';
+import { useExternalFighters } from '@/hooks/useExternalFighters';
+import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -74,6 +77,31 @@ export default function EventosPelea() {
   const [availableFighters, setAvailableFighters] = useState<FighterProfile[]>([]);
   const [eventFighters, setEventFighters] = useState<string[]>([]);
   const [fighterSearchTerm, setFighterSearchTerm] = useState('');
+  
+  // External fighters hook
+  const { externalFighters, createExternalFighter, searchExternalFighters } = useExternalFighters();
+  
+  // Fight creation with external fighters
+  const [fighterAIsRegistered, setFighterAIsRegistered] = useState(true);
+  const [fighterBIsRegistered, setFighterBIsRegistered] = useState(true);
+  const [externalFighterAData, setExternalFighterAData] = useState({
+    name: '',
+    nickname: '',
+    weight_class: '',
+    gym: '',
+    country: 'HN',
+    record: { wins: 0, losses: 0, draws: 0 }
+  });
+  const [externalFighterBData, setExternalFighterBData] = useState({
+    name: '',
+    nickname: '',
+    weight_class: '',
+    gym: '',
+    country: 'HN',
+    record: { wins: 0, losses: 0, draws: 0 }
+  });
+  const [imageFileA, setImageFileA] = useState<File | undefined>();
+  const [imageFileB, setImageFileB] = useState<File | undefined>();
   
   // Form states
   const [formData, setFormData] = useState({
@@ -187,42 +215,82 @@ export default function EventosPelea() {
       return;
     }
 
-    if (!selectedEvent || !fightData.fighter_a_id || !fightData.fighter_b_id || !fightData.weight_class) {
+    if (!selectedEvent || !fightData.weight_class) {
       toast({
         title: 'Error',
-        description: 'Todos los campos son obligatorios',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // 2. VALIDAR QUE NO SEAN EL MISMO PELEADOR
-    if (fightData.fighter_a_id === fightData.fighter_b_id) {
-      toast({
-        title: 'Error',
-        description: 'No puedes asignar el mismo peleador dos veces',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // 3. VERIFICAR QUE AMBOS PELEADORES EXISTEN
-    const { data: fightersExist, error: checkError } = await supabase
-      .from('fighter_profiles')
-      .select('id')
-      .in('id', [fightData.fighter_a_id, fightData.fighter_b_id])
-      .eq('active', true);
-
-    if (checkError || fightersExist?.length !== 2) {
-      toast({
-        title: 'Error',
-        description: 'Uno o ambos peleadores no son válidos o están inactivos',
+        description: 'Debes completar todos los campos obligatorios',
         variant: 'destructive',
       });
       return;
     }
 
     try {
+      let fighterAId: string | null = null;
+      let fighterAExternalId: string | null = null;
+      let fighterBId: string | null = null;
+      let fighterBExternalId: string | null = null;
+
+      // 2. PROCESAR PELEADOR A
+      if (fighterAIsRegistered) {
+        if (!fightData.fighter_a_id) {
+          toast({
+            title: 'Error',
+            description: 'Debes seleccionar el Peleador A',
+            variant: 'destructive',
+          });
+          return;
+        }
+        fighterAId = fightData.fighter_a_id;
+      } else {
+        // Crear peleador externo A
+        if (!externalFighterAData.name || !externalFighterAData.weight_class) {
+          toast({
+            title: 'Error',
+            description: 'Debes completar nombre y categoría del Peleador A',
+            variant: 'destructive',
+          });
+          return;
+        }
+        const externalId = await createExternalFighter(externalFighterAData, imageFileA);
+        if (!externalId) return;
+        fighterAExternalId = externalId;
+      }
+
+      // 3. PROCESAR PELEADOR B
+      if (fighterBIsRegistered) {
+        if (!fightData.fighter_b_id) {
+          toast({
+            title: 'Error',
+            description: 'Debes seleccionar el Peleador B',
+            variant: 'destructive',
+          });
+          return;
+        }
+        // Validar que no sean el mismo
+        if (fighterAId && fightData.fighter_b_id === fighterAId) {
+          toast({
+            title: 'Error',
+            description: 'No puedes asignar el mismo peleador dos veces',
+            variant: 'destructive',
+          });
+          return;
+        }
+        fighterBId = fightData.fighter_b_id;
+      } else {
+        // Crear peleador externo B
+        if (!externalFighterBData.name || !externalFighterBData.weight_class) {
+          toast({
+            title: 'Error',
+            description: 'Debes completar nombre y categoría del Peleador B',
+            variant: 'destructive',
+          });
+          return;
+        }
+        const externalId = await createExternalFighter(externalFighterBData, imageFileB);
+        if (!externalId) return;
+        fighterBExternalId = externalId;
+      }
+
       // 4. CREAR PELEA CON TIMESTAMP CORRECTO
       let scheduledDateTime = null;
       if (fightData.scheduled_time && selectedEvent.start_time) {
@@ -238,8 +306,10 @@ export default function EventosPelea() {
           event_id: selectedEvent.id,
           fight_number: fightData.fight_number,
           fight_type: fightData.fight_type,
-          fighter_a_id: fightData.fighter_a_id,
-          fighter_b_id: fightData.fighter_b_id,
+          fighter_a_id: fighterAId,
+          fighter_b_id: fighterBId,
+          fighter_a_external_id: fighterAExternalId,
+          fighter_b_external_id: fighterBExternalId,
           weight_class: fightData.weight_class,
           scheduled_time: scheduledDateTime,
           status: 'scheduled'
@@ -279,6 +349,26 @@ export default function EventosPelea() {
         weight_class: '',
         scheduled_time: ''
       });
+      setFighterAIsRegistered(true);
+      setFighterBIsRegistered(true);
+      setExternalFighterAData({
+        name: '',
+        nickname: '',
+        weight_class: '',
+        gym: '',
+        country: 'HN',
+        record: { wins: 0, losses: 0, draws: 0 }
+      });
+      setExternalFighterBData({
+        name: '',
+        nickname: '',
+        weight_class: '',
+        gym: '',
+        country: 'HN',
+        record: { wins: 0, losses: 0, draws: 0 }
+      });
+      setImageFileA(undefined);
+      setImageFileB(undefined);
 
       setShowFightsDialog(false);
 
@@ -878,40 +968,89 @@ export default function EventosPelea() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Peleador A</Label>
-                <Select value={fightData.fighter_a_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_a_id: value}))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar peleador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableFighters.map((fighter) => (
-                      <SelectItem key={fighter.id} value={fighter.id}>
-                        {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
-                        <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Peleador B</Label>
-                <Select value={fightData.fighter_b_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_b_id: value}))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar peleador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableFighters
-                      .filter(f => f.id !== fightData.fighter_a_id)
-                      .map((fighter) => (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Peleador A</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fighter-a-registered" className="text-xs text-muted-foreground">
+                      ¿Registrado?
+                    </Label>
+                    <Switch
+                      id="fighter-a-registered"
+                      checked={fighterAIsRegistered}
+                      onCheckedChange={setFighterAIsRegistered}
+                    />
+                  </div>
+                </div>
+                
+                {fighterAIsRegistered ? (
+                  <Select value={fightData.fighter_a_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_a_id: value}))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar peleador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableFighters.map((fighter) => (
                         <SelectItem key={fighter.id} value={fighter.id}>
                           {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
                           <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
                         </SelectItem>
-                      ))
-                    }
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-muted/30">
+                    <ExternalFighterForm
+                      formData={externalFighterAData}
+                      imageFile={imageFileA}
+                      onFormChange={setExternalFighterAData}
+                      onImageChange={setImageFileA}
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Peleador B</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="fighter-b-registered" className="text-xs text-muted-foreground">
+                      ¿Registrado?
+                    </Label>
+                    <Switch
+                      id="fighter-b-registered"
+                      checked={fighterBIsRegistered}
+                      onCheckedChange={setFighterBIsRegistered}
+                    />
+                  </div>
+                </div>
+                
+                {fighterBIsRegistered ? (
+                  <Select value={fightData.fighter_b_id} onValueChange={(value) => setFightData(prev => ({...prev, fighter_b_id: value}))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar peleador" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableFighters
+                        .filter(f => f.id !== fightData.fighter_a_id)
+                        .map((fighter) => (
+                          <SelectItem key={fighter.id} value={fighter.id}>
+                            {fighter.first_name} {fighter.last_name} {fighter.nickname && `"${fighter.nickname}"`}
+                            <span className="text-xs text-muted-foreground ml-2">({fighter.weight_class})</span>
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="border rounded-lg p-3 bg-muted/30">
+                    <ExternalFighterForm
+                      formData={externalFighterBData}
+                      imageFile={imageFileB}
+                      onFormChange={setExternalFighterBData}
+                      onImageChange={setImageFileB}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

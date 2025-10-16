@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight, Home } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight, Home, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -249,48 +249,72 @@ const EventDetail = () => {
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer">
-                                {fight.fighter_a?.avatar_url ? (
+                                {(fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
                                   <img 
-                                    src={fight.fighter_a.avatar_url} 
-                                    alt={`${fight.fighter_a.first_name} ${fight.fighter_a.last_name}`}
+                                    src={fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url} 
+                                    alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
                                     className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
                                   />
                                 ) : (
                                   <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
                                     <span className="text-xl font-bold text-muted-foreground">
-                                      {fight.fighter_a?.first_name?.[0]}{fight.fighter_a?.last_name?.[0]}
+                                      {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
                                     </span>
                                   </div>
                                 )}
                               </div>
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
-                              {fight.fighter_a && <FighterMiniature fighter={fight.fighter_a} />}
+                              {fight.fighter_a ? (
+                                <FighterMiniature fighter={fight.fighter_a} />
+                              ) : fight.fighter_a_external && (
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold">{fight.fighter_a_external.name}</h4>
+                                  {fight.fighter_a_external.nickname && (
+                                    <p className="text-sm text-muted-foreground">"{fight.fighter_a_external.nickname}"</p>
+                                  )}
+                                  {fight.fighter_a_external.gym && (
+                                    <p className="text-xs text-muted-foreground">{fight.fighter_a_external.gym}</p>
+                                  )}
+                                  <Badge variant="secondary">Peleador Invitado</Badge>
+                                </div>
+                              )}
                             </HoverCardContent>
                           </HoverCard>
                         </div>
                         
                         <h3 className="font-bold text-lg">
-                          {fight.fighter_a?.first_name} {fight.fighter_a?.last_name}
+                          {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
                         </h3>
                         
-                        {fight.fighter_a?.nickname && (
+                        {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && (
                           <p className="text-sm text-muted-foreground mb-2">
-                            "{fight.fighter_a.nickname}"
+                            "{fight.fighter_a?.nickname || fight.fighter_a_external?.nickname}"
                           </p>
+                        )}
+                        
+                        {fight.fighter_a ? (
+                          <Badge className="mb-2 bg-green-600/20 text-green-600 border-green-600/30">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Fighter ID Verificado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="mb-2">
+                            Peleador Invitado
+                          </Badge>
                         )}
                         
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-center items-center gap-2">
                             <span className="text-green-500 font-semibold">
-                              {fight.fighter_a?.record_wins || 0}W
+                              {fight.fighter_a?.record_wins || fight.fighter_a_external?.record?.wins || 0}W
                             </span>
                             <span className="text-destructive font-semibold">
-                              {fight.fighter_a?.record_losses || 0}L
+                              {fight.fighter_a?.record_losses || fight.fighter_a_external?.record?.losses || 0}L
                             </span>
-                            {(fight.fighter_a?.record_draws || 0) > 0 && (
+                            {((fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws || 0) > 0) && (
                               <span className="text-muted-foreground font-semibold">
-                                {fight.fighter_a.record_draws}D
+                                {fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws}D
                               </span>
                             )}
                           </div>
@@ -313,48 +337,72 @@ const EventDetail = () => {
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer">
-                                {fight.fighter_b?.avatar_url ? (
+                                {(fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
                                   <img 
-                                    src={fight.fighter_b.avatar_url} 
-                                    alt={`${fight.fighter_b.first_name} ${fight.fighter_b.last_name}`}
+                                    src={fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url} 
+                                    alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
                                     className="w-16 h-16 rounded-full mx-auto object-cover border-2 border-border hover:border-primary/50 transition-colors"
                                   />
                                 ) : (
                                   <div className="w-16 h-16 rounded-full mx-auto bg-muted flex items-center justify-center border-2 border-border hover:border-primary/50 transition-colors">
                                     <span className="text-xl font-bold text-muted-foreground">
-                                      {fight.fighter_b?.first_name?.[0]}{fight.fighter_b?.last_name?.[0]}
+                                      {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
                                     </span>
                                   </div>
                                 )}
                               </div>
                             </HoverCardTrigger>
                             <HoverCardContent className="w-80">
-                              {fight.fighter_b && <FighterMiniature fighter={fight.fighter_b} />}
+                              {fight.fighter_b ? (
+                                <FighterMiniature fighter={fight.fighter_b} />
+                              ) : fight.fighter_b_external && (
+                                <div className="space-y-2">
+                                  <h4 className="font-semibold">{fight.fighter_b_external.name}</h4>
+                                  {fight.fighter_b_external.nickname && (
+                                    <p className="text-sm text-muted-foreground">"{fight.fighter_b_external.nickname}"</p>
+                                  )}
+                                  {fight.fighter_b_external.gym && (
+                                    <p className="text-xs text-muted-foreground">{fight.fighter_b_external.gym}</p>
+                                  )}
+                                  <Badge variant="secondary">Peleador Invitado</Badge>
+                                </div>
+                              )}
                             </HoverCardContent>
                           </HoverCard>
                         </div>
                         
                         <h3 className="font-bold text-lg">
-                          {fight.fighter_b?.first_name} {fight.fighter_b?.last_name}
+                          {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
                         </h3>
                         
-                        {fight.fighter_b?.nickname && (
+                        {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && (
                           <p className="text-sm text-muted-foreground mb-2">
-                            "{fight.fighter_b.nickname}"
+                            "{fight.fighter_b?.nickname || fight.fighter_b_external?.nickname}"
                           </p>
+                        )}
+                        
+                        {fight.fighter_b ? (
+                          <Badge className="mb-2 bg-green-600/20 text-green-600 border-green-600/30">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Fighter ID Verificado
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="mb-2">
+                            Peleador Invitado
+                          </Badge>
                         )}
                         
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-center items-center gap-2">
                             <span className="text-green-500 font-semibold">
-                              {fight.fighter_b?.record_wins || 0}W
+                              {fight.fighter_b?.record_wins || fight.fighter_b_external?.record?.wins || 0}W
                             </span>
                             <span className="text-destructive font-semibold">
-                              {fight.fighter_b?.record_losses || 0}L
+                              {fight.fighter_b?.record_losses || fight.fighter_b_external?.record?.losses || 0}L
                             </span>
-                            {(fight.fighter_b?.record_draws || 0) > 0 && (
+                            {((fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws || 0) > 0) && (
                               <span className="text-muted-foreground font-semibold">
-                                {fight.fighter_b.record_draws}D
+                                {fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws}D
                               </span>
                             )}
                           </div>

@@ -25,6 +25,8 @@ export interface Fight {
   fight_type: string;
   fighter_a_id: string;
   fighter_b_id: string;
+  fighter_a_external_id?: string;
+  fighter_b_external_id?: string;
   weight_class: string;
   scheduled_time?: string;
   status: string;
@@ -36,6 +38,8 @@ export interface Fight {
   updated_at: string;
   fighter_a?: any;
   fighter_b?: any;
+  fighter_a_external?: any;
+  fighter_b_external?: any;
 }
 
 export function useEvents() {
@@ -227,7 +231,9 @@ export function useFights(eventId?: string) {
         .select(`
           *,
           fighter_a:fighter_profiles!fights_fighter_a_id_fkey(*),
-          fighter_b:fighter_profiles!fights_fighter_b_id_fkey(*)
+          fighter_b:fighter_profiles!fights_fighter_b_id_fkey(*),
+          fighter_a_external:external_fighters!fights_fighter_a_external_id_fkey(*),
+          fighter_b_external:external_fighters!fights_fighter_b_external_id_fkey(*)
         `)
         .order('fight_number', { ascending: true });
 
