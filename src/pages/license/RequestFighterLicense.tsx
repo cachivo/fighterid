@@ -199,7 +199,7 @@ export default function RequestFighterLicense() {
         stance: formData.stance || null,
         level: formData.level || null,
         gym_name: formData.gym_name || null,
-        martial_arts: formData.martial_arts.length > 0 ? JSON.stringify(formData.martial_arts) : null,
+        martial_arts: formData.martial_arts.length > 0 ? formData.martial_arts.join(',') : null,
         record_wins: parseInt(formData.record_wins) || 0,
         record_losses: parseInt(formData.record_losses) || 0,
         record_draws: parseInt(formData.record_draws) || 0,
