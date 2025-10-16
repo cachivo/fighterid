@@ -314,7 +314,7 @@ const EventDetail = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   {/* Fight Card Container */}
-                  <Card className="relative border-2 border-primary/20 bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md hover:border-primary/40 transition-all duration-300 overflow-visible shadow-xl hover:shadow-2xl hover:shadow-primary/20">
+                  <Card className="relative border-2 border-primary/20 bg-gradient-to-br from-gray-950/80 to-black/70 backdrop-blur-md hover:border-primary/40 transition-all duration-300 overflow-visible shadow-xl hover:shadow-2xl hover:shadow-primary/20">
                     {/* Glow Effect */}
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     
@@ -437,7 +437,7 @@ const EventDetail = () => {
                         
                           {/* Enhanced Info Bar */}
                           <div className="w-full max-w-sm">
-                            <div className="relative bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-xl border-2 border-red-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-red-500/50 transition-colors">
+                            <div className="relative bg-gradient-to-br from-gray-950/70 via-gray-900/60 to-gray-950/70 backdrop-blur-xl border-2 border-red-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-red-500/50 transition-colors">
                               {/* Corner accent */}
                               <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-red-500 rounded-tl-2xl"></div>
                               <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-red-500 rounded-br-2xl"></div>
@@ -591,7 +591,7 @@ const EventDetail = () => {
                           
                           {/* Enhanced Info Bar */}
                           <div className="w-full max-w-sm">
-                            <div className="relative bg-gradient-to-br from-black/60 via-black/40 to-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-blue-500/50 transition-colors">
+                            <div className="relative bg-gradient-to-br from-gray-950/70 via-gray-900/60 to-gray-950/70 backdrop-blur-xl border-2 border-blue-500/30 rounded-2xl shadow-2xl px-6 py-4 text-center space-y-2 group-hover/fighter:border-blue-500/50 transition-colors">
                               {/* Corner accent */}
                               <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-blue-500 rounded-tr-2xl"></div>
                               <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-blue-500 rounded-bl-2xl"></div>
@@ -646,7 +646,7 @@ const EventDetail = () => {
 
                     {/* Winner & Finish */}
                     {fight.winner_id && (
-                      <div className="mt-8 pt-6 border-t border-white/10">
+                      <div className="mt-8 pt-6 border-t border-white/10 bg-gradient-to-br from-gray-950/50 to-gray-900/40 rounded-lg p-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div>
                             <p className="text-sm text-gray-300 mb-1">Ganador</p>
