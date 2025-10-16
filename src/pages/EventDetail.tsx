@@ -12,8 +12,8 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
-// Helper function to convert country code to flag emoji
-const getCountryFlag = (countryCode: string) => {
+// Helper function to get country ISO code
+const getCountryCode = (countryCode: string): string => {
   if (!countryCode) return '';
   
   // Map of country names/codes to ISO codes
@@ -50,20 +50,8 @@ const getCountryFlag = (countryCode: string) => {
   // Get ISO code
   const isoCode = countryMap[countryCode] || countryCode.toUpperCase();
   
-  // Validate it's a 2-letter code
-  if (isoCode.length !== 2) return '';
-  
-  try {
-    // Convert to flag emoji using regional indicator symbols
-    const codePoints = isoCode
-      .toUpperCase()
-      .split('')
-      .map(char => 127397 + char.charCodeAt(0));
-    return String.fromCodePoint(...codePoints);
-  } catch (error) {
-    console.error('Error converting country code to flag:', countryCode, error);
-    return '';
-  }
+  // Return 2-letter code
+  return isoCode.length === 2 ? isoCode : '';
 };
 
 const EventDetail = () => {
@@ -364,9 +352,105 @@ const EventDetail = () => {
                     </CardHeader>
                   
                     <CardContent className="relative pt-8 pb-6">
-                      <div className="grid md:grid-cols-[1fr_auto_1fr] gap-6 md:gap-12 items-end">
+                      <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] gap-4 md:gap-12">
+                        {/* Mobile Layout - Horizontal */}
+                        <div className="flex md:hidden justify-between items-center gap-2 relative">
+                          {/* Fighter A - Mobile */}
+                          <div className="flex-1 flex flex-col items-center">
+                            <Badge className="bg-red-600/90 text-white font-bold px-3 py-0.5 text-xs mb-2">
+                              ROJA
+                            </Badge>
+                            <div className="relative w-full max-w-[140px] h-[160px] flex items-end justify-center">
+                              {/* Country Code Background */}
+                              {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
+                                <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
+                                  <span className="text-[5rem] font-black text-white">
+                                    {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
+                                  </span>
+                                </div>
+                              )}
+                              {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
+                                <img 
+                                  src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
+                                  alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
+                                  className="relative h-full w-auto object-contain"
+                                  style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border border-red-500/30">
+                                  <span className="text-4xl font-bold text-white">
+                                    {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-2 text-center max-w-[140px]">
+                              <p className="text-xs font-bold text-white truncate">
+                                {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
+                              </p>
+                              <div className="flex justify-center gap-2 text-[10px] font-semibold mt-1">
+                                <span className="text-green-400">{fight.fighter_a?.record_wins || fight.fighter_a_external?.record?.wins || 0}V</span>
+                                <span className="text-red-400">{fight.fighter_a?.record_losses || fight.fighter_a_external?.record?.losses || 0}D</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* VS - Mobile */}
+                          <div className="flex flex-col items-center px-2">
+                            <img 
+                              src="/lovable-uploads/ucc-logo-transparent.png" 
+                              alt="VS"
+                              className="w-10 h-10 opacity-70"
+                            />
+                            <div className="text-2xl font-black bg-gradient-to-r from-red-500 via-primary to-blue-500 bg-clip-text text-transparent">
+                              VS
+                            </div>
+                          </div>
+
+                          {/* Fighter B - Mobile */}
+                          <div className="flex-1 flex flex-col items-center">
+                            <Badge className="bg-blue-600/90 text-white font-bold px-3 py-0.5 text-xs mb-2">
+                              AZUL
+                            </Badge>
+                            <div className="relative w-full max-w-[140px] h-[160px] flex items-end justify-center">
+                              {/* Country Code Background */}
+                              {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
+                                <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
+                                  <span className="text-[5rem] font-black text-white">
+                                    {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
+                                  </span>
+                                </div>
+                              )}
+                              {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
+                                <img 
+                                  src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
+                                  alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
+                                  className="relative h-full w-auto object-contain"
+                                  style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))' }}
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border border-blue-500/30">
+                                  <span className="text-4xl font-bold text-white">
+                                    {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-2 text-center max-w-[140px]">
+                              <p className="text-xs font-bold text-white truncate">
+                                {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
+                              </p>
+                              <div className="flex justify-center gap-2 text-[10px] font-semibold mt-1">
+                                <span className="text-green-400">{fight.fighter_b?.record_wins || fight.fighter_b_external?.record?.wins || 0}V</span>
+                                <span className="text-red-400">{fight.fighter_b?.record_losses || fight.fighter_b_external?.record?.losses || 0}D</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Layout */}
                         {/* Fighter A */}
-                        <div className="flex flex-col items-center group/fighter">
+                        <div className="hidden md:flex flex-col items-center group/fighter">
                           {/* Corner Label */}
                           <div className="mb-2">
                             <Badge className="bg-red-600/90 text-white font-bold px-6 py-1 text-sm shadow-lg">
@@ -379,11 +463,11 @@ const EventDetail = () => {
                             {/* Dramatic lighting effect */}
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-2/3 bg-gradient-to-t from-red-500/20 via-transparent to-transparent blur-2xl"></div>
                             
-                            {/* Country Flag Background - Enhanced */}
+                            {/* Country Code Background */}
                             {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-25 select-none pointer-events-none z-0">
-                                <span className="text-[14rem] md:text-[20rem] leading-none filter drop-shadow-2xl">
-                                  {getCountryFlag(fight.fighter_a?.country || fight.fighter_a_external?.country)}
+                              <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                                <span className="text-[12rem] md:text-[18rem] font-black text-white leading-none filter drop-shadow-2xl">
+                                  {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
                                 </span>
                               </div>
                             )}
@@ -489,8 +573,8 @@ const EventDetail = () => {
                           </div>
                         </div>
 
-                        {/* Enhanced VS Divider */}
-                        <div className="flex flex-col items-center justify-center px-6 md:px-12 my-8 md:my-0">
+                        {/* Enhanced VS Divider - Desktop Only */}
+                        <div className="hidden md:flex flex-col items-center justify-center px-6 md:px-12 my-8 md:my-0">
                           <div className="relative">
                             {/* Glow effect */}
                             <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full"></div>
@@ -519,8 +603,8 @@ const EventDetail = () => {
                           )}
                         </div>
 
-                        {/* Fighter B */}
-                        <div className="flex flex-col items-center group/fighter">
+                        {/* Fighter B - Desktop Only */}
+                        <div className="hidden md:flex flex-col items-center group/fighter">
                           {/* Corner Label */}
                           <div className="mb-2">
                             <Badge className="bg-blue-600/90 text-white font-bold px-6 py-1 text-sm shadow-lg">
@@ -533,11 +617,11 @@ const EventDetail = () => {
                             {/* Dramatic lighting effect */}
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-2/3 bg-gradient-to-t from-blue-500/20 via-transparent to-transparent blur-2xl"></div>
                             
-                            {/* Country Flag Background - Enhanced */}
+                            {/* Country Code Background */}
                             {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-25 select-none pointer-events-none z-0">
-                                <span className="text-[14rem] md:text-[20rem] leading-none filter drop-shadow-2xl">
-                                  {getCountryFlag(fight.fighter_b?.country || fight.fighter_b_external?.country)}
+                              <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                                <span className="text-[12rem] md:text-[18rem] font-black text-white leading-none filter drop-shadow-2xl">
+                                  {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
                                 </span>
                               </div>
                             )}
