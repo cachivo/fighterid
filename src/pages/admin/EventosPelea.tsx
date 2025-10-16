@@ -13,7 +13,7 @@ import { useExternalFighters } from '@/hooks/useExternalFighters';
 import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Switch } from '@/components/ui/switch';
-import { trimTransparentBorders } from '@/lib/imageUtils';
+
 
 import {
   Table,
@@ -312,16 +312,13 @@ export default function EventosPelea() {
 
       // Subir foto de evento para peleador A (si existe nueva)
       if (eventImageFileA) {
-        // Recortar bordes transparentes automáticamente
-        const trimmedFileA = await trimTransparentBorders(eventImageFileA);
-        
-        const fileExt = trimmedFileA.name.split('.').pop();
+        const fileExt = eventImageFileA.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadErrorA } = await supabase.storage
           .from('event-fighter-images')
-          .upload(filePath, trimmedFileA);
+          .upload(filePath, eventImageFileA);
 
         if (uploadErrorA) throw uploadErrorA;
 
@@ -334,16 +331,13 @@ export default function EventosPelea() {
 
       // Subir foto de evento para peleador B (si existe nueva)
       if (eventImageFileB) {
-        // Recortar bordes transparentes automáticamente
-        const trimmedFileB = await trimTransparentBorders(eventImageFileB);
-        
-        const fileExt = trimmedFileB.name.split('.').pop();
+        const fileExt = eventImageFileB.name.split('.').pop();
         const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${fileName}`;
 
         const { error: uploadErrorB } = await supabase.storage
           .from('event-fighter-images')
-          .upload(filePath, trimmedFileB);
+          .upload(filePath, eventImageFileB);
 
         if (uploadErrorB) throw uploadErrorB;
 
@@ -1241,7 +1235,7 @@ export default function EventosPelea() {
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        {eventImageFileA ? '✂️ Se recortarán bordes transparentes automáticamente' : 'Si no subes foto, se usará la del perfil (máx. 50MB)'}
+                        Si no subes foto, se usará la del perfil (máx. 50MB)
                       </p>
                       
                       {/* Botón para usar avatar del perfil */}
@@ -1365,7 +1359,7 @@ export default function EventosPelea() {
                         showResizeInfo={false}
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        {eventImageFileB ? '✂️ Se recortarán bordes transparentes automáticamente' : 'Si no subes foto, se usará la del perfil (máx. 50MB)'}
+                        Si no subes foto, se usará la del perfil (máx. 50MB)
                       </p>
                       
                       {/* Botón para usar avatar del perfil */}
@@ -1472,6 +1466,7 @@ export default function EventosPelea() {
 const FightsListPreview = ({ eventId, onEditFight }: { eventId: string; onEditFight: (fight: any) => void }) => {
   const { fights, loading } = useFights(eventId);
   const [roundsData, setRoundsData] = useState<Record<string, number>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchRoundsCount = async () => {
@@ -1536,6 +1531,61 @@ const FightsListPreview = ({ eventId, onEditFight }: { eventId: string; onEditFi
                 <Edit className="h-3 w-3 mr-1" />
                 Editar
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-destructive hover:text-destructive">
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Eliminar pelea?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción eliminará permanentemente la Pelea #{fight.fight_number} y todos sus rounds asociados.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={async () => {
+                        try {
+                          // Eliminar rounds primero
+                          await supabase
+                            .from('fight_rounds')
+                            .delete()
+                            .eq('fight_id', fight.id);
+                          
+                          // Eliminar pelea
+                          const { error } = await supabase
+                            .from('fights')
+                            .delete()
+                            .eq('id', fight.id);
+
+                          if (error) throw error;
+
+                          toast({
+                            title: 'Pelea eliminada',
+                            description: `Pelea #${fight.fight_number} eliminada correctamente`,
+                          });
+
+                          // Refrescar lista
+                          window.location.reload();
+                        } catch (error) {
+                          console.error('Error deleting fight:', error);
+                          toast({
+                            title: 'Error',
+                            description: 'No se pudo eliminar la pelea',
+                            variant: 'destructive',
+                          });
+                        }
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Eliminar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         ))}
