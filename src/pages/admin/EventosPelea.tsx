@@ -123,7 +123,8 @@ export default function EventosPelea() {
     fighter_a_id: '',
     fighter_b_id: '',
     weight_class: '',
-    card_position: 'regular' as 'main_event' | 'co_main_event' | 'regular'
+    card_position: 'regular' as 'main_event' | 'co_main_event' | 'regular',
+    number_of_rounds: 3
   });
 
   useEffect(() => {
@@ -366,9 +367,48 @@ export default function EventosPelea() {
 
         if (error) throw error;
 
+        // GESTIONAR ROUNDS: crear o eliminar según el número especificado
+        const { data: existingRounds } = await supabase
+          .from('fight_rounds')
+          .select('id, number')
+          .eq('fight_id', editingFight.id)
+          .order('number');
+
+        const currentRoundsCount = existingRounds?.length || 0;
+        const desiredRounds = fightData.number_of_rounds;
+
+        if (currentRoundsCount < desiredRounds) {
+          // Crear rounds faltantes
+          const roundsToCreate = [];
+          for (let i = currentRoundsCount + 1; i <= desiredRounds; i++) {
+            roundsToCreate.push({
+              fight_id: editingFight.id,
+              number: i,
+              duration_seconds: 300,
+              status: 'scheduled'
+            });
+          }
+
+          if (roundsToCreate.length > 0) {
+            await supabase.from('fight_rounds').insert(roundsToCreate);
+          }
+        } else if (currentRoundsCount > desiredRounds) {
+          // Eliminar rounds sobrantes (solo si no tienen datos)
+          const roundsToDelete = existingRounds
+            ?.filter(r => r.number > desiredRounds)
+            .map(r => r.id) || [];
+          
+          if (roundsToDelete.length > 0) {
+            await supabase
+              .from('fight_rounds')
+              .delete()
+              .in('id', roundsToDelete);
+          }
+        }
+
         toast({
           title: '✅ Pelea actualizada',
-          description: `Pelea #${fightData.fight_number} actualizada correctamente`,
+          description: `Pelea #${fightData.fight_number} actualizada con ${desiredRounds} rounds`,
         });
       } else {
         // CREAR pelea nueva
@@ -393,26 +433,48 @@ export default function EventosPelea() {
 
         if (error) throw error;
 
-        // 6. VERIFICAR QUE SE CREARON LOS ROUNDS
-        const { data: rounds, error: roundsError } = await supabase
+        // 6. VERIFICAR Y CREAR ROUNDS SEGÚN EL NÚMERO ESPECIFICADO
+        const { data: existingRounds, error: roundsCheckError } = await supabase
           .from('fight_rounds')
           .select('id, number, status')
           .eq('fight_id', data.id)
           .order('number');
 
-        if (roundsError || !rounds || rounds.length !== 3) {
-          console.error('Warning: Fight created but rounds not auto-created', { fightId: data.id, rounds });
-          toast({
-            title: 'Advertencia',
-            description: `Pelea creada pero solo se generaron ${rounds?.length || 0}/3 rounds`,
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: '✅ Éxito',
-            description: `Pelea #${data.fight_number} creada con 3 rounds automáticos`,
-          });
+        const currentRoundsCount = existingRounds?.length || 0;
+        const desiredRounds = fightData.number_of_rounds;
+
+        if (currentRoundsCount < desiredRounds) {
+          // Crear los rounds faltantes
+          const roundsToCreate = [];
+          for (let i = currentRoundsCount + 1; i <= desiredRounds; i++) {
+            roundsToCreate.push({
+              fight_id: data.id,
+              number: i,
+              duration_seconds: 300, // 5 minutos por defecto
+              status: 'scheduled'
+            });
+          }
+
+          if (roundsToCreate.length > 0) {
+            const { error: createRoundsError } = await supabase
+              .from('fight_rounds')
+              .insert(roundsToCreate);
+
+            if (createRoundsError) {
+              console.error('Error creating additional rounds:', createRoundsError);
+              toast({
+                title: 'Advertencia',
+                description: `Pelea creada pero hubo un problema al crear todos los rounds`,
+                variant: 'destructive',
+              });
+            }
+          }
         }
+
+        toast({
+          title: '✅ Éxito',
+          description: `Pelea #${data.fight_number} creada con ${desiredRounds} rounds`,
+        });
       }
 
       // 7. RESET FORM Y CERRAR DIALOG
@@ -436,7 +498,8 @@ export default function EventosPelea() {
       fighter_a_id: '',
       fighter_b_id: '',
       weight_class: '',
-      card_position: 'regular'
+      card_position: 'regular',
+      number_of_rounds: 3
     });
     setFighterAIsRegistered(true);
     setFighterBIsRegistered(true);
@@ -463,15 +526,23 @@ export default function EventosPelea() {
     setEditingFight(null);
   };
 
-  const handleEditFight = (fight: any) => {
+  const handleEditFight = async (fight: any) => {
     setEditingFight(fight);
+    
+    // Obtener el número de rounds actuales
+    const { count } = await supabase
+      .from('fight_rounds')
+      .select('*', { count: 'exact', head: true })
+      .eq('fight_id', fight.id);
+    
     setFightData({
       fight_number: fight.fight_number,
       fight_type: fight.fight_type,
       fighter_a_id: fight.fighter_a_id || '',
       fighter_b_id: fight.fighter_b_id || '',
       weight_class: fight.weight_class,
-      card_position: fight.card_position || 'regular'
+      card_position: fight.card_position || 'regular',
+      number_of_rounds: count || 3
     });
     setFighterAIsRegistered(!!fight.fighter_a_id);
     setFighterBIsRegistered(!!fight.fighter_b_id);
@@ -1042,7 +1113,7 @@ export default function EventosPelea() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Número de Pelea</Label>
                 <Input
@@ -1061,6 +1132,23 @@ export default function EventosPelea() {
                   <SelectContent>
                     <SelectItem value="AMATEUR">Amateur</SelectItem>
                     <SelectItem value="PROFESSIONAL">Profesional</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Número de Rounds</Label>
+                <Select 
+                  value={fightData.number_of_rounds.toString()} 
+                  onValueChange={(value) => setFightData(prev => ({...prev, number_of_rounds: parseInt(value)}))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Round</SelectItem>
+                    <SelectItem value="2">2 Rounds</SelectItem>
+                    <SelectItem value="3">3 Rounds</SelectItem>
+                    <SelectItem value="5">5 Rounds</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1299,8 +1387,8 @@ const FightsListPreview = ({ eventId, onEditFight }: { eventId: string; onEditFi
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="outline">{fight.weight_class}</Badge>
-              <Badge variant={roundsData[fight.id] === 3 ? 'default' : 'destructive'}>
-                {roundsData[fight.id] || 0}/3 rounds
+              <Badge variant={roundsData[fight.id] > 0 ? 'default' : 'destructive'}>
+                {roundsData[fight.id] || 0} {roundsData[fight.id] === 1 ? 'round' : 'rounds'}
               </Badge>
               <Button
                 variant="ghost"
