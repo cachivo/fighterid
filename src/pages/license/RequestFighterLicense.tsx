@@ -584,6 +584,14 @@ export default function RequestFighterLicense() {
                         <SelectItem value="Boxeo">Boxeo</SelectItem>
                         <SelectItem value="Kickboxing">Kickboxing</SelectItem>
                         <SelectItem value="MuayThai">Muay Thai</SelectItem>
+                        <SelectItem value="Judo">Judo</SelectItem>
+                        <SelectItem value="JiuJitsu">Jiu-Jitsu</SelectItem>
+                        <SelectItem value="Grappling">Grappling</SelectItem>
+                        <SelectItem value="Taekwondo">Taekwondo</SelectItem>
+                        <SelectItem value="Karate">Karate</SelectItem>
+                        <SelectItem value="Wrestling">Wrestling</SelectItem>
+                        <SelectItem value="Sambo">Sambo</SelectItem>
+                        <SelectItem value="Otro">Otro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
