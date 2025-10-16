@@ -330,7 +330,7 @@ const EventDetail = () => {
                     <CardHeader className="relative pb-4 border-b border-primary/10">
                       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                         <div className="flex flex-wrap items-center gap-3">
-                          <Badge variant="outline" className="text-2xl font-black px-4 py-2 border-2 border-primary/30 bg-primary/10">
+                          <Badge variant="outline" className="text-2xl font-black px-4 py-2 border-2 border-primary/30 bg-primary/10 text-white">
                             #{fight.fight_number}
                           </Badge>
                           {fight.card_position === 'main_event' && (
