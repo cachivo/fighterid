@@ -716,14 +716,13 @@ export default function RequestFighterLicense() {
                       className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                     />
                   </div>
-                  <div className="md:col-span-2 space-y-1.5">
+                    <div className="md:col-span-2 space-y-1.5">
                     <Label className="text-white font-medium">Récord (Victorias - Derrotas - Empates)</Label>
                     <div className="grid grid-cols-3 gap-3">
                       <Input
-                        type="number"
+                        type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        min="0"
                         value={formData.record_wins}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
@@ -738,10 +737,9 @@ export default function RequestFighterLicense() {
                         className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
-                        type="number"
+                        type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        min="0"
                         value={formData.record_losses}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
@@ -756,10 +754,9 @@ export default function RequestFighterLicense() {
                         className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
                       />
                       <Input
-                        type="number"
+                        type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                        min="0"
                         value={formData.record_draws}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
