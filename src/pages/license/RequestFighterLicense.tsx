@@ -724,9 +724,15 @@ export default function RequestFighterLicense() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={formData.record_wins}
+                        onFocus={(e) => {
+                          if (formData.record_wins === '0') {
+                            setFormData({ ...formData, record_wins: '' });
+                            setTimeout(() => e.target.select(), 0);
+                          }
+                        }}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_wins: value || '0' });
+                          setFormData({ ...formData, record_wins: value });
                         }}
                         onBlur={(e) => {
                           if (!e.target.value || e.target.value === '') {
@@ -741,9 +747,15 @@ export default function RequestFighterLicense() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={formData.record_losses}
+                        onFocus={(e) => {
+                          if (formData.record_losses === '0') {
+                            setFormData({ ...formData, record_losses: '' });
+                            setTimeout(() => e.target.select(), 0);
+                          }
+                        }}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_losses: value || '0' });
+                          setFormData({ ...formData, record_losses: value });
                         }}
                         onBlur={(e) => {
                           if (!e.target.value || e.target.value === '') {
@@ -758,9 +770,15 @@ export default function RequestFighterLicense() {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         value={formData.record_draws}
+                        onFocus={(e) => {
+                          if (formData.record_draws === '0') {
+                            setFormData({ ...formData, record_draws: '' });
+                            setTimeout(() => e.target.select(), 0);
+                          }
+                        }}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, '');
-                          setFormData({ ...formData, record_draws: value || '0' });
+                          setFormData({ ...formData, record_draws: value });
                         }}
                         onBlur={(e) => {
                           if (!e.target.value || e.target.value === '') {
