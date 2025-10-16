@@ -307,10 +307,10 @@ export default function RequestFighterLicense() {
               </div>
             </div>
             <CardTitle className="text-4xl font-bold text-white mb-2 relative">
-              Solicitud de Fighter ID
+              Fighter ID - Licencia Universal de Peleador
             </CardTitle>
             <CardDescription className="text-lg text-white/90 relative">
-              Completa tu información para obtener tu licencia oficial de peleador
+              Completa tu información para obtener tu licencia oficial universal
             </CardDescription>
           </CardHeader>
 
