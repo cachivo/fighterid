@@ -23,6 +23,8 @@ export default function RequestFighterLicense() {
   // Estados para los datos del formulario
   const [formData, setFormData] = useState({
     // Personal
+    first_name: '',
+    last_name: '',
     nickname: '',
     birthplace: '',
     document_type: 'DNI',
@@ -137,6 +139,13 @@ export default function RequestFighterLicense() {
       }
 
       // 2. Validaciones básicas
+      if (!formData.first_name.trim() || !formData.last_name.trim()) {
+        toast.error('Por favor completa tu nombre y apellido');
+        setCurrentTab('personal');
+        setLoading(false);
+        return;
+      }
+
       if (!documentFile) {
         toast.error('Debes subir una imagen de tu documento de identidad');
         setCurrentTab('personal');
@@ -158,7 +167,24 @@ export default function RequestFighterLicense() {
         return;
       }
 
-      // 3. Sanitizar payload: convertir strings vacíos a null
+      // 3. Actualizar app_user con nombre y apellido
+      const { error: updateUserError } = await supabase
+        .from('app_user')
+        .update({
+          first_name: formData.first_name.trim(),
+          last_name: formData.last_name.trim(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('auth_user_id', user.id);
+
+      if (updateUserError) {
+        console.error('Error actualizando usuario:', updateUserError);
+        toast.error('Error actualizando tu perfil');
+        setLoading(false);
+        return;
+      }
+
+      // 4. Sanitizar payload: convertir strings vacíos a null
       const sanitizeOptionalNumber = (value: string): string | null => {
         const cleaned = value.replace(/[^0-9]/g, '');
         return cleaned || null;
@@ -169,7 +195,7 @@ export default function RequestFighterLicense() {
         return cleaned || null;
       };
 
-      // 4. Subir documentos
+      // 5. Subir documentos
       let documentUrl = '';
       if (documentFile) {
         const fileExt = documentFile.name.split('.').pop();
@@ -206,7 +232,7 @@ export default function RequestFighterLicense() {
         }
       }
 
-      // 5. Preparar payload sanitizado
+      // 6. Preparar payload sanitizado
       const fighterProfileData = {
         first_name: appUserData.first_name,
         last_name: appUserData.last_name,
@@ -264,7 +290,7 @@ export default function RequestFighterLicense() {
         ? [{ type: 'ID_DOCUMENT', url: documentUrl }]
         : [];
 
-      // 6. Debug logging
+      // 7. Debug logging
       console.log('[DEBUG] Payload completo a enviar:', {
         ...fighterProfileData,
         types: {
@@ -277,7 +303,7 @@ export default function RequestFighterLicense() {
         }
       });
 
-      // 7. Llamar RPC (pasando siempre p_document_urls para evitar overload)
+      // 8. Llamar RPC (pasando siempre p_document_urls para evitar overload)
       const { data: rpcResult, error: rpcError } = await supabase.rpc('request_fighter_license', {
         p_fighter_profile_data: fighterProfileData,
         p_license_data: licenseData,
@@ -302,7 +328,7 @@ export default function RequestFighterLicense() {
         return;
       }
 
-      // 8. Manejar respuesta del RPC
+      // 9. Manejar respuesta del RPC
       console.log('[DEBUG] Respuesta RPC:', rpcResult);
 
       // Type cast para la respuesta
@@ -441,6 +467,35 @@ export default function RequestFighterLicense() {
               {/* Tab Personal */}
               <TabsContent value="personal" className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* NUEVOS CAMPOS: Nombre y Apellido */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="first_name" className="text-white font-medium">
+                      Nombre <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="first_name"
+                      value={formData.first_name}
+                      onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                      placeholder="Ej: Juan"
+                      required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-1.5">
+                    <Label htmlFor="last_name" className="text-white font-medium">
+                      Apellido <span className="text-red-400">*</span>
+                    </Label>
+                    <Input
+                      id="last_name"
+                      value={formData.last_name}
+                      onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                      placeholder="Ej: Pérez"
+                      required
+                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-white/40 transition-all duration-300 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
+                  </div>
+                  
                   <div className="space-y-1.5">
                     <Label htmlFor="nickname" className="text-white font-medium">Apodo / Nickname</Label>
                     <Input
