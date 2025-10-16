@@ -12,6 +12,38 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+// Helper function to convert country code to flag emoji
+const getCountryFlag = (countryCode: string) => {
+  if (!countryCode) return '';
+  
+  // Map of country names to ISO codes
+  const countryMap: Record<string, string> = {
+    'Honduras': 'HN',
+    'Nicaragua': 'NI',
+    'El Salvador': 'SV',
+    'Guatemala': 'GT',
+    'Costa Rica': 'CR',
+    'Panama': 'PA',
+    'Panamá': 'PA',
+    'Mexico': 'MX',
+    'México': 'MX',
+    'USA': 'US',
+    'United States': 'US',
+  };
+  
+  // Get ISO code if full name is provided
+  const isoCode = countryMap[countryCode] || countryCode;
+  
+  // Convert to uppercase and get flag emoji
+  const code = isoCode.toUpperCase();
+  if (code.length !== 2) return '';
+  
+  const codePoints = code
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
 const EventDetail = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const { events, loading: eventsLoading } = useEvents();
@@ -257,6 +289,15 @@ const EventDetail = () => {
                       <div className="flex flex-col items-center">
                         {/* Image Container with 3D effect */}
                         <div className="relative h-52 md:h-72 w-full flex items-end justify-center mb-4 overflow-visible">
+                          {/* Country Flag Background */}
+                          {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                              <span className="text-[12rem] md:text-[16rem] leading-none">
+                                {getCountryFlag(fight.fighter_a?.country || fight.fighter_a_external?.country)}
+                              </span>
+                            </div>
+                          )}
+                          
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20">
@@ -350,6 +391,15 @@ const EventDetail = () => {
                       <div className="flex flex-col items-center">
                         {/* Image Container with 3D effect */}
                         <div className="relative h-52 md:h-72 w-full flex items-end justify-center mb-4 overflow-visible">
+                          {/* Country Flag Background */}
+                          {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                              <span className="text-[12rem] md:text-[16rem] leading-none">
+                                {getCountryFlag(fight.fighter_b?.country || fight.fighter_b_external?.country)}
+                              </span>
+                            </div>
+                          )}
+                          
                           <HoverCard>
                             <HoverCardTrigger asChild>
                               <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20">
