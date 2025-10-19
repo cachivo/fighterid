@@ -152,13 +152,8 @@ const App = () => (
               {/* Fighter License Portal Routes */}
               <Route path="/license/welcome" element={<Navigate to="/license/auth?mode=signup" replace />} />
               <Route path="/license/auth" element={<LicenseAuth />} />
-              <Route path="/license/request" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><LoadingSpinner /></div>}>
-                    {React.createElement(lazy(() => import('@/pages/license/RequestFighterLicense')))}
-                  </Suspense>
-                </ProtectedRoute>
-              } />
+              {/* Redirect old license request route to unified onboarding */}
+              <Route path="/license/request" element={<Navigate to="/license/onboarding" replace />} />
               <Route path="/license/forgot-password" element={<LicenseForgotPassword />} />
               <Route path="/license/reset-password" element={<LicenseResetPassword />} />
               <Route path="/license/onboarding" element={

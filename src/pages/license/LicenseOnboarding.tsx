@@ -50,6 +50,8 @@ export default function LicenseOnboarding() {
     proDraws: ''
   });
 
+  const [draftLoaded, setDraftLoaded] = useState(false);
+
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [fighterPhoto, setFighterPhoto] = useState<File | null>(null);
   const [identityPreview, setIdentityPreview] = useState<string | null>(null);
@@ -73,8 +75,10 @@ export default function LicenseOnboarding() {
     }
   };
 
-  // Load draft from localStorage on mount
+  // Load draft from localStorage on mount (only once)
   useEffect(() => {
+    if (draftLoaded) return;
+    
     const draft = localStorage.getItem('license_onboarding_draft');
     if (draft) {
       try {
@@ -85,14 +89,16 @@ export default function LicenseOnboarding() {
         console.error('[LicenseOnboarding] Failed to parse draft:', e);
       }
     }
-  }, []);
+    setDraftLoaded(true);
+  }, [draftLoaded]);
 
-  // Save draft to localStorage whenever formData changes
+  // Save draft to localStorage whenever formData changes (skip initial draft load)
   useEffect(() => {
+    if (!draftLoaded) return;
     if (formData.firstName || formData.lastName || formData.phone) {
       localStorage.setItem('license_onboarding_draft', JSON.stringify(formData));
     }
-  }, [formData]);
+  }, [formData, draftLoaded]);
 
   // Warn before leaving page with unsaved changes
   useEffect(() => {
@@ -245,7 +251,12 @@ export default function LicenseOnboarding() {
                   </div>
                   <div>
                     <Label htmlFor="gender">Género *</Label>
-                    <Select value={formData.gender} onValueChange={(value) => setFormData({...formData, gender: value as any})}>
+                    <Select 
+                      value={formData.gender || undefined} 
+                      onValueChange={(value: 'M' | 'F' | 'Otro') => {
+                        setFormData({...formData, gender: value});
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona tu género" />
                       </SelectTrigger>
@@ -435,7 +446,10 @@ export default function LicenseOnboarding() {
             {step === 2 && (
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="identityDocument">Documento de Identidad * <span className="text-sm text-gray-500">(Cédula, pasaporte, etc.)</span></Label>
+                  <Label htmlFor="identityDocument">
+                    Documento de Identidad (Imagen) * 
+                    <span className="text-sm text-muted-foreground ml-2">(Cédula, pasaporte, etc.)</span>
+                  </Label>
                   <FileUpload
                     onFileSelect={(file) => {
                       setIdentityDocument(file);

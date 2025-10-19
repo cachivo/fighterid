@@ -110,7 +110,7 @@ export function useOptimizedOnboarding() {
         
         // Handle specific error cases
         if (error.message?.includes('already has an active fighter profile')) {
-          toast.success('Ya tienes un perfil creado. Redirigiendo...');
+          toast.info('Ya tienes un perfil de peleador activo. Para solicitar otra licencia con otro perfil, usa una cuenta diferente.');
           navigate('/license/pending', { replace: true });
           return { success: true };
         }
@@ -142,14 +142,16 @@ export function useOptimizedOnboarding() {
     } catch (error: any) {
       console.error('Profile creation error:', error);
       
-      let errorMessage = 'Error al crear el perfil';
+      let errorMessage = 'Error al crear el perfil. Por favor verifica los datos e intenta nuevamente.';
       
       if (error?.code === '23505') {
-        toast.success('Ya tienes un perfil de peleador. Redirigiendo...');
+        toast.info('Ya tienes un perfil de peleador activo. Para solicitar otra licencia con otro perfil, usa una cuenta diferente.');
         navigate('/license/pending', { replace: true });
         return { success: true };
       } else if (error?.message?.includes('Unauthorized')) {
         errorMessage = 'Error de autorización. Inicia sesión nuevamente.';
+      } else if (error?.message?.includes('invalid input syntax')) {
+        errorMessage = 'Error en los datos: verifica que altura, peso y récord sean números válidos.';
       } else if (error?.message) {
         errorMessage = error.message;
       }
