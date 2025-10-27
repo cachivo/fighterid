@@ -299,7 +299,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           performed_at: string | null
           performed_by: string | null
@@ -312,7 +312,7 @@ export type Database = {
           entity_id: string
           entity_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           performed_at?: string | null
           performed_by?: string | null
@@ -325,7 +325,7 @@ export type Database = {
           entity_id?: string
           entity_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           performed_at?: string | null
           performed_by?: string | null
@@ -429,7 +429,7 @@ export type Database = {
           created_at: string | null
           currency: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           kind: string
           market_id: string
           outcome_id: string
@@ -446,7 +446,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           kind?: string
           market_id: string
           outcome_id: string
@@ -463,7 +463,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           kind?: string
           market_id?: string
           outcome_id?: string
@@ -983,7 +983,7 @@ export type Database = {
           id: string
           judge_id: string
           role: string | null
-          station_ip: unknown | null
+          station_ip: unknown
           station_number: number | null
         }
         Insert: {
@@ -993,7 +993,7 @@ export type Database = {
           id?: string
           judge_id: string
           role?: string | null
-          station_ip?: unknown | null
+          station_ip?: unknown
           station_number?: number | null
         }
         Update: {
@@ -1003,7 +1003,7 @@ export type Database = {
           id?: string
           judge_id?: string
           role?: string | null
-          station_ip?: unknown | null
+          station_ip?: unknown
           station_number?: number | null
         }
         Relationships: [
@@ -1360,6 +1360,53 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
+          },
+        ]
+      }
+      fight_summaries: {
+        Row: {
+          fight_id: string
+          fight_stats_summary: Json | null
+          generated_at: string | null
+          highlights: Json | null
+          id: string
+          key_moments: Json | null
+          lang: string | null
+          model_used: string | null
+          summary_md: string
+          tokens_used: number | null
+        }
+        Insert: {
+          fight_id: string
+          fight_stats_summary?: Json | null
+          generated_at?: string | null
+          highlights?: Json | null
+          id?: string
+          key_moments?: Json | null
+          lang?: string | null
+          model_used?: string | null
+          summary_md: string
+          tokens_used?: number | null
+        }
+        Update: {
+          fight_id?: string
+          fight_stats_summary?: Json | null
+          generated_at?: string | null
+          highlights?: Json | null
+          id?: string
+          key_moments?: Json | null
+          lang?: string | null
+          model_used?: string | null
+          summary_md?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_summaries_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2166,7 +2213,7 @@ export type Database = {
         Row: {
           fight_id: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           judge_id: string | null
           login_at: string | null
           logout_at: string | null
@@ -2177,7 +2224,7 @@ export type Database = {
         Insert: {
           fight_id: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           judge_id?: string | null
           login_at?: string | null
           logout_at?: string | null
@@ -2188,7 +2235,7 @@ export type Database = {
         Update: {
           fight_id?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           judge_id?: string | null
           login_at?: string | null
           logout_at?: string | null
@@ -3502,10 +3549,10 @@ export type Database = {
           disconnected_at: string | null
           failure_reason: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           judge_name_provided: string | null
           pin_attempted: string
-          session_duration: unknown | null
+          session_duration: unknown
           session_id: string | null
           station_number: number
           success: boolean
@@ -3516,10 +3563,10 @@ export type Database = {
           disconnected_at?: string | null
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           judge_name_provided?: string | null
           pin_attempted: string
-          session_duration?: unknown | null
+          session_duration?: unknown
           session_id?: string | null
           station_number: number
           success: boolean
@@ -3530,10 +3577,10 @@ export type Database = {
           disconnected_at?: string | null
           failure_reason?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           judge_name_provided?: string | null
           pin_attempted?: string
-          session_duration?: unknown | null
+          session_duration?: unknown
           session_id?: string | null
           station_number?: number
           success?: boolean
@@ -3858,7 +3905,7 @@ export type Database = {
           created_at: string
           device_id: string | null
           id: number
-          ip: unknown | null
+          ip: unknown
           round_id: string
           user_id: string | null
           value_json: Json
@@ -3867,7 +3914,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           round_id: string
           user_id?: string | null
           value_json: Json
@@ -3876,7 +3923,7 @@ export type Database = {
           created_at?: string
           device_id?: string | null
           id?: number
-          ip?: unknown | null
+          ip?: unknown
           round_id?: string
           user_id?: string | null
           value_json?: Json
@@ -4045,10 +4092,7 @@ export type Database = {
         Args: { p_license_id: string }
         Returns: Json
       }
-      cleanup_expired_invitations: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_old_ai_events: {
         Args: { days_to_keep?: number }
         Returns: number
@@ -4138,14 +4182,8 @@ export type Database = {
         Args: { p_license_id: string }
         Returns: undefined
       }
-      expire_old_licenses: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_license_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      expire_old_licenses: { Args: never; Returns: undefined }
+      generate_license_number: { Args: never; Returns: string }
       generate_license_qr_token: {
         Args: { p_license_id: string }
         Returns: string
@@ -4173,10 +4211,7 @@ export type Database = {
           last_strike_ms: number
         }[]
       }
-      get_current_user_judge_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_judge_id: { Args: never; Returns: string }
       get_fighter_sensitive_data: {
         Args: { p_fighter_id: string }
         Returns: {
@@ -4224,10 +4259,7 @@ export type Database = {
           verified_at: string
         }[]
       }
-      get_station_number: {
-        Args: { p_role: string }
-        Returns: number
-      }
+      get_station_number: { Args: { p_role: string }; Returns: number }
       get_station_status: {
         Args: { p_event_id: string }
         Returns: {
@@ -4270,26 +4302,11 @@ export type Database = {
         }
         Returns: string
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_assigned_judge: {
-        Args: { p_fight_id: string }
-        Returns: boolean
-      }
-      is_assigned_referee: {
-        Args: { p_fight_id: string }
-        Returns: boolean
-      }
-      is_fighter_owner: {
-        Args: { p_fighter_id: string }
-        Returns: boolean
-      }
-      is_judge: {
-        Args: { _user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_assigned_judge: { Args: { p_fight_id: string }; Returns: boolean }
+      is_assigned_referee: { Args: { p_fight_id: string }; Returns: boolean }
+      is_fighter_owner: { Args: { p_fighter_id: string }; Returns: boolean }
+      is_judge: { Args: { _user_id: string }; Returns: boolean }
       moderate_fighter_update: {
         Args: {
           p_admin_notes?: string
@@ -4332,10 +4349,7 @@ export type Database = {
         }
         Returns: undefined
       }
-      reprocess_approved_profile_changes: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      reprocess_approved_profile_changes: { Args: never; Returns: undefined }
       request_fighter_license: {
         Args: {
           p_document_urls?: Json
@@ -4350,6 +4364,10 @@ export type Database = {
       }
       suspend_license: {
         Args: { p_license_id: string; p_reason: string; p_until?: string }
+        Returns: undefined
+      }
+      update_single_fighter_record: {
+        Args: { p_fight_type: string; p_fighter_id: string }
         Returns: undefined
       }
       validate_fighter_invitation: {
@@ -4368,25 +4386,32 @@ export type Database = {
         Args: { p_fighter_id: string; p_requested_changes: Json }
         Returns: Json
       }
-      validate_station_pin: {
-        Args:
-          | { p_fight_id: string; p_pin_code: string; p_station_number: number }
-          | {
+      validate_station_pin:
+        | {
+            Args: {
               p_ip_address?: unknown
               p_judge_name?: string
               p_pin_code: string
               p_station_number: number
               p_user_agent?: string
             }
-        Returns: {
-          current_fight_id: string
-          event_id: string
-          event_name: string
-          failure_reason: string
-          session_id: string
-          valid: boolean
-        }[]
-      }
+            Returns: {
+              current_fight_id: string
+              event_id: string
+              event_name: string
+              failure_reason: string
+              session_id: string
+              valid: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_fight_id: string
+              p_pin_code: string
+              p_station_number: number
+            }
+            Returns: Json
+          }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "judge"

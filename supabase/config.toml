@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.ai-strike-test-simulator]
 verify_jwt = false
+
+[functions.finalize-fight-auto]
+verify_jwt = false

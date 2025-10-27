@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Trophy, Clock, Users, Save, Eye, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { AlertCircle, Trophy, Clock, Users, Save, Eye, Edit, Trash2, CheckCircle, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -158,6 +158,36 @@ export default function FightResults() {
     }));
   };
 
+  const finalizeFightAuto = async (fight: any) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('finalize-fight-auto', {
+        body: { 
+          fight_id: fight.id,
+          result_type: 'DECISION'
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({ 
+        title: "✅ Pelea finalizada", 
+        description: "Resultado guardado y récords actualizados automáticamente con IA" 
+      });
+      
+      fetchFights();
+    } catch (error: any) {
+      console.error('Error finalizing fight:', error);
+      toast({ 
+        title: "Error", 
+        description: error.message || "No se pudo finalizar la pelea", 
+        variant: "destructive" 
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const submitResult = async () => {
     if (!selectedFight) return;
 
@@ -238,6 +268,16 @@ export default function FightResults() {
             </div>
             
             <div className="flex gap-2">
+              {fight.status === 'ACTIVE' && !hasResult && (
+                <Button 
+                  size="sm" 
+                  variant="default"
+                  onClick={() => finalizeFightAuto(fight)}
+                >
+                  <Sparkles className="mr-2 h-3 w-3" />
+                  Finalizar con IA
+                </Button>
+              )}
               <Button 
                 size="sm" 
                 variant="outline"

@@ -43,6 +43,7 @@ import Station3RoundControl from '@/pages/station/Station3RoundControl';
 
 // Lazy loaded components
 const FightResults = lazy(() => import('./pages/admin/FightResults'));
+const PublicFightResults = lazy(() => import('./pages/FightResults'));
 const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
 const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
 const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
@@ -125,6 +126,11 @@ const App = () => (
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />
+              <Route path="/resultados" element={
+                <Suspense fallback={<LoadingSpinner />}>
+                  <PublicFightResults />
+                </Suspense>
+              } />
               <Route path="/social/friends" element={<Friends />} />
               <Route path="/social/discover" element={<Discover />} />
               <Route path="/social/notifications" element={<Notifications />} />
