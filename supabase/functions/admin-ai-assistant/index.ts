@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 // Language detection
 function detectLanguage(text: string): 'es' | 'en' {
@@ -269,70 +269,75 @@ serve(async (req) => {
       }
     ];
 
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call Lovable AI Gateway
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'google/gemini-2.5-flash',
         messages: messages,
-        functions: functions,
-        function_call: 'auto',
-        temperature: 0.7,
-        max_tokens: 1500
+        tools: functions.map(fn => ({
+          type: 'function',
+          function: fn
+        })),
+        tool_choice: 'auto'
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API Error:', errorData);
+      console.error('Lovable AI API Error:', errorData);
       
-      if (errorData.error?.code === 'insufficient_quota') {
-        throw new Error('La cuota de OpenAI se ha agotado. Por favor, actualiza tu plan de OpenAI o verifica tu cuenta.');
+      if (response.status === 429) {
+        throw new Error('Rate limit exceeded. Please wait a moment and try again.');
       }
       
-      throw new Error(`OpenAI API Error: ${errorData.error?.message || 'Unknown error'}`);
+      if (response.status === 402) {
+        throw new Error('Payment required. Please add credits to your Lovable AI workspace.');
+      }
+      
+      throw new Error(`Lovable AI API Error: ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI Response:', data);
+    console.log('Lovable AI Response:', data);
 
     let finalResponse = data.choices[0].message;
 
-    // Handle function calls
-    if (finalResponse.function_call) {
-      const functionName = finalResponse.function_call.name;
-      const functionArgs = JSON.parse(finalResponse.function_call.arguments || '{}');
+    // Handle tool calls (Lovable AI format)
+    if (finalResponse.tool_calls && finalResponse.tool_calls.length > 0) {
+      const toolCall = finalResponse.tool_calls[0];
+      const functionName = toolCall.function.name;
+      const functionArgs = JSON.parse(toolCall.function.arguments || '{}');
       
-      console.log(`Function call detected: ${functionName}`, functionArgs);
+      console.log(`Tool call detected: ${functionName}`, functionArgs);
       
       const functionResult = await handleFunctionCall(functionName, functionArgs);
       
-      // Make a second call to OpenAI with the function result
+      // Make a second call to Lovable AI with the tool result
       const followUpMessages = [
         ...messages,
         finalResponse,
         {
-          role: 'function',
+          role: 'tool',
+          tool_call_id: toolCall.id,
           name: functionName,
           content: JSON.stringify(functionResult)
         }
       ];
 
-      const followUpResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const followUpResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4.1-2025-04-14',
-          messages: followUpMessages,
-          temperature: 0.7,
-          max_tokens: 1500
+          model: 'google/gemini-2.5-flash',
+          messages: followUpMessages
         }),
       });
 
@@ -345,7 +350,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       response: finalResponse.content,
       language: language,
-      function_called: finalResponse.function_call?.name || null,
+      function_called: finalResponse.tool_calls?.[0]?.function?.name || null,
       conversation_id: crypto.randomUUID()
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -356,11 +361,11 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : '';
     const language = detectLanguage(errorMessage || 'en');
     
-    // Provide fallback responses when OpenAI is unavailable
-    if (errorMessage.includes('cuota de OpenAI') || errorMessage.includes('insufficient_quota')) {
+    // Provide fallback responses when Lovable AI is unavailable
+    if (errorMessage.includes('Rate limit')) {
       const fallbackResponse = language === 'es' 
-        ? 'Lo siento, el servicio de OpenAI no está disponible temporalmente debido a límites de cuota. Mientras tanto, puedo ayudarte con consultas básicas:\n\n• Para buscar peleadores, utiliza la búsqueda en la sección de Peleadores\n• Para ver estadísticas del sistema, revisa el Dashboard\n• Para gestionar licencias, ve a Validación de Licencias\n• Para crear torneos, usa la sección de Eventos\n\nPor favor, contacta al administrador para actualizar la configuración de OpenAI.'
-        : 'Sorry, OpenAI service is temporarily unavailable due to quota limits. Meanwhile, I can help with basic queries:\n\n• To search fighters, use the search in Fighters section\n• To view system stats, check the Dashboard\n• To manage licenses, go to License Validation\n• To create tournaments, use the Events section\n\nPlease contact the administrator to update OpenAI configuration.';
+        ? 'Lo siento, se ha alcanzado el límite de solicitudes. Por favor, espera un momento e intenta nuevamente.\n\nMientras tanto, puedes usar las funciones del sistema directamente:\n\n• Para buscar peleadores, utiliza la búsqueda en la sección de Peleadores\n• Para ver estadísticas del sistema, revisa el Dashboard\n• Para gestionar licencias, ve a Validación de Licencias\n• Para crear torneos, usa la sección de Eventos'
+        : 'Sorry, rate limit reached. Please wait a moment and try again.\n\nMeanwhile, you can use system functions directly:\n\n• To search fighters, use the search in Fighters section\n• To view system stats, check the Dashboard\n• To manage licenses, go to License Validation\n• To create tournaments, use the Events section';
       
       return new Response(JSON.stringify({ 
         response: fallbackResponse,
@@ -371,11 +376,25 @@ serve(async (req) => {
       });
     }
     
-    // Handle other OpenAI errors
-    if (errorMessage.includes('OpenAI') || errorMessage.includes('API')) {
+    if (errorMessage.includes('Payment required')) {
       const fallbackResponse = language === 'es'
-        ? 'Hay un problema de conectividad con OpenAI. Puedes usar las funciones del sistema directamente desde el menú de administración.'
-        : 'There is a connectivity issue with OpenAI. You can use system functions directly from the admin menu.';
+        ? 'El servicio de IA requiere créditos adicionales. Por favor, contacta al administrador para agregar créditos a Lovable AI.\n\nPuedes usar las funciones del sistema directamente desde el menú de administración.'
+        : 'AI service requires additional credits. Please contact the administrator to add credits to Lovable AI.\n\nYou can use system functions directly from the admin menu.';
+      
+      return new Response(JSON.stringify({ 
+        response: fallbackResponse,
+        language: language,
+        isOfflineMode: true
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    
+    // Handle other AI errors
+    if (errorMessage.includes('Lovable AI') || errorMessage.includes('API')) {
+      const fallbackResponse = language === 'es'
+        ? 'Hay un problema de conectividad con el servicio de IA. Puedes usar las funciones del sistema directamente desde el menú de administración.'
+        : 'There is a connectivity issue with the AI service. You can use system functions directly from the admin menu.';
       
       return new Response(JSON.stringify({ 
         response: fallbackResponse,
