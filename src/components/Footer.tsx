@@ -40,9 +40,9 @@ const Footer = () => {
           <div>
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-accent">Comunidad</h4>
             <ul className="space-y-2 text-gray-300">
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Registro Artista</a></li>
+              <li><a href="/license/auth" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Licencia de Peleador</a></li>
               <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Ser Jurado</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Contacto</a></li>
+              <li><a href="/contacto" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Contacto</a></li>
             </ul>
           </div>
         </div>

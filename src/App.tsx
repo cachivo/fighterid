@@ -90,6 +90,10 @@ import EmailCampaigns from "./pages/admin/EmailCampaigns";
 import EmailCampaignEditor from "./pages/admin/EmailCampaignEditor";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
+import Contact from "./pages/Contact";
+
+// Lazy load ContactInbox
+const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -141,6 +145,7 @@ const App = () => (
               <Route path="/import-event" element={<ImportEvent />} />
               <Route path="/predicciones" element={<Predicciones />} />
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
+              <Route path="/contacto" element={<Contact />} />
               
               {/* HUD Público de Scoring en Vivo */}
               <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
@@ -261,6 +266,11 @@ const App = () => (
                       <Route path="/email-validation" element={<EmailValidation />} />
                       <Route path="/email-campaigns" element={<EmailCampaigns />} />
                       <Route path="/email-campaigns/editor" element={<EmailCampaignEditor />} />
+                      <Route path="/inbox" element={
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <ContactInbox />
+                        </Suspense>
+                      } />
                       <Route path="/comunidad" element={<Comunidad />} />
                       <Route path="/configuracion" element={<Configuracion />} />
                       <Route path="/licencias" element={<ValidacionLicencias />} />

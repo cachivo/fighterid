@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.56.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +8,11 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+
+// Initialize Supabase client with service role key for full DB access
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // Language detection
 function detectLanguage(text: string): 'es' | 'en' {
@@ -81,63 +87,231 @@ Respond professionally and helpfully, focusing on the user's administrative need
   }
 }
 
-// Specialized functions for fighter and tournament management
+// Specialized functions for fighter and tournament management (Connected to Real DB)
 async function searchFighters(criteria: any) {
-  // Implementation would connect to Supabase to search fighters
-  return {
-    success: true,
-    data: [],
-    message: "Fighter search functionality available"
-  };
+  try {
+    console.log('[AI] Searching fighters:', criteria);
+    
+    let query = supabase
+      .from('fighter_profiles')
+      .select('id, first_name, last_name, nickname, country, weight_class, record_wins, record_losses, record_draws, license_number, license_status');
+
+    if (criteria.name) {
+      query = query.or(`first_name.ilike.%${criteria.name}%,last_name.ilike.%${criteria.name}%,nickname.ilike.%${criteria.name}%`);
+    }
+    if (criteria.country) query = query.eq('country', criteria.country);
+    if (criteria.weight_class) query = query.eq('weight_class', criteria.weight_class);
+    if (criteria.status) query = query.eq('license_status', criteria.status);
+
+    query = query.order('last_name', { ascending: true }).limit(50);
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return {
+      success: true,
+      count: data?.length || 0,
+      fighters: data || [],
+      message: `Se encontraron ${data?.length || 0} peleadores`
+    };
+  } catch (error) {
+    console.error('[AI] searchFighters error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', fighters: [] };
+  }
 }
 
 async function getFighterDetails(fighterId: string) {
-  // Implementation would get detailed fighter info
-  return {
-    success: true,
-    data: {},
-    message: `Fighter details for ID: ${fighterId}`
-  };
+  try {
+    console.log('[AI] Getting fighter details:', fighterId);
+    
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .select('*, fighter_licenses!inner(license_number, issued_at, expires_at, status, is_primary)')
+      .eq('id', fighterId)
+      .eq('fighter_licenses.is_primary', true)
+      .single();
+
+    if (error) throw error;
+    if (!data) return { success: false, error: 'Peleador no encontrado', data: null };
+
+    const fullName = `${data.first_name} ${data.last_name}`;
+    const record = `${data.record_wins}-${data.record_losses}-${data.record_draws}`;
+
+    return {
+      success: true,
+      data: {
+        nombre: fullName,
+        nickname: data.nickname || 'N/A',
+        país: data.country,
+        categoría: data.weight_class,
+        récord: record,
+        licencia: data.fighter_licenses?.[0]?.license_number || 'Sin licencia',
+        estado_licencia: data.fighter_licenses?.[0]?.status || 'N/A'
+      },
+      message: `Detalles de ${fullName}`
+    };
+  } catch (error) {
+    console.error('[AI] getFighterDetails error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', data: null };
+  }
 }
 
 async function updateFighterProfile(fighterId: string, updates: any) {
-  // Implementation would update fighter profile
-  return {
-    success: true,
-    message: "Fighter profile updated successfully"
-  };
+  try {
+    console.log('[AI] Updating fighter:', fighterId, updates);
+    
+    const allowedFields = ['nickname', 'weight_class', 'gym_name', 'bio'];
+    const sanitizedUpdates: any = {};
+    for (const key of Object.keys(updates)) {
+      if (allowedFields.includes(key)) sanitizedUpdates[key] = updates[key];
+    }
+
+    if (Object.keys(sanitizedUpdates).length === 0) {
+      return { success: false, error: 'No hay campos válidos para actualizar', allowedFields };
+    }
+
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .update(sanitizedUpdates)
+      .eq('id', fighterId)
+      .select('id, first_name, last_name')
+      .single();
+
+    if (error) throw error;
+    const fullName = `${data.first_name} ${data.last_name}`;
+
+    return {
+      success: true,
+      updated_fields: Object.keys(sanitizedUpdates),
+      message: `Perfil actualizado: ${fullName}`
+    };
+  } catch (error) {
+    console.error('[AI] updateFighterProfile error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
 }
 
 async function validateLicense(licenseId: string) {
-  // Implementation would validate license
-  return {
-    success: true,
-    status: "valid",
-    message: "License validation completed"
-  };
+  try {
+    console.log('[AI] Validating license:', licenseId);
+    
+    const { data, error } = await supabase
+      .from('fighter_licenses')
+      .select('*, fighter_profiles!inner(first_name, last_name, country)')
+      .eq('license_number', licenseId)
+      .single();
+
+    if (error) throw error;
+    if (!data) return { success: false, status: 'NOT_FOUND', message: 'Licencia no encontrada' };
+
+    const isExpired = data.expires_at ? new Date(data.expires_at) < new Date() : false;
+    const daysUntilExpiry = data.expires_at 
+      ? Math.ceil((new Date(data.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+      : null;
+
+    let statusMessage = '';
+    if (data.status === 'ACTIVE') {
+      statusMessage = isExpired ? 'EXPIRADA' : (daysUntilExpiry && daysUntilExpiry < 30 ? 'PRÓXIMA A EXPIRAR' : 'VÁLIDA');
+    } else {
+      statusMessage = data.status;
+    }
+
+    const fullName = `${data.fighter_profiles.first_name} ${data.fighter_profiles.last_name}`;
+
+    return {
+      success: true,
+      status: statusMessage,
+      data: {
+        licencia: data.license_number,
+        peleador: fullName,
+        emitida: data.issued_at,
+        expira: data.expires_at,
+        días_restantes: daysUntilExpiry
+      },
+      message: `Licencia ${data.license_number}: ${statusMessage} - ${fullName}`
+    };
+  } catch (error) {
+    console.error('[AI] validateLicense error:', error);
+    return { success: false, status: 'ERROR', error: error instanceof Error ? error.message : 'Error' };
+  }
 }
 
 async function createTournament(tournamentData: any) {
-  // Implementation would create tournament
-  return {
-    success: true,
-    tournamentId: "new-tournament-id",
-    message: "Tournament created successfully"
-  };
+  try {
+    console.log('[AI] Creating tournament:', tournamentData);
+    
+    const requiredFields = ['name', 'start_time', 'venue'];
+    for (const field of requiredFields) {
+      if (!tournamentData[field]) {
+        return { success: false, error: `Campo requerido faltante: ${field}`, requiredFields };
+      }
+    }
+
+    const eventData = {
+      name: tournamentData.name,
+      start_time: tournamentData.start_time,
+      venue: tournamentData.venue,
+      description: tournamentData.description || `Torneo creado por AI Assistant el ${new Date().toLocaleDateString('es-ES')}`,
+      discipline: tournamentData.discipline || 'MMA',
+      state: 'draft',
+      published: false
+    };
+
+    const { data: event, error: eventError } = await supabase
+      .from('bdg_event')
+      .insert(eventData)
+      .select()
+      .single();
+
+    if (eventError) throw eventError;
+
+    return {
+      success: true,
+      tournamentId: event.id,
+      data: event,
+      message: `Torneo "${event.name}" creado para ${new Date(event.start_time).toLocaleDateString('es-ES')}`
+    };
+  } catch (error) {
+    console.error('[AI] createTournament error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
 }
 
 async function getSystemStats() {
-  // Implementation would get system statistics
-  return {
-    success: true,
-    data: {
-      totalFighters: 150,
-      activeLicenses: 120,
-      upcomingEvents: 5,
-      pendingLicenses: 8
-    },
-    message: "System statistics retrieved"
-  };
+  try {
+    console.log('[AI] Getting system stats');
+    
+    const [fightersResult, licensesResult, eventsResult, pendingLicensesResult, activeFightsResult] = await Promise.all([
+      supabase.from('fighter_profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('fighter_licenses').select('id', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
+      supabase.from('bdg_event').select('id', { count: 'exact', head: true }).gte('start_time', new Date().toISOString()),
+      supabase.from('fighter_licenses').select('id', { count: 'exact', head: true }).eq('status', 'PENDING_REVIEW'),
+      supabase.from('fights').select('id', { count: 'exact', head: true }).eq('status', 'live')
+    ]);
+
+    const { count: activeFighters } = await supabase
+      .from('fighter_profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('license_status', 'active');
+
+    const stats = {
+      totalPeleadores: fightersResult.count || 0,
+      peleadoresActivos: activeFighters || 0,
+      licenciasActivas: licensesResult.count || 0,
+      licenciasPendientes: pendingLicensesResult.count || 0,
+      eventosProximos: eventsResult.count || 0,
+      peleasEnVivo: activeFightsResult.count || 0
+    };
+
+    return {
+      success: true,
+      data: stats,
+      message: `Sistema: ${stats.totalPeleadores} peleadores, ${stats.licenciasPendientes} licencias pendientes`,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[AI] getSystemStats error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', data: null };
+  }
 }
 
 // Function calling handler

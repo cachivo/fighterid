@@ -228,12 +228,12 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
   // Full chat interface
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans">
-      <Card className="w-96 h-[600px] shadow-xl flex flex-col">
-        <CardHeader className="pb-3">
+      <Card className="w-[600px] h-[700px] flex flex-col shadow-xl">
+        <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Bot className="h-5 w-5 text-primary" />
-              <CardTitle className="text-base">Asistente AI Admin</CardTitle>
+              <Bot className="h-6 w-6 text-primary" />
+              <CardTitle className="text-lg">Asistente AI Admin</CardTitle>
               {isLoading && (
                 <Badge variant="secondary" className="text-xs animate-pulse">
                   Escribiendo...
@@ -271,44 +271,43 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-3 space-y-3">
+        <CardContent className="flex-1 flex flex-col p-4 space-y-3">
           {/* Messages Area */}
-          <ScrollArea className="flex-1 pr-2">
-            <div className="space-y-3">
+          <ScrollArea className="flex-1 pr-3">
+            <div className="space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex gap-3 items-start ${message.role === 'assistant' ? 'flex-row' : 'flex-row-reverse'}`}
                 >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    message.role === 'user' ? 'bg-primary' : 'bg-muted'
+                  }`}>
+                    {message.role === 'assistant' ? (
+                      <Bot className="h-4 w-4" />
+                    ) : (
+                      <User className="h-4 w-4" />
+                    )}
+                  </div>
                   <div
-                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                    className={`rounded-lg px-4 py-2.5 text-sm max-w-[95%] ${
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted'
                     }`}
                   >
-                    <div className="flex items-start space-x-2">
-                      {message.role === 'assistant' && (
-                        <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div className="whitespace-pre-wrap break-words">
+                      {message.content}
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+                      <span className="text-xs opacity-70">
+                        {formatTimestamp(message.timestamp)}
+                      </span>
+                      {message.function_called && (
+                        <Badge variant="outline" className="text-xs ml-2">
+                          {message.function_called}
+                        </Badge>
                       )}
-                      {message.role === 'user' && (
-                        <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                      )}
-                      <div className="flex-1">
-                        <div className="whitespace-pre-wrap break-words">
-                          {message.content}
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs opacity-70">
-                            {formatTimestamp(message.timestamp)}
-                          </span>
-                          {message.function_called && (
-                            <Badge variant="outline" className="text-xs ml-2">
-                              {message.function_called}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -318,55 +317,57 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({
           </ScrollArea>
 
           {/* Input Area */}
-          <div className="flex space-x-2 pt-2 border-t">
-            <Input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Escribe tu consulta administrativa..."
-              disabled={isLoading}
-              className="flex-1"
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isLoading}
-              size="sm"
-              className="px-3"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+          <div className="space-y-3 pt-3 border-t bg-muted/20 p-3 rounded-lg">
+            <div className="flex space-x-2">
+              <Input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Escribe tu consulta administrativa..."
+                disabled={isLoading}
+                className="flex-1"
+              />
+              <Button
+                onClick={sendMessage}
+                disabled={!input.trim() || isLoading}
+                size="sm"
+                className="px-4"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
 
-          {/* Quick Actions */}
-          <div className="flex flex-wrap gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Buscar peleadores activos')}
-              className="text-xs h-6"
-            >
-              <Search className="mr-1 h-3 w-3" />
-              Buscar peleadores
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Estadísticas del sistema')}
-              className="text-xs h-6"
-            >
-              <BarChart3 className="mr-1 h-3 w-3" />
-              Estadísticas
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setInput('Licencias pendientes')}
-              className="text-xs h-6"
-            >
-              <FileText className="mr-1 h-3 w-3" />
-              Licencias
-            </Button>
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Buscar peleadores activos')}
+                className="text-xs h-8"
+              >
+                <Search className="mr-1 h-3 w-3" />
+                Buscar peleadores
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Estadísticas del sistema')}
+                className="text-xs h-8"
+              >
+                <BarChart3 className="mr-1 h-3 w-3" />
+                Estadísticas
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInput('Licencias pendientes')}
+                className="text-xs h-8"
+              >
+                <FileText className="mr-1 h-3 w-3" />
+                Licencias
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
