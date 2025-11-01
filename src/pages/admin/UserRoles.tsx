@@ -4,8 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Shield, UserCog, User } from 'lucide-react';
+import { Shield, UserCog, User, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
@@ -121,61 +122,134 @@ function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEditDialogP
           Editar Roles
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>Gestionar Roles de Usuario</DialogTitle>
-          <DialogDescription>
-            {user.first_name} {user.last_name} ({user.email})
-          </DialogDescription>
+          <DialogTitle>Editar roles de {user.first_name} {user.last_name}</DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4 py-4">
-          {(Object.keys(roleConfig) as AppRole[]).map((role) => {
-            const config = roleConfig[role];
-            const Icon = config.icon;
-            const isChecked = selectedRoles.includes(role);
-            const isAdminAndCurrentUser = role === 'admin' && isCurrentUser && user.roles.includes('admin');
-
-            return (
-              <div key={role} className="flex items-start space-x-3 p-3 rounded-lg border bg-card">
+          <div className="space-y-3">
+            {(['admin', 'moderator', 'user'] as AppRole[]).map((role) => (
+              <div key={role} className="flex items-center space-x-2">
                 <Checkbox
                   id={`role-${role}`}
-                  checked={isChecked}
+                  checked={selectedRoles.includes(role)}
                   onCheckedChange={(checked) => handleRoleToggle(role, checked as boolean)}
-                  disabled={isAdminAndCurrentUser}
+                  disabled={isLoading}
                 />
-                <div className="flex-1">
-                  <Label
-                    htmlFor={`role-${role}`}
-                    className="flex items-center gap-2 font-medium cursor-pointer"
-                  >
-                    <Icon className="w-4 h-4" />
-                    {config.label}
-                  </Label>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {config.description}
-                  </p>
-                  {isAdminAndCurrentUser && (
-                    <p className="text-xs text-amber-500 mt-1">
-                      No puedes remover tu propio rol de administrador
-                    </p>
-                  )}
-                </div>
+                <Label
+                  htmlFor={`role-${role}`}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {role === 'admin' && '🛡️ Administrador'}
+                  {role === 'moderator' && '⚖️ Moderador'}
+                  {role === 'user' && '👤 Usuario'}
+                </Label>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {isCurrentUser && selectedRoles.includes('admin') && (
+            <p className="text-sm text-muted-foreground">
+              ℹ️ No puedes remover tu propio rol de administrador
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={isLoading || isRemovingOwnAdmin}>
-            {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            Guardar
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Delete User Dialog Component
+interface DeleteUserDialogProps {
+  user: UserRoleData;
+  currentUserId: string;
+  onUserDeleted: () => void;
+}
+
+function DeleteUserDialog({ user, currentUserId, onUserDeleted }: DeleteUserDialogProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
+  
+  const isCurrentUser = user.id === currentUserId;
+  
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { user_id: user.id }
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`Usuario ${user.email} eliminado exitosamente`);
+      setOpen(false);
+      onUserDeleted();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || 'Error al eliminar usuario');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  
+  return (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button 
+          variant="destructive" 
+          size="sm"
+          disabled={isCurrentUser}
+          title={isCurrentUser ? 'No puedes eliminarte a ti mismo' : 'Eliminar usuario'}
+        >
+          <Trash2 className="w-4 h-4 mr-2" />
+          Eliminar
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-destructive" />
+            ¿Eliminar usuario permanentemente?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2">
+            <p>Estás a punto de eliminar a:</p>
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="font-semibold">{user.first_name} {user.last_name}</p>
+              <p className="text-sm">{user.email}</p>
+            </div>
+            <p className="text-destructive font-medium mt-3">
+              ⚠️ Esta acción es IRREVERSIBLE y eliminará:
+            </p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              <li>Cuenta de autenticación</li>
+              <li>Perfil de usuario</li>
+              <li>Todos los roles asignados</li>
+              <li>Historial de actividad</li>
+            </ul>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isDeleting ? 'Eliminando...' : 'Sí, eliminar permanentemente'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -252,11 +326,18 @@ export default function UserRoles() {
                   </div>
                 </div>
 
-                <RoleEditDialog
-                  user={user}
-                  currentUserId={currentUser?.id || ''}
-                  onRolesUpdated={refetch}
-                />
+                <div className="flex gap-2">
+                  <RoleEditDialog
+                    user={user}
+                    currentUserId={currentUser?.id || ''}
+                    onRolesUpdated={refetch}
+                  />
+                  <DeleteUserDialog
+                    user={user}
+                    currentUserId={currentUser?.id || ''}
+                    onUserDeleted={refetch}
+                  />
+                </div>
               </div>
             ))}
 
