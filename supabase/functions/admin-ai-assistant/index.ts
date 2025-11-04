@@ -31,81 +31,101 @@ function detectLanguage(text: string): 'es' | 'en' {
 // System prompts for different languages
 function getSystemPrompt(language: 'es' | 'en'): string {
   if (language === 'es') {
-    return `Eres un asistente AI especializado en administración de eventos de combate y gestión de Fighter IDs para la plataforma Batalla Digital Gym.
+    return `Eres un asistente de IA especializado en gestión de eventos de combate y perfiles de peleadores. 
+Tu función es ayudar a los administradores a gestionar la plataforma de manera eficiente.
 
-CAPACIDADES PRINCIPALES:
-- Gestión de Torneos: Crear, programar, actualizar eventos de combate
-- Administración Fighter ID: Búsqueda, validación, actualización de peleadores
-- Gestión de Licencias: Revisar, aprobar, suspender licencias
-- Reportes y Estadísticas: Generar análisis y métricas del sistema
-- **NUEVO: Análisis Demográfico y de Rendimiento Avanzado**
+CAPACIDADES ADMINISTRATIVAS COMPLETAS:
 
-FUNCIONES DISPONIBLES:
-- search_fighters: Buscar peleadores por criterios específicos
-- get_fighter_details: Obtener información detallada de un peleador
-- update_fighter_profile: Actualizar perfil de peleador
-- validate_license: Validar estado de licencias
-- create_tournament: Crear nuevo torneo
-- get_system_stats: Obtener estadísticas del sistema
-- **get_demographic_analysis**: Análisis demográfico completo (género, edades, distribución)
-- **get_performance_analysis**: Análisis de récords (top ganadores, invictos, más derrotas)
-- **get_geographic_analysis**: Análisis geográfico (distribución por país)
-- **get_weight_class_analysis**: Análisis por categorías de peso
-- **generate_comprehensive_report**: Reporte completo del sistema
+🔍 **Búsqueda Avanzada de Peleadores**:
+- Por nombre, apellido, apodo (búsqueda flexible)
+- Por fecha de nacimiento (exacta o rango)
+- Por número de licencia o documento de identidad
+- Por edad (rango: ej. 25-30 años)
+- Por país, género, categoría de peso, disciplina
+- Combinación de múltiples criterios simultáneos
+- Búsqueda de invictos, récords mínimos
 
-CAPACIDADES ESPECIALES DE ANÁLISIS:
-📊 **Demográfico**: género, edades (más joven/viejo/promedio), distribución por rangos de edad
-🏆 **Rendimiento**: top 10 ganadores, peleadores invictos, récords, win rates promedio
-🌍 **Geográfico**: distribución por país, top 5 nacionalidades
-⚖️ **Categorías**: análisis por peso, categoría más popular
+👤 **Gestión Completa de Peleadores**:
+- Crear nuevos perfiles de peleadores
+- Actualizar información completa (datos personales, médicos, récords)
+- Eliminar peleadores del sistema
+- Ver información sensible (contactos de emergencia, documentos, historial médico)
+- Búsqueda de peleadores similares (por categoría, género, récord)
+
+📝 **Gestión de Licencias**:
+- Listar licencias pendientes de aprobación
+- Aprobar licencias (nivel AMATEUR o PROFESSIONAL)
+- Suspender licencias (temporal o indefinidamente)
+- Reactivar licencias suspendidas
+- Validar estados y fechas de expiración
+
+📊 **Análisis y Reportes Avanzados**:
+- Análisis demográfico (género, edades, distribución)
+- Análisis de rendimiento (top ganadores, invictos, récords)
+- Análisis geográfico (distribución por países)
+- Análisis por categorías de peso
+- Reportes personalizados con filtros múltiples
+- Rankings por diferentes criterios (victorias, derrotas, empates)
+- Estadísticas generales del sistema
 
 EJEMPLOS DE CONSULTAS QUE PUEDES RESPONDER:
-- "¿Cuál es el peleador más joven del sistema?"
-- "Muéstrame los 10 peleadores con más victorias"
-- "¿Cuántos peleadores tenemos por país?"
-- "¿Cuál es la categoría de peso más popular?"
-- "Dame un reporte completo del sistema"
-- "¿Cuántas mujeres vs hombres peleadores tenemos?"
-- "Edad promedio de los peleadores"
-- "¿Quiénes están invictos?"
+- "Buscar peleador nacido el 15 de marzo de 1995"
+- "Dame todos los peleadores hondureños entre 25 y 30 años"
+- "¿Quién tiene la licencia FGT-2024-045?"
+- "Mostrar peleadores invictos con más de 5 victorias"
+- "Aprobar la licencia de Juan Pérez como PROFESSIONAL"
+- "Suspender la licencia X por dopaje hasta diciembre 2025"
+- "Crear nuevo peleador: José López, 28 años, welterweight, Honduras"
+- "Top 10 peleadores con más victorias en peso ligero"
+- "¿Cuántos peleadores hay en cada categoría de peso?"
+- "Dame la información médica del peleador con ID X"
+- "Buscar peleadores similares a Randy Tercero"
+- "Reporte completo de peleadores mexicanos"
 
-INSTRUCCIONES:
-1. Siempre responde en español cuando detectes que el usuario escribe en español
-2. Usa terminología específica del combate (MMA, Boxeo, etc.)
-3. Sé preciso y profesional en las respuestas administrativas
-4. Para análisis demográficos y de rendimiento, usa las funciones especializadas
-5. Presenta datos de forma clara con números y estadísticas específicas
-6. Ofrece opciones claras cuando sea posible
-7. Solicita confirmación para acciones importantes
-
-Responde de manera profesional y útil, enfocándote en las necesidades administrativas del usuario.`;
+Siempre responde de manera clara, concisa y profesional. 
+Cuando uses funciones, explica qué estás haciendo y muestra los resultados de forma organizada.
+Si necesitas más información para completar una solicitud, pregunta específicamente qué datos faltan.`;
   } else {
-    return `You are an AI assistant specialized in combat event administration and Fighter ID management for the Batalla Digital Gym platform.
+    return `You are an AI assistant specialized in managing combat events and fighter profiles.
+Your role is to help administrators manage the platform efficiently.
 
-MAIN CAPABILITIES:
-- Tournament Management: Create, schedule, update combat events
-- Fighter ID Administration: Search, validate, update fighters
-- License Management: Review, approve, suspend licenses
-- Reports and Statistics: Generate analysis and system metrics
-- Technical Support: Resolve administrative issues
+COMPLETE ADMINISTRATIVE CAPABILITIES:
 
-AVAILABLE FUNCTIONS:
-- search_fighters: Search fighters by specific criteria
-- get_fighter_details: Get detailed fighter information
-- update_fighter_profile: Update fighter profile
-- validate_license: Validate license status
-- create_tournament: Create new tournament
-- get_system_stats: Get system statistics
-- generate_report: Generate custom reports
+🔍 **Advanced Fighter Search**:
+- By name, surname, nickname (flexible search)
+- By birthdate (exact or range)
+- By license or ID document number
+- By age (range: e.g., 25-30 years)
+- By country, gender, weight class, discipline
+- Multiple simultaneous criteria combination
+- Search for undefeated fighters, minimum records
 
-INSTRUCTIONS:
-1. Always respond in English when you detect English input
-2. Use specific combat terminology (MMA, Boxing, etc.)
-3. Be precise and professional in administrative responses
-4. Offer clear options when possible
-5. Request confirmation for important actions
+👤 **Complete Fighter Management**:
+- Create new fighter profiles
+- Update complete information (personal, medical, records)
+- Delete fighters from system
+- View sensitive information (emergency contacts, documents, medical history)
+- Find similar fighters (by category, gender, record)
 
-Respond professionally and helpfully, focusing on the user's administrative needs.`;
+📝 **License Management**:
+- List pending licenses for approval
+- Approve licenses (AMATEUR or PROFESSIONAL level)
+- Suspend licenses (temporary or indefinitely)
+- Reactivate suspended licenses
+- Validate states and expiration dates
+
+📊 **Advanced Analysis and Reports**:
+- Demographic analysis (gender, ages, distribution)
+- Performance analysis (top winners, undefeated, records)
+- Geographic analysis (distribution by countries)
+- Weight class analysis
+- Custom reports with multiple filters
+- Rankings by different criteria (wins, losses, draws)
+- General system statistics
+
+Always respond clearly, concisely, and professionally.
+When using functions, explain what you're doing and present results in an organized manner.
+If you need more information to complete a request, ask specifically what data is missing.`;
   }
 }
 
@@ -137,6 +157,78 @@ async function searchFighters(criteria: any) {
     };
   } catch (error) {
     console.error('[AI] searchFighters error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', fighters: [] };
+  }
+}
+
+// Advanced search with multiple criteria
+async function advancedSearchFighters(criteria: any) {
+  try {
+    console.log('[AI] Advanced search:', criteria);
+    
+    let query = supabase
+      .from('fighter_profiles')
+      .select('id, first_name, last_name, nickname, birthdate, gender, country, weight_class, discipline, fighting_style, record_wins, record_losses, record_draws, license_number, license_status, document_number, document_type, height_cm, weight_kg, reach_cm, gym_name, avatar_url, created_at');
+
+    // Priority search by ID
+    if (criteria.fighter_id) {
+      const { data, error } = await query.eq('id', criteria.fighter_id).single();
+      if (error) throw error;
+      return { success: true, count: 1, fighters: [data], message: 'Peleador encontrado' };
+    }
+    
+    if (criteria.license_number) query = query.eq('license_number', criteria.license_number);
+    if (criteria.document_number) query = query.eq('document_number', criteria.document_number);
+    
+    if (criteria.full_name) {
+      const parts = criteria.full_name.toLowerCase().split(' ');
+      const first = parts[0];
+      const last = parts[parts.length - 1];
+      query = query.or(`first_name.ilike.%${first}%,last_name.ilike.%${last}%,nickname.ilike.%${criteria.full_name}%`);
+    }
+    
+    if (criteria.first_name) query = query.ilike('first_name', `%${criteria.first_name}%`);
+    if (criteria.last_name) query = query.ilike('last_name', `%${criteria.last_name}%`);
+    if (criteria.nickname) query = query.ilike('nickname', `%${criteria.nickname}%`);
+    if (criteria.birthdate) query = query.eq('birthdate', criteria.birthdate);
+    if (criteria.birthdate_from) query = query.gte('birthdate', criteria.birthdate_from);
+    if (criteria.birthdate_to) query = query.lte('birthdate', criteria.birthdate_to);
+    if (criteria.country) query = query.eq('country', criteria.country);
+    if (criteria.gender) query = query.eq('gender', criteria.gender);
+    if (criteria.weight_class) query = query.eq('weight_class', criteria.weight_class);
+    if (criteria.discipline) query = query.eq('discipline', criteria.discipline);
+    if (criteria.fighting_style) query = query.eq('fighting_style', criteria.fighting_style);
+    if (criteria.license_status) query = query.eq('license_status', criteria.license_status);
+    if (criteria.active !== undefined) query = query.eq('active', criteria.active);
+    if (criteria.min_wins) query = query.gte('record_wins', criteria.min_wins);
+    if (criteria.undefeated) query = query.eq('record_losses', 0).gt('record_wins', 0);
+    
+    const limit = criteria.limit || 50;
+    const offset = criteria.offset || 0;
+    query = query.range(offset, offset + limit - 1).order('last_name', { ascending: true });
+    
+    const { data, error } = await query;
+    if (error) throw error;
+    
+    let results = data || [];
+    if (criteria.age_min || criteria.age_max) {
+      results = results.filter(f => {
+        if (!f.birthdate) return false;
+        const age = new Date().getFullYear() - new Date(f.birthdate).getFullYear();
+        if (criteria.age_min && age < criteria.age_min) return false;
+        if (criteria.age_max && age > criteria.age_max) return false;
+        return true;
+      });
+    }
+    
+    return {
+      success: true,
+      count: results.length,
+      fighters: results,
+      message: `Se encontraron ${results.length} peleadores`
+    };
+  } catch (error) {
+    console.error('[AI] advancedSearchFighters error:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Error', fighters: [] };
   }
 }
@@ -562,6 +654,244 @@ async function generateComprehensiveReport(filters?: any) {
   }
 }
 
+// License Management Functions
+async function getPendingLicenses() {
+  try {
+    console.log('[AI] Getting pending licenses');
+    const { data, error } = await supabase
+      .from('fighter_licenses')
+      .select('id, license_number, status, created_at, fighter_profiles!inner(id, first_name, last_name, email, phone, country)')
+      .eq('status', 'PENDING_REVIEW')
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    return {
+      success: true,
+      count: data.length,
+      licenses: data,
+      message: `${data.length} licencias pendientes de revisión`
+    };
+  } catch (error) {
+    console.error('[AI] getPendingLicenses error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', licenses: [] };
+  }
+}
+
+async function approveLicense(licenseId: string, level: string = 'AMATEUR') {
+  try {
+    console.log('[AI] Approving license:', licenseId);
+    const { error } = await supabase.rpc('approve_license', {
+      p_license_id: licenseId,
+      p_level: level
+    });
+    if (error) throw error;
+    return { success: true, message: `Licencia aprobada como ${level}` };
+  } catch (error) {
+    console.error('[AI] approveLicense error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+async function suspendLicense(licenseId: string, reason: string, until?: string) {
+  try {
+    console.log('[AI] Suspending license:', licenseId);
+    const { error } = await supabase.rpc('suspend_license', {
+      p_license_id: licenseId,
+      p_reason: reason,
+      p_until: until || null
+    });
+    if (error) throw error;
+    return { success: true, message: `Licencia suspendida${until ? ` hasta ${until}` : ' indefinidamente'}` };
+  } catch (error) {
+    console.error('[AI] suspendLicense error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+async function reactivateLicense(licenseId: string) {
+  try {
+    console.log('[AI] Reactivating license:', licenseId);
+    const { error } = await supabase
+      .from('fighter_licenses')
+      .update({ status: 'ACTIVE', suspension_reason: null, suspension_until: null })
+      .eq('id', licenseId);
+    if (error) throw error;
+    return { success: true, message: 'Licencia reactivada exitosamente' };
+  } catch (error) {
+    console.error('[AI] reactivateLicense error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+// Fighter Management Functions
+async function createFighter(fighterData: any) {
+  try {
+    console.log('[AI] Creating fighter:', fighterData);
+    if (!fighterData.first_name || !fighterData.last_name) {
+      return { success: false, error: 'Nombre y apellido son requeridos' };
+    }
+    
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .insert(fighterData)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return {
+      success: true,
+      fighter_id: data.id,
+      data: data,
+      message: `Peleador ${data.first_name} ${data.last_name} creado exitosamente`
+    };
+  } catch (error) {
+    console.error('[AI] createFighter error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+async function updateFighterComplete(fighterId: string, updates: any) {
+  try {
+    console.log('[AI] Updating fighter complete:', fighterId);
+    const { error } = await supabase.rpc('admin_update_fighter_profile', {
+      p_fighter_id: fighterId,
+      p_profile_data: updates
+    });
+    if (error) throw error;
+    return { success: true, message: 'Perfil actualizado exitosamente' };
+  } catch (error) {
+    console.error('[AI] updateFighterComplete error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+async function deleteFighter(fighterId: string) {
+  try {
+    console.log('[AI] Deleting fighter:', fighterId);
+    const { error } = await supabase.rpc('admin_delete_fighter_profile', {
+      p_fighter_id: fighterId
+    });
+    if (error) throw error;
+    return { success: true, message: 'Peleador eliminado exitosamente' };
+  } catch (error) {
+    console.error('[AI] deleteFighter error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error' };
+  }
+}
+
+async function getFighterSensitiveData(fighterId: string) {
+  try {
+    console.log('[AI] Getting sensitive data:', fighterId);
+    const { data, error } = await supabase.rpc('get_fighter_sensitive_data', {
+      p_fighter_id: fighterId
+    });
+    if (error) throw error;
+    return { success: true, data: Array.isArray(data) ? data[0] : data, message: 'Información sensible obtenida' };
+  } catch (error) {
+    console.error('[AI] getFighterSensitiveData error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', data: null };
+  }
+}
+
+// Advanced Analysis Functions
+async function generateFilteredReport(filters: any = {}) {
+  try {
+    console.log('[AI] Generating filtered report:', filters);
+    const fightersResult = await advancedSearchFighters({ ...filters, limit: 1000 });
+    const fighters = fightersResult.fighters || [];
+    
+    const stats: any = {
+      total: fighters.length,
+      por_genero: {},
+      por_pais: {},
+      por_peso: {},
+      edad_promedio: 0,
+      record_promedio: { victorias: 0, derrotas: 0 }
+    };
+    
+    fighters.forEach((f: any) => {
+      if (f.gender) stats.por_genero[f.gender] = (stats.por_genero[f.gender] || 0) + 1;
+      if (f.country) stats.por_pais[f.country] = (stats.por_pais[f.country] || 0) + 1;
+      if (f.weight_class) stats.por_peso[f.weight_class] = (stats.por_peso[f.weight_class] || 0) + 1;
+      if (f.birthdate) {
+        const age = new Date().getFullYear() - new Date(f.birthdate).getFullYear();
+        stats.edad_promedio += age;
+      }
+      stats.record_promedio.victorias += f.record_wins || 0;
+      stats.record_promedio.derrotas += f.record_losses || 0;
+    });
+    
+    if (fighters.length > 0) {
+      stats.edad_promedio = Math.round(stats.edad_promedio / fighters.length);
+      stats.record_promedio.victorias = Math.round(stats.record_promedio.victorias / fighters.length);
+      stats.record_promedio.derrotas = Math.round(stats.record_promedio.derrotas / fighters.length);
+    }
+    
+    return {
+      success: true,
+      filters: filters,
+      stats: stats,
+      fighter_count: fighters.length,
+      generated_at: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('[AI] generateFilteredReport error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', stats: null };
+  }
+}
+
+async function getTopFighters(criteria: string = 'wins', limit: number = 10) {
+  try {
+    console.log('[AI] Getting top fighters:', criteria);
+    let orderBy = 'record_wins';
+    if (criteria === 'losses') orderBy = 'record_losses';
+    if (criteria === 'draws') orderBy = 'record_draws';
+    
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .select('id, first_name, last_name, nickname, country, weight_class, record_wins, record_losses, record_draws, avatar_url')
+      .order(orderBy, { ascending: false })
+      .limit(limit);
+    
+    if (error) throw error;
+    return { success: true, criteria: criteria, fighters: data };
+  } catch (error) {
+    console.error('[AI] getTopFighters error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', fighters: [] };
+  }
+}
+
+async function findSimilarFighters(fighterId: string) {
+  try {
+    console.log('[AI] Finding similar fighters:', fighterId);
+    const { data: reference } = await supabase
+      .from('fighter_profiles')
+      .select('*')
+      .eq('id', fighterId)
+      .single();
+    
+    if (!reference) return { success: false, error: 'Peleador no encontrado' };
+    
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .select('id, first_name, last_name, weight_class, gender, country, record_wins, record_losses')
+      .eq('weight_class', reference.weight_class)
+      .eq('gender', reference.gender)
+      .neq('id', fighterId)
+      .limit(10);
+    
+    if (error) throw error;
+    return {
+      success: true,
+      reference: `${reference.first_name} ${reference.last_name}`,
+      similar_fighters: data
+    };
+  } catch (error) {
+    console.error('[AI] findSimilarFighters error:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Error', similar_fighters: [] };
+  }
+}
+
 // Function calling handler
 async function handleFunctionCall(functionName: string, args: any) {
   console.log(`Calling function: ${functionName}`, args);
@@ -570,6 +900,8 @@ async function handleFunctionCall(functionName: string, args: any) {
     switch (functionName) {
       case 'search_fighters':
         return await searchFighters(args.criteria || {});
+      case 'advanced_search_fighters':
+        return await advancedSearchFighters(args.criteria || {});
       case 'get_fighter_details':
         return await getFighterDetails(args.fighter_id);
       case 'update_fighter_profile':
@@ -590,6 +922,28 @@ async function handleFunctionCall(functionName: string, args: any) {
         return await getWeightClassAnalysis();
       case 'generate_comprehensive_report':
         return await generateComprehensiveReport(args.filters);
+      case 'get_pending_licenses':
+        return await getPendingLicenses();
+      case 'approve_license':
+        return await approveLicense(args.license_id, args.level);
+      case 'suspend_license':
+        return await suspendLicense(args.license_id, args.reason, args.until);
+      case 'reactivate_license':
+        return await reactivateLicense(args.license_id);
+      case 'create_fighter':
+        return await createFighter(args.fighter_data);
+      case 'update_fighter_complete':
+        return await updateFighterComplete(args.fighter_id, args.updates);
+      case 'delete_fighter':
+        return await deleteFighter(args.fighter_id);
+      case 'get_fighter_sensitive_data':
+        return await getFighterSensitiveData(args.fighter_id);
+      case 'generate_filtered_report':
+        return await generateFilteredReport(args.filters);
+      case 'get_top_fighters':
+        return await getTopFighters(args.criteria, args.limit);
+      case 'find_similar_fighters':
+        return await findSimilarFighters(args.fighter_id);
       default:
         return {
           success: false,
@@ -640,18 +994,53 @@ serve(async (req) => {
       {
         name: 'search_fighters',
         description: language === 'es' 
-          ? 'Buscar peleadores en la base de datos por criterios específicos'
-          : 'Search fighters in the database by specific criteria',
+          ? 'Buscar peleadores con criterios básicos'
+          : 'Search fighters with basic criteria',
         parameters: {
           type: 'object',
           properties: {
             criteria: {
               type: 'object',
               properties: {
-                name: { type: 'string', description: language === 'es' ? 'Nombre del peleador' : 'Fighter name' },
-                country: { type: 'string', description: language === 'es' ? 'País del peleador' : 'Fighter country' },
-                weight_class: { type: 'string', description: language === 'es' ? 'Categoría de peso' : 'Weight class' },
-                status: { type: 'string', description: language === 'es' ? 'Estado activo/inactivo' : 'Active/inactive status' }
+                name: { type: 'string' },
+                country: { type: 'string' },
+                weight_class: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+      {
+        name: 'advanced_search_fighters',
+        description: language === 'es'
+          ? 'Búsqueda avanzada de peleadores con múltiples criterios: nombre, apellido, fecha de nacimiento, edad, licencia, documento, país, categoría, récord'
+          : 'Advanced fighter search with multiple criteria: name, surname, birthdate, age, license, document, country, category, record',
+        parameters: {
+          type: 'object',
+          properties: {
+            criteria: {
+              type: 'object',
+              properties: {
+                fighter_id: { type: 'string', description: 'Fighter UUID' },
+                license_number: { type: 'string', description: 'License number' },
+                document_number: { type: 'string', description: 'ID document' },
+                first_name: { type: 'string', description: 'First name' },
+                last_name: { type: 'string', description: 'Last name' },
+                full_name: { type: 'string', description: 'Full name' },
+                nickname: { type: 'string', description: 'Nickname' },
+                birthdate: { type: 'string', description: 'Exact date (YYYY-MM-DD)' },
+                birthdate_from: { type: 'string' },
+                birthdate_to: { type: 'string' },
+                age_min: { type: 'number' },
+                age_max: { type: 'number' },
+                country: { type: 'string' },
+                gender: { type: 'string' },
+                weight_class: { type: 'string' },
+                discipline: { type: 'string' },
+                min_wins: { type: 'number' },
+                undefeated: { type: 'boolean' },
+                license_status: { type: 'string' },
+                limit: { type: 'number' }
               }
             }
           }
@@ -742,21 +1131,152 @@ serve(async (req) => {
       {
         name: 'generate_comprehensive_report',
         description: language === 'es'
-          ? 'Generar reporte completo del sistema con todas las estadísticas: demográficas, rendimiento, geográficas y categorías de peso'
-          : 'Generate comprehensive system report with all statistics: demographics, performance, geographic and weight classes',
+          ? 'Generar reporte completo del sistema con todas las estadísticas'
+          : 'Generate comprehensive system report',
+        parameters: {
+          type: 'object',
+          properties: {
+            filters: { type: 'object' }
+          }
+        }
+      },
+      {
+        name: 'get_pending_licenses',
+        description: language === 'es' ? 'Obtener licencias pendientes de aprobación' : 'Get pending licenses',
+        parameters: { type: 'object', properties: {} }
+      },
+      {
+        name: 'approve_license',
+        description: language === 'es' ? 'Aprobar una licencia (AMATEUR o PROFESSIONAL)' : 'Approve a license',
+        parameters: {
+          type: 'object',
+          properties: {
+            license_id: { type: 'string' },
+            level: { type: 'string', enum: ['AMATEUR', 'PROFESSIONAL'] }
+          },
+          required: ['license_id']
+        }
+      },
+      {
+        name: 'suspend_license',
+        description: language === 'es' ? 'Suspender una licencia' : 'Suspend a license',
+        parameters: {
+          type: 'object',
+          properties: {
+            license_id: { type: 'string' },
+            reason: { type: 'string' },
+            until: { type: 'string', description: 'YYYY-MM-DD' }
+          },
+          required: ['license_id', 'reason']
+        }
+      },
+      {
+        name: 'reactivate_license',
+        description: language === 'es' ? 'Reactivar una licencia suspendida' : 'Reactivate a license',
+        parameters: {
+          type: 'object',
+          properties: {
+            license_id: { type: 'string' }
+          },
+          required: ['license_id']
+        }
+      },
+      {
+        name: 'create_fighter',
+        description: language === 'es' ? 'Crear un nuevo perfil de peleador' : 'Create a new fighter',
+        parameters: {
+          type: 'object',
+          properties: {
+            fighter_data: {
+              type: 'object',
+              properties: {
+                first_name: { type: 'string' },
+                last_name: { type: 'string' },
+                birthdate: { type: 'string' },
+                country: { type: 'string' },
+                gender: { type: 'string' },
+                weight_class: { type: 'string' }
+              },
+              required: ['first_name', 'last_name', 'country', 'gender', 'weight_class']
+            }
+          },
+          required: ['fighter_data']
+        }
+      },
+      {
+        name: 'update_fighter_complete',
+        description: language === 'es' ? 'Actualizar completamente un perfil de peleador' : 'Update fighter completely',
+        parameters: {
+          type: 'object',
+          properties: {
+            fighter_id: { type: 'string' },
+            updates: { type: 'object' }
+          },
+          required: ['fighter_id', 'updates']
+        }
+      },
+      {
+        name: 'delete_fighter',
+        description: language === 'es' ? 'Eliminar un peleador del sistema' : 'Delete a fighter',
+        parameters: {
+          type: 'object',
+          properties: {
+            fighter_id: { type: 'string' }
+          },
+          required: ['fighter_id']
+        }
+      },
+      {
+        name: 'get_fighter_sensitive_data',
+        description: language === 'es' ? 'Obtener información sensible de un peleador' : 'Get fighter sensitive data',
+        parameters: {
+          type: 'object',
+          properties: {
+            fighter_id: { type: 'string' }
+          },
+          required: ['fighter_id']
+        }
+      },
+      {
+        name: 'generate_filtered_report',
+        description: language === 'es' ? 'Generar reporte personalizado con filtros' : 'Generate filtered report',
         parameters: {
           type: 'object',
           properties: {
             filters: {
               type: 'object',
-              description: language === 'es' ? 'Filtros opcionales para el reporte' : 'Optional filters for the report',
               properties: {
-                country: { type: 'string', description: language === 'es' ? 'Filtrar por país' : 'Filter by country' },
-                weight_class: { type: 'string', description: language === 'es' ? 'Filtrar por categoría de peso' : 'Filter by weight class' },
-                gender: { type: 'string', description: language === 'es' ? 'Filtrar por género' : 'Filter by gender' }
+                country: { type: 'string' },
+                weight_class: { type: 'string' },
+                gender: { type: 'string' },
+                age_min: { type: 'number' },
+                age_max: { type: 'number' }
               }
             }
           }
+        }
+      },
+      {
+        name: 'get_top_fighters',
+        description: language === 'es' ? 'Top peleadores por criterio' : 'Get top fighters',
+        parameters: {
+          type: 'object',
+          properties: {
+            criteria: { type: 'string', enum: ['wins', 'losses', 'draws'] },
+            limit: { type: 'number' }
+          },
+          required: ['criteria']
+        }
+      },
+      {
+        name: 'find_similar_fighters',
+        description: language === 'es' ? 'Buscar peleadores similares' : 'Find similar fighters',
+        parameters: {
+          type: 'object',
+          properties: {
+            fighter_id: { type: 'string' }
+          },
+          required: ['fighter_id']
         }
       }
     ];
