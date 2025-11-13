@@ -91,6 +91,12 @@ import EmailCampaignEditor from "./pages/admin/EmailCampaignEditor";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
 import Contact from "./pages/Contact";
+import Gimnasios from "./pages/Gimnasios";
+import GimnasioDetalle from "./pages/GimnasioDetalle";
+import Entrenadores from "./pages/Entrenadores";
+import EntrenadorDetalle from "./pages/EntrenadorDetalle";
+import GimnasiosAdmin from "./pages/admin/GimnasiosAdmin";
+import EntrenadoresAdmin from "./pages/admin/EntrenadoresAdmin";
 
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
@@ -146,6 +152,14 @@ const App = () => (
               <Route path="/predicciones" element={<Predicciones />} />
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
               <Route path="/contacto" element={<Contact />} />
+              
+              {/* Rutas de Gimnasios */}
+              <Route path="/gimnasios" element={<Gimnasios />} />
+              <Route path="/gimnasios/:slug" element={<GimnasioDetalle />} />
+
+              {/* Rutas de Entrenadores */}
+              <Route path="/entrenadores" element={<Entrenadores />} />
+              <Route path="/entrenadores/:slug" element={<EntrenadorDetalle />} />
               
               {/* HUD Público de Scoring en Vivo */}
               <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
@@ -282,6 +296,8 @@ const App = () => (
                       } />
                       <Route path="/ai-strike-monitor" element={<AIStrikeMonitor />} />
                       <Route path="/ai-strike-test" element={<AIStrikeTestPanel />} />
+                      <Route path="/gimnasios" element={<GimnasiosAdmin />} />
+                      <Route path="/entrenadores" element={<EntrenadoresAdmin />} />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>

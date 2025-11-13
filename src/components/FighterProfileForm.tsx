@@ -9,6 +9,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { FighterProfile, FighterProfileData, useFighterProfiles } from '@/hooks/useFighterProfiles';
+import { useGyms } from '@/hooks/useGyms';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -64,6 +65,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
     reach_cm: undefined,
     fighting_style: '',
     gym_name: '',
+    gym_id: null,
     bio: '',
     avatar_url: '',
     discipline: undefined,
@@ -72,6 +74,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createFighterProfile } = useFighterProfiles();
+  const { data: gyms } = useGyms();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -215,13 +218,30 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
           </div>
 
           <div>
-            <Label htmlFor="gym_name" className="text-foreground">Gimnasio/Academia</Label>
-            <Input
-              id="gym_name"
-              value={formData.gym_name}
-              onChange={(e) => handleChange('gym_name', e.target.value)}
-              placeholder="Ej: Gracie Barra"
-            />
+              <Label htmlFor="gym_name" className="text-foreground">Gimnasio/Academia</Label>
+              <Select 
+                value={formData.gym_id || ''} 
+                onValueChange={(value) => handleChange('gym_id', value || null)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un gimnasio" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Sin gimnasio</SelectItem>
+                  {gyms?.map(gym => (
+                    <SelectItem key={gym.id} value={gym.id}>
+                      {gym.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                id="gym_name"
+                value={formData.gym_name}
+                onChange={(e) => handleChange('gym_name', e.target.value)}
+                placeholder="O escribe el nombre del gimnasio"
+                className="mt-2"
+              />
           </div>
 
           <div>

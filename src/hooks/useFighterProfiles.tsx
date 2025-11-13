@@ -66,6 +66,7 @@ export interface FighterProfileData {
   reach_cm?: number;
   fighting_style?: string;
   gym_name?: string;
+  gym_id?: string | null;
   bio?: string;
   avatar_url?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
