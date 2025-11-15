@@ -74,8 +74,15 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createFighterProfile } = useFighterProfiles();
-  const { data: gyms } = useGyms();
+  const { data: gyms, isLoading: gymsLoading, error: gymsError } = useGyms();
   const { toast } = useToast();
+
+  // Debug: Log gyms data
+  useEffect(() => {
+    console.log('[FIGHTER FORM] Gyms data:', gyms);
+    console.log('[FIGHTER FORM] Gyms loading:', gymsLoading);
+    console.log('[FIGHTER FORM] Gyms error:', gymsError);
+  }, [gyms, gymsLoading, gymsError]);
 
   useEffect(() => {
     if (existingProfile) {
@@ -219,27 +226,40 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
 
           <div>
               <Label htmlFor="gym_name" className="text-foreground">Gimnasio/Academia</Label>
+              {gymsLoading && <p className="text-sm text-muted-foreground">Cargando gimnasios...</p>}
+              {gymsError && <p className="text-sm text-destructive">Error al cargar gimnasios</p>}
               <Select 
                 value={formData.gym_id || ''} 
                 onValueChange={(value) => handleChange('gym_id', value || null)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-background">
                   <SelectValue placeholder="Selecciona un gimnasio" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Sin gimnasio</SelectItem>
-                  {gyms?.map(gym => (
-                    <SelectItem key={gym.id} value={gym.id}>
-                      {gym.nombre}
+                <SelectContent className="bg-popover border border-border z-50">
+                  <SelectItem value="" className="bg-popover hover:bg-accent">
+                    Sin gimnasio
+                  </SelectItem>
+                  {gyms && gyms.length > 0 ? (
+                    gyms.map(gym => (
+                      <SelectItem key={gym.id} value={gym.id} className="bg-popover hover:bg-accent">
+                        {gym.nombre}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-gyms" disabled className="bg-popover text-muted-foreground">
+                      No hay gimnasios registrados
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {gyms ? `${gyms.length} gimnasio(s) disponible(s)` : 'Cargando...'}
+              </p>
               <Input
                 id="gym_name"
                 value={formData.gym_name}
                 onChange={(e) => handleChange('gym_name', e.target.value)}
-                placeholder="O escribe el nombre del gimnasio"
+                placeholder="O escribe el nombre del gimnasio manualmente"
                 className="mt-2"
               />
           </div>
