@@ -541,6 +541,83 @@ export type Database = {
           },
         ]
       }
+      coaches: {
+        Row: {
+          activo: boolean | null
+          apellidos: string | null
+          avatar_url: string | null
+          bio: string | null
+          ciudad: string | null
+          created_at: string | null
+          email: string | null
+          especialidades: string[] | null
+          facebook: string | null
+          gym_id: string | null
+          id: string
+          instagram: string | null
+          nombre: string
+          owner_id: string | null
+          pais: string | null
+          slug: string
+          telefono: string | null
+          tiktok: string | null
+          updated_at: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          apellidos?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          email?: string | null
+          especialidades?: string[] | null
+          facebook?: string | null
+          gym_id?: string | null
+          id?: string
+          instagram?: string | null
+          nombre: string
+          owner_id?: string | null
+          pais?: string | null
+          slug: string
+          telefono?: string | null
+          tiktok?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          apellidos?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          email?: string | null
+          especialidades?: string[] | null
+          facebook?: string | null
+          gym_id?: string | null
+          id?: string
+          instagram?: string | null
+          nombre?: string
+          owner_id?: string | null
+          pais?: string | null
+          slug?: string
+          telefono?: string | null
+          tiktok?: string | null
+          updated_at?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaches_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracion_sitio: {
         Row: {
           clave: string
@@ -1618,6 +1695,7 @@ export type Database = {
           birthplace: string | null
           blood_type: string | null
           boxrec_url: string | null
+          coach_id: string | null
           completion_level: string | null
           completion_score: number | null
           country: string | null
@@ -1632,6 +1710,7 @@ export type Database = {
           fighting_style: string | null
           first_name: string
           gender: string | null
+          gym_id: string | null
           gym_name: string | null
           height_cm: number | null
           id: string
@@ -1669,6 +1748,7 @@ export type Database = {
           birthplace?: string | null
           blood_type?: string | null
           boxrec_url?: string | null
+          coach_id?: string | null
           completion_level?: string | null
           completion_score?: number | null
           country?: string | null
@@ -1683,6 +1763,7 @@ export type Database = {
           fighting_style?: string | null
           first_name: string
           gender?: string | null
+          gym_id?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
@@ -1720,6 +1801,7 @@ export type Database = {
           birthplace?: string | null
           blood_type?: string | null
           boxrec_url?: string | null
+          coach_id?: string | null
           completion_level?: string | null
           completion_score?: number | null
           country?: string | null
@@ -1734,6 +1816,7 @@ export type Database = {
           fighting_style?: string | null
           first_name?: string
           gender?: string | null
+          gym_id?: string | null
           gym_name?: string | null
           height_cm?: number | null
           id?: string
@@ -1764,6 +1847,20 @@ export type Database = {
           weight_kg?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fighter_profiles_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_profiles_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fighter_profiles_organization_id_fkey"
             columns: ["organization_id"]
@@ -2193,6 +2290,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gyms: {
+        Row: {
+          activo: boolean | null
+          banner_url: string | null
+          ciudad: string | null
+          created_at: string | null
+          descripcion: string | null
+          direccion: string | null
+          disciplinas: string[] | null
+          email: string | null
+          facebook: string | null
+          id: string
+          instagram: string | null
+          logo_url: string | null
+          nombre: string
+          owner_id: string | null
+          pais: string | null
+          slug: string
+          telefono: string | null
+          tiktok: string | null
+          updated_at: string | null
+          website: string | null
+          whatsapp: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          banner_url?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          direccion?: string | null
+          disciplinas?: string[] | null
+          email?: string | null
+          facebook?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          nombre: string
+          owner_id?: string | null
+          pais?: string | null
+          slug: string
+          telefono?: string | null
+          tiktok?: string | null
+          updated_at?: string | null
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          banner_url?: string | null
+          ciudad?: string | null
+          created_at?: string | null
+          descripcion?: string | null
+          direccion?: string | null
+          disciplinas?: string[] | null
+          email?: string | null
+          facebook?: string | null
+          id?: string
+          instagram?: string | null
+          logo_url?: string | null
+          nombre?: string
+          owner_id?: string | null
+          pais?: string | null
+          slug?: string
+          telefono?: string | null
+          tiktok?: string | null
+          updated_at?: string | null
+          website?: string | null
+          whatsapp?: string | null
+        }
+        Relationships: []
       }
       judge_station_pins: {
         Row: {
