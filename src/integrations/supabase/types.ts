@@ -4594,6 +4594,14 @@ export type Database = {
       validate_station_pin:
         | {
             Args: {
+              p_fight_id: string
+              p_pin_code: string
+              p_station_number: number
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
               p_ip_address?: unknown
               p_judge_name?: string
               p_pin_code: string
@@ -4608,14 +4616,6 @@ export type Database = {
               session_id: string
               valid: boolean
             }[]
-          }
-        | {
-            Args: {
-              p_fight_id: string
-              p_pin_code: string
-              p_station_number: number
-            }
-            Returns: Json
           }
     }
     Enums: {
