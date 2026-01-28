@@ -39,9 +39,11 @@ import { useAuth } from '@/hooks/useAuth';
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
   { title: 'Centro de Moderación', url: '/admin/pending-changes', icon: Activity },
-  { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Users },
+  { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Calendar },
   { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },
+  { title: 'Gimnasios / Escuelas', url: '/admin/gimnasios', icon: Briefcase },
+  { title: 'Entrenadores', url: '/admin/entrenadores', icon: Users },
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
   { title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
