@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { Resend } from "npm:resend@2.0.0";
-import { sendEmailWithFallback, getEmailFrom, EmailTemplates } from "../_shared/email-config.ts";
+import { sendEmailWithFallback, getEmailFrom } from "../_shared/email-config.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -18,15 +18,15 @@ interface MassEmailRequest {
   html_content: string;
   recipient_filter?: 'all' | 'fighters_only' | 'admins_only' | 'custom';
   custom_emails?: string[];
-  test_mode?: boolean; // Si es true, solo envía a un correo de prueba
+  test_mode?: boolean;
   test_email?: string;
 }
 
 // Rate limiting helpers
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-const RATE_LIMIT_DELAY = 600; // 600ms entre emails (1.6 emails/seg, bajo el límite de 2/seg)
+const RATE_LIMIT_DELAY = 600; // 600ms entre emails (1.6 emails/seg)
 
-// Función de reintento con backoff exponencial para manejar 429 Rate Limit
+// Función de reintento con backoff exponencial
 async function sendEmailWithRetry(
   resend: Resend,
   emailData: any,
@@ -36,9 +36,8 @@ async function sendEmailWithRetry(
     try {
       return await sendEmailWithFallback(resend, emailData);
     } catch (error: any) {
-      // Si es rate limit y quedan intentos, esperar y reintentar
       if (error.statusCode === 429 && attempt < maxRetries) {
-        const backoffDelay = 1000 * attempt; // 1s, 2s, 3s
+        const backoffDelay = 1000 * attempt;
         console.log(`[RETRY] Rate limit hit, waiting ${backoffDelay}ms (attempt ${attempt}/${maxRetries})`);
         await delay(backoffDelay);
         continue;
@@ -50,7 +49,6 @@ async function sendEmailWithRetry(
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -58,23 +56,18 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     console.log("[MASS EMAIL] Request received");
 
-    // Verificar autenticación y que sea admin
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
       throw new Error("No authorization header");
     }
 
-    // Crear cliente con el token del usuario para verificar autenticación
     const token = authHeader.replace("Bearer ", "");
     const supabaseAuth = createClient(supabaseUrl, supabaseServiceKey, {
       global: {
-        headers: {
-          Authorization: authHeader
-        }
+        headers: { Authorization: authHeader }
       }
     });
     
-    // Verificar token y obtener usuario
     const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
     
     if (userError || !user) {
@@ -84,18 +77,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[MASS EMAIL] User authenticated:", user.id);
 
-    // Verificar que el usuario sea admin
-    const { data: isAdminResult, error: adminError } = await supabaseAuth
-      .rpc('is_admin');
-
-    console.log("[MASS EMAIL] Admin check result:", { isAdminResult, adminError });
+    const { data: isAdminResult, error: adminError } = await supabaseAuth.rpc('is_admin');
 
     if (adminError || !isAdminResult) {
       console.error("[MASS EMAIL] Admin check failed:", adminError);
       throw new Error("Only admins can send mass emails");
     }
 
-    // Crear cliente con service role para operaciones privilegiadas
+    // Crear cliente con service role
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestData: MassEmailRequest = await req.json();
@@ -105,14 +94,12 @@ const handler = async (req: Request): Promise<Response> => {
       test_mode: requestData.test_mode
     });
 
-    // Validar datos requeridos
     if (!requestData.subject || !requestData.html_content) {
       throw new Error("Subject and html_content are required");
     }
 
     let recipients: string[] = [];
 
-    // Modo de prueba
     if (requestData.test_mode && requestData.test_email) {
       recipients = [requestData.test_email];
       console.log("[MASS EMAIL] Test mode - sending to:", requestData.test_email);
@@ -120,12 +107,10 @@ const handler = async (req: Request): Promise<Response> => {
       recipients = requestData.custom_emails;
       console.log("[MASS EMAIL] Custom recipients:", recipients.length);
     } else {
-      // Obtener destinatarios de la base de datos
       let query = supabase.from('app_user').select('email');
 
       switch (requestData.recipient_filter) {
         case 'fighters_only':
-          // Usuarios que tienen perfil de peleador activo
           query = supabase
             .from('app_user')
             .select('email, fighter_profiles!inner(active)')
@@ -138,7 +123,6 @@ const handler = async (req: Request): Promise<Response> => {
         
         case 'all':
         default:
-          // Todos los usuarios
           break;
       }
 
@@ -159,6 +143,29 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No recipients found");
     }
 
+    // PASO 1: Crear registro de campaña PRIMERO (con html_content)
+    const { data: campaignRecord, error: campaignError } = await supabase
+      .from('email_campaign_log')
+      .insert({
+        sent_by: user.id,
+        subject: requestData.subject,
+        html_content: requestData.html_content, // <-- FIX: Campo que faltaba
+        recipient_filter: requestData.recipient_filter || 'all',
+        total_sent: 0,
+        total_failed: 0,
+        test_mode: requestData.test_mode || false
+      })
+      .select('id')
+      .single();
+
+    if (campaignError || !campaignRecord) {
+      console.error("[MASS EMAIL] Error creating campaign record:", campaignError);
+      throw new Error(`Error creating campaign record: ${campaignError?.message}`);
+    }
+
+    const campaignId = campaignRecord.id;
+    console.log("[MASS EMAIL] Campaign record created:", campaignId);
+
     console.log("[MASS EMAIL] Sending emails sequentially with rate limiting...");
 
     const results = {
@@ -167,18 +174,17 @@ const handler = async (req: Request): Promise<Response> => {
       errors: [] as any[]
     };
 
-    // Usar el remitente configurado (desde variable de entorno RESEND_FROM)
     const emailFrom = getEmailFrom();
     console.log("[MASS EMAIL] Using sender:", emailFrom);
     
     const totalEmails = recipients.length;
 
-    // Envío secuencial con rate limiting
+    // PASO 2: Envío secuencial con tracking individual
     for (let i = 0; i < recipients.length; i++) {
       const email = recipients[i];
       
       try {
-        await sendEmailWithRetry(resend, {
+        const result = await sendEmailWithRetry(resend, {
           to: email,
           subject: requestData.subject,
           html: requestData.html_content,
@@ -186,6 +192,15 @@ const handler = async (req: Request): Promise<Response> => {
         });
         
         results.success++;
+        
+        // Registrar envío exitoso en email_sends
+        const resendId = result?.data?.id || null;
+        await supabase.from('email_sends').insert({
+          campaign_id: campaignId,
+          recipient_email: email,
+          status: 'sent',
+          resend_id: resendId
+        });
         
         // Log de progreso cada 10 emails
         if ((i + 1) % 10 === 0 || i === recipients.length - 1) {
@@ -195,11 +210,21 @@ const handler = async (req: Request): Promise<Response> => {
         
       } catch (error: any) {
         results.failed++;
+        const errorMessage = error.message || 'Unknown error';
         results.errors.push({
           email,
-          message: error.message
+          message: errorMessage
         });
-        console.error(`[ERROR] Failed to send to ${email}:`, error.message);
+        
+        // Registrar fallo en email_sends
+        await supabase.from('email_sends').insert({
+          campaign_id: campaignId,
+          recipient_email: email,
+          status: 'failed',
+          error_message: errorMessage
+        });
+        
+        console.error(`[ERROR] Failed to send to ${email}:`, errorMessage);
       }
       
       // Delay entre emails (excepto el último)
@@ -210,19 +235,27 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[MASS EMAIL] Results:", results);
 
-    // Registrar en log de auditoría
-    await supabase.from('email_campaign_log').insert({
-      sent_by: user.id,
-      subject: requestData.subject,
-      recipient_filter: requestData.recipient_filter || 'all',
-      total_sent: results.success,
-      total_failed: results.failed,
-      test_mode: requestData.test_mode || false
-    });
+    // PASO 3: Actualizar totales en el registro de campaña
+    const { error: updateError } = await supabase
+      .from('email_campaign_log')
+      .update({
+        total_sent: results.success,
+        total_failed: results.failed,
+        metadata: {
+          total_recipients: recipients.length,
+          errors_sample: results.errors.slice(0, 10) // Primeros 10 errores
+        }
+      })
+      .eq('id', campaignId);
+
+    if (updateError) {
+      console.error("[MASS EMAIL] Error updating campaign totals:", updateError);
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
+        campaign_id: campaignId,
         results,
         message: `Emails sent successfully. Success: ${results.success}, Failed: ${results.failed}`
       }),

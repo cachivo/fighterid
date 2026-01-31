@@ -82,6 +82,7 @@ import Betting from "./pages/admin/Betting";
 import EmailMonitoring from "./pages/admin/EmailMonitoring";
 import EmailValidation from "./pages/admin/EmailValidation";
 import EmailCampaigns from "./pages/admin/EmailCampaigns";
+import EmailCampaignDetail from "./pages/admin/EmailCampaignDetail";
 import EmailCampaignEditor from "./pages/admin/EmailCampaignEditor";
 import NotFound from "./pages/NotFound";
 import AccessDenied from "./pages/AccessDenied";
@@ -273,6 +274,7 @@ const App = () => (
                       <Route path="/email-monitoring" element={<EmailMonitoring />} />
                       <Route path="/email-validation" element={<EmailValidation />} />
                       <Route path="/email-campaigns" element={<EmailCampaigns />} />
+                      <Route path="/email-campaigns/:id" element={<EmailCampaignDetail />} />
                       <Route path="/email-campaigns/editor" element={<EmailCampaignEditor />} />
                       <Route path="/inbox" element={
                         <Suspense fallback={<LoadingSpinner />}>
