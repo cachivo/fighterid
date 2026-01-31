@@ -24,16 +24,16 @@ interface ExternalFighterFormProps {
 }
 
 const WEIGHT_CLASSES = [
-  'Strawweight',
-  'Flyweight',
-  'Bantamweight',
-  'Featherweight',
-  'Lightweight',
-  'Welterweight',
-  'Middleweight',
-  'Light Heavyweight',
-  'Heavyweight',
-  'Super Heavyweight'
+  { value: 'Peso Paja', label: 'Peso Paja (115 lbs)' },
+  { value: 'Peso Mosca', label: 'Peso Mosca (125 lbs)' },
+  { value: 'Peso Gallo', label: 'Peso Gallo (135 lbs)' },
+  { value: 'Peso Pluma', label: 'Peso Pluma (145 lbs)' },
+  { value: 'Peso Ligero', label: 'Peso Ligero (155 lbs)' },
+  { value: 'Peso Welter', label: 'Peso Welter (170 lbs)' },
+  { value: 'Peso Medio', label: 'Peso Medio (185 lbs)' },
+  { value: 'Peso Semipesado', label: 'Peso Semipesado (205 lbs)' },
+  { value: 'Peso Pesado', label: 'Peso Pesado (265 lbs)' },
+  { value: 'Peso Superpesado', label: 'Peso Superpesado (+265 lbs)' },
 ];
 
 export const ExternalFighterForm = ({
@@ -118,8 +118,8 @@ export const ExternalFighterForm = ({
           </SelectTrigger>
           <SelectContent>
             {WEIGHT_CLASSES.map((wc) => (
-              <SelectItem key={wc} value={wc}>
-                {wc}
+              <SelectItem key={wc.value} value={wc.value}>
+                {wc.label}
               </SelectItem>
             ))}
           </SelectContent>

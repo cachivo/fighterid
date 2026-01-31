@@ -15,8 +15,16 @@ import { ArrowLeft, AlertTriangle, Send, User, FileText } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const WEIGHT_CLASSES = [
-  'Strawweight', 'Flyweight', 'Bantamweight', 'Featherweight', 
-  'Lightweight', 'Welterweight', 'Middleweight', 'Light Heavyweight', 'Heavyweight'
+  { value: 'Peso Paja', label: 'Peso Paja (115 lbs)' },
+  { value: 'Peso Mosca', label: 'Peso Mosca (125 lbs)' },
+  { value: 'Peso Gallo', label: 'Peso Gallo (135 lbs)' },
+  { value: 'Peso Pluma', label: 'Peso Pluma (145 lbs)' },
+  { value: 'Peso Ligero', label: 'Peso Ligero (155 lbs)' },
+  { value: 'Peso Welter', label: 'Peso Welter (170 lbs)' },
+  { value: 'Peso Medio', label: 'Peso Medio (185 lbs)' },
+  { value: 'Peso Semipesado', label: 'Peso Semipesado (205 lbs)' },
+  { value: 'Peso Pesado', label: 'Peso Pesado (265 lbs)' },
+  { value: 'Peso Superpesado', label: 'Peso Superpesado (+265 lbs)' },
 ];
 
 const FIGHTING_STYLES = [
@@ -25,11 +33,11 @@ const FIGHTING_STYLES = [
 ];
 
 const MARTIAL_ARTS = [
-  'Boxeo', 'Kickboxing', 'Muay Thai', 'Jiu-Jitsu Brasileño', 'Judo', 
-  'Lucha Libre', 'Karate', 'Taekwondo', 'MMA', 'Grappling'
+  'MMA', 'Boxeo', 'Kickboxing', 'Muay Thai', 'Jiu-Jitsu', 
+  'Judo', 'Karate', 'Taekwondo', 'Lucha Libre', 'Grappling', 'Sambo'
 ] as const;
 
-const DISCIPLINES = ['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'] as const;
+const DISCIPLINES = ['MMA', 'Boxeo', 'Judo', 'Jiu-Jitsu', 'Kickboxing', 'Muay Thai', 'Grappling', 'Karate', 'Taekwondo'] as const;
 
 export default function ProfileChangeRequest() {
   const navigate = useNavigate();
@@ -390,8 +398,8 @@ export default function ProfileChangeRequest() {
                   </SelectTrigger>
                   <SelectContent>
                     {WEIGHT_CLASSES.map((weightClass) => (
-                      <SelectItem key={weightClass} value={weightClass}>
-                        {weightClass}
+                      <SelectItem key={weightClass.value} value={weightClass.value}>
+                        {weightClass.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
