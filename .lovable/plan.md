@@ -1,140 +1,215 @@
 
+# Plan: Auditoría y Limpieza del Sistema Fighter ID
 
-# Plan: Mejorar UX de Formularios de Peleador
-
-## Resumen
-Corregir tres problemas de usabilidad identificados en los formularios de registro y edición de peleadores.
-
----
-
-## Cambios Requeridos
-
-### 1. Mejorar Visibilidad del Enlace de Recuperación de Contraseña
-
-**Archivos a modificar:**
-- `src/pages/Auth.tsx`
-- `src/pages/license/LicenseAuth.tsx`
-
-**Cambios:**
-- Mejorar el contraste del enlace "¿Olvidaste tu contraseña?"
-- Agregar un icono de ayuda junto al enlace
-- Hacer el enlace más prominente con mejor styling
+## Resumen Ejecutivo
+Auditoría completa del código identificando archivos innecesarios, verificando funcionalidad de sistemas críticos, y eliminando la opción de Votaciones del panel admin.
 
 ---
 
-### 2. Estandarizar Categorías de Peso
+## 1. Archivos a Eliminar (Código No Utilizado)
 
-Crear constantes unificadas con formato: **"Nombre Español (peso lbs)"**
+### Páginas No Utilizadas
+| Archivo | Razón |
+|---------|-------|
+| `src/pages/admin/Votaciones.tsx` | Solicitado por usuario - funcionalidad innecesaria |
+| `src/pages/admin/MassEmail.tsx` | Nunca importado en ningún archivo |
+| `src/pages/SmartHomepage.tsx` | Importado pero nunca usado en rutas |
+| `src/pages/FighterMe.tsx` | Todas las rutas redirigen a /profile |
+| `src/pages/MyProfile.tsx` | Nunca usado como ruta activa |
+| `src/pages/license/RequestFighterLicense.tsx` | Nunca importado |
+| `src/pages/license/EnhancedLicenseOnboarding.tsx` | Nunca importado |
 
-**Nueva definición a usar en todos los formularios:**
+### Componentes No Utilizados
+| Archivo | Razón |
+|---------|-------|
+| `src/components/VotingPreview.tsx` | Nunca importado |
+| `src/components/Features.tsx` | Nunca importado |
+| `src/components/WelcomeScreen.tsx` | Importado en Index pero nunca renderizado |
+| `src/components/GoogleAd.tsx` | Nunca usado |
+| `src/components/BettingDelayIndicator.tsx` | Nunca usado |
+| `src/components/RealTimeStats.tsx` | Nunca usado (el hook sí se usa) |
+
+### Hooks Potencialmente Removibles
+| Archivo | Razón |
+|---------|-------|
+| `src/hooks/useSparring.ts` | Solo usado por FighterMe/MyProfile (a eliminar) |
+| `src/hooks/useStatusUpdates.ts` | Solo usado por FighterMe/MyProfile (a eliminar) |
+
+---
+
+## 2. Modificaciones Requeridas
+
+### AdminSidebar.tsx - Remover Votaciones
+```typescript
+// ELIMINAR esta línea del array adminItems:
+{ title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
+
+// ELIMINAR import no usado:
+import { Vote } from 'lucide-react';
 ```
-Peso Paja (115 lbs)
-Peso Mosca (125 lbs)
-Peso Gallo (135 lbs)
-Peso Pluma (145 lbs)
-Peso Ligero (155 lbs)
-Peso Welter (170 lbs)
-Peso Medio (185 lbs)
-Peso Semipesado (205 lbs)
-Peso Pesado (265 lbs)
-Peso Superpesado (+265 lbs)
+
+### App.tsx - Limpiar Imports y Rutas
+```typescript
+// ELIMINAR imports:
+import Votaciones from "./pages/admin/Votaciones";
+import SmartHomepage from "./pages/SmartHomepage";
+import FighterMe from './pages/FighterMe';
+import MyProfile from './pages/MyProfile';
+import LicenseWelcome from './pages/license/LicenseWelcome';
+
+// ELIMINAR ruta:
+<Route path="/votaciones" element={<Votaciones />} />
 ```
 
-**Archivos a modificar:**
-- `src/components/admin/AdminFighterForm.tsx`
-- `src/pages/license/LicenseOnboarding.tsx`
-- `src/components/FighterProfileForm.tsx` (agregar Strawweight faltante)
+### Index.tsx - Limpiar Import No Usado
+```typescript
+// ELIMINAR import no usado:
+import WelcomeScreen from "@/components/WelcomeScreen";
+```
 
 ---
 
-### 3. Calculadora Automática de Alcance
+## 3. Verificación de Sistemas Críticos
 
-**Lógica:** El alcance promedio es aproximadamente igual a la altura (ratio 1:1), con variación de +/- 5%. Usaremos `alcance = altura * 1.0` como valor sugerido.
+### Sistema de Scoring en Tiempo Real
+| Componente | Estado |
+|------------|--------|
+| Station1Scoring (Juez Rojo) | Funcional |
+| Station2Scoring (Juez Azul) | Funcional |
+| Station3RoundControl (Control de Rounds) | Funcional |
+| HudPublicDisplay | Funcional |
+| PIN Login para estaciones | Funcional |
 
-**Implementación:**
-- Cuando el usuario ingresa la altura, auto-calcular el alcance sugerido
-- Mostrar mensaje: "Alcance estimado basado en tu altura. Puedes ajustarlo si conoces tu medida exacta."
-- Permitir edición manual del valor
-- Agregar tooltip explicando que el alcance no requiere medición física profesional
+### Sistema de Licencias Fighter ID
+| Componente | Estado |
+|------------|--------|
+| LicenseAuth | Funcional |
+| LicenseOnboarding | Funcional |
+| LicenseDashboard | Funcional |
+| Verificación QR | Funcional |
+| ValidacionLicencias (Admin) | Funcional |
 
-**Archivos a modificar:**
-- `src/components/admin/AdminFighterForm.tsx`
-- `src/pages/license/LicenseOnboarding.tsx`
-- `src/components/FighterProfileForm.tsx`
+### Sistema de Eventos y Peleas
+| Componente | Estado |
+|------------|--------|
+| EventosPelea | Funcional |
+| LiveEventsControl | Funcional |
+| PrepareFightDialog | Funcional |
+| RoundControlPanel | Funcional |
+| FightResults | Funcional |
+
+### Sistema de Gimnasios/Escuelas (Nuevo)
+| Componente | Estado |
+|------------|--------|
+| GimnasiosAdmin | Funcional |
+| AdminGymCard | Funcional |
+| GymEditModal | Funcional |
+| DeleteGymDialog | Funcional |
+
+### Autenticación
+| Componente | Estado |
+|------------|--------|
+| Auth principal | Funcional |
+| ForgotPassword | Funcional |
+| ResetPassword | Funcional |
+| ProtectedRoute | Funcional |
+| AdminProtectedRoute | Funcional |
 
 ---
 
-## Flujo de Usuario Mejorado
+## 4. Botones y Funcionalidades Verificadas
+
+### Panel Admin - Todos Funcionales
+- Dashboard con estadísticas en vivo
+- Gestión de Peleadores (CRUD completo)
+- Gestión de Gimnasios (CRUD completo)
+- Gestión de Entrenadores (CRUD completo)
+- Control de Peleas en Vivo
+- Asignación de Jueces
+- Monitor de IA para strikes
+- Gestión de Licencias
+
+### Rutas Públicas - Funcionales
+- Homepage con stats en tiempo real
+- Directorio de Gimnasios
+- Directorio de Entrenadores
+- Perfiles de Peleadores
+- Eventos y Detalles
+
+---
+
+## 5. Resumen de Acciones
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│              Formulario de Perfil de Peleador           │
+│              LIMPIEZA DE CÓDIGO                         │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  Categoría de Peso *                                    │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ ▼ Peso Ligero (155 lbs)                         │   │
-│  └─────────────────────────────────────────────────┘   │
-│  ℹ️ Selecciona según tu peso de competencia             │
+│  ELIMINAR:                                              │
+│  ├── 7 páginas no utilizadas                           │
+│  ├── 6 componentes no utilizados                       │
+│  ├── 2 hooks potencialmente removibles                 │
+│  └── Referencias en App.tsx y AdminSidebar.tsx         │
 │                                                         │
-│  ────────────────────────────────────────────────────  │
+│  TOTAL: ~15 archivos / ~3,500 líneas de código         │
 │                                                         │
-│  Altura (cm)        Peso (kg)         Alcance (cm)     │
-│  ┌───────────┐     ┌───────────┐     ┌───────────┐    │
-│  │   175     │     │   70.5    │     │   175     │    │
-│  └───────────┘     └───────────┘     └───────────┘    │
-│                                      ↑                  │
-│                           Auto-calculado desde altura   │
-│  ℹ️ El alcance se estima automáticamente. Ajústalo     │
-│     si conoces tu medida exacta.                        │
+│  SISTEMAS VERIFICADOS:                                  │
+│  ├── Sistema de Scoring: ✓ OK                          │
+│  ├── Sistema de Licencias: ✓ OK                        │
+│  ├── Sistema de Eventos: ✓ OK                          │
+│  ├── Autenticación: ✓ OK                               │
+│  └── Admin Panel: ✓ OK                                 │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Archivos a Modificar
+## 6. Para el Evento de Hoy
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/pages/Auth.tsx` | Mejorar visibilidad del enlace de recuperación |
-| `src/pages/license/LicenseAuth.tsx` | Mejorar visibilidad del enlace de recuperación |
-| `src/components/admin/AdminFighterForm.tsx` | Categorías en español + calculadora de alcance |
-| `src/pages/license/LicenseOnboarding.tsx` | Categorías en español + calculadora de alcance |
-| `src/components/FighterProfileForm.tsx` | Agregar Peso Paja + calculadora de alcance |
+### Checklist Pre-Evento
+- [ ] Crear evento en Admin → Eventos de Pelea
+- [ ] Configurar peleas con peleadores
+- [ ] Asignar jueces a cada pelea
+- [ ] Probar acceso a estaciones (/estacion/1, /estacion/2, /estacion/3)
+- [ ] Verificar HUD público (/hud/fight/{fightId})
+- [ ] Probar control de rounds desde estación 3
+
+### URLs Críticas para el Evento
+- **Estación Juez 1 (Rojo)**: `/estacion/1`
+- **Estación Juez 2 (Azul)**: `/estacion/2`  
+- **Control de Rounds**: `/estacion/3`
+- **HUD Público**: `/hud/fight/{fightId}`
+- **Control Admin**: `/admin/live-events`
 
 ---
 
-## Detalles Técnicos
+## Archivos a Modificar
 
-### Constantes de Categorías de Peso
-Se creará un archivo centralizado o se actualizarán las constantes en cada archivo para mantener consistencia:
+| Archivo | Acción |
+|---------|--------|
+| `src/components/AdminSidebar.tsx` | Remover item Votaciones |
+| `src/App.tsx` | Limpiar imports y ruta de Votaciones |
+| `src/pages/Index.tsx` | Remover import WelcomeScreen |
 
-```typescript
-const WEIGHT_CLASSES = [
-  { value: 'Peso Paja', label: 'Peso Paja (115 lbs)', lbs: 115 },
-  { value: 'Peso Mosca', label: 'Peso Mosca (125 lbs)', lbs: 125 },
-  { value: 'Peso Gallo', label: 'Peso Gallo (135 lbs)', lbs: 135 },
-  { value: 'Peso Pluma', label: 'Peso Pluma (145 lbs)', lbs: 145 },
-  { value: 'Peso Ligero', label: 'Peso Ligero (155 lbs)', lbs: 155 },
-  { value: 'Peso Welter', label: 'Peso Welter (170 lbs)', lbs: 170 },
-  { value: 'Peso Medio', label: 'Peso Medio (185 lbs)', lbs: 185 },
-  { value: 'Peso Semipesado', label: 'Peso Semipesado (205 lbs)', lbs: 205 },
-  { value: 'Peso Pesado', label: 'Peso Pesado (265 lbs)', lbs: 265 },
-  { value: 'Peso Superpesado', label: 'Peso Superpesado (+265 lbs)', lbs: 266 },
-];
-```
+## Archivos a Eliminar
 
-### Función de Cálculo de Alcance
-```typescript
-const calculateReach = (heightCm: number): number => {
-  // El alcance promedio es aproximadamente igual a la altura
-  return Math.round(heightCm);
-};
-```
+| Archivo | Líneas |
+|---------|--------|
+| `src/pages/admin/Votaciones.tsx` | ~755 líneas |
+| `src/pages/admin/MassEmail.tsx` | ~306 líneas |
+| `src/pages/SmartHomepage.tsx` | ~70 líneas |
+| `src/pages/FighterMe.tsx` | ~300 líneas |
+| `src/pages/MyProfile.tsx` | ~350 líneas |
+| `src/pages/license/RequestFighterLicense.tsx` | ~200 líneas |
+| `src/pages/license/EnhancedLicenseOnboarding.tsx` | ~400 líneas |
+| `src/components/VotingPreview.tsx` | ~109 líneas |
+| `src/components/Features.tsx` | ~78 líneas |
+| `src/components/WelcomeScreen.tsx` | ~56 líneas |
+| `src/components/GoogleAd.tsx` | ~50 líneas |
+| `src/components/BettingDelayIndicator.tsx` | ~80 líneas |
+| `src/components/RealTimeStats.tsx` | ~100 líneas |
+| `src/hooks/useSparring.ts` | ~100 líneas |
+| `src/hooks/useStatusUpdates.ts` | ~80 líneas |
 
-### UX del Alcance
-- Si el usuario no ha ingresado alcance y cambia la altura, auto-llenar el alcance
-- Si el usuario ya modificó el alcance manualmente, no sobrescribir
-- Mostrar indicador visual de "valor estimado" vs "valor manual"
-
+**Total estimado**: ~3,000+ líneas de código muerto a eliminar
