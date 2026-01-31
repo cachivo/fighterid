@@ -24,7 +24,7 @@ import FightersProfilesInvite from './pages/admin/FightersProfilesInvite';
 import FightersProfilesCreate from './pages/admin/FightersProfilesCreate';
 import JudgesManagement from './pages/admin/JudgesManagement';
 import LiveEventsControl from './pages/admin/LiveEventsControl';
-import ProfileChangeRequests from './pages/admin/ProfileChangeRequests';
+// ProfileChangeRequests eliminado - consolidado en PendingChangesHub
 import PendingChangesHub from './pages/admin/PendingChangesHub';
 import ProfileChangeRequest from './pages/ProfileChangeRequest';
 import AIStrikeMonitor from './pages/admin/AIStrikeMonitor';
@@ -282,7 +282,7 @@ const App = () => (
                       <Route path="/comunidad" element={<Comunidad />} />
                       <Route path="/configuracion" element={<Configuracion />} />
                       <Route path="/licencias" element={<ValidacionLicencias />} />
-                      <Route path="/profile-requests" element={<ProfileChangeRequests />} />
+                      {/* Ruta /profile-requests eliminada - consolidada en /pending-changes */}
                       <Route path="/user-roles" element={
                         <Suspense fallback={<LoadingSpinner />}>
                           <UserRoles />
