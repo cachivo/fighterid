@@ -39,15 +39,40 @@ serve(async (req) => {
       });
     }
 
-    // Fetch URL
+    // Fetch URL with realistic browser headers
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; BatallaDeLosGallos/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9,es;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
       },
     });
 
+    // Handle blocked requests gracefully - return basic fallback metadata
     if (!response.ok) {
-      throw new Error(`Failed to fetch URL: ${response.status}`);
+      console.log(`[LINK METADATA] Site returned ${response.status}, returning fallback metadata`);
+      const domain = new URL(url).hostname.replace('www.', '');
+      const fallbackMetadata = {
+        url,
+        title: domain,
+        description: `Contenido de ${domain}`,
+        image_url: null,
+        site_name: domain,
+        embed_type: 'generic',
+        embed_html: null,
+        metadata: { blocked: true, status: response.status },
+      };
+      return new Response(JSON.stringify(fallbackMetadata), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
     }
 
     const html = await response.text();
