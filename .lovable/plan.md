@@ -1,44 +1,24 @@
 
 
-# Plan: Actualizar Logo a Versión Transparente
-
-## Problema
-El logo actual (`fighter-id-logo-official.png`) tiene fondo oscuro sólido que se contrasta visualmente con el fondo de la página.
-
-## Solución
-Reemplazar con el nuevo logo que tiene fondo transparente (`FID_logo_white_transparent.png`).
+# Plan: Actualizar Logo Principal
 
 ## Cambio
 
 | Acción | Detalle |
 |--------|---------|
-| Copiar archivo | `user-uploads://FID_logo_white_transparent.png` → `public/lovable-uploads/fighter-id-logo-official.png` |
+| Copiar archivo | `user-uploads://Fighter_ID_Logo.PNG` → `public/lovable-uploads/fighter-id-logo-official.png` |
 
 ## Archivos que usan este logo
 
-Ya configurados para usar `/lovable-uploads/fighter-id-logo-official.png`:
-- `src/components/Hero.tsx` (usuarios autenticados y no autenticados)
+El logo se usa en `src/components/Hero.tsx`:
+- Línea 35: Hero para usuarios no autenticados
+- Línea 103: Hero para usuarios autenticados
 
-## Resultado Visual
+## Nota sobre el fondo
 
-```text
-ANTES:
-┌─────────────────────────────────┐
-│ ████████████████████████████████│ ← Fondo oscuro del logo
-│ ████  FID  FIGHTER ID  █████████│    visible contra la página
-│ ████████████████████████████████│
-└─────────────────────────────────┘
+El nuevo logo tiene fondo oscuro/negro. Si prefieres una versión con fondo transparente para mejor integración con la página, avísame.
 
-DESPUÉS:
-┌─────────────────────────────────┐
-│        FID                      │ ← Fondo transparente
-│    FIGHTER ID                   │   se integra con la página
-│                                 │
-└─────────────────────────────────┘
-```
+## Sin cambios de código
 
-## Beneficio
-- Logo se integra naturalmente con cualquier fondo
-- Apariencia más profesional y limpia
-- Sin cambios de código necesarios
+Las dimensiones actuales (`h-32` a `h-56`) funcionarán correctamente con el nuevo logo ya que tiene proporciones similares.
 
