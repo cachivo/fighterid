@@ -112,6 +112,22 @@ export default function Auth() {
     }
   }, [resendCooldown]);
 
+  // Detect email confirmation redirect from Supabase
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'signup' || type === 'email') {
+      toast({
+        title: '✅ Email confirmado',
+        description: 'Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.',
+      });
+      setActiveTab('signin');
+      // Clean up the URL hash
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+  }, [toast]);
+
   // Redirect if already authenticated
   if (user && !adminLoading) {
     // If there's a redirect parameter, use it (for admin access)
@@ -275,9 +291,9 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Acceso a Batalla</CardTitle>
+          <CardTitle className="text-2xl font-bold">Acceso a Fighter ID</CardTitle>
           <CardDescription>
-            Inicia sesión o regístrate para acceder a la plataforma
+            Inicia sesión o regístrate para acceder a tu perfil de peleador
           </CardDescription>
         </CardHeader>
         <CardContent>
