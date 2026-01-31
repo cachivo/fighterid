@@ -24,6 +24,14 @@ import {
   Info,
   ArrowLeft
 } from "lucide-react";
+import EmailRecipientSelector from "@/components/admin/EmailRecipientSelector";
+
+interface Recipient {
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+  isExternal?: boolean;
+}
 
 export default function EmailCampaignEditor() {
   const navigate = useNavigate();
@@ -33,6 +41,7 @@ export default function EmailCampaignEditor() {
 
   const [subject, setSubject] = useState("");
   const [recipientFilter, setRecipientFilter] = useState<string>("all");
+  const [customRecipients, setCustomRecipients] = useState<Recipient[]>([]);
   const [testMode, setTestMode] = useState(true);
   const [testEmail, setTestEmail] = useState("");
   const [sending, setSending] = useState(false);
@@ -139,10 +148,24 @@ export default function EmailCampaignEditor() {
       return;
     }
 
+    if (recipientFilter === "custom" && customRecipients.length === 0 && !testMode) {
+      toast.error("Selecciona al menos un destinatario");
+      return;
+    }
+
+    const getRecipientDescription = () => {
+      switch (recipientFilter) {
+        case "all": return "todos los usuarios";
+        case "fighters_only": return "solo peleadores";
+        case "admins_only": return "solo administradores";
+        case "custom": return `${customRecipients.length} destinatario(s) seleccionado(s)`;
+        default: return "destinatarios";
+      }
+    };
+
     const confirmMessage = testMode
       ? `¿Enviar email de prueba a ${testEmail}?`
-      : `¿Enviar campaña masiva a: ${recipientFilter === "all" ? "todos los usuarios" : 
-          recipientFilter === "fighters_only" ? "solo peleadores" : "solo administradores"}?`;
+      : `¿Enviar campaña masiva a: ${getRecipientDescription()}?`;
 
     if (!confirm(confirmMessage)) return;
 
@@ -187,6 +210,9 @@ export default function EmailCampaignEditor() {
           subject,
           html_content: finalHtml,
           recipient_filter: testMode ? null : recipientFilter,
+          custom_emails: recipientFilter === "custom" && !testMode
+            ? customRecipients.map((r) => r.email)
+            : undefined,
           test_mode: testMode,
           test_email: testMode ? testEmail : null,
         },
@@ -256,9 +282,20 @@ export default function EmailCampaignEditor() {
                     <SelectItem value="all">Todos los usuarios</SelectItem>
                     <SelectItem value="fighters_only">Solo peleadores</SelectItem>
                     <SelectItem value="admins_only">Solo administradores</SelectItem>
+                    <SelectItem value="custom">Selección Manual</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Custom recipient selector */}
+              {recipientFilter === "custom" && (
+                <div className="pl-16">
+                  <EmailRecipientSelector
+                    selectedRecipients={customRecipients}
+                    onRecipientsChange={setCustomRecipients}
+                  />
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <Label className="w-16 text-sm">Asunto:</Label>
