@@ -1,45 +1,53 @@
 
 
-# Plan: Eliminar Logo del Hero
+# Plan: Deshabilitar Predicciones y Mejorar Info de Eventos en Vivo
 
-## Cambios en `src/components/Hero.tsx`
+## Cambio 1: Eliminar "Predicciones" del Header
 
-### 1. Hero para usuarios NO autenticados (líneas 32-39)
-Eliminar el bloque del logo:
+### Archivos a modificar: `src/components/Header.tsx`
+
+| Ubicacion | Cambio |
+|-----------|--------|
+| Linea 51 | Eliminar de `navigationItems`: `{ name: "Predicciones", href: "/predicciones", icon: BarChart3 }` |
+| Lineas 89-91 | Eliminar boton de navegacion desktop: `<Button variant="ghost" size="sm" asChild><Link to="/predicciones">Predicciones</Link></Button>` |
+
+## Cambio 2: Mostrar Nombre del Evento en Vivo en el Hero
+
+### Archivo a modificar: `src/components/Hero.tsx`
+
+Actualmente (lineas 97-102):
 ```tsx
-{/* LOGO OPTIMIZADO PARA MÓVIL */}
-<div className="mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-  <img 
-    src="/lovable-uploads/fighter-id-logo-official.png" 
-    alt="Fighter ID"
-    className="h-32 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto transition-all duration-500"
-  />
-</div>
+{stats?.liveEvents && stats.liveEvents.length > 0 
+  ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO`
+  : stats?.nextEvent
+    ? `${stats.nextEvent.name.toUpperCase()} - ${format(...)}`
+    : 'PROXIMOS EVENTOS PRONTO'
+}
 ```
 
-### 2. Hero para usuarios autenticados (líneas 101-107)
-Eliminar el bloque del logo:
+Propuesta - mostrar nombre y venue del evento en vivo:
 ```tsx
-<div className="mb-3 sm:mb-4 md:mb-6 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-  <img 
-    src="/lovable-uploads/fighter-id-logo-official.png" 
-    alt="Fighter ID Logo"
-    className="h-28 sm:h-36 md:h-44 lg:h-52 w-auto mx-auto"
-  />
-</div>
+{stats?.liveEvents && stats.liveEvents.length > 0 
+  ? `EN VIVO: ${stats.liveEvents[0].name.toUpperCase()}${stats.liveEvents[0].venue ? ` - ${stats.liveEvents[0].venue.toUpperCase()}` : ''}`
+  : stats?.nextEvent
+    ? `${stats.nextEvent.name.toUpperCase()} - ${format(...)}`
+    : 'PROXIMOS EVENTOS PRONTO'
+}
 ```
 
-## Resultado
+## Resultado Visual
 
 ```text
-ANTES:                          DESPUÉS:
-┌───────────────────┐           ┌───────────────────┐
-│   [LOGO GRANDE]   │           │                   │
-│                   │           │   Subtítulo       │
-│   Subtítulo       │    →      │   [Botones]       │
-│   [Botones]       │           │                   │
-└───────────────────┘           └───────────────────┘
+ANTES (Evento en vivo):         DESPUES (Evento en vivo):
+┌─────────────────────┐         ┌─────────────────────┐
+│ ● 1 EVENTO EN VIVO  │    →    │ ● EN VIVO: UCC 83   │
+│                     │         │   - BREAK           │
+└─────────────────────┘         └─────────────────────┘
 ```
 
-El Hero quedará más limpio, mostrando directamente el subtítulo y los botones de acción.
+## Seccion Tecnica
+
+- Los datos de `stats.liveEvents` ya contienen `name`, `venue` y `description` del evento (segun `useRealTimeStats`)
+- Se mantiene la logica para multiples eventos (aunque mostrara el primero)
+- Se elimina la importacion de `BarChart3` si no se usa en otro lugar
 
