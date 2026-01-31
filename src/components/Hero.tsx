@@ -31,10 +31,10 @@ const Hero = () => {
         <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
           {/* LOGO OPTIMIZADO PARA MÓVIL */}
           <div className="mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
-            <img 
-              src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
+          <img 
+              src="/lovable-uploads/fighter-id-logo-official.png" 
               alt="Fighter ID"
-              className="h-64 sm:h-[22rem] md:h-[28rem] lg:h-[32rem] w-auto mx-auto transition-all duration-500 animate-pulse-neon-intense"
+              className="h-32 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto transition-all duration-500"
             />
           </div>
           
@@ -100,9 +100,9 @@ const Hero = () => {
       <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
         <div className="mb-3 sm:mb-4 md:mb-6 animate-fade-in-up" style={{ animationDelay: '0ms' }}>
           <img 
-            src="/lovable-uploads/fighter-id-logo-neon-outline.png" 
+            src="/lovable-uploads/fighter-id-logo-official.png" 
             alt="Fighter ID Logo"
-            className="h-56 sm:h-72 md:h-96 lg:h-[28rem] w-auto mx-auto animate-pulse-neon-intense"
+            className="h-28 sm:h-36 md:h-44 lg:h-52 w-auto mx-auto"
           />
         </div>
         
