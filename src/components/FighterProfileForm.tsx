@@ -213,9 +213,9 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
               {gymsLoading && <p className="text-sm text-muted-foreground">Cargando gimnasios...</p>}
               {gymsError && <p className="text-sm text-destructive">Error al cargar gimnasios</p>}
               <Select 
-                value={formData.gym_id || ''} 
+                value={formData.gym_id || '__none__'} 
                 onValueChange={(value) => {
-                  handleChange('gym_id', value || null);
+                  handleChange('gym_id', value === '__none__' ? null : value);
                   handleChange('coach_id', null); // Reset coach when gym changes
                 }}
               >
@@ -223,7 +223,7 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
                   <SelectValue placeholder="Selecciona un gimnasio" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border border-border z-50">
-                  <SelectItem value="" className="bg-popover hover:bg-accent">
+                  <SelectItem value="__none__" className="bg-popover hover:bg-accent">
                     Sin gimnasio
                   </SelectItem>
                   {gyms && gyms.length > 0 ? (
@@ -255,14 +255,14 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
             <Label htmlFor="coach_id" className="text-foreground">Entrenador</Label>
             {coachesLoading && <p className="text-sm text-muted-foreground">Cargando entrenadores...</p>}
             <Select 
-              value={formData.coach_id || ''} 
-              onValueChange={(value) => handleChange('coach_id', value || null)}
+              value={formData.coach_id || '__none__'} 
+              onValueChange={(value) => handleChange('coach_id', value === '__none__' ? null : value)}
             >
               <SelectTrigger className="bg-background">
                 <SelectValue placeholder="Selecciona un entrenador" />
               </SelectTrigger>
               <SelectContent className="bg-popover border border-border z-50">
-                <SelectItem value="" className="bg-popover hover:bg-accent">
+                <SelectItem value="__none__" className="bg-popover hover:bg-accent">
                   Sin entrenador
                 </SelectItem>
                 {coaches && coaches.length > 0 ? (
