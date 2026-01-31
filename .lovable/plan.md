@@ -1,185 +1,227 @@
 
+# Plan: Mejorar Editor de Campañas de Email
 
-# Plan: Implementar Aprobación Selectiva (Opción B)
+## Problema Actual
 
-## Estado Actual vs Deseado
+El editor de campañas solo permite enviar a:
+- Todos los usuarios
+- Solo peleadores (todos)
+- Solo administradores
+
+**No hay forma de seleccionar peleadores específicos** para envíos individuales o grupos personalizados.
+
+---
+
+## Solución Propuesta
+
+Agregar un **selector de destinatarios individuales** al editor de campañas con:
+
+1. **Nueva opción de filtro**: "Selección Manual"
+2. **Buscador de peleadores** con autocompletado
+3. **Lista de destinatarios seleccionados** con opción de remover
+4. **Input para emails externos** (no registrados en la plataforma)
+
+---
+
+## Arquitectura de la Solución
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    ESTADO ACTUAL                                     │
+│                 EDITOR DE CAMPAÑA MEJORADO                           │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│   Usuario cambia CUALQUIER campo                                     │
-│              ↓                                                       │
-│   status = 'PENDING' (siempre)                                      │
-│              ↓                                                       │
-│   Admin debe aprobar TODO manualmente                               │
+│  Para: [Seleccionar tipo de destinatarios ▼]                        │
+│        ├─ Todos los usuarios                                        │
+│        ├─ Solo peleadores                                           │
+│        ├─ Solo administradores                                      │
+│        └─ Selección Manual  ← NUEVO                                 │
 │                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                    ESTADO DESEADO (Opción B)                         │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│   Usuario cambia campos                                              │
-│              ↓                                                       │
-│   ┌─────────────────────────────────────────────────────────────┐   │
-│   │ ¿Solo campos SEGUROS?                                        │   │
-│   │                                                              │   │
-│   │   SÍ → AUTO-APROBAR                                          │   │
-│   │        (aplicar inmediatamente)                              │   │
-│   │                                                              │   │
-│   │   NO → PENDING                                               │   │
-│   │        (requiere revisión admin)                             │   │
-│   └─────────────────────────────────────────────────────────────┘   │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Clasificación de Campos
-
-### Campos SEGUROS (Auto-aprobación)
-| Campo | Razón |
-|-------|-------|
-| `nickname` | Cosmético, no afecta elegibilidad |
-| `bio` | Texto descriptivo personal |
-| `fighting_style` | Preferencia de estilo |
-| `stance` | Guardia (Orthodox/Southpaw) |
-| `gym_name` | Información de afiliación |
-| `boxrec_url` | Link externo |
-| `tapology_url` | Link externo |
-| `height_cm` | Físico, verificable en pesaje |
-| `reach_cm` | Físico, verificable en pesaje |
-| `martial_arts` | Artes que practica (experiencia) |
-| `medical_conditions` | El usuario conoce su información |
-| `medical_allergies` | El usuario conoce su información |
-| `emergency_contact_*` | Contacto personal del usuario |
-
-### Campos SENSIBLES (Requieren aprobación)
-| Campo | Razón |
-|-------|-------|
-| `first_name`, `last_name` | Identidad oficial en licencia |
-| `record_wins`, `record_losses`, `record_draws` | Afecta ranking y matchmaking |
-| `weight_class` | Determina categoría de pelea |
-| `weight_kg` | Afecta elegibilidad de categoría |
-| `level` | Amateur vs Profesional (regulaciones distintas) |
-| `discipline` | Tipo de licencia (MMA vs Boxeo) |
-| `gender` | Elegibilidad de competencia |
-| `country` | Regulaciones por país |
-| `document_type`, `document_number` | Documentos de identidad |
-| `birthdate` | Edad mínima para competir |
-
----
-
-## Archivos a Modificar
-
-### 1. Crear constantes de clasificación de campos
-**Archivo: `src/lib/constants/fieldApprovalRules.ts`**
-
-```typescript
-// Campos que se auto-aprueban (el usuario puede cambiar libremente)
-export const AUTO_APPROVE_FIELDS = [
-  'nickname', 'bio', 'fighting_style', 'stance', 'gym_name',
-  'boxrec_url', 'tapology_url', 'height_cm', 'reach_cm',
-  'martial_arts', 'medical_conditions', 'medical_allergies',
-  'emergency_contact_name', 'emergency_contact_phone', 
-  'emergency_contact_relation', 'insurance_company', 'insurance_policy'
-] as const;
-
-// Campos que requieren aprobación administrativa
-export const REQUIRES_APPROVAL_FIELDS = [
-  'first_name', 'last_name', 'record_wins', 'record_losses', 
-  'record_draws', 'weight_class', 'weight_kg', 'level', 
-  'discipline', 'gender', 'country', 'document_type', 
-  'document_number', 'birthdate', 'birthplace', 'blood_type'
-] as const;
-
-// Función helper para clasificar cambios
-export function classifyChanges(changes: Record<string, any>) {
-  const autoApprove: Record<string, any> = {};
-  const requiresApproval: Record<string, any> = {};
-  
-  Object.entries(changes).forEach(([field, value]) => {
-    if (AUTO_APPROVE_FIELDS.includes(field as any)) {
-      autoApprove[field] = value;
-    } else {
-      requiresApproval[field] = value;
-    }
-  });
-  
-  return { autoApprove, requiresApproval };
-}
-```
-
-### 2. Actualizar hook de solicitudes
-**Archivo: `src/hooks/useProfileChangeRequests.ts`**
-
-Modificar `createChangeRequest` para:
-1. Clasificar los cambios usando `classifyChanges()`
-2. Auto-aplicar campos seguros inmediatamente
-3. Solo crear solicitud PENDING si hay campos sensibles
-
-### 3. Actualizar UI de solicitud
-**Archivo: `src/pages/ProfileChangeRequest.tsx`**
-
-Modificar para:
-1. Mostrar qué campos se aplicarán inmediatamente
-2. Mostrar qué campos requieren aprobación
-3. Actualizar el mensaje de alerta para reflejar el flujo híbrido
-
----
-
-## Flujo de Usuario Actualizado
-
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│              NUEVO FLUJO DE SOLICITUD DE CAMBIOS                     │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  Usuario modifica su perfil                                          │
-│              ↓                                                       │
-│  [Resumen de Cambios]                                               │
 │  ┌─────────────────────────────────────────────────────────────┐   │
+│  │ SI "Selección Manual" está activo:                           │   │
 │  │                                                              │   │
-│  │  ✓ APLICACIÓN INMEDIATA (sin aprobación):                    │   │
-│  │    • Apodo: "El Tigre" → "El León"                           │   │
-│  │    • Bio: "Peleador amateur..." → "Campeón regional..."      │   │
-│  │    • Gimnasio: "Team Alpha" → "Team Beta"                    │   │
+│  │ [🔍 Buscar peleador...                               ]       │   │
 │  │                                                              │   │
-│  │  ⏳ REQUIERE APROBACIÓN ADMINISTRATIVA:                       │   │
-│  │    • Categoría de peso: "Ligero" → "Welter"                  │   │
-│  │    • Récord: 5-2-0 → 6-2-0                                   │   │
+│  │ Destinatarios (3):                                           │   │
+│  │ ┌──────────────────────────────────────────────────────┐    │   │
+│  │ │ 👤 Randy Tercero (randy@email.com)           [X]     │    │   │
+│  │ │ 👤 Juan Pérez (juan@email.com)               [X]     │    │   │
+│  │ │ 📧 externo@cliente.com                       [X]     │    │   │
+│  │ └──────────────────────────────────────────────────────┘    │   │
+│  │                                                              │   │
+│  │ [+ Agregar email manualmente]                                │   │
 │  │                                                              │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 │                                                                      │
-│  [Confirmar Cambios]                                                │
-│              ↓                                                       │
-│  • Campos seguros: Aplicados inmediatamente ✓                       │
-│  • Campos sensibles: Enviados para revisión admin                   │
-│                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Resumen de Impacto
+## Cambios a Implementar
+
+### 1. Crear Componente de Selector de Destinatarios
+
+**Nuevo archivo: `src/components/admin/EmailRecipientSelector.tsx`**
+
+```typescript
+// Componente que permite:
+// - Buscar peleadores por nombre
+// - Ver resultados con avatar, nombre y email
+// - Seleccionar múltiples destinatarios
+// - Agregar emails externos manualmente
+// - Ver lista de seleccionados con opción de remover
+```
+
+### 2. Actualizar EmailCampaignEditor
+
+**Archivo: `src/pages/admin/EmailCampaignEditor.tsx`**
+
+Cambios:
+- Agregar opción "custom" al Select de destinatarios
+- Mostrar el nuevo selector cuando se elige "custom"
+- Pasar la lista de emails al edge function como `custom_emails`
+- Actualizar mensaje de confirmación para mostrar cantidad
+
+### 3. Actualizar Edge Function (sin cambios)
+
+El backend ya soporta `custom_emails`, solo necesitamos enviar los datos correctamente desde el frontend.
+
+---
+
+## Flujo de Usuario
+
+```text
+1. Admin abre editor de campaña
+2. Selecciona "Selección Manual" en destinatarios
+3. Busca peleadores por nombre
+4. Click en peleador → se agrega a la lista
+5. Opcionalmente agrega emails externos
+6. Escribe el asunto y contenido
+7. Click "Enviar Campaña"
+8. Sistema envía a todos los emails seleccionados
+```
+
+---
+
+## Componente EmailRecipientSelector
+
+### Props
+```typescript
+interface EmailRecipientSelectorProps {
+  selectedEmails: string[];
+  onEmailsChange: (emails: string[]) => void;
+}
+```
+
+### Funcionalidades
+- **Búsqueda en tiempo real**: Filtra peleadores mientras escribe
+- **Debounce**: Evita consultas excesivas (300ms)
+- **Resultados agrupados**: Peleadores registrados vs emails externos
+- **Validación de email**: Para entradas manuales
+- **Prevención de duplicados**: No permite agregar el mismo email dos veces
+
+---
+
+## Archivos a Modificar/Crear
 
 | Archivo | Acción |
 |---------|--------|
-| `src/lib/constants/fieldApprovalRules.ts` | **CREAR** - Clasificación de campos |
-| `src/hooks/useProfileChangeRequests.ts` | Modificar lógica de `createChangeRequest` |
-| `src/pages/ProfileChangeRequest.tsx` | Actualizar UI para mostrar clasificación |
+| `src/components/admin/EmailRecipientSelector.tsx` | **CREAR** - Selector de destinatarios |
+| `src/pages/admin/EmailCampaignEditor.tsx` | Integrar selector, agregar opción "custom" |
 
-**Tiempo estimado:** ~15 minutos
+---
+
+## Detalles Técnicos
+
+### Query para buscar peleadores con email
+
+```typescript
+const { data } = await supabase
+  .from('fighter_profiles')
+  .select(`
+    id,
+    first_name,
+    last_name,
+    nickname,
+    avatar_url,
+    user_id,
+    app_user!inner(email)
+  `)
+  .eq('active', true)
+  .or(`first_name.ilike.%${search}%,last_name.ilike.%${search}%,nickname.ilike.%${search}%`)
+  .limit(10);
+```
+
+### Estructura de datos enviada al backend
+
+```typescript
+// Cuando se selecciona "custom"
+await supabase.functions.invoke("send-mass-email", {
+  body: {
+    subject: "Asunto del correo",
+    html_content: "<html>...</html>",
+    recipient_filter: "custom",
+    custom_emails: ["randy@email.com", "juan@email.com", "externo@cliente.com"],
+    test_mode: false,
+  },
+});
+```
+
+---
+
+## UI del Selector
+
+### Estado vacío
+```
+🔍 Buscar peleador por nombre...
+
+[No hay destinatarios seleccionados]
+
++ Agregar email manualmente
+```
+
+### Con búsqueda activa
+```
+🔍 Randy
+
+Resultados:
+┌────────────────────────────────────────┐
+│ 👤 Randy Tercero - randy@fighter.com   │
+│ 👤 Randy Couture - rc@ufc.com          │
+└────────────────────────────────────────┘
+```
+
+### Con seleccionados
+```
+🔍 Buscar peleador...
+
+Destinatarios (2):
+┌────────────────────────────────────────┐
+│ 👤 Randy Tercero          [✕ Quitar]  │
+│    randy@fighter.com                   │
+├────────────────────────────────────────┤
+│ 📧 patrocinador@empresa.com [✕ Quitar]│
+│    (Email externo)                     │
+└────────────────────────────────────────┘
+
++ Agregar email manualmente
+```
 
 ---
 
 ## Beneficios
 
-- **UX mejorada**: Cambios cosméticos son instantáneos
-- **Menos carga admin**: Solo revisan lo que realmente importa
-- **Seguridad mantenida**: Datos críticos siguen protegidos
-- **Transparencia**: Usuario sabe qué se aplica inmediatamente vs qué espera
+- **Comunicación directa**: Enviar a peleadores específicos
+- **Flexibilidad**: Combinar peleadores registrados con emails externos
+- **UX intuitiva**: Búsqueda rápida con resultados visuales
+- **Sin cambios backend**: Aprovecha funcionalidad existente
+- **Auditoría**: El log ya registra campañas con filtro "custom"
 
+---
+
+## Impacto
+
+- **Archivos nuevos**: 1
+- **Archivos modificados**: 1
+- **Cambios en backend**: Ninguno
+- **Tiempo estimado**: ~20 minutos
