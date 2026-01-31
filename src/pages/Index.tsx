@@ -9,7 +9,6 @@ import StrategicAllies from "@/components/StrategicAllies";
 import Ranking from "@/components/sections/Ranking";
 import Footer from "@/components/Footer";
 import UrbanDecorations from "@/components/UrbanDecorations";
-import WelcomeScreen from "@/components/WelcomeScreen";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import { FighterIDCallToAction } from "@/components/FighterIDCallToAction";
 

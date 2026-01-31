@@ -14,8 +14,6 @@ import AdminCertLayout from '@/components/AdminCertLayout';
 import { DesktopOnlyRoute } from '@/components/DesktopOnlyRoute';
 import { JudgeProtectedRoute } from '@/components/JudgeProtectedRoute';
 import { FighterLicense } from './pages/FighterLicense';
-import FighterMe from './pages/FighterMe';
-import MyProfile from './pages/MyProfile';
 import UserProfile from './pages/UserProfile';
 import FighterProfile from './pages/FighterProfile';
 import ProfileSetup from './pages/profile/ProfileSetup';
@@ -50,13 +48,11 @@ const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
 const JudgeScoringPanel = lazy(() => import('./pages/judge/JudgeScoringPanel'));
 const JudgeStationsSetup = lazy(() => import('./pages/admin/JudgeStationsSetup'));
 import LicenseAuth from './pages/license/LicenseAuth';
-import LicenseWelcome from './pages/license/LicenseWelcome';
 import LicenseDashboard from './pages/license/LicenseDashboard';
 import LicensePending from './pages/license/LicensePending';
 import LicenseSuspended from './pages/license/LicenseSuspended';
 import LicenseOnboarding from './pages/license/LicenseOnboarding';
 import Index from "./pages/Index";
-import SmartHomepage from "./pages/SmartHomepage";
 import SocialFeed from "./pages/SocialFeed";
 import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -82,7 +78,6 @@ import HudPublicDisplay from "./pages/HudPublicDisplay";
 import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
 import Comunidad from "./pages/admin/Comunidad";
 import Configuracion from "./pages/admin/Configuracion";
-import Votaciones from "./pages/admin/Votaciones";
 import Betting from "./pages/admin/Betting";
 import EmailMonitoring from "./pages/admin/EmailMonitoring";
 import EmailValidation from "./pages/admin/EmailValidation";
@@ -274,7 +269,6 @@ const App = () => (
                           <FightResults />
                         </Suspense>
                       } />
-                      <Route path="/votaciones" element={<Votaciones />} />
                       <Route path="/betting" element={<Betting />} />
                       <Route path="/email-monitoring" element={<EmailMonitoring />} />
                       <Route path="/email-validation" element={<EmailValidation />} />
