@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import AdminLayout from '@/components/AdminLayout';
 import ChatWidget from './ChatWidget';
 
 interface AdminLayoutWithAIProps {
@@ -15,9 +14,7 @@ const AdminLayoutWithAI: React.FC<AdminLayoutWithAIProps> = ({ children }) => {
 
   return (
     <>
-      <AdminLayout>
-        {children}
-      </AdminLayout>
+      {children}
       <ChatWidget 
         isMinimized={isChatMinimized}
         onToggleMinimize={toggleChatMinimize}
