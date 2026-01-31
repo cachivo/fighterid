@@ -303,10 +303,15 @@ export default function EventoBetting() {
 
   const getDisciplineIcon = (discipline: string) => {
     switch (discipline?.toLowerCase()) {
-      case 'boxing': return <Shield className="h-4 w-4" />;
-      case 'rap': return <Mic className="h-4 w-4" />;
-      case 'chess': return <Zap className="h-4 w-4" />;
-      case 'esports': return <Gamepad className="h-4 w-4" />;
+      case 'mma': return <Shield className="h-4 w-4" />;
+      case 'boxeo': case 'boxing': return <Shield className="h-4 w-4" />;
+      case 'kickboxing': return <Zap className="h-4 w-4" />;
+      case 'muay-thai': case 'muay thai': return <Zap className="h-4 w-4" />;
+      case 'jiu-jitsu': case 'jiujitsu': return <Shield className="h-4 w-4" />;
+      case 'judo': return <Shield className="h-4 w-4" />;
+      case 'karate': return <Zap className="h-4 w-4" />;
+      case 'taekwondo': return <Zap className="h-4 w-4" />;
+      case 'grappling': return <Shield className="h-4 w-4" />;
       default: return <Trophy className="h-4 w-4" />;
     }
   };
