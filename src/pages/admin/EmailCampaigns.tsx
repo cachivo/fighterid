@@ -188,7 +188,8 @@ export default function EmailCampaigns() {
                 {campaigns.map((campaign) => (
                   <div
                     key={campaign.id}
-                    className="border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                    className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/admin/email-campaigns/${campaign.id}`)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -212,7 +213,7 @@ export default function EmailCampaigns() {
                           <span>{getFilterLabel(campaign.recipient_filter)}</span>
                         </div>
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex gap-3 items-center">
                         <div className="flex items-center gap-1 text-green-600">
                           <CheckCircle2 className="h-4 w-4" />
                           <span className="font-medium">{campaign.total_sent}</span>
@@ -223,6 +224,7 @@ export default function EmailCampaigns() {
                             <span className="font-medium">{campaign.total_failed}</span>
                           </div>
                         )}
+                        <Badge variant="outline" className="ml-2">Ver detalle →</Badge>
                       </div>
                     </div>
                   </div>

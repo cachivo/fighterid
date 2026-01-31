@@ -845,6 +845,50 @@ export type Database = {
         }
         Relationships: []
       }
+      email_sends: {
+        Row: {
+          bounce_type: string | null
+          campaign_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string
+          resend_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          bounce_type?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          resend_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          bounce_type?: string | null
+          campaign_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          resend_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaign_log"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           active: boolean
