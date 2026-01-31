@@ -1,106 +1,82 @@
 
-# Plan: Eliminar Header Duplicado en Dashboard
+# Plan: Actualizar Logo Principal del Hero
 
-## Problema Identificado
+## Análisis
 
-```text
-ESTRUCTURA ACTUAL (INCORRECTA):
-┌─────────────────────────────────────────────────────────────┐
-│ App.tsx                                                      │
-│  └─ AdminProtectedRoute                                      │
-│      └─ AdminLayout ← PRIMER header                          │
-│          └─ Routes                                           │
-│              └─ Dashboard                                    │
-│                  └─ AdminLayoutWithAI                        │
-│                      └─ AdminLayout ← SEGUNDO header (duplicado)│
-│                          └─ contenido                        │
-└─────────────────────────────────────────────────────────────┘
-```
+El Hero actualmente usa `/lovable-uploads/fighter-id-logo-neon-outline.png` en dos lugares:
+1. **Hero para usuarios no autenticados** (línea 35)
+2. **Hero para usuarios autenticados** (línea 103)
 
-## Causa Raíz
+### Nuevo Logo
+El logo que subiste es un diseño limpio con "FID" en grande y "FIGHTER ID" debajo, fondo oscuro con texto blanco. Tiene proporciones más horizontales que el logo actual (que es más vertical/cuadrado).
 
-| Archivo | Línea | Código | Problema |
-|---------|-------|--------|----------|
-| `App.tsx` | 249 | `<AdminLayout>` | Envuelve TODAS las rutas admin |
-| `AdminLayoutWithAI.tsx` | 18 | `<AdminLayout>` | Vuelve a envolver el contenido |
+## Cambios Necesarios
 
-## Solución
+### 1. Copiar el nuevo logo
+Guardar el archivo como `/public/lovable-uploads/fighter-id-logo-official.png`
 
-Modificar `AdminLayoutWithAI` para que **solo agregue el ChatWidget** sin duplicar el layout, ya que `App.tsx` ya proporciona el `AdminLayout`.
+### 2. Actualizar Hero.tsx
+Cambiar ambas referencias del logo y ajustar las dimensiones para las nuevas proporciones:
 
-### Cambio en AdminLayoutWithAI.tsx
+| Ubicación | Clase Actual | Nueva Clase |
+|-----------|--------------|-------------|
+| No autenticado | `h-64 sm:h-[22rem] md:h-[28rem] lg:h-[32rem]` | `h-32 sm:h-40 md:h-48 lg:h-56` |
+| Autenticado | `h-56 sm:h-72 md:h-96 lg:h-[28rem]` | `h-28 sm:h-36 md:h-44 lg:h-52` |
 
-```typescript
-// ANTES (duplica el layout)
-const AdminLayoutWithAI: React.FC<AdminLayoutWithAIProps> = ({ children }) => {
-  return (
-    <>
-      <AdminLayout>        ← Esto causa la duplicación
-        {children}
-      </AdminLayout>
-      <ChatWidget />
-    </>
-  );
-};
+Las dimensiones se reducen porque el nuevo logo es más ancho y menos alto, así que necesita menos altura para verse proporcionado.
 
-// DESPUÉS (solo agrega el ChatWidget)
-const AdminLayoutWithAI: React.FC<AdminLayoutWithAIProps> = ({ children }) => {
-  return (
-    <>
-      {children}           ← Contenido directo, sin envolver
-      <ChatWidget />       ← Solo agrega el chat
-    </>
-  );
-};
-```
+### 3. Remover animación neon (opcional)
+El nuevo logo es blanco sólido sin efecto neón, así que `animate-pulse-neon-intense` podría no ser apropiado. Sugiero mantener una sutil animación o removerla.
 
-## Resultado Esperado
-
-```text
-ESTRUCTURA CORREGIDA:
-┌─────────────────────────────────────────────────────────────┐
-│ App.tsx                                                      │
-│  └─ AdminProtectedRoute                                      │
-│      └─ AdminLayout ← ÚNICO header                           │
-│          └─ Routes                                           │
-│              └─ Dashboard                                    │
-│                  └─ AdminLayoutWithAI                        │
-│                      └─ contenido (sin layout extra)         │
-│                      └─ ChatWidget                           │
-└─────────────────────────────────────────────────────────────┘
-```
-
-## Archivo a Modificar
+## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/AIAssistant/AdminLayoutWithAI.tsx` | Remover `<AdminLayout>` wrapper |
+| `public/lovable-uploads/fighter-id-logo-official.png` | Nuevo archivo (copiar) |
+| `src/components/Hero.tsx` | Actualizar src y clases de dimensión |
 
-## Impacto Visual
+## Resultado Visual
 
-```text
-ANTES:
-┌────────────────────────────┐
-│ FID Panel de Administración│ ← Header 1
-├────────────────────────────┤
-│ FID Panel de Administración│ ← Header 2 (DUPLICADO)
-├────────────────────────────┤
-│ Dashboard Administrativo   │
-│ [contenido...]             │
-└────────────────────────────┘
+```
+ANTES (logo vertical con neón):
+┌─────────────────────────────────┐
+│                                 │
+│         [LOGO NEÓN]             │  ← Muy alto
+│         (vertical)              │
+│                                 │
+│    Plataforma profesional...    │
+└─────────────────────────────────┘
 
-DESPUÉS:
-┌────────────────────────────┐
-│ FID Panel de Administración│ ← Único header
-├────────────────────────────┤
-│ Dashboard Administrativo   │
-│ [contenido...]             │
-└────────────────────────────┘
+DESPUÉS (logo horizontal limpio):
+┌─────────────────────────────────┐
+│                                 │
+│      [  FID  ]                  │  ← Proporcional
+│    [ FIGHTER ID ]               │
+│                                 │
+│    Plataforma profesional...    │
+└─────────────────────────────────┘
+```
+
+## Detalles Técnicos
+
+```typescript
+// Hero.tsx - Usuario no autenticado (línea 35)
+<img 
+  src="/lovable-uploads/fighter-id-logo-official.png" 
+  alt="Fighter ID"
+  className="h-32 sm:h-40 md:h-48 lg:h-56 w-auto mx-auto transition-all duration-500"
+/>
+
+// Hero.tsx - Usuario autenticado (línea 103)
+<img 
+  src="/lovable-uploads/fighter-id-logo-official.png" 
+  alt="Fighter ID Logo"
+  className="h-28 sm:h-36 md:h-44 lg:h-52 w-auto mx-auto"
+/>
 ```
 
 ## Beneficios
-
-- Elimina ~56px de espacio vertical desperdiciado
-- Evita confusión visual con headers duplicados
-- Mantiene funcionalidad del ChatWidget intacta
-- Corrección de 1 línea de código
+- Logo oficial actualizado en toda la app
+- Dimensiones optimizadas para las nuevas proporciones
+- Sin distorsión visual
+- Consistencia de marca
