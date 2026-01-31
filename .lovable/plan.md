@@ -1,215 +1,184 @@
 
-# Plan: Auditoría y Limpieza del Sistema Fighter ID
+# Plan: Auditoría de Contenido y Temática - Fighter ID
 
 ## Resumen Ejecutivo
-Auditoría completa del código identificando archivos innecesarios, verificando funcionalidad de sistemas críticos, y eliminando la opción de Votaciones del panel admin.
+Auditoría del contenido textual para asegurar que la plataforma se enfoque exclusivamente en **artes marciales y deportes de combate**. Se encontraron disciplinas no relacionadas y inconsistencias que deben corregirse.
 
 ---
 
-## 1. Archivos a Eliminar (Código No Utilizado)
+## 1. Problemas Encontrados
 
-### Páginas No Utilizadas
-| Archivo | Razón |
-|---------|-------|
-| `src/pages/admin/Votaciones.tsx` | Solicitado por usuario - funcionalidad innecesaria |
-| `src/pages/admin/MassEmail.tsx` | Nunca importado en ningún archivo |
-| `src/pages/SmartHomepage.tsx` | Importado pero nunca usado en rutas |
-| `src/pages/FighterMe.tsx` | Todas las rutas redirigen a /profile |
-| `src/pages/MyProfile.tsx` | Nunca usado como ruta activa |
-| `src/pages/license/RequestFighterLicense.tsx` | Nunca importado |
-| `src/pages/license/EnhancedLicenseOnboarding.tsx` | Nunca importado |
+### Disciplinas NO Relacionadas con Artes Marciales (ELIMINAR)
 
-### Componentes No Utilizados
-| Archivo | Razón |
-|---------|-------|
-| `src/components/VotingPreview.tsx` | Nunca importado |
-| `src/components/Features.tsx` | Nunca importado |
-| `src/components/WelcomeScreen.tsx` | Importado en Index pero nunca renderizado |
-| `src/components/GoogleAd.tsx` | Nunca usado |
-| `src/components/BettingDelayIndicator.tsx` | Nunca usado |
-| `src/components/RealTimeStats.tsx` | Nunca usado (el hook sí se usa) |
+| Archivo | Disciplinas Incorrectas | Línea |
+|---------|------------------------|-------|
+| `src/pages/Predicciones.tsx` | "Rap Battle", "Chess", "Esports" | 181-184 |
+| `src/pages/EventoBetting.tsx` | "rap", "chess", "esports" | 305-310 |
 
-### Hooks Potencialmente Removibles
-| Archivo | Razón |
-|---------|-------|
-| `src/hooks/useSparring.ts` | Solo usado por FighterMe/MyProfile (a eliminar) |
-| `src/hooks/useStatusUpdates.ts` | Solo usado por FighterMe/MyProfile (a eliminar) |
+### Inconsistencias en Nombres de Disciplinas
+
+| Variante Actual | Variante Correcta Propuesta |
+|-----------------|---------------------------|
+| "Boxing" (inglés) | "Boxeo" |
+| "Jiu-Jitsu Brasileño" | "Jiu-Jitsu" o "BJJ" |
+| "BOXING" (key en FighterBadges) | Debe mapear "Boxeo" |
+| "BJJ" (key en FighterBadges) | Debe mapear "JiuJitsu" |
+| "MUAY_THAI" (key) | Debe mapear "MuayThai" |
+
+### Categorías de Peso en Inglés (NO Estandarizadas)
+
+| Archivo | Estado |
+|---------|--------|
+| `src/pages/ProfileChangeRequest.tsx` | Inglés: Strawweight, Flyweight, etc. |
+| `src/components/admin/ExternalFighterForm.tsx` | Inglés: Strawweight, Flyweight, etc. |
 
 ---
 
-## 2. Modificaciones Requeridas
+## 2. Lista Oficial de Disciplinas de Combate
 
-### AdminSidebar.tsx - Remover Votaciones
-```typescript
-// ELIMINAR esta línea del array adminItems:
-{ title: 'Votaciones', url: '/admin/votaciones', icon: Vote },
-
-// ELIMINAR import no usado:
-import { Vote } from 'lucide-react';
-```
-
-### App.tsx - Limpiar Imports y Rutas
-```typescript
-// ELIMINAR imports:
-import Votaciones from "./pages/admin/Votaciones";
-import SmartHomepage from "./pages/SmartHomepage";
-import FighterMe from './pages/FighterMe';
-import MyProfile from './pages/MyProfile';
-import LicenseWelcome from './pages/license/LicenseWelcome';
-
-// ELIMINAR ruta:
-<Route path="/votaciones" element={<Votaciones />} />
-```
-
-### Index.tsx - Limpiar Import No Usado
-```typescript
-// ELIMINAR import no usado:
-import WelcomeScreen from "@/components/WelcomeScreen";
-```
-
----
-
-## 3. Verificación de Sistemas Críticos
-
-### Sistema de Scoring en Tiempo Real
-| Componente | Estado |
-|------------|--------|
-| Station1Scoring (Juez Rojo) | Funcional |
-| Station2Scoring (Juez Azul) | Funcional |
-| Station3RoundControl (Control de Rounds) | Funcional |
-| HudPublicDisplay | Funcional |
-| PIN Login para estaciones | Funcional |
-
-### Sistema de Licencias Fighter ID
-| Componente | Estado |
-|------------|--------|
-| LicenseAuth | Funcional |
-| LicenseOnboarding | Funcional |
-| LicenseDashboard | Funcional |
-| Verificación QR | Funcional |
-| ValidacionLicencias (Admin) | Funcional |
-
-### Sistema de Eventos y Peleas
-| Componente | Estado |
-|------------|--------|
-| EventosPelea | Funcional |
-| LiveEventsControl | Funcional |
-| PrepareFightDialog | Funcional |
-| RoundControlPanel | Funcional |
-| FightResults | Funcional |
-
-### Sistema de Gimnasios/Escuelas (Nuevo)
-| Componente | Estado |
-|------------|--------|
-| GimnasiosAdmin | Funcional |
-| AdminGymCard | Funcional |
-| GymEditModal | Funcional |
-| DeleteGymDialog | Funcional |
-
-### Autenticación
-| Componente | Estado |
-|------------|--------|
-| Auth principal | Funcional |
-| ForgotPassword | Funcional |
-| ResetPassword | Funcional |
-| ProtectedRoute | Funcional |
-| AdminProtectedRoute | Funcional |
-
----
-
-## 4. Botones y Funcionalidades Verificadas
-
-### Panel Admin - Todos Funcionales
-- Dashboard con estadísticas en vivo
-- Gestión de Peleadores (CRUD completo)
-- Gestión de Gimnasios (CRUD completo)
-- Gestión de Entrenadores (CRUD completo)
-- Control de Peleas en Vivo
-- Asignación de Jueces
-- Monitor de IA para strikes
-- Gestión de Licencias
-
-### Rutas Públicas - Funcionales
-- Homepage con stats en tiempo real
-- Directorio de Gimnasios
-- Directorio de Entrenadores
-- Perfiles de Peleadores
-- Eventos y Detalles
-
----
-
-## 5. Resumen de Acciones
+Disciplinas válidas para la plataforma:
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
-│              LIMPIEZA DE CÓDIGO                         │
+│           DISCIPLINAS DE COMBATE PERMITIDAS             │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  ELIMINAR:                                              │
-│  ├── 7 páginas no utilizadas                           │
-│  ├── 6 componentes no utilizados                       │
-│  ├── 2 hooks potencialmente removibles                 │
-│  └── Referencias en App.tsx y AdminSidebar.tsx         │
+│  STRIKING (Golpeo):                                     │
+│  • Boxeo                                                │
+│  • Kickboxing                                           │
+│  • Muay Thai                                            │
+│  • Karate                                               │
+│  • Taekwondo                                            │
 │                                                         │
-│  TOTAL: ~15 archivos / ~3,500 líneas de código         │
+│  GRAPPLING (Agarre/Suelo):                              │
+│  • Jiu-Jitsu / BJJ                                      │
+│  • Judo                                                 │
+│  • Lucha Libre (Wrestling)                              │
+│  • Sambo                                                │
+│  • Grappling                                            │
 │                                                         │
-│  SISTEMAS VERIFICADOS:                                  │
-│  ├── Sistema de Scoring: ✓ OK                          │
-│  ├── Sistema de Licencias: ✓ OK                        │
-│  ├── Sistema de Eventos: ✓ OK                          │
-│  ├── Autenticación: ✓ OK                               │
-│  └── Admin Panel: ✓ OK                                 │
+│  MIXTO:                                                 │
+│  • MMA (Mixed Martial Arts)                             │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 6. Para el Evento de Hoy
+## 3. Archivos a Modificar
 
-### Checklist Pre-Evento
-- [ ] Crear evento en Admin → Eventos de Pelea
-- [ ] Configurar peleas con peleadores
-- [ ] Asignar jueces a cada pelea
-- [ ] Probar acceso a estaciones (/estacion/1, /estacion/2, /estacion/3)
-- [ ] Verificar HUD público (/hud/fight/{fightId})
-- [ ] Probar control de rounds desde estación 3
+### A. Eliminar Disciplinas No Relacionadas
 
-### URLs Críticas para el Evento
-- **Estación Juez 1 (Rojo)**: `/estacion/1`
-- **Estación Juez 2 (Azul)**: `/estacion/2`  
-- **Control de Rounds**: `/estacion/3`
-- **HUD Público**: `/hud/fight/{fightId}`
-- **Control Admin**: `/admin/live-events`
+**Archivo: `src/pages/Predicciones.tsx`**
+- Líneas 179-185: Cambiar filtro de disciplinas
+- Eliminar: "Rap Battle", "Chess", "Esports"
+- Reemplazar con: "MMA", "Boxeo", "Kickboxing", "Muay Thai", "Jiu-Jitsu", "Judo"
+
+**Archivo: `src/pages/EventoBetting.tsx`**
+- Líneas 305-310: Eliminar casos para "rap", "chess", "esports"
+- Actualizar iconos para disciplinas de combate
+
+### B. Estandarizar Categorías de Peso
+
+**Archivo: `src/pages/ProfileChangeRequest.tsx`**
+- Líneas 17-20: Cambiar WEIGHT_CLASSES de inglés a español con libras
+- Cambiar de: `['Strawweight', 'Flyweight', ...]`
+- A: `[{ value: 'Peso Paja', label: 'Peso Paja (115 lbs)' }, ...]`
+
+**Archivo: `src/components/admin/ExternalFighterForm.tsx`**
+- Líneas 26-37: Cambiar WEIGHT_CLASSES de inglés a español con libras
+
+### C. Estandarizar Lista de Disciplinas
+
+Crear constante centralizada o actualizar en cada archivo:
+
+**Archivos a actualizar:**
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/ProfileChangeRequest.tsx` | Actualizar MARTIAL_ARTS y DISCIPLINES |
+| `src/pages/admin/JudgesManagement.tsx` | Actualizar specializationOptions |
+| `src/components/social/FighterBadges.tsx` | Agregar más disciplinas al mapping |
+
+### D. Actualizar Badges de Disciplinas
+
+**Archivo: `src/components/social/FighterBadges.tsx`**
+- Agregar mappings para todas las disciplinas válidas
+- Asegurar que "Boxeo" mapee correctamente (no solo "BOXING")
 
 ---
 
-## Archivos a Modificar
+## 4. Constantes Estandarizadas Propuestas
+
+### Disciplinas (para usar en todos los formularios)
+```typescript
+const MARTIAL_ARTS_DISCIPLINES = [
+  'MMA',
+  'Boxeo',
+  'Kickboxing',
+  'Muay Thai',
+  'Jiu-Jitsu',
+  'Judo',
+  'Karate',
+  'Taekwondo',
+  'Lucha Libre',
+  'Grappling',
+  'Sambo'
+] as const;
+```
+
+### Categorías de Peso (formato español + libras)
+```typescript
+const WEIGHT_CLASSES = [
+  { value: 'Peso Paja', label: 'Peso Paja (115 lbs)' },
+  { value: 'Peso Mosca', label: 'Peso Mosca (125 lbs)' },
+  { value: 'Peso Gallo', label: 'Peso Gallo (135 lbs)' },
+  { value: 'Peso Pluma', label: 'Peso Pluma (145 lbs)' },
+  { value: 'Peso Ligero', label: 'Peso Ligero (155 lbs)' },
+  { value: 'Peso Welter', label: 'Peso Welter (170 lbs)' },
+  { value: 'Peso Medio', label: 'Peso Medio (185 lbs)' },
+  { value: 'Peso Semipesado', label: 'Peso Semipesado (205 lbs)' },
+  { value: 'Peso Pesado', label: 'Peso Pesado (265 lbs)' },
+  { value: 'Peso Superpesado', label: 'Peso Superpesado (+265 lbs)' },
+];
+```
+
+---
+
+## 5. Resumen de Archivos
 
 | Archivo | Acción |
 |---------|--------|
-| `src/components/AdminSidebar.tsx` | Remover item Votaciones |
-| `src/App.tsx` | Limpiar imports y ruta de Votaciones |
-| `src/pages/Index.tsx` | Remover import WelcomeScreen |
+| `src/pages/Predicciones.tsx` | Eliminar disciplinas no-combate |
+| `src/pages/EventoBetting.tsx` | Eliminar referencias rap/chess/esports |
+| `src/pages/ProfileChangeRequest.tsx` | Estandarizar peso + disciplinas |
+| `src/components/admin/ExternalFighterForm.tsx` | Estandarizar peso a español |
+| `src/pages/admin/JudgesManagement.tsx` | Verificar especialidades |
+| `src/components/social/FighterBadges.tsx` | Expandir mappings de disciplinas |
 
-## Archivos a Eliminar
+---
 
-| Archivo | Líneas |
-|---------|--------|
-| `src/pages/admin/Votaciones.tsx` | ~755 líneas |
-| `src/pages/admin/MassEmail.tsx` | ~306 líneas |
-| `src/pages/SmartHomepage.tsx` | ~70 líneas |
-| `src/pages/FighterMe.tsx` | ~300 líneas |
-| `src/pages/MyProfile.tsx` | ~350 líneas |
-| `src/pages/license/RequestFighterLicense.tsx` | ~200 líneas |
-| `src/pages/license/EnhancedLicenseOnboarding.tsx` | ~400 líneas |
-| `src/components/VotingPreview.tsx` | ~109 líneas |
-| `src/components/Features.tsx` | ~78 líneas |
-| `src/components/WelcomeScreen.tsx` | ~56 líneas |
-| `src/components/GoogleAd.tsx` | ~50 líneas |
-| `src/components/BettingDelayIndicator.tsx` | ~80 líneas |
-| `src/components/RealTimeStats.tsx` | ~100 líneas |
-| `src/hooks/useSparring.ts` | ~100 líneas |
-| `src/hooks/useStatusUpdates.ts` | ~80 líneas |
+## 6. Verificación de Contenido Textual
 
-**Total estimado**: ~3,000+ líneas de código muerto a eliminar
+### Textos del Hero (OK)
+- "Plataforma profesional de gestión de peleadores"
+- "Únete a la comunidad de peleadores profesionales"
+
+### Textos de Registro (OK)
+- Formularios enfocados en datos de peleadores de combate
+
+### Areas a Mantener
+- Sistema de scoring para peleas
+- Gestión de gimnasios de artes marciales
+- Licencias Fighter ID
+- Records de peleas (W-L-D)
+
+---
+
+## 7. Impacto
+
+- **Archivos a modificar**: 6
+- **Disciplinas a eliminar**: 3 (Rap, Chess, Esports)
+- **Constantes a estandarizar**: 2 (Weight Classes, Martial Arts)
+- **Tiempo estimado**: ~15 minutos
+
+Esta auditoría asegura que Fighter ID se mantenga enfocado exclusivamente en **artes marciales y deportes de combate**.
