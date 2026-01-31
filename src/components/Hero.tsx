@@ -95,7 +95,7 @@ const Hero = () => {
             <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-neon-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-purple-neon-primary/50"></div>
             <span className="text-[10px] sm:text-xs md:text-sm tracking-wider text-center">
               {stats?.liveEvents && stats.liveEvents.length > 0 
-                ? `${stats.liveEvents.length} EVENTO${stats.liveEvents.length > 1 ? 'S' : ''} EN VIVO`
+                ? `EN VIVO: ${stats.liveEvents[0].name.toUpperCase()}${stats.liveEvents[0].venue ? ` - ${stats.liveEvents[0].venue.toUpperCase()}` : ''}`
                 : stats?.nextEvent
                   ? `${stats.nextEvent.name.toUpperCase()} - ${format(new Date(stats.nextEvent.start_time), 'dd MMM', { locale: es }).toUpperCase()}`
                   : 'PRÓXIMOS EVENTOS PRONTO'

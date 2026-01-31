@@ -17,7 +17,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Trophy, Calendar, Home, BarChart3, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell } from "lucide-react";
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,7 +53,6 @@ const Header = () => {
     { name: "Social", href: "/social/feed", icon: Users },
     { name: "Eventos", href: "/eventos", icon: Calendar },
     { name: "Peleadores", href: "/fighters", icon: Trophy },
-    { name: "Predicciones", href: "/predicciones", icon: BarChart3 },
     { name: "Mi Perfil", href: "/profile", icon: User },
   ];
 
@@ -147,9 +146,6 @@ const Header = () => {
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/fighters">Peleadores</Link>
-          </Button>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/predicciones">Predicciones</Link>
           </Button>
         </div>
 
