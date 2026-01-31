@@ -48,7 +48,6 @@ const adminItems = [
   { title: 'Monitor de Emails', url: '/admin/email-monitoring', icon: Mail },
   { title: 'Campañas de Email', url: '/admin/email-campaigns', icon: Mail },
   { title: 'Editor de Emails', url: '/admin/email-campaigns/editor', icon: Send },
-  { title: 'Solicitudes de Cambio', url: '/admin/profile-requests', icon: Settings },
   { title: 'Gestión de Roles', url: '/admin/user-roles', icon: Shield },
   { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },

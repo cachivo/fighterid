@@ -51,18 +51,24 @@ export interface PendingDopingTest {
   };
 }
 
+export type StatusFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'REQUIRES_INFO';
+
 export function usePendingChanges() {
   const [profileChanges, setProfileChanges] = useState<PendingProfileChange[]>([]);
+  const [allProfileChanges, setAllProfileChanges] = useState<PendingProfileChange[]>([]);
   const [fighterUpdates, setFighterUpdates] = useState<PendingFighterUpdate[]>([]);
+  const [allFighterUpdates, setAllFighterUpdates] = useState<PendingFighterUpdate[]>([]);
   const [dopingTests, setDopingTests] = useState<PendingDopingTest[]>([]);
+  const [allDopingTests, setAllDopingTests] = useState<PendingDopingTest[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('PENDING');
 
-  // Fetch pending profile changes
-  const fetchProfileChanges = async () => {
+  // Fetch all profile changes (for stats and filtered view)
+  const fetchProfileChanges = async (filterStatus?: StatusFilter) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('profile_change_requests')
         .select(`
           *,
@@ -70,14 +76,27 @@ export function usePendingChanges() {
             first_name,
             last_name,
             nickname,
-            avatar_url
+            avatar_url,
+            record_wins,
+            record_losses,
+            record_draws,
+            record_type
           )
         `)
-        .eq('status', 'PENDING')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setProfileChanges(data || []);
+      // Fetch all for stats
+      const { data: allData, error: allError } = await query;
+      if (allError) throw allError;
+      setAllProfileChanges(allData || []);
+
+      // Filter based on status
+      const currentFilter = filterStatus || statusFilter;
+      if (currentFilter === 'ALL') {
+        setProfileChanges(allData || []);
+      } else {
+        setProfileChanges((allData || []).filter(item => item.status === currentFilter));
+      }
     } catch (err) {
       console.error('Error fetching profile changes:', err);
       setError(err instanceof Error ? err.message : 'Error fetching profile changes');
@@ -86,8 +105,8 @@ export function usePendingChanges() {
     }
   };
 
-  // Fetch pending fighter updates
-  const fetchFighterUpdates = async () => {
+  // Fetch all fighter updates
+  const fetchFighterUpdates = async (filterStatus?: StatusFilter) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -100,11 +119,17 @@ export function usePendingChanges() {
             avatar_url
           )
         `)
-        .eq('review_status', 'PENDING')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setFighterUpdates(data || []);
+      setAllFighterUpdates(data || []);
+
+      const currentFilter = filterStatus || statusFilter;
+      if (currentFilter === 'ALL') {
+        setFighterUpdates(data || []);
+      } else {
+        setFighterUpdates((data || []).filter(item => item.review_status === currentFilter));
+      }
     } catch (err) {
       console.error('Error fetching fighter updates:', err);
       setError(err instanceof Error ? err.message : 'Error fetching fighter updates');
@@ -113,8 +138,8 @@ export function usePendingChanges() {
     }
   };
 
-  // Fetch pending doping tests
-  const fetchDopingTests = async () => {
+  // Fetch all doping tests
+  const fetchDopingTests = async (filterStatus?: StatusFilter) => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -128,11 +153,17 @@ export function usePendingChanges() {
             )
           )
         `)
-        .eq('result_status', 'PENDING')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setDopingTests(data || []);
+      setAllDopingTests(data || []);
+
+      const currentFilter = filterStatus || statusFilter;
+      if (currentFilter === 'ALL') {
+        setDopingTests(data || []);
+      } else {
+        setDopingTests((data || []).filter(item => item.result_status === currentFilter));
+      }
     } catch (err) {
       console.error('Error fetching doping tests:', err);
       setError(err instanceof Error ? err.message : 'Error fetching doping tests');
@@ -141,10 +172,18 @@ export function usePendingChanges() {
     }
   };
 
-  // Approve/Reject profile change
+  // Apply filter to all data types
+  const applyStatusFilter = (newFilter: StatusFilter) => {
+    setStatusFilter(newFilter);
+    fetchProfileChanges(newFilter);
+    fetchFighterUpdates(newFilter);
+    fetchDopingTests(newFilter);
+  };
+
+  // Approve/Reject/Request Info for profile change
   const updateProfileChangeStatus = async (
     requestId: string,
-    status: 'APPROVED' | 'REJECTED',
+    status: 'APPROVED' | 'REJECTED' | 'REQUIRES_INFO',
     adminNotes?: string
   ) => {
     try {
@@ -277,18 +316,58 @@ export function usePendingChanges() {
     fetchDopingTests();
   }, []);
 
+  // Stats calculations
+  const stats = {
+    total: allProfileChanges.length + allFighterUpdates.length + allDopingTests.length,
+    pending: allProfileChanges.filter(p => p.status === 'PENDING').length +
+             allFighterUpdates.filter(u => u.review_status === 'PENDING').length +
+             allDopingTests.filter(d => d.result_status === 'PENDING').length,
+    approved: allProfileChanges.filter(p => p.status === 'APPROVED' || p.status === 'APPLIED').length +
+              allFighterUpdates.filter(u => u.review_status === 'APPROVED').length +
+              allDopingTests.filter(d => d.result_status === 'CLEAN').length,
+    rejected: allProfileChanges.filter(p => p.status === 'REJECTED').length +
+              allFighterUpdates.filter(u => u.review_status === 'REJECTED').length +
+              allDopingTests.filter(d => d.result_status === 'POSITIVE').length,
+    requiresInfo: allProfileChanges.filter(p => p.status === 'REQUIRES_INFO').length,
+    profileStats: {
+      total: allProfileChanges.length,
+      pending: allProfileChanges.filter(p => p.status === 'PENDING').length,
+      approved: allProfileChanges.filter(p => p.status === 'APPROVED' || p.status === 'APPLIED').length,
+      rejected: allProfileChanges.filter(p => p.status === 'REJECTED').length,
+      requiresInfo: allProfileChanges.filter(p => p.status === 'REQUIRES_INFO').length,
+    },
+    updateStats: {
+      total: allFighterUpdates.length,
+      pending: allFighterUpdates.filter(u => u.review_status === 'PENDING').length,
+      approved: allFighterUpdates.filter(u => u.review_status === 'APPROVED').length,
+      rejected: allFighterUpdates.filter(u => u.review_status === 'REJECTED').length,
+    },
+    dopingStats: {
+      total: allDopingTests.length,
+      pending: allDopingTests.filter(d => d.result_status === 'PENDING').length,
+      clean: allDopingTests.filter(d => d.result_status === 'CLEAN').length,
+      positive: allDopingTests.filter(d => d.result_status === 'POSITIVE').length,
+    }
+  };
+
   return {
     profileChanges,
+    allProfileChanges,
     fighterUpdates,
+    allFighterUpdates,
     dopingTests,
+    allDopingTests,
     loading,
     error,
+    statusFilter,
+    stats,
     fetchProfileChanges,
     fetchFighterUpdates,
     fetchDopingTests,
+    applyStatusFilter,
     updateProfileChangeStatus,
     moderateFighterUpdate,
     verifyDopingTest,
-    totalPending: profileChanges.length + fighterUpdates.length + dopingTests.length
+    totalPending: stats.pending
   };
 }
