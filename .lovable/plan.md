@@ -1,228 +1,179 @@
 
-# Plan: Sistema de Clasificación de Fighter ID por Disciplina
 
-## Resumen
-Implementar un sistema donde los peleadores pueden inscribirse en disciplinas específicas, limitando inicialmente las opciones a **MMA** y **Boxeo Profesional**.
+# Plan: Consolidación del Sistema de Moderación Admin
+
+## Análisis de Redundancia Detectada
+
+### Componente 1: Centro de Moderación (`/admin/pending-changes`)
+| Aspecto | Detalle |
+|---------|---------|
+| Hook | `usePendingChanges` |
+| Datos | 3 tipos: Profile Changes, Fighter Updates, Doping Tests |
+| Filtro | Solo muestra items PENDING |
+| UI | Cards con diálogos |
+| Funciones | Aprobar/Rechazar de 3 tipos de contenido |
+
+### Componente 2: Solicitudes de Cambio (`/admin/profile-requests`)
+| Aspecto | Detalle |
+|---------|---------|
+| Hook | `useProfileChangeRequests` |
+| Datos | Solo Profile Change Requests |
+| Filtro | Muestra TODOS los estados (PENDING, APPROVED, REJECTED) |
+| UI | Tabla con estadísticas |
+| Funciones | Aprobar/Rechazar + opción "Solicitar Info" |
 
 ---
 
-## 1. Arquitectura del Sistema
+## Problema Identificado
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│                    SISTEMA DE DISCIPLINAS                            │
+│                    SOLAPAMIENTO ACTUAL                               │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│   DISCIPLINAS HABILITADAS (visible en formularios):                  │
-│   ┌─────────────┐    ┌────────────────────┐                         │
-│   │    MMA      │    │  Boxeo Profesional │                         │
-│   └─────────────┘    └────────────────────┘                         │
+│  Centro de Moderación          Solicitudes de Cambio                 │
+│  ┌─────────────────────┐       ┌─────────────────────┐              │
+│  │ ☑ Profile Changes   │       │ ☑ Profile Changes   │ ← DUPLICADO  │
+│  │   (solo PENDING)    │       │   (TODOS estados)   │              │
+│  ├─────────────────────┤       └─────────────────────┘              │
+│  │ ☑ Fighter Updates   │                                            │
+│  │   (solo PENDING)    │                                            │
+│  ├─────────────────────┤                                            │
+│  │ ☑ Doping Tests      │                                            │
+│  │   (solo PENDING)    │                                            │
+│  └─────────────────────┘                                            │
 │                                                                      │
-│   DISCIPLINAS EN DB (para compatibilidad futura):                    │
-│   MMA, Boxeo, Judo, JiuJitsu, Kickboxing, MuayThai, Grappling, Otro │
-│                                                                      │
-│   FLUJO:                                                             │
-│   Peleador → Selecciona disciplina(s) → Se guarda en fighter_profiles│
-│                         ↓                                            │
-│              Licencia Fighter ID → Por cada disciplina seleccionada  │
+│  RESULTADO: 2 lugares para gestionar Profile Changes                │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Cambios a Implementar
+## Solución Propuesta: Consolidación Inteligente
 
-### A. Crear Archivo Centralizado de Constantes
+Fusionar ambas páginas en un **Centro de Moderación mejorado** que incluya:
 
-**Nuevo archivo: `src/lib/constants/disciplines.ts`**
-
-```typescript
-// Disciplinas actualmente habilitadas en la plataforma
-export const ENABLED_DISCIPLINES = [
-  { 
-    value: 'MMA', 
-    label: 'MMA (Artes Marciales Mixtas)',
-    description: 'Combate que combina técnicas de striking y grappling'
-  },
-  { 
-    value: 'Boxeo', 
-    label: 'Boxeo Profesional',
-    description: 'Arte del pugilismo - solo golpes con los puños'
-  },
-] as const;
-
-// Todas las disciplinas válidas en el sistema (para compatibilidad de DB)
-export const ALL_DISCIPLINES = [
-  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-] as const;
-
-export type EnabledDiscipline = typeof ENABLED_DISCIPLINES[number]['value'];
-export type AllDiscipline = typeof ALL_DISCIPLINES[number];
-```
+1. **Filtrado por estado** (no solo pending)
+2. **Estadísticas visuales** (del ProfileChangeRequests)
+3. **Historial completo** de cada tipo de solicitud
+4. **Eliminar página redundante**
 
 ---
 
-### B. Actualizar Formulario de Onboarding de Licencia
-
-**Archivo: `src/pages/license/LicenseOnboarding.tsx`**
-
-Cambios:
-- Importar `ENABLED_DISCIPLINES` desde el archivo centralizado
-- Reemplazar los checkboxes de "martialArts" por un selector de disciplina principal
-- Agregar UI clara para seleccionar en qué disciplinas quiere competir
-
-**Antes:**
-```typescript
-const martialArts = [
-  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-];
-```
-
-**Después:**
-```typescript
-import { ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
-
-// Selector de disciplina(s) donde quiere competir
-<div className="space-y-4">
-  <Label>¿En qué disciplina(s) deseas competir? *</Label>
-  <p className="text-sm text-muted-foreground">
-    Selecciona las disciplinas para las cuales deseas obtener tu Fighter ID
-  </p>
-  {ENABLED_DISCIPLINES.map((discipline) => (
-    <Card key={discipline.value} className="cursor-pointer ...">
-      <Checkbox checked={...} />
-      <div>
-        <h4>{discipline.label}</h4>
-        <p>{discipline.description}</p>
-      </div>
-    </Card>
-  ))}
-</div>
-```
-
----
-
-### C. Actualizar Formulario Admin de Peleadores
-
-**Archivo: `src/components/admin/AdminFighterForm.tsx`**
-
-Cambios:
-- Importar `ENABLED_DISCIPLINES`
-- Actualizar el selector de disciplina
-- Mostrar solo MMA y Boxeo como opciones
-
----
-
-### D. Actualizar FighterProfileForm
-
-**Archivo: `src/components/FighterProfileForm.tsx`**
-
-Cambios:
-- Importar `ENABLED_DISCIPLINES`
-- Actualizar la lista de artes marciales a solo las habilitadas
-- Mejorar UI para clarificar que es selección de disciplina de competencia
-
----
-
-### E. Actualizar ExternalFighterForm
-
-**Archivo: `src/components/admin/ExternalFighterForm.tsx`**
-
-Cambios similares para mantener consistencia.
-
----
-
-## 3. Flujo de Usuario Actualizado
+## Arquitectura Propuesta
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────┐
-│              REGISTRO DE FIGHTER ID - NUEVO FLUJO                    │
+│            NUEVO CENTRO DE MODERACIÓN UNIFICADO                      │
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│  Paso 1: Datos Personales                                           │
-│  ├── Nombre, Apellido, País                                         │
-│  └── Fecha de nacimiento, Género                                    │
+│  [Stats Cards]                                                       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐               │
+│  │ Pending  │ │ Approved │ │ Rejected │ │  Total   │               │
+│  │    12    │ │    45    │ │     3    │ │    60    │               │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘               │
 │                                                                      │
-│  Paso 2: Información de Combate                                     │
-│  ├── Altura, Peso, Alcance                                          │
-│  └── Categoría de peso, Nivel (Amateur/Pro)                         │
+│  [Filtros]                                                           │
+│  Estado: [Todos ▼] [Pendientes] [Aprobados] [Rechazados]            │
 │                                                                      │
-│  Paso 3: DISCIPLINA(S) DE COMPETENCIA  ← NUEVO                      │
-│  ┌─────────────────────────────────────────────────────────────┐   │
-│  │                                                              │   │
-│  │  ¿En qué disciplina(s) deseas competir?                      │   │
-│  │                                                              │   │
-│  │  ┌──────────────────────────────────────────────────────┐   │   │
-│  │  │ ☑ MMA (Artes Marciales Mixtas)                        │   │   │
-│  │  │   Combate que combina técnicas de striking y grappling│   │   │
-│  │  └──────────────────────────────────────────────────────┘   │   │
-│  │                                                              │   │
-│  │  ┌──────────────────────────────────────────────────────┐   │   │
-│  │  │ ☐ Boxeo Profesional                                   │   │   │
-│  │  │   Arte del pugilismo - solo golpes con los puños      │   │   │
-│  │  └──────────────────────────────────────────────────────┘   │   │
-│  │                                                              │   │
-│  └─────────────────────────────────────────────────────────────┘   │
+│  [Tabs]                                                              │
+│  ┌───────────────┬────────────────┬──────────────┐                  │
+│  │   Perfiles    │   Updates      │    Dopaje    │                  │
+│  │     (8)       │     (3)        │      (1)     │                  │
+│  └───────────────┴────────────────┴──────────────┘                  │
 │                                                                      │
-│  Paso 4: Récord y Documentos                                        │
-│  └── Foto, Documento de identidad                                   │
+│  [Lista de items según tab y filtro activo]                         │
+│  ┌───────────────────────────────────────────────────────────────┐ │
+│  │ Avatar | Nombre | Tipo de Cambio | Estado | Fecha | Acciones  │ │
+│  ├───────────────────────────────────────────────────────────────┤ │
+│  │   👤   │ Clara Pinto │ Récord │ Pending │ 31/01 │ [Revisar]   │ │
+│  │   👤   │ José Mejia  │ Bio    │ Pending │ 31/01 │ [Revisar]   │ │
+│  │   👤   │ Willis Yang │ Récord │ Approved│ 30/01 │ [Ver]       │ │
+│  └───────────────────────────────────────────────────────────────┘ │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. Archivos a Crear/Modificar
+## Cambios a Implementar
+
+### 1. Actualizar `usePendingChanges.tsx`
+- Agregar parámetro opcional `status` para filtrar (no solo PENDING)
+- Agregar función `fetchAllByType()` que retorna todos los estados
+- Mantener `fetchPendingOnly()` para el contador del sidebar
+
+### 2. Actualizar `PendingChangesHub.tsx`
+- Agregar filtro de estado (Select: Todos/Pendientes/Aprobados/Rechazados)
+- Agregar cards de estadísticas al inicio
+- Agregar opción "Solicitar Info" del ProfileChangeRequests
+- Mejorar tabla/lista con información del revisor y fecha de revisión
+
+### 3. Eliminar `ProfileChangeRequests.tsx`
+- Mover funcionalidad "Solicitar Info" al Centro de Moderación
+- Eliminar archivo
+- Eliminar ruta de App.tsx
+
+### 4. Actualizar `AdminSidebar.tsx`
+- Eliminar item "Solicitudes de Cambio"
+
+---
+
+## Archivos a Modificar
 
 | Archivo | Acción |
 |---------|--------|
-| `src/lib/constants/disciplines.ts` | **CREAR** - Constantes centralizadas |
-| `src/pages/license/LicenseOnboarding.tsx` | Actualizar selector de disciplinas |
-| `src/components/admin/AdminFighterForm.tsx` | Actualizar a usar disciplinas habilitadas |
-| `src/components/FighterProfileForm.tsx` | Actualizar a usar disciplinas habilitadas |
-| `src/components/admin/ExternalFighterForm.tsx` | Actualizar a usar disciplinas habilitadas |
-| `src/hooks/useOptimizedOnboarding.ts` | Asegurar compatibilidad con selección |
+| `src/hooks/usePendingChanges.tsx` | Agregar filtrado por status |
+| `src/pages/admin/PendingChangesHub.tsx` | Agregar filtros, stats, mejorar UI |
+| `src/pages/admin/ProfileChangeRequests.tsx` | **ELIMINAR** |
+| `src/components/AdminSidebar.tsx` | Remover item redundante |
+| `src/App.tsx` | Remover ruta `/admin/profile-requests` |
+| `src/hooks/useProfileChangeRequests.ts` | Mantener (usado por peleadores para crear solicitudes) |
 
 ---
 
-## 5. Compatibilidad con Base de Datos
+## Funcionalidades Mejoradas
 
-El enum `discipline` en la base de datos ya incluye:
-- MMA ✓
-- Boxeo ✓
-- Judo (deshabilitado por ahora)
-- JiuJitsu (deshabilitado por ahora)
-- Kickboxing (deshabilitado por ahora)
-- MuayThai (deshabilitado por ahora)
-- Grappling (deshabilitado por ahora)
-- Otro (deshabilitado por ahora)
+### Nuevas características del Centro de Moderación:
 
-**No se requieren migraciones de base de datos.** Solo limitamos qué opciones se muestran en la UI.
+1. **Filtrado por estado**
+   - Todos
+   - Pendientes (default)
+   - Aprobados
+   - Rechazados
+   - Requiere Info
 
----
+2. **Estadísticas visuales**
+   - Total de solicitudes
+   - Pendientes (badge rojo para urgencia)
+   - Aprobadas hoy/semana
+   - Rechazadas
 
-## 6. Escalabilidad Futura
+3. **Información de auditoría**
+   - Quién revisó
+   - Cuándo se revisó
+   - Notas del admin
 
-Para habilitar nuevas disciplinas en el futuro, solo se necesita:
-
-```typescript
-// En src/lib/constants/disciplines.ts
-export const ENABLED_DISCIPLINES = [
-  { value: 'MMA', label: 'MMA (Artes Marciales Mixtas)', ... },
-  { value: 'Boxeo', label: 'Boxeo Profesional', ... },
-  // Agregar nuevas disciplinas aquí:
-  { value: 'Kickboxing', label: 'Kickboxing', ... },
-  { value: 'MuayThai', label: 'Muay Thai', ... },
-];
-```
+4. **Acción adicional**
+   - "Solicitar Más Información" (del ProfileChangeRequests original)
 
 ---
 
-## 7. Resumen de Impacto
+## Beneficios
 
-- **Archivos nuevos**: 1
-- **Archivos modificados**: 5
-- **Migraciones DB**: Ninguna
-- **Disciplinas habilitadas**: MMA, Boxeo
-- **Tiempo estimado**: ~20 minutos
+- **UX Simplificado**: Un solo lugar para toda la moderación
+- **Menos confusión**: No hay duplicación de funcionalidad
+- **Mejor auditoría**: Historial visible en el mismo lugar
+- **Código más limpio**: Menos archivos que mantener
+- **Sidebar más ordenado**: Menos opciones redundantes
+
+---
+
+## Impacto
+
+- **Archivos a eliminar**: 1
+- **Archivos a modificar**: 4
+- **Funcionalidad preservada**: 100%
+- **Tiempo estimado**: ~25 minutos
+
