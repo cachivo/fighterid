@@ -1,24 +1,18 @@
 
 
-# Plan: Actualizar Logo Principal
+# Plan: Actualizar Logo Principal (Archivo Correcto)
 
 ## Cambio
 
 | Acción | Detalle |
 |--------|---------|
-| Copiar archivo | `user-uploads://Fighter_ID_Logo.PNG` → `public/lovable-uploads/fighter-id-logo-official.png` |
+| Copiar archivo | `user-uploads://Fighter_ID_Logo-2.PNG` → `public/lovable-uploads/fighter-id-logo-official.png` |
 
-## Archivos que usan este logo
+## Ubicación actual
 
-El logo se usa en `src/components/Hero.tsx`:
-- Línea 35: Hero para usuarios no autenticados
-- Línea 103: Hero para usuarios autenticados
+El logo se muestra en `src/components/Hero.tsx` y ya apunta a `/lovable-uploads/fighter-id-logo-official.png`, por lo que no se necesitan cambios de código.
 
-## Nota sobre el fondo
+## Nota
 
-El nuevo logo tiene fondo oscuro/negro. Si prefieres una versión con fondo transparente para mejor integración con la página, avísame.
-
-## Sin cambios de código
-
-Las dimensiones actuales (`h-32` a `h-56`) funcionarán correctamente con el nuevo logo ya que tiene proporciones similares.
+Este logo tiene fondo negro sólido. Si prefieres una versión con fondo transparente para mejor integración visual, házmelo saber.
 
