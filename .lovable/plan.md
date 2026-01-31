@@ -1,39 +1,228 @@
 
-# Plan: Auditoría de Contenido y Temática - Fighter ID
+# Plan: Sistema de Clasificación de Fighter ID por Disciplina
 
-## ✅ COMPLETADO
+## Resumen
+Implementar un sistema donde los peleadores pueden inscribirse en disciplinas específicas, limitando inicialmente las opciones a **MMA** y **Boxeo Profesional**.
 
-## Resumen de Cambios Realizados
+---
 
-### 1. Disciplinas No Relacionadas - ELIMINADAS
-- ❌ "Rap Battle", "Chess", "Esports" removidos de `Predicciones.tsx`
-- ❌ Icons de `Mic`, `Gamepad` removidos de `EventoBetting.tsx`
-- ✅ Reemplazados con disciplinas de artes marciales
+## 1. Arquitectura del Sistema
 
-### 2. Disciplinas de Combate Estandarizadas
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                    SISTEMA DE DISCIPLINAS                            │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│   DISCIPLINAS HABILITADAS (visible en formularios):                  │
+│   ┌─────────────┐    ┌────────────────────┐                         │
+│   │    MMA      │    │  Boxeo Profesional │                         │
+│   └─────────────┘    └────────────────────┘                         │
+│                                                                      │
+│   DISCIPLINAS EN DB (para compatibilidad futura):                    │
+│   MMA, Boxeo, Judo, JiuJitsu, Kickboxing, MuayThai, Grappling, Otro │
+│                                                                      │
+│   FLUJO:                                                             │
+│   Peleador → Selecciona disciplina(s) → Se guarda en fighter_profiles│
+│                         ↓                                            │
+│              Licencia Fighter ID → Por cada disciplina seleccionada  │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
-MMA, Boxeo, Kickboxing, Muay Thai, Jiu-Jitsu, 
-Judo, Karate, Taekwondo, Lucha Libre, Grappling, Sambo
+
+---
+
+## 2. Cambios a Implementar
+
+### A. Crear Archivo Centralizado de Constantes
+
+**Nuevo archivo: `src/lib/constants/disciplines.ts`**
+
+```typescript
+// Disciplinas actualmente habilitadas en la plataforma
+export const ENABLED_DISCIPLINES = [
+  { 
+    value: 'MMA', 
+    label: 'MMA (Artes Marciales Mixtas)',
+    description: 'Combate que combina técnicas de striking y grappling'
+  },
+  { 
+    value: 'Boxeo', 
+    label: 'Boxeo Profesional',
+    description: 'Arte del pugilismo - solo golpes con los puños'
+  },
+] as const;
+
+// Todas las disciplinas válidas en el sistema (para compatibilidad de DB)
+export const ALL_DISCIPLINES = [
+  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
+] as const;
+
+export type EnabledDiscipline = typeof ENABLED_DISCIPLINES[number]['value'];
+export type AllDiscipline = typeof ALL_DISCIPLINES[number];
 ```
 
-### 3. Categorías de Peso - Actualizadas a Español
-```
-Peso Paja (115 lbs), Peso Mosca (125 lbs), Peso Gallo (135 lbs),
-Peso Pluma (145 lbs), Peso Ligero (155 lbs), Peso Welter (170 lbs),
-Peso Medio (185 lbs), Peso Semipesado (205 lbs), Peso Pesado (265 lbs),
-Peso Superpesado (+265 lbs)
+---
+
+### B. Actualizar Formulario de Onboarding de Licencia
+
+**Archivo: `src/pages/license/LicenseOnboarding.tsx`**
+
+Cambios:
+- Importar `ENABLED_DISCIPLINES` desde el archivo centralizado
+- Reemplazar los checkboxes de "martialArts" por un selector de disciplina principal
+- Agregar UI clara para seleccionar en qué disciplinas quiere competir
+
+**Antes:**
+```typescript
+const martialArts = [
+  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
+];
 ```
 
-### 4. Archivos Modificados
-| Archivo | Cambio |
+**Después:**
+```typescript
+import { ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
+
+// Selector de disciplina(s) donde quiere competir
+<div className="space-y-4">
+  <Label>¿En qué disciplina(s) deseas competir? *</Label>
+  <p className="text-sm text-muted-foreground">
+    Selecciona las disciplinas para las cuales deseas obtener tu Fighter ID
+  </p>
+  {ENABLED_DISCIPLINES.map((discipline) => (
+    <Card key={discipline.value} className="cursor-pointer ...">
+      <Checkbox checked={...} />
+      <div>
+        <h4>{discipline.label}</h4>
+        <p>{discipline.description}</p>
+      </div>
+    </Card>
+  ))}
+</div>
+```
+
+---
+
+### C. Actualizar Formulario Admin de Peleadores
+
+**Archivo: `src/components/admin/AdminFighterForm.tsx`**
+
+Cambios:
+- Importar `ENABLED_DISCIPLINES`
+- Actualizar el selector de disciplina
+- Mostrar solo MMA y Boxeo como opciones
+
+---
+
+### D. Actualizar FighterProfileForm
+
+**Archivo: `src/components/FighterProfileForm.tsx`**
+
+Cambios:
+- Importar `ENABLED_DISCIPLINES`
+- Actualizar la lista de artes marciales a solo las habilitadas
+- Mejorar UI para clarificar que es selección de disciplina de competencia
+
+---
+
+### E. Actualizar ExternalFighterForm
+
+**Archivo: `src/components/admin/ExternalFighterForm.tsx`**
+
+Cambios similares para mantener consistencia.
+
+---
+
+## 3. Flujo de Usuario Actualizado
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│              REGISTRO DE FIGHTER ID - NUEVO FLUJO                    │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  Paso 1: Datos Personales                                           │
+│  ├── Nombre, Apellido, País                                         │
+│  └── Fecha de nacimiento, Género                                    │
+│                                                                      │
+│  Paso 2: Información de Combate                                     │
+│  ├── Altura, Peso, Alcance                                          │
+│  └── Categoría de peso, Nivel (Amateur/Pro)                         │
+│                                                                      │
+│  Paso 3: DISCIPLINA(S) DE COMPETENCIA  ← NUEVO                      │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                                                              │   │
+│  │  ¿En qué disciplina(s) deseas competir?                      │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────────────┐   │   │
+│  │  │ ☑ MMA (Artes Marciales Mixtas)                        │   │   │
+│  │  │   Combate que combina técnicas de striking y grappling│   │   │
+│  │  └──────────────────────────────────────────────────────┘   │   │
+│  │                                                              │   │
+│  │  ┌──────────────────────────────────────────────────────┐   │   │
+│  │  │ ☐ Boxeo Profesional                                   │   │   │
+│  │  │   Arte del pugilismo - solo golpes con los puños      │   │   │
+│  │  └──────────────────────────────────────────────────────┘   │   │
+│  │                                                              │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+│  Paso 4: Récord y Documentos                                        │
+│  └── Foto, Documento de identidad                                   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 4. Archivos a Crear/Modificar
+
+| Archivo | Acción |
 |---------|--------|
-| `src/pages/Predicciones.tsx` | Filtros de disciplinas actualizados |
-| `src/pages/EventoBetting.tsx` | getDisciplineIcon() actualizado |
-| `src/pages/ProfileChangeRequest.tsx` | WEIGHT_CLASSES + MARTIAL_ARTS |
-| `src/components/admin/ExternalFighterForm.tsx` | WEIGHT_CLASSES |
-| `src/components/social/FighterBadges.tsx` | Mappings expandidos |
+| `src/lib/constants/disciplines.ts` | **CREAR** - Constantes centralizadas |
+| `src/pages/license/LicenseOnboarding.tsx` | Actualizar selector de disciplinas |
+| `src/components/admin/AdminFighterForm.tsx` | Actualizar a usar disciplinas habilitadas |
+| `src/components/FighterProfileForm.tsx` | Actualizar a usar disciplinas habilitadas |
+| `src/components/admin/ExternalFighterForm.tsx` | Actualizar a usar disciplinas habilitadas |
+| `src/hooks/useOptimizedOnboarding.ts` | Asegurar compatibilidad con selección |
 
-### 5. Sistema Verificado
-- ✅ JudgesManagement.tsx ya tenía disciplinas correctas
-- ✅ Todos los formularios usan disciplinas de combate
-- ✅ Badges soportan todas las variantes de nombres
+---
+
+## 5. Compatibilidad con Base de Datos
+
+El enum `discipline` en la base de datos ya incluye:
+- MMA ✓
+- Boxeo ✓
+- Judo (deshabilitado por ahora)
+- JiuJitsu (deshabilitado por ahora)
+- Kickboxing (deshabilitado por ahora)
+- MuayThai (deshabilitado por ahora)
+- Grappling (deshabilitado por ahora)
+- Otro (deshabilitado por ahora)
+
+**No se requieren migraciones de base de datos.** Solo limitamos qué opciones se muestran en la UI.
+
+---
+
+## 6. Escalabilidad Futura
+
+Para habilitar nuevas disciplinas en el futuro, solo se necesita:
+
+```typescript
+// En src/lib/constants/disciplines.ts
+export const ENABLED_DISCIPLINES = [
+  { value: 'MMA', label: 'MMA (Artes Marciales Mixtas)', ... },
+  { value: 'Boxeo', label: 'Boxeo Profesional', ... },
+  // Agregar nuevas disciplinas aquí:
+  { value: 'Kickboxing', label: 'Kickboxing', ... },
+  { value: 'MuayThai', label: 'Muay Thai', ... },
+];
+```
+
+---
+
+## 7. Resumen de Impacto
+
+- **Archivos nuevos**: 1
+- **Archivos modificados**: 5
+- **Migraciones DB**: Ninguna
+- **Disciplinas habilitadas**: MMA, Boxeo
+- **Tiempo estimado**: ~20 minutos
