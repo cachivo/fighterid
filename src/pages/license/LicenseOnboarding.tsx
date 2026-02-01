@@ -299,13 +299,18 @@ export default function LicenseOnboarding() {
                             ? 'border-primary bg-primary/5' 
                             : 'hover:border-muted-foreground/30'
                         }`}
-                        onClick={() => handleMartialArtsChange(discipline.value, !formData.martialArts.includes(discipline.value))}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleMartialArtsChange(discipline.value, !formData.martialArts.includes(discipline.value));
+                        }}
                       >
                         <CardContent className="flex items-start gap-3 p-4">
                           <Checkbox
                             id={discipline.value}
                             checked={formData.martialArts.includes(discipline.value)}
                             onCheckedChange={(checked) => handleMartialArtsChange(discipline.value, checked as boolean)}
+                            onClick={(e) => e.stopPropagation()}
                           />
                           <div className="flex-1">
                             <Label htmlFor={discipline.value} className="text-base font-medium cursor-pointer">
