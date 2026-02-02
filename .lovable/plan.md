@@ -1,71 +1,198 @@
 
-# Plan: Actualizar Página de Inicio de Sesión
+# Plan: Auditoría de Base de Datos y Corrección del Flujo de Creación de Perfiles
 
-## Cambios Requeridos
+## Resumen Ejecutivo
+Se encontraron **45 perfiles** con categorías de peso en inglés que necesitan actualización, y **múltiples problemas en los componentes Select** del formulario de onboarding que causan crashes.
 
-### 1. Actualizar Textos de la Página Auth
+---
 
-**Archivo:** `src/pages/Auth.tsx`
+## Parte 1: Auditoría de Base de Datos - Categorías de Peso
 
-| Línea | Actual | Nuevo |
-|-------|--------|-------|
-| 278 | "Acceso a Batalla" | "Acceso a Fighter ID" |
-| 279-281 | "Inicia sesión o regístrate para acceder a la plataforma" | "Inicia sesión o regístrate para acceder a tu perfil de peleador" |
+### Problema Identificado
+La base de datos tiene inconsistencias en `weight_class`:
 
-### 2. Verificar Redirección Post-Confirmación
+| Categoría en Inglés | Cantidad | Debe ser (Español) |
+|---------------------|----------|-------------------|
+| Flyweight | 14 | Peso Mosca |
+| Bantamweight | 6 | Peso Gallo |
+| Featherweight | 6 | Peso Pluma |
+| Lightweight | 8 | Peso Ligero |
+| Welterweight | 6 | Peso Welter |
+| Middleweight | 3 | Peso Medio |
+| Strawweight | 2 | Peso Paja |
+| **Total** | **45** | |
 
-El código actual en `useAuth.tsx` ya configura:
-```typescript
-const redirectUrl = `${window.location.origin}/auth`;
+### Perfiles Afectados (Ejemplos)
+- Kevin Martinez Cruz - Bantamweight
+- Clara Pinto - Flyweight
+- Willis Yang - Lightweight
+- Cesar Bonilla - Middleweight
+
+### Solución: Migración SQL
+```sql
+UPDATE fighter_profiles SET weight_class = 'Peso Paja' WHERE weight_class = 'Strawweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Mosca' WHERE weight_class = 'Flyweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Gallo' WHERE weight_class = 'Bantamweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Pluma' WHERE weight_class = 'Featherweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Ligero' WHERE weight_class = 'Lightweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Welter' WHERE weight_class = 'Welterweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Medio' WHERE weight_class = 'Middleweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Semipesado' WHERE weight_class = 'Light Heavyweight';
+UPDATE fighter_profiles SET weight_class = 'Peso Pesado' WHERE weight_class = 'Heavyweight';
 ```
 
-Esto significa que después de confirmar el email, el usuario debería ser redirigido a `/auth`. Sin embargo, la URL completa de Supabase incluye parámetros adicionales.
+### También necesita corrección: Función `import_fighter_data`
+La función de base de datos genera categorías en inglés. Debe actualizarse para usar español.
 
-**Verificación necesaria:** Confirmar que en Supabase Dashboard > Authentication > URL Configuration:
-- Site URL esté configurado correctamente
-- Redirect URLs incluya la URL del proyecto
+---
 
-### 3. Agregar Indicador Visual Post-Confirmación (Opcional)
+## Parte 2: Corrección del Selector de Género (y otros Selects)
 
-Cuando el usuario llega a `/auth` desde la confirmación de email, podríamos mostrar un mensaje de bienvenida. El parámetro `type=signup` o similar viene en la URL después de confirmar.
+### Problema Identificado
+En `LicenseOnboarding.tsx`, el selector de género usa:
+```tsx
+value={formData.gender || undefined}
+```
 
-**Cambio propuesto en `Auth.tsx`:**
-- Detectar si el usuario viene de una confirmación de email
-- Mostrar toast de "Email confirmado exitosamente"
-- Pre-seleccionar la pestaña de "Iniciar Sesión"
+**Problema**: Cuando `gender` es cadena vacía `''`, se pasa `undefined`, lo cual causa comportamiento inestable en Radix UI Select.
 
-## Resumen de Cambios
+### Otros Selects con el mismo patrón problemático:
+| Campo | Línea | Código Actual |
+|-------|-------|---------------|
+| Level | 340 | `value={formData.level}` |
+| Weight Class | 429 | `value={formData.weightClass}` |
+| Stance | 447 | `value={formData.stance}` |
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/Auth.tsx` | Cambiar título a "Acceso a Fighter ID" |
-| `src/pages/Auth.tsx` | Actualizar descripción |
-| `src/pages/Auth.tsx` | Detectar confirmación de email y mostrar mensaje |
+### Solución: Usar placeholder `__none__`
+Aplicar el mismo patrón usado anteriormente:
+
+```tsx
+// ANTES (problemático)
+<Select value={formData.gender || undefined}>
+
+// DESPUÉS (correcto)
+<Select value={formData.gender || '__none__'} 
+        onValueChange={(v) => setFormData({...formData, gender: v === '__none__' ? '' : v})}>
+```
+
+---
+
+## Parte 3: Análisis del Flujo de Creación de Perfiles
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│                    FLUJO DE CREACIÓN DE PERFIL                      │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│   [1] Usuario en /license/auth                                      │
+│        ↓                                                            │
+│   [2] Login/Registro exitoso                                        │
+│        ↓                                                            │
+│   [3] Redirección a /license/onboarding                             │
+│        ↓                                                            │
+│   [4] PASO 1: Datos Personales ◄─── PROBLEMAS AQUÍ                 │
+│       • Nombre/Apellido (OK)                                        │
+│       • Género ← BUG: Select crashea                                │
+│       • Disciplinas ← CORREGIDO                                     │
+│       • Nivel ← RIESGO: mismo patrón                                │
+│       • Categoría Peso ← RIESGO: mismo patrón                       │
+│        ↓                                                            │
+│   [5] PASO 2: Documentos                                            │
+│       • Foto de identidad                                           │
+│       • Foto de peleador                                            │
+│        ↓                                                            │
+│   [6] Envío → createProfile()                                       │
+│        ↓                                                            │
+│   [7] Redirección a /license/pending                                │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Puntos Críticos Identificados
+
+| # | Campo | Estado | Riesgo |
+|---|-------|--------|--------|
+| 1 | Disciplinas (MMA/Boxeo) | ✅ Corregido | Bajo |
+| 2 | Género | ❌ Con bug | **Alto** |
+| 3 | Nivel | ⚠️ Potencial | Medio |
+| 4 | Stance | ⚠️ Potencial | Medio |
+| 5 | Categoría de Peso | ⚠️ Potencial | Medio |
+
+---
+
+## Resumen de Cambios a Implementar
+
+### Archivo 1: `src/pages/license/LicenseOnboarding.tsx`
+
+| Ubicación | Cambio |
+|-----------|--------|
+| Línea 246-260 | Corregir Select de Género con patrón `__none__` |
+| Línea 339-363 | Corregir Select de Nivel con patrón `__none__` |
+| Línea 429-440 | Corregir Select de Categoría de Peso con patrón `__none__` |
+| Línea 447-460 | Corregir Select de Stance con patrón `__none__` |
+
+### Base de Datos: Migración de Datos
+
+| Acción | Descripción |
+|--------|-------------|
+| UPDATE | Cambiar 45 registros de inglés a español |
+| ALTER FUNCTION | Actualizar `import_fighter_data` para usar español |
+
+---
 
 ## Sección Técnica
 
-### Detección de Confirmación de Email
+### Patrón Correcto para Selects con Radix UI
 
-Supabase redirige con parámetros como `?type=signup` o incluye hash con tokens. Podemos detectar esto:
+```tsx
+// Estado inicial
+const [formData, setFormData] = useState({
+  gender: '' as 'M' | 'F' | 'Otro' | '',
+});
 
-```typescript
-useEffect(() => {
-  const hashParams = new URLSearchParams(window.location.hash.substring(1));
-  const type = hashParams.get('type');
-  
-  if (type === 'signup' || type === 'email') {
-    toast({
-      title: '✅ Email confirmado',
-      description: 'Tu cuenta ha sido verificada. Ahora puedes iniciar sesión.',
-    });
-    setActiveTab('signin');
-  }
-}, []);
+// Componente Select
+<Select 
+  value={formData.gender || '__none__'} 
+  onValueChange={(value) => setFormData({
+    ...formData, 
+    gender: value === '__none__' ? '' : value as 'M' | 'F' | 'Otro'
+  })}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Selecciona tu género" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="__none__">-- Sin selección --</SelectItem>
+    <SelectItem value="M">Masculino</SelectItem>
+    <SelectItem value="F">Femenino</SelectItem>
+    <SelectItem value="Otro">Otro</SelectItem>
+  </SelectContent>
+</Select>
 ```
 
-### Configuración de Supabase Necesaria
+### SQL para Actualizar Función de Importación
 
-Si la redirección no funciona, el usuario debe verificar en Supabase Dashboard:
-1. **Authentication > URL Configuration**
-2. **Site URL:** `https://fighterid.lovable.app` (o la URL de preview)
-3. **Redirect URLs:** Agregar ambas URLs (preview y producción)
+```sql
+CREATE OR REPLACE FUNCTION public.import_fighter_data(...)
+-- Cambiar la lógica del CASE:
+  CASE 
+    WHEN p_weight_lbs <= 115 THEN v_weight_class := 'Peso Paja';
+    WHEN p_weight_lbs <= 125 THEN v_weight_class := 'Peso Mosca';  
+    WHEN p_weight_lbs <= 135 THEN v_weight_class := 'Peso Gallo';
+    WHEN p_weight_lbs <= 145 THEN v_weight_class := 'Peso Pluma';
+    WHEN p_weight_lbs <= 155 THEN v_weight_class := 'Peso Ligero';
+    WHEN p_weight_lbs <= 170 THEN v_weight_class := 'Peso Welter';
+    WHEN p_weight_lbs <= 185 THEN v_weight_class := 'Peso Medio';
+    WHEN p_weight_lbs <= 205 THEN v_weight_class := 'Peso Semipesado';
+    ELSE v_weight_class := 'Peso Pesado';
+  END CASE;
+```
+
+---
+
+## Orden de Implementación
+
+1. **Primero**: Corregir todos los Selects en `LicenseOnboarding.tsx`
+2. **Segundo**: Ejecutar migración SQL para actualizar los 45 registros
+3. **Tercero**: Actualizar la función `import_fighter_data`
+4. **Cuarto**: Probar el flujo completo de creación de perfil
