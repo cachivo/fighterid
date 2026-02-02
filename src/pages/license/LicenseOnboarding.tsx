@@ -244,15 +244,16 @@ export default function LicenseOnboarding() {
                   <div>
                     <Label htmlFor="gender">Género *</Label>
                     <Select 
-                      value={formData.gender || undefined} 
-                      onValueChange={(value: 'M' | 'F' | 'Otro') => {
-                        setFormData({...formData, gender: value});
+                      value={formData.gender || '__none__'} 
+                      onValueChange={(value) => {
+                        setFormData({...formData, gender: value === '__none__' ? '' : value as 'M' | 'F' | 'Otro'});
                       }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona tu género" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                         <SelectItem value="M">Masculino</SelectItem>
                         <SelectItem value="F">Femenino</SelectItem>
                         <SelectItem value="Otro">Otro</SelectItem>
@@ -337,12 +338,12 @@ export default function LicenseOnboarding() {
                 <div>
                   <Label htmlFor="level">Nivel *</Label>
                   <Select 
-                    value={formData.level} 
+                    value={formData.level || '__none__'} 
                     onValueChange={(value) => {
                       // Clear record fields when level changes
                       setFormData({
                         ...formData, 
-                        level: value as any,
+                        level: value === '__none__' ? '' : value as 'Amateur' | 'Semi-profesional' | 'Profesional',
                         amateurWins: '',
                         amateurLosses: '',
                         amateurDraws: '',
@@ -356,6 +357,7 @@ export default function LicenseOnboarding() {
                       <SelectValue placeholder="Selecciona tu nivel" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                       <SelectItem value="Amateur">Amateur</SelectItem>
                       <SelectItem value="Semi-profesional">Semi-profesional</SelectItem>
                       <SelectItem value="Profesional">Profesional</SelectItem>
@@ -426,11 +428,15 @@ export default function LicenseOnboarding() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="weightClass">Categoría de Peso *</Label>
-                    <Select value={formData.weightClass} onValueChange={(value) => setFormData({...formData, weightClass: value})}>
+                    <Select 
+                      value={formData.weightClass || '__none__'} 
+                      onValueChange={(value) => setFormData({...formData, weightClass: value === '__none__' ? '' : value})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona tu categoría" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                         {WEIGHT_CLASSES.map((wc) => (
                           <SelectItem key={wc.value} value={wc.value}>
                             {wc.label}
@@ -444,11 +450,15 @@ export default function LicenseOnboarding() {
                   </div>
                   <div>
                     <Label htmlFor="stance">Stance</Label>
-                    <Select value={formData.stance} onValueChange={(value) => setFormData({...formData, stance: value as any})}>
+                    <Select 
+                      value={formData.stance || '__none__'} 
+                      onValueChange={(value) => setFormData({...formData, stance: value === '__none__' ? '' : value as 'Ortodoxo' | 'Zurdo' | 'Switch'})}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona tu stance" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                         <SelectItem value="Ortodoxo">Ortodoxo</SelectItem>
                         <SelectItem value="Zurdo">Zurdo</SelectItem>
                         <SelectItem value="Switch">Switch</SelectItem>
