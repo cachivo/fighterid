@@ -32,27 +32,37 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Verify authentication
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       throw new Error("No authorization header");
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    // Create client with user's auth context for RLS/auth.uid() to work
+    const supabaseWithAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+      global: { headers: { Authorization: authHeader } }
+    });
     
-    // Verify user is admin
+    // Verify JWT and get claims
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const { data: claimsData, error: claimsError } = await supabaseWithAuth.auth.getClaims(token);
     
-    if (userError || !user) {
+    if (claimsError || !claimsData?.claims) {
+      console.error("[LICENSE APPROVAL] JWT validation failed:", claimsError);
       throw new Error("Unauthorized");
     }
 
-    // Check admin status using unified role system
-    const { data: isAdminResult, error: adminError } = await supabase.rpc('is_admin');
+    const userId = claimsData.claims.sub;
+    console.log("[LICENSE APPROVAL] Authenticated user:", userId);
+
+    // Check admin status using unified role system (now auth.uid() will work)
+    const { data: isAdminResult, error: adminError } = await supabaseWithAuth.rpc('is_admin');
     
     if (adminError || !isAdminResult) {
-      console.error("[LICENSE APPROVAL] Admin check failed:", adminError);
+      console.error("[LICENSE APPROVAL] Admin check failed:", adminError, "Result:", isAdminResult);
       throw new Error("Only admins can trigger license approval notifications");
     }
+    
+    // Use service role client for sending emails (bypasses RLS)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestData: LicenseApprovalRequest = await req.json();
     console.log("[LICENSE APPROVAL] Sending notification for license:", requestData.license_number);
