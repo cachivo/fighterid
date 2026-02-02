@@ -1018,16 +1018,25 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-4 justify-end">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
             {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                <X className="h-4 w-4 mr-2" />
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onCancel}
+                className="min-h-[44px] w-full sm:w-auto touch-manipulation order-2 sm:order-1"
+              >
+                <X className="h-4 w-4 mr-2 flex-shrink-0" />
                 Cancelar
               </Button>
             )}
-            <Button type="submit" disabled={isLoading}>
-              <Save className="h-4 w-4 mr-2" />
-              {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              className="min-h-[44px] w-full sm:w-auto touch-manipulation order-1 sm:order-2"
+            >
+              <Save className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="truncate">{isLoading ? 'Guardando...' : 'Guardar Cambios'}</span>
             </Button>
           </div>
         </form>
