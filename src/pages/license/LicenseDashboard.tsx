@@ -202,9 +202,9 @@ export default function LicenseDashboard() {
                 variant="outline"
                 size="sm"
                 disabled={isRefreshing}
-                className="flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
+                className="flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3 min-h-[44px] touch-manipulation"
               >
-                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
                 <span className="hidden xs:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar'}</span>
               </Button>
               {missingFields.length > 0 && (
@@ -212,9 +212,9 @@ export default function LicenseDashboard() {
                   onClick={handleUpdateInfo}
                   variant="professional"
                   size="sm"
-                  className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3"
+                  className="whitespace-nowrap text-xs sm:text-sm px-2 sm:px-3 min-h-[44px] touch-manipulation"
                 >
-                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
                   <span className="hidden xs:inline">Actualizar</span>
                   <span className="xs:hidden">Editar</span>
                 </Button>

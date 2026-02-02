@@ -597,18 +597,29 @@ export default function ProfileChangeRequest() {
 
         <Separator />
 
-        <div className="flex gap-4">
-          <Button type="submit" disabled={isSubmitting || Object.keys(changedFields).length === 0}>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || Object.keys(changedFields).length === 0}
+            className="min-h-[44px] w-full sm:w-auto touch-manipulation order-1"
+          >
             {isSubmitting ? (
               'Procesando...'
             ) : (
               <>
-                <Send className="h-4 w-4 mr-2" />
-                {classifiedChanges.hasRequiresApproval ? 'Enviar Cambios' : 'Aplicar Cambios'}
+                <Send className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">
+                  {classifiedChanges.hasRequiresApproval ? 'Enviar Cambios' : 'Aplicar Cambios'}
+                </span>
               </>
             )}
           </Button>
-          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => navigate(-1)}
+            className="min-h-[44px] w-full sm:w-auto touch-manipulation order-2"
+          >
             Cancelar
           </Button>
         </div>

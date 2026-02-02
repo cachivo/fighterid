@@ -236,20 +236,13 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
         {onEditClick && (
           <Button 
             onClick={onEditClick}
-            className="w-full"
+            className="w-full min-h-[44px] touch-manipulation"
             variant={level === 'DIAMOND' ? 'outline' : 'default'}
           >
-            {level === 'DIAMOND' ? (
-              <>
-                <Trophy className="h-4 w-4 mr-2" />
-                ¡Perfil 100% Completo!
-              </>
-            ) : (
-              <>
-                <Trophy className="h-4 w-4 mr-2" />
-                Completar Información (+{100 - score}%)
-              </>
-            )}
+            <Trophy className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span className="truncate">
+              {level === 'DIAMOND' ? '¡Perfil 100% Completo!' : `Completar Información (+${100 - score}%)`}
+            </span>
           </Button>
         )}
       </CardContent>
