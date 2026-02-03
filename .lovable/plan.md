@@ -1,88 +1,113 @@
 
-# Plan: Sistema de Ranking por Puntos Acumulados
+# Plan: Rankings Separados por Disciplina
 
 ## Resumen
 
-Cambiar el sistema de ranking de win rate (porcentaje) a puntos acumulados con la fórmula:
-
-| Resultado | Puntos |
-|-----------|--------|
-| Victoria | +3 |
-| Empate | +1 |
-| Derrota | -1 |
-
-**Fórmula**: `puntos = (victorias × 3) + (empates × 1) - (derrotas × 1)`
+Modificar el sistema de ranking para filtrar peleadores por disciplina. Por defecto mostrará solo **MMA**, con opción de ver otras disciplinas mediante tabs.
 
 ---
 
-## Ejemplo Práctico
+## Cambios Propuestos
 
-| Peleador | Record | Cálculo | Puntos |
-|----------|--------|---------|--------|
-| Juan | 5-2-0 | (5×3)+(0×1)-(2×1) | **13** |
-| María | 3-0-1 | (3×3)+(1×1)-(0×1) | **10** |
-| Pedro | 4-3-0 | (4×3)+(0×1)-(3×1) | **9** |
-| Ana | 2-0-0 | (2×3)+(0×1)-(0×1) | **6** |
+### 1. Hook `useFighterRanking.tsx`
 
-María (3-0-1) queda arriba de Pedro (4-3-0) porque tiene menos derrotas.
-
----
-
-## Cambios en el Código
-
-### 1. useFighterRanking.tsx
+Agregar parámetro `discipline` para filtrar:
 
 ```typescript
 // ANTES
-const win_rate = total_fights > 0 ? (fighter.record_wins / total_fights) * 100 : 0;
+export function useFighterRanking(minFights: number = 3, page: number = 1, pageSize: number = 10)
 
-// DESPUÉS
-const ranking_points = (fighter.record_wins * 3) + (fighter.record_draws * 1) - (fighter.record_losses * 1);
+// DESPUÉS  
+export function useFighterRanking(
+  discipline: string = 'MMA',  // Nueva - por defecto MMA
+  minFights: number = 3, 
+  page: number = 1, 
+  pageSize: number = 10
+)
 ```
 
-**Ordenamiento**:
+**Query modificada:**
 ```typescript
-// ANTES: por win_rate
-.sort((a, b) => b.win_rate - a.win_rate);
-
-// DESPUÉS: por ranking_points, desempate por victorias
-.sort((a, b) => {
-  if (b.ranking_points !== a.ranking_points) {
-    return b.ranking_points - a.ranking_points;
-  }
-  return b.record_wins - a.record_wins; // Desempate
-});
+const { data, error } = await supabase
+  .from('fighter_profiles')
+  .select('...')
+  .eq('active', true)
+  .eq('discipline', discipline)  // Filtrar por disciplina
+  .order('record_wins', { ascending: false });
 ```
 
-### 2. Ranking.tsx (UI)
+**Stats también filtrados por disciplina:**
+```typescript
+const { data: allFighters } = await supabase
+  .from('fighter_profiles')
+  .select('...')
+  .eq('active', true)
+  .eq('discipline', discipline);  // Stats solo de esa disciplina
+```
+
+---
+
+### 2. Componente `Ranking.tsx`
+
+Agregar tabs para seleccionar disciplina:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  #1  🏆  Juan "El Tigre" Pérez                                 │
-│          5-2-0  MMA                                    13 pts  │
-├─────────────────────────────────────────────────────────────────┤
-│  #2      María "La Tigresa" López                              │
-│          3-0-1  Boxeo                                  10 pts  │
-├─────────────────────────────────────────────────────────────────┤
-│  #3      Pedro Rodríguez                                       │
-│          4-3-0  MMA                                     9 pts  │
+│  Top Peleadores Ranking                                         │
+│                                                                 │
+│  ┌─────────┐  ┌─────────┐                                      │
+│  │   MMA   │  │  Boxeo  │   ← Tabs de disciplina               │
+│  └─────────┘  └─────────┘     (MMA activo por defecto)         │
+│                                                                 │
+│  #1 🏆 Juan Pérez        5-2-0  MMA           13 pts           │
+│  #2    María López       3-0-1  MMA           10 pts           │
+│  #3    Pedro Rodríguez   4-3-0  MMA            9 pts           │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Cambio visual**:
+**Código de tabs:**
 ```tsx
-// ANTES
-<div className="text-lg font-bold text-purple-neon-primary">
-  {fighter.win_rate.toFixed(1)}%
-</div>
-<div className="text-xs text-gray-400">Win Rate</div>
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ENABLED_DISCIPLINES } from "@/lib/constants/disciplines";
 
-// DESPUÉS
-<div className="text-lg font-bold text-purple-neon-primary">
-  {fighter.ranking_points}
-</div>
-<div className="text-xs text-gray-400">pts</div>
+const [selectedDiscipline, setSelectedDiscipline] = useState('MMA');
+
+// Reset page y fighters al cambiar disciplina
+useEffect(() => {
+  setPage(1);
+  setAllFighters([]);
+}, [selectedDiscipline]);
+
+const { fighters, stats, isLoading, hasMore } = useFighterRanking(
+  selectedDiscipline,  // Pasar disciplina seleccionada
+  3, 
+  page, 
+  PAGE_SIZE
+);
+
+// En el JSX
+<Tabs value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
+  <TabsList className="bg-black/60 border border-purple-neon-primary/30">
+    {ENABLED_DISCIPLINES.map(d => (
+      <TabsTrigger key={d.value} value={d.value}>
+        {d.value}
+      </TabsTrigger>
+    ))}
+  </TabsList>
+</Tabs>
 ```
+
+---
+
+### 3. Estadísticas por Disciplina
+
+Las 4 tarjetas de estadísticas también se filtrarán por la disciplina seleccionada:
+
+| Disciplina | Peleadores | Peleas | Profesionales | Invictos |
+|------------|------------|--------|---------------|----------|
+| MMA        | 45         | 120    | 28            | 5        |
+| Boxeo      | 23         | 67     | 15            | 3        |
 
 ---
 
@@ -90,26 +115,42 @@ const ranking_points = (fighter.record_wins * 3) + (fighter.record_draws * 1) - 
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/hooks/useFighterRanking.tsx` | Cambiar cálculo y ordenamiento |
-| `src/components/sections/Ranking.tsx` | Mostrar puntos en lugar de % |
+| `src/hooks/useFighterRanking.tsx` | Agregar parámetro `discipline` y filtrar queries |
+| `src/components/sections/Ranking.tsx` | Agregar tabs y estado de disciplina |
 
 ---
 
-## Consideraciones
+## Resultado Visual
 
-### Puntaje Mínimo
-- Un peleador sin peleas tiene 0 puntos
-- Un peleador con solo derrotas puede tener puntos negativos
-
-### Desempate
-Si dos peleadores tienen los mismos puntos, el que tenga más victorias queda arriba.
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│           NUESTROS RESULTADOS                                   │
+│                                                                 │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
+│  │    45    │ │   120    │ │    28    │ │     5    │          │
+│  │Peleadores│ │  Peleas  │ │  Profes  │ │ Invictos │          │
+│  │   MMA    │ │   MMA    │ │   MMA    │ │   MMA    │          │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘          │
+│                                                                 │
+│  Top Peleadores Ranking                                         │
+│                                                                 │
+│  ┌───────────────┐ ┌───────────────┐                           │
+│  │      MMA      │ │     Boxeo     │                           │
+│  │   (activo)    │ │               │                           │
+│  └───────────────┘ └───────────────┘                           │
+│                                                                 │
+│  #1 🏆 Peleador MMA #1     5-2-0           13 pts              │
+│  #2    Peleador MMA #2     3-0-1           10 pts              │
+│  #3    Peleador MMA #3     4-3-0            9 pts              │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Ventajas del Sistema
+## Beneficios
 
-1. **Incentiva actividad**: Pelear más = más oportunidad de puntos
-2. **Premia consistencia**: No perder es importante
-3. **Justo con empates**: Un empate no es "perder"
-4. **Fácil de entender**: Números simples, no porcentajes
-5. **Escalable**: Funciona igual con 5 o 50 peleas
+1. **Rankings justos**: Cada disciplina tiene su propio ranking
+2. **Estadísticas precisas**: Métricas específicas por deporte
+3. **Escalable**: Fácil agregar más disciplinas en el futuro
+4. **UX clara**: Usuario elige qué ranking ver
