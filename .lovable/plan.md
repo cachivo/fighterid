@@ -1,112 +1,270 @@
 
 
-# Plan: Optimización Completa para Móviles - Formularios y Perfiles
+# Plan: Récords Separados por Disciplina + Acceso Tablet
 
-## Problemas Identificados
+## Resumen
 
-| Componente | Problema | Severidad |
-|------------|----------|-----------|
-| `UserFighterProfileEditForm.tsx` | Botones "Cancelar" y "Guardar" sin touch targets y pueden cortarse | Alta |
-| `ProfileProgressWidget.tsx` | Botón sin altura mínima para móvil | Media |
-| `ProfileChangeRequest.tsx` | Botones de acción sin optimización móvil | Alta |
-| `LicenseDashboard.tsx` | Algunos botones pequeños en la cabecera | Media |
-| `FighterCard.tsx` | Ya está bien optimizado ✓ | - |
+Implementar récords de pelea independientes por disciplina (MMA y Boxeo), donde cada sección de récord solo aparece si el peleador tiene esa disciplina seleccionada. Diseño extensible para futuras disciplinas.
 
 ---
 
-## Correcciones a Implementar
+## Parte 1: Base de Datos
 
-### 1. UserFighterProfileEditForm.tsx (Líneas 1020-1032)
+### Nuevas Columnas en `fighter_profiles`
 
-**Problema**: Botones de acción sin touch targets adecuados y pueden cortarse en móvil.
+| Columna | Tipo | Default | Descripción |
+|---------|------|---------|-------------|
+| `mma_record_wins` | integer | 0 | Victorias en MMA |
+| `mma_record_losses` | integer | 0 | Derrotas en MMA |
+| `mma_record_draws` | integer | 0 | Empates en MMA |
+| `boxeo_record_wins` | integer | 0 | Victorias en Boxeo |
+| `boxeo_record_losses` | integer | 0 | Derrotas en Boxeo |
+| `boxeo_record_draws` | integer | 0 | Empates en Boxeo |
 
-**Solución**:
+### Migración SQL
+
+```sql
+-- Agregar columnas para récords por disciplina
+ALTER TABLE fighter_profiles 
+ADD COLUMN mma_record_wins integer DEFAULT 0,
+ADD COLUMN mma_record_losses integer DEFAULT 0,
+ADD COLUMN mma_record_draws integer DEFAULT 0,
+ADD COLUMN boxeo_record_wins integer DEFAULT 0,
+ADD COLUMN boxeo_record_losses integer DEFAULT 0,
+ADD COLUMN boxeo_record_draws integer DEFAULT 0;
+
+-- Migrar datos existentes a MMA (todos actuales son MMA)
+UPDATE fighter_profiles 
+SET 
+  mma_record_wins = COALESCE(record_wins, 0),
+  mma_record_losses = COALESCE(record_losses, 0),
+  mma_record_draws = COALESCE(record_draws, 0);
+```
+
+### Actualizar Función `admin_update_fighter_profile`
+
+Agregar manejo de los nuevos campos en la función RPC.
+
+---
+
+## Parte 2: UI del Panel Admin - Lógica Condicional
+
+### FighterEditModal.tsx - Récords Dinámicos
+
+La sección de récord muestra cards según las disciplinas seleccionadas:
+
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│  Récord de Combate                                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Si tiene MMA seleccionado:                                     │
+│  ┌─────────────────────┐                                        │
+│  │ 🥊 RÉCORD MMA       │                                        │
+│  │ V: [ 5 ] D: [ 2 ] E: [ 0 ]                                  │
+│  │ Record: 5-2-0       │                                        │
+│  └─────────────────────┘                                        │
+│                                                                 │
+│  Si tiene Boxeo seleccionado:                                   │
+│  ┌─────────────────────┐                                        │
+│  │ 🥊 RÉCORD BOXEO     │                                        │
+│  │ V: [ 3 ] D: [ 1 ] E: [ 0 ]                                  │
+│  │ Record: 3-1-0       │                                        │
+│  └─────────────────────┘                                        │
+│                                                                 │
+│  Si no tiene ninguna disciplina:                                │
+│  [Mensaje: Selecciona una disciplina para editar récords]       │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Código de Ejemplo
+
+```tsx
+{/* MMA Record - Solo si MMA está seleccionado */}
+{formData.martial_arts?.includes('MMA') && (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <span>🥊</span> Récord MMA
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label>Victorias</Label>
+          <Input type="number" value={formData.mma_record_wins} ... />
+        </div>
+        <div>
+          <Label>Derrotas</Label>
+          <Input type="number" value={formData.mma_record_losses} ... />
+        </div>
+        <div>
+          <Label>Empates</Label>
+          <Input type="number" value={formData.mma_record_draws} ... />
+        </div>
+      </div>
+      <p className="text-sm text-muted-foreground mt-2">
+        Record: {formData.mma_record_wins}-{formData.mma_record_losses}-{formData.mma_record_draws}
+      </p>
+    </CardContent>
+  </Card>
+)}
+
+{/* Boxeo Record - Solo si Boxeo está seleccionado */}
+{formData.martial_arts?.includes('Boxeo') && (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <span>🥊</span> Récord Boxeo
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      {/* Mismo patrón */}
+    </CardContent>
+  </Card>
+)}
+
+{/* Mensaje si no hay disciplina */}
+{(!formData.martial_arts || formData.martial_arts.length === 0) && (
+  <div className="text-center p-6 text-muted-foreground">
+    Selecciona una disciplina en la sección anterior para editar récords
+  </div>
+)}
+```
+
+---
+
+## Parte 3: Actualizar Tipos TypeScript
+
+### useFighterProfiles.tsx
+
+```typescript
+export interface FighterProfile {
+  // ... campos existentes
+  
+  // Récords por disciplina
+  mma_record_wins?: number;
+  mma_record_losses?: number;
+  mma_record_draws?: number;
+  boxeo_record_wins?: number;
+  boxeo_record_losses?: number;
+  boxeo_record_draws?: number;
+}
+
+export interface AdminFighterFormData {
+  // ... campos existentes
+  
+  // Récords por disciplina
+  mma_record_wins?: number;
+  mma_record_losses?: number;
+  mma_record_draws?: number;
+  boxeo_record_wins?: number;
+  boxeo_record_losses?: number;
+  boxeo_record_draws?: number;
+}
+```
+
+---
+
+## Parte 4: Habilitar Tablets
+
+### AdminLayout.tsx
+
+Cambiar breakpoints de `lg:` (1024px) a `md:` (768px):
+
 ```tsx
 // ANTES
-<div className="flex gap-4 justify-end">
-  <Button type="button" variant="outline" onClick={onCancel}>
-    <X className="h-4 w-4 mr-2" />
-    Cancelar
-  </Button>
-  <Button type="submit" disabled={isLoading}>
-    <Save className="h-4 w-4 mr-2" />
-    {isLoading ? 'Guardando...' : 'Guardar Cambios'}
-  </Button>
-</div>
+<div className="lg:hidden min-h-screen ...">
+<div className="hidden lg:flex min-h-screen ...">
 
 // DESPUÉS
-<div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
-  {onCancel && (
-    <Button 
-      type="button" 
-      variant="outline" 
-      onClick={onCancel}
-      className="min-h-[44px] w-full sm:w-auto touch-manipulation"
-    >
-      <X className="h-4 w-4 mr-2" />
-      Cancelar
-    </Button>
-  )}
-  <Button 
-    type="submit" 
-    disabled={isLoading}
-    className="min-h-[44px] w-full sm:w-auto touch-manipulation"
-  >
-    <Save className="h-4 w-4 mr-2" />
-    <span className="truncate">{isLoading ? 'Guardando...' : 'Guardar Cambios'}</span>
-  </Button>
-</div>
+<div className="md:hidden min-h-screen ...">
+<div className="hidden md:flex min-h-screen ...">
 ```
-
-### 2. ProfileProgressWidget.tsx (Líneas 236-254)
-
-**Problema**: Botón de acción sin altura mínima y texto puede cortarse.
-
-**Solución**:
-```tsx
-// DESPUÉS
-<Button 
-  onClick={onEditClick}
-  className="w-full min-h-[44px] touch-manipulation"
-  variant={level === 'DIAMOND' ? 'outline' : 'default'}
->
-  <Trophy className="h-4 w-4 mr-2 flex-shrink-0" />
-  <span className="truncate">
-    {level === 'DIAMOND' ? '¡Perfil 100% Completo!' : `Completar Información (+${100 - score}%)`}
-  </span>
-</Button>
-```
-
-### 3. ProfileChangeRequest.tsx - Botones de Envío
-
-**Archivo**: Buscar botones de submit y agregar:
-- `min-h-[44px]`
-- `touch-manipulation`
-- `w-full sm:w-auto` para stack vertical en móvil
-
-### 4. LicenseDashboard.tsx (Líneas 200-221)
-
-**Problema**: Botones en cabecera muy pequeños y texto puede cortarse.
-
-**Solución**: Ya tiene clases responsivas pero necesita `min-h-[44px]` para touch targets.
 
 ---
 
-## Resumen de Cambios
+## Parte 5: Estandarizar Constantes en FighterEditModal
 
-| Archivo | Tipo de Cambio |
-|---------|----------------|
-| `UserFighterProfileEditForm.tsx` | Botones con stack vertical en móvil + touch targets |
-| `ProfileProgressWidget.tsx` | Touch target + truncate en texto |
-| `ProfileChangeRequest.tsx` | Touch targets en botones de acción |
-| `LicenseDashboard.tsx` | Verificar touch targets mínimos |
+### Eliminar constantes locales (líneas 21-36)
+
+```typescript
+// ELIMINAR estas líneas con valores en inglés:
+const WEIGHT_CLASSES = ['Strawweight', ...];
+const MARTIAL_ARTS = ['MMA', 'Boxeo', 'Judo', ...];
+const FIGHTER_LEVELS = [{ value: 'AMATEUR', ... }];
+```
+
+### Importar constantes centralizadas
+
+```typescript
+import { 
+  ENABLED_DISCIPLINES, 
+  WEIGHT_CLASSES, 
+  FIGHTER_LEVELS, 
+  STANCES 
+} from '@/lib/constants/disciplines';
+```
 
 ---
 
-## Validaciones Post-Implementación
+## Archivos a Modificar
 
-1. Verificar que todos los botones tengan mínimo 44px de altura
-2. Confirmar que el texto no se corte en iPhone SE (320px)
-3. Probar que los botones sean fáciles de tocar con el pulgar
-4. Verificar que los formularios sean usables en orientación vertical
+| Archivo | Cambios |
+|---------|---------|
+| **Migración SQL** | 6 columnas nuevas + migración datos |
+| **DB Function** | Actualizar `admin_update_fighter_profile` |
+| `src/hooks/useFighterProfiles.tsx` | Agregar tipos para nuevos campos |
+| `src/components/admin/FighterEditModal.tsx` | UI condicional por disciplina + constantes |
+| `src/components/admin/AdminFighterForm.tsx` | UI condicional por disciplina |
+| `src/components/AdminLayout.tsx` | Cambiar `lg:` → `md:` |
+
+---
+
+## Resultado Final
+
+```text
+Peleador: Juan "El Tigre" Pérez
+Disciplinas: [MMA] [Boxeo]
+
+┌─────────────────────┐    ┌─────────────────────┐
+│ 🥊 RÉCORD MMA       │    │ 🥊 RÉCORD BOXEO     │
+│ 5-2-0               │    │ 3-1-0               │
+└─────────────────────┘    └─────────────────────┘
+
+---
+
+Peleador: María "La Tigresa" López
+Disciplinas: [MMA]
+
+┌─────────────────────┐
+│ 🥊 RÉCORD MMA       │
+│ 8-0-0               │  ← Solo MMA (no tiene Boxeo)
+└─────────────────────┘
+```
+
+---
+
+## Extensibilidad Futura
+
+La estructura permite agregar nuevas disciplinas fácilmente:
+
+```sql
+-- Futuro: Kickboxing
+ALTER TABLE fighter_profiles 
+ADD COLUMN kickboxing_record_wins integer DEFAULT 0,
+ADD COLUMN kickboxing_record_losses integer DEFAULT 0,
+ADD COLUMN kickboxing_record_draws integer DEFAULT 0;
+
+-- Futuro: Muay Thai
+ALTER TABLE fighter_profiles 
+ADD COLUMN muaythai_record_wins integer DEFAULT 0,
+...
+```
+
+Solo requiere:
+1. Agregar columnas a la base de datos
+2. Agregar disciplina a `ENABLED_DISCIPLINES`
+3. Agregar card condicional en los formularios
 
