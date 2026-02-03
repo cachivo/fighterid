@@ -27,21 +27,29 @@ interface RankingStats {
   undefeated_count: number;
 }
 
-export function useFighterRanking(minFights: number = 3, page: number = 1, pageSize: number = 10) {
+type DisciplineFilter = 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
+
+export function useFighterRanking(
+  discipline: DisciplineFilter = 'MMA',
+  minFights: number = 3, 
+  page: number = 1, 
+  pageSize: number = 10
+) {
   const { data: fighters, isLoading: loadingFighters, error: fightersError } = useQuery({
-    queryKey: ['fighter-ranking', minFights, page, pageSize],
+    queryKey: ['fighter-ranking', discipline, minFights, page, pageSize],
     queryFn: async () => {
       const { data, error, count } = await supabase
         .from('fighter_profiles')
         .select('id, first_name, last_name, nickname, avatar_url, record_wins, record_losses, record_draws, discipline, level, weight_class, country', { count: 'exact' })
         .eq('active', true)
+        .eq('discipline', discipline)
         .order('record_wins', { ascending: false });
 
       if (error) throw error;
 
       // Calcular estadísticas y puntos de ranking
       // Fórmula: Victoria = +3, Empate = +1, Derrota = -1
-      const processed = data.map(fighter => {
+      const processed = (data || []).map(fighter => {
         const total_fights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
         const wins = fighter.record_wins || 0;
         const losses = fighter.record_losses || 0;
@@ -83,13 +91,14 @@ export function useFighterRanking(minFights: number = 3, page: number = 1, pageS
   });
 
   const { data: stats, isLoading: loadingStats } = useQuery({
-    queryKey: ['fighter-stats'],
+    queryKey: ['fighter-stats', discipline],
     queryFn: async () => {
-      // Obtener todos los peleadores activos
+      // Obtener peleadores activos de esta disciplina
       const { data: allFighters, error: fightersError } = await supabase
         .from('fighter_profiles')
         .select('discipline, level, weight_class, record_wins, record_losses, record_draws')
-        .eq('active', true);
+        .eq('active', true)
+        .eq('discipline', discipline);
 
       if (fightersError) throw fightersError;
 
