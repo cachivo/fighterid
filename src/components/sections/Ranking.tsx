@@ -4,18 +4,27 @@ import { Trophy, Users, Target, Award, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFighterRanking } from "@/hooks/useFighterRanking";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { useNavigate } from "react-router-dom";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
+import { ENABLED_DISCIPLINES } from "@/lib/constants/disciplines";
 
 const Ranking = () => {
+  const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
   const [page, setPage] = useState(1);
   const [allFighters, setAllFighters] = useState<any[]>([]);
   const PAGE_SIZE = 10;
   
-  const { fighters, stats, isLoading, hasMore } = useFighterRanking(3, page, PAGE_SIZE);
+  const { fighters, stats, isLoading, hasMore } = useFighterRanking(selectedDiscipline, 3, page, PAGE_SIZE);
   const navigate = useNavigate();
+
+  // Reset page y fighters al cambiar disciplina
+  useEffect(() => {
+    setPage(1);
+    setAllFighters([]);
+  }, [selectedDiscipline]);
 
   // Acumular fighters mientras se carga más
   useEffect(() => {
@@ -106,9 +115,26 @@ const Ranking = () => {
 
         {/* Top Peleadores con Infinite Scroll */}
         <div className="mb-8 sm:mb-12">
-          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
+          <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-4 sm:mb-6">
             Top Peleadores <span className="text-purple-neon-primary">Ranking</span>
           </h3>
+          
+          {/* Tabs de disciplina */}
+          <div className="flex justify-center mb-6">
+            <Tabs value={selectedDiscipline} onValueChange={(value) => setSelectedDiscipline(value as 'MMA' | 'Boxeo')}>
+              <TabsList className="bg-black/60 border border-purple-neon-primary/30">
+                {ENABLED_DISCIPLINES.map(d => (
+                  <TabsTrigger 
+                    key={d.value} 
+                    value={d.value}
+                    className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black"
+                  >
+                    {d.value}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
           
           {isLoading && page === 1 ? (
             <div className="space-y-3 sm:space-y-4">
