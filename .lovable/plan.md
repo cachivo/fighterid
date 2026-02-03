@@ -1,156 +1,95 @@
 
-# Plan: Rankings Separados por Disciplina
+# Plan: Usar Récords Específicos por Disciplina en Rankings
 
-## Resumen
+## Problema Actual
 
-Modificar el sistema de ranking para filtrar peleadores por disciplina. Por defecto mostrará solo **MMA**, con opción de ver otras disciplinas mediante tabs.
+El ranking está usando campos genéricos:
+```typescript
+// ACTUAL (incorrecto)
+.select('... record_wins, record_losses, record_draws ...')
+```
+
+Debería usar los campos específicos por disciplina:
+- MMA: `mma_record_wins`, `mma_record_losses`, `mma_record_draws`
+- Boxeo: `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws`
 
 ---
 
-## Cambios Propuestos
+## Solución
 
-### 1. Hook `useFighterRanking.tsx`
+### Modificar `useFighterRanking.tsx`
 
-Agregar parámetro `discipline` para filtrar:
+**1. Actualizar la query para incluir campos específicos:**
 
-```typescript
-// ANTES
-export function useFighterRanking(minFights: number = 3, page: number = 1, pageSize: number = 10)
-
-// DESPUÉS  
-export function useFighterRanking(
-  discipline: string = 'MMA',  // Nueva - por defecto MMA
-  minFights: number = 3, 
-  page: number = 1, 
-  pageSize: number = 10
-)
-```
-
-**Query modificada:**
 ```typescript
 const { data, error } = await supabase
   .from('fighter_profiles')
-  .select('...')
+  .select(`
+    id, first_name, last_name, nickname, avatar_url, 
+    discipline, level, weight_class, country,
+    mma_record_wins, mma_record_losses, mma_record_draws,
+    boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+  `, { count: 'exact' })
   .eq('active', true)
-  .eq('discipline', discipline)  // Filtrar por disciplina
-  .order('record_wins', { ascending: false });
+  .eq('discipline', discipline);
 ```
 
-**Stats también filtrados por disciplina:**
+**2. Usar campos correctos según disciplina:**
+
 ```typescript
-const { data: allFighters } = await supabase
-  .from('fighter_profiles')
-  .select('...')
-  .eq('active', true)
-  .eq('discipline', discipline);  // Stats solo de esa disciplina
+const processed = (data || []).map(fighter => {
+  // Seleccionar récord según disciplina
+  let wins, losses, draws;
+  
+  if (discipline === 'MMA') {
+    wins = fighter.mma_record_wins || 0;
+    losses = fighter.mma_record_losses || 0;
+    draws = fighter.mma_record_draws || 0;
+  } else if (discipline === 'Boxeo') {
+    wins = fighter.boxeo_record_wins || 0;
+    losses = fighter.boxeo_record_losses || 0;
+    draws = fighter.boxeo_record_draws || 0;
+  }
+  
+  const total_fights = wins + losses + draws;
+  const ranking_points = (wins * 3) + (draws * 1) - (losses * 1);
+  
+  return {
+    ...fighter,
+    record_wins: wins,
+    record_losses: losses,
+    record_draws: draws,
+    total_fights,
+    ranking_points,
+  };
+});
 ```
 
 ---
 
-### 2. Componente `Ranking.tsx`
+## Resultado
 
-Agregar tabs para seleccionar disciplina:
+| Disciplina | Campos Utilizados |
+|------------|-------------------|
+| MMA | `mma_record_wins`, `mma_record_losses`, `mma_record_draws` |
+| Boxeo | `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws` |
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│  Top Peleadores Ranking                                         │
-│                                                                 │
-│  ┌─────────┐  ┌─────────┐                                      │
-│  │   MMA   │  │  Boxeo  │   ← Tabs de disciplina               │
-│  └─────────┘  └─────────┘     (MMA activo por defecto)         │
-│                                                                 │
-│  #1 🏆 Juan Pérez        5-2-0  MMA           13 pts           │
-│  #2    María López       3-0-1  MMA           10 pts           │
-│  #3    Pedro Rodríguez   4-3-0  MMA            9 pts           │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+Un peleador con:
+- MMA: 5-2-0 (13 pts)
+- Boxeo: 3-1-0 (8 pts)
 
-**Código de tabs:**
-```tsx
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ENABLED_DISCIPLINES } from "@/lib/constants/disciplines";
-
-const [selectedDiscipline, setSelectedDiscipline] = useState('MMA');
-
-// Reset page y fighters al cambiar disciplina
-useEffect(() => {
-  setPage(1);
-  setAllFighters([]);
-}, [selectedDiscipline]);
-
-const { fighters, stats, isLoading, hasMore } = useFighterRanking(
-  selectedDiscipline,  // Pasar disciplina seleccionada
-  3, 
-  page, 
-  PAGE_SIZE
-);
-
-// En el JSX
-<Tabs value={selectedDiscipline} onValueChange={setSelectedDiscipline}>
-  <TabsList className="bg-black/60 border border-purple-neon-primary/30">
-    {ENABLED_DISCIPLINES.map(d => (
-      <TabsTrigger key={d.value} value={d.value}>
-        {d.value}
-      </TabsTrigger>
-    ))}
-  </TabsList>
-</Tabs>
-```
+Solo verá su récord de MMA en el ranking de MMA, y su récord de Boxeo en el ranking de Boxeo.
 
 ---
 
-### 3. Estadísticas por Disciplina
+## Archivo a Modificar
 
-Las 4 tarjetas de estadísticas también se filtrarán por la disciplina seleccionada:
-
-| Disciplina | Peleadores | Peleas | Profesionales | Invictos |
-|------------|------------|--------|---------------|----------|
-| MMA        | 45         | 120    | 28            | 5        |
-| Boxeo      | 23         | 67     | 15            | 3        |
+| Archivo | Cambio |
+|---------|--------|
+| `src/hooks/useFighterRanking.tsx` | Usar campos específicos por disciplina |
 
 ---
 
-## Archivos a Modificar
+## Beneficio
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/hooks/useFighterRanking.tsx` | Agregar parámetro `discipline` y filtrar queries |
-| `src/components/sections/Ranking.tsx` | Agregar tabs y estado de disciplina |
-
----
-
-## Resultado Visual
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│           NUESTROS RESULTADOS                                   │
-│                                                                 │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐          │
-│  │    45    │ │   120    │ │    28    │ │     5    │          │
-│  │Peleadores│ │  Peleas  │ │  Profes  │ │ Invictos │          │
-│  │   MMA    │ │   MMA    │ │   MMA    │ │   MMA    │          │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────┘          │
-│                                                                 │
-│  Top Peleadores Ranking                                         │
-│                                                                 │
-│  ┌───────────────┐ ┌───────────────┐                           │
-│  │      MMA      │ │     Boxeo     │                           │
-│  │   (activo)    │ │               │                           │
-│  └───────────────┘ └───────────────┘                           │
-│                                                                 │
-│  #1 🏆 Peleador MMA #1     5-2-0           13 pts              │
-│  #2    Peleador MMA #2     3-0-1           10 pts              │
-│  #3    Peleador MMA #3     4-3-0            9 pts              │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Beneficios
-
-1. **Rankings justos**: Cada disciplina tiene su propio ranking
-2. **Estadísticas precisas**: Métricas específicas por deporte
-3. **Escalable**: Fácil agregar más disciplinas en el futuro
-4. **UX clara**: Usuario elige qué ranking ver
+Rankings precisos que reflejan el récord real de cada peleador en cada disciplina específica.
