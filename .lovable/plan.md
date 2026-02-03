@@ -1,270 +1,234 @@
 
-
-# Plan: Récords Separados por Disciplina + Acceso Tablet
+# Plan: Sistema de Cola de Emails (100/día) + Actualizar Footer
 
 ## Resumen
 
-Implementar récords de pelea independientes por disciplina (MMA y Boxeo), donde cada sección de récord solo aparece si el peleador tiene esa disciplina seleccionada. Diseño extensible para futuras disciplinas.
+Implementar un sistema de cola inteligente que respeta el límite de 100 emails diarios de Resend, programando automáticamente el excedente para días siguientes. Además, actualizar el texto del footer para reflejar la misión de Fighter ID.
 
 ---
 
-## Parte 1: Base de Datos
+## Parte 1: Base de Datos - Nueva Tabla `email_queue`
 
-### Nuevas Columnas en `fighter_profiles`
+### Estructura de la Tabla
 
-| Columna | Tipo | Default | Descripción |
-|---------|------|---------|-------------|
-| `mma_record_wins` | integer | 0 | Victorias en MMA |
-| `mma_record_losses` | integer | 0 | Derrotas en MMA |
-| `mma_record_draws` | integer | 0 | Empates en MMA |
-| `boxeo_record_wins` | integer | 0 | Victorias en Boxeo |
-| `boxeo_record_losses` | integer | 0 | Derrotas en Boxeo |
-| `boxeo_record_draws` | integer | 0 | Empates en Boxeo |
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `id` | uuid | ID único |
+| `recipient_email` | text | Email del destinatario |
+| `subject` | text | Asunto del correo |
+| `html_content` | text | Contenido HTML |
+| `campaign_id` | uuid | Referencia a email_campaign_log (opcional) |
+| `scheduled_for` | date | Fecha programada para envío |
+| `status` | text | 'pending', 'sent', 'failed' |
+| `priority` | integer | Prioridad (1=alta, 10=baja) |
+| `created_at` | timestamptz | Fecha de creación |
+| `sent_at` | timestamptz | Fecha de envío real |
+| `error_message` | text | Error si falló |
 
-### Migración SQL
+### Tabla de Tracking Diario `email_daily_usage`
 
-```sql
--- Agregar columnas para récords por disciplina
-ALTER TABLE fighter_profiles 
-ADD COLUMN mma_record_wins integer DEFAULT 0,
-ADD COLUMN mma_record_losses integer DEFAULT 0,
-ADD COLUMN mma_record_draws integer DEFAULT 0,
-ADD COLUMN boxeo_record_wins integer DEFAULT 0,
-ADD COLUMN boxeo_record_losses integer DEFAULT 0,
-ADD COLUMN boxeo_record_draws integer DEFAULT 0;
-
--- Migrar datos existentes a MMA (todos actuales son MMA)
-UPDATE fighter_profiles 
-SET 
-  mma_record_wins = COALESCE(record_wins, 0),
-  mma_record_losses = COALESCE(record_losses, 0),
-  mma_record_draws = COALESCE(record_draws, 0);
-```
-
-### Actualizar Función `admin_update_fighter_profile`
-
-Agregar manejo de los nuevos campos en la función RPC.
+| Columna | Tipo | Descripción |
+|---------|------|-------------|
+| `date` | date | Fecha (PK) |
+| `emails_sent` | integer | Emails enviados ese día |
+| `emails_remaining` | integer | Cuota restante (100 - sent) |
 
 ---
 
-## Parte 2: UI del Panel Admin - Lógica Condicional
+## Parte 2: Lógica de Cola
 
-### FighterEditModal.tsx - Récords Dinámicos
-
-La sección de récord muestra cards según las disciplinas seleccionadas:
+### Flujo de Trabajo
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│  Récord de Combate                                              │
+│                    ENVÍO DE EMAIL MASIVO                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Si tiene MMA seleccionado:                                     │
-│  ┌─────────────────────┐                                        │
-│  │ 🥊 RÉCORD MMA       │                                        │
-│  │ V: [ 5 ] D: [ 2 ] E: [ 0 ]                                  │
-│  │ Record: 5-2-0       │                                        │
-│  └─────────────────────┘                                        │
-│                                                                 │
-│  Si tiene Boxeo seleccionado:                                   │
-│  ┌─────────────────────┐                                        │
-│  │ 🥊 RÉCORD BOXEO     │                                        │
-│  │ V: [ 3 ] D: [ 1 ] E: [ 0 ]                                  │
-│  │ Record: 3-1-0       │                                        │
-│  └─────────────────────┘                                        │
-│                                                                 │
-│  Si no tiene ninguna disciplina:                                │
-│  [Mensaje: Selecciona una disciplina para editar récords]       │
+│  Admin solicita enviar a 250 usuarios                          │
+│                              ↓                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Verificar cuota del día actual                          │   │
+│  │ Hoy: 20 enviados → 80 disponibles                       │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓                                  │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │ Distribuir emails:                                      │   │
+│  │ • Hoy (80): se envían inmediatamente                    │   │
+│  │ • Mañana (100): scheduled_for = hoy + 1                 │   │
+│  │ • Pasado (70): scheduled_for = hoy + 2                  │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                              ↓                                  │
+│  Admin ve: "80 enviados hoy, 170 programados para próximos    │
+│             días"                                               │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Código de Ejemplo
+### Procesamiento Automático (Cron Job)
 
-```tsx
-{/* MMA Record - Solo si MMA está seleccionado */}
-{formData.martial_arts?.includes('MMA') && (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <span>🥊</span> Récord MMA
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label>Victorias</Label>
-          <Input type="number" value={formData.mma_record_wins} ... />
-        </div>
-        <div>
-          <Label>Derrotas</Label>
-          <Input type="number" value={formData.mma_record_losses} ... />
-        </div>
-        <div>
-          <Label>Empates</Label>
-          <Input type="number" value={formData.mma_record_draws} ... />
-        </div>
-      </div>
-      <p className="text-sm text-muted-foreground mt-2">
-        Record: {formData.mma_record_wins}-{formData.mma_record_losses}-{formData.mma_record_draws}
-      </p>
-    </CardContent>
-  </Card>
-)}
-
-{/* Boxeo Record - Solo si Boxeo está seleccionado */}
-{formData.martial_arts?.includes('Boxeo') && (
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <span>🥊</span> Récord Boxeo
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      {/* Mismo patrón */}
-    </CardContent>
-  </Card>
-)}
-
-{/* Mensaje si no hay disciplina */}
-{(!formData.martial_arts || formData.martial_arts.length === 0) && (
-  <div className="text-center p-6 text-muted-foreground">
-    Selecciona una disciplina en la sección anterior para editar récords
-  </div>
-)}
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│              CRON: process-email-queue (cada hora)              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. Verificar cuota restante del día                           │
+│  2. Obtener emails pendientes WHERE scheduled_for <= hoy       │
+│  3. Enviar hasta completar cuota (máx 100/día)                 │
+│  4. Actualizar status = 'sent' o 'failed'                      │
+│  5. Actualizar email_daily_usage                               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Parte 3: Actualizar Tipos TypeScript
+## Parte 3: Edge Function `process-email-queue`
 
-### useFighterProfiles.tsx
+Nueva función que se ejecuta automáticamente cada hora para procesar la cola:
 
 ```typescript
-export interface FighterProfile {
-  // ... campos existentes
+// Pseudocódigo
+async function processQueue() {
+  const today = new Date().toISOString().split('T')[0];
   
-  // Récords por disciplina
-  mma_record_wins?: number;
-  mma_record_losses?: number;
-  mma_record_draws?: number;
-  boxeo_record_wins?: number;
-  boxeo_record_losses?: number;
-  boxeo_record_draws?: number;
-}
-
-export interface AdminFighterFormData {
-  // ... campos existentes
+  // 1. Obtener uso del día
+  const { emails_sent } = await getDailyUsage(today);
+  const remaining = 100 - emails_sent;
   
-  // Récords por disciplina
-  mma_record_wins?: number;
-  mma_record_losses?: number;
-  mma_record_draws?: number;
-  boxeo_record_wins?: number;
-  boxeo_record_losses?: number;
-  boxeo_record_draws?: number;
+  if (remaining <= 0) {
+    console.log("Cuota diaria agotada");
+    return;
+  }
+  
+  // 2. Obtener emails pendientes
+  const pendingEmails = await supabase
+    .from('email_queue')
+    .select('*')
+    .eq('status', 'pending')
+    .lte('scheduled_for', today)
+    .order('priority', { ascending: true })
+    .order('created_at', { ascending: true })
+    .limit(remaining);
+  
+  // 3. Enviar con rate limiting
+  for (const email of pendingEmails) {
+    await sendAndUpdateStatus(email);
+    await delay(600);
+  }
+  
+  // 4. Actualizar contador diario
+  await updateDailyUsage(today, emails_sent + sent);
 }
 ```
 
 ---
 
-## Parte 4: Habilitar Tablets
+## Parte 4: Modificar `send-mass-email`
 
-### AdminLayout.tsx
+Cambiar la función actual para que:
+1. En lugar de enviar directamente, agregue a la cola
+2. Calcule automáticamente la distribución por días
+3. Envíe los primeros emails del día si hay cuota disponible
 
-Cambiar breakpoints de `lg:` (1024px) a `md:` (768px):
+### Respuesta al Admin
 
-```tsx
-// ANTES
-<div className="lg:hidden min-h-screen ...">
-<div className="hidden lg:flex min-h-screen ...">
-
-// DESPUÉS
-<div className="md:hidden min-h-screen ...">
-<div className="hidden md:flex min-h-screen ...">
+```json
+{
+  "success": true,
+  "summary": {
+    "total_recipients": 250,
+    "sent_today": 80,
+    "queued_for_tomorrow": 100,
+    "queued_for_day_after": 70
+  },
+  "message": "80 emails enviados. 170 programados para los próximos 2 días."
+}
 ```
 
 ---
 
-## Parte 5: Estandarizar Constantes en FighterEditModal
+## Parte 5: UI de Monitoreo (Opcional)
 
-### Eliminar constantes locales (líneas 21-36)
-
-```typescript
-// ELIMINAR estas líneas con valores en inglés:
-const WEIGHT_CLASSES = ['Strawweight', ...];
-const MARTIAL_ARTS = ['MMA', 'Boxeo', 'Judo', ...];
-const FIGHTER_LEVELS = [{ value: 'AMATEUR', ... }];
-```
-
-### Importar constantes centralizadas
-
-```typescript
-import { 
-  ENABLED_DISCIPLINES, 
-  WEIGHT_CLASSES, 
-  FIGHTER_LEVELS, 
-  STANCES 
-} from '@/lib/constants/disciplines';
-```
+Agregar sección en el panel de admin para ver:
+- Cuota restante del día
+- Emails en cola
+- Distribución por fecha
 
 ---
 
-## Archivos a Modificar
+## Parte 6: Actualizar Footer
 
-| Archivo | Cambios |
-|---------|---------|
-| **Migración SQL** | 6 columnas nuevas + migración datos |
-| **DB Function** | Actualizar `admin_update_fighter_profile` |
-| `src/hooks/useFighterProfiles.tsx` | Agregar tipos para nuevos campos |
-| `src/components/admin/FighterEditModal.tsx` | UI condicional por disciplina + constantes |
-| `src/components/admin/AdminFighterForm.tsx` | UI condicional por disciplina |
-| `src/components/AdminLayout.tsx` | Cambiar `lg:` → `md:` |
+### Texto Actual (Eliminar)
+```
+La plataforma líder para eventos urbanos en vivo. 
+Conectando la cultura callejera con tecnología de vanguardia.
+```
+
+### Nuevo Texto
+```
+Plataforma profesional de certificación y gestión de peleadores.
+Tu identidad deportiva verificada y protegida.
+```
+
+Este texto es consistente con el Hero que ya dice "Plataforma profesional de gestión de peleadores".
+
+---
+
+## Archivos a Crear/Modificar
+
+| Archivo | Acción |
+|---------|--------|
+| **Migración SQL** | Crear tablas `email_queue` y `email_daily_usage` |
+| `supabase/functions/process-email-queue/index.ts` | **CREAR** - Cron job para procesar cola |
+| `supabase/functions/send-mass-email/index.ts` | **MODIFICAR** - Usar cola en lugar de envío directo |
+| `supabase/config.toml` | Agregar configuración de la nueva función |
+| `src/components/Footer.tsx` | **MODIFICAR** - Actualizar texto |
+
+---
+
+## Configuración del Cron Job
+
+```sql
+-- Ejecutar cada hora
+SELECT cron.schedule(
+  'process-email-queue-hourly',
+  '0 * * * *',
+  $$
+  SELECT net.http_post(
+    url:='https://eeshomcqztvjkvycdfwi.supabase.co/functions/v1/process-email-queue',
+    headers:='{"Authorization": "Bearer ANON_KEY"}'::jsonb
+  );
+  $$
+);
+```
 
 ---
 
 ## Resultado Final
 
 ```text
-Peleador: Juan "El Tigre" Pérez
-Disciplinas: [MMA] [Boxeo]
-
-┌─────────────────────┐    ┌─────────────────────┐
-│ 🥊 RÉCORD MMA       │    │ 🥊 RÉCORD BOXEO     │
-│ 5-2-0               │    │ 3-1-0               │
-└─────────────────────┘    └─────────────────────┘
-
----
-
-Peleador: María "La Tigresa" López
-Disciplinas: [MMA]
-
-┌─────────────────────┐
-│ 🥊 RÉCORD MMA       │
-│ 8-0-0               │  ← Solo MMA (no tiene Boxeo)
-└─────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│  Panel Admin - Campañas de Email                                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  📊 Estado del Día: 45/100 emails enviados                     │
+│                                                                 │
+│  📬 Cola de Emails:                                            │
+│  • Hoy (pendientes): 12                                        │
+│  • Mañana: 100                                                  │
+│  • Pasado mañana: 38                                           │
+│                                                                 │
+│  [Enviar Nueva Campaña]                                        │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Extensibilidad Futura
+## Beneficios
 
-La estructura permite agregar nuevas disciplinas fácilmente:
-
-```sql
--- Futuro: Kickboxing
-ALTER TABLE fighter_profiles 
-ADD COLUMN kickboxing_record_wins integer DEFAULT 0,
-ADD COLUMN kickboxing_record_losses integer DEFAULT 0,
-ADD COLUMN kickboxing_record_draws integer DEFAULT 0;
-
--- Futuro: Muay Thai
-ALTER TABLE fighter_profiles 
-ADD COLUMN muaythai_record_wins integer DEFAULT 0,
-...
-```
-
-Solo requiere:
-1. Agregar columnas a la base de datos
-2. Agregar disciplina a `ENABLED_DISCIPLINES`
-3. Agregar card condicional en los formularios
-
+1. **Nunca exceder cuota**: Sistema automático de distribución
+2. **Transparencia**: Admin ve exactamente cuándo se enviarán los emails
+3. **Prioridad**: Emails urgentes pueden tener prioridad alta
+4. **Recuperación**: Si un email falla, se puede reintentar
+5. **Escalable**: Fácil aumentar límite si se upgrade el plan de Resend
