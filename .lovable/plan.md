@@ -1,95 +1,210 @@
 
-# Plan: Usar Récords Específicos por Disciplina en Rankings
+# Auditoría: Sistema de Creación de Perfiles y Confirmación de Email
 
-## Problema Actual
+## Hallazgos Críticos
 
-El ranking está usando campos genéricos:
-```typescript
-// ACTUAL (incorrecto)
-.select('... record_wins, record_losses, record_draws ...')
+### 1. Función de Email NO Está Siendo Llamada
+
+| Indicador | Estado |
+|-----------|--------|
+| Logs de `send-signup-confirmation` | **CERO LOGS** |
+| Auth Hook configurado | **NO** |
+| Emails enviados por | Servicio por defecto de Supabase |
+
+**Problema**: La función edge `send-signup-confirmation` existe pero **nunca se ejecuta** porque el Auth Hook de Supabase no está configurado para llamarla. Los emails se envían a través del servicio genérico de Supabase, que tiene:
+- Templates básicos sin branding
+- Mayor probabilidad de caer en spam
+- Sin tracking de entrega
+
+### 2. Usuarios Intentando Registrarse Múltiples Veces
+
+Los logs de auth muestran:
+```
+"action": "user_repeated_signup"
+"email": "angelamador2222@gmail.com"
 ```
 
-Debería usar los campos específicos por disciplina:
-- MMA: `mma_record_wins`, `mma_record_losses`, `mma_record_draws`
-- Boxeo: `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws`
+Esto indica que los usuarios:
+- No reciben el email de confirmación
+- O no pueden completar el flujo
+- Intentan registrarse de nuevo
 
----
+### 3. Múltiples Puntos de Entrada Confusos
 
-## Solución
+| Ruta | Redirect después de confirmar |
+|------|------------------------------|
+| `/auth` | `/auth` |
+| `/license/auth` | `/license/onboarding` |
 
-### Modificar `useFighterRanking.tsx`
+Esto puede confundir a los usuarios que no saben a dónde ir.
 
-**1. Actualizar la query para incluir campos específicos:**
+### 4. Estados de Carga Problemáticos
 
+En `useLicenseAuth.tsx`:
 ```typescript
-const { data, error } = await supabase
-  .from('fighter_profiles')
-  .select(`
-    id, first_name, last_name, nickname, avatar_url, 
-    discipline, level, weight_class, country,
-    mma_record_wins, mma_record_losses, mma_record_draws,
-    boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
-  `, { count: 'exact' })
-  .eq('active', true)
-  .eq('discipline', discipline);
+// Timeout de respaldo de 15 segundos
+const backupTimeout = setTimeout(() => {
+  setLoading(false);
+}, 15000);
 ```
 
-**2. Usar campos correctos según disciplina:**
+El session replay mostró "ProfileIncompleteNotification" apareciendo, indicando que usuarios ven contenido incompleto.
 
-```typescript
-const processed = (data || []).map(fighter => {
-  // Seleccionar récord según disciplina
-  let wins, losses, draws;
-  
-  if (discipline === 'MMA') {
-    wins = fighter.mma_record_wins || 0;
-    losses = fighter.mma_record_losses || 0;
-    draws = fighter.mma_record_draws || 0;
-  } else if (discipline === 'Boxeo') {
-    wins = fighter.boxeo_record_wins || 0;
-    losses = fighter.boxeo_record_losses || 0;
-    draws = fighter.boxeo_record_draws || 0;
-  }
-  
-  const total_fights = wins + losses + draws;
-  const ranking_points = (wins * 3) + (draws * 1) - (losses * 1);
-  
-  return {
-    ...fighter,
-    record_wins: wins,
-    record_losses: losses,
-    record_draws: draws,
-    total_fights,
-    ranking_points,
-  };
-});
+---
+
+## Plan de Mejoras
+
+### Fase 1: Configurar Auth Hook (Requiere acción manual)
+
+**Acción requerida en Supabase Dashboard:**
+
+1. Ir a: `Authentication → Hooks`
+2. Crear nuevo hook para `Send Email`
+3. Apuntar a: `send-signup-confirmation`
+4. Agregar `SEND_EMAIL_HOOK_SECRET` como secret
+
+```text
+Dashboard URL:
+https://supabase.com/dashboard/project/eeshomcqztvjkvycdfwi/auth/hooks
 ```
 
+### Fase 2: Mejorar Manejo de Errores en Registro
+
+**Archivo**: `src/pages/license/LicenseAuth.tsx`
+
+Cambios propuestos:
+```typescript
+// Agregar estados para mejor feedback
+const [emailSent, setEmailSent] = useState(false);
+const [sendError, setSendError] = useState<string | null>(null);
+
+// Mostrar instrucciones claras post-registro
+{emailSuccess && (
+  <Alert>
+    <CheckCircle className="h-4 w-4" />
+    <AlertTitle>¡Revisa tu correo!</AlertTitle>
+    <AlertDescription>
+      <ol className="list-decimal ml-4 space-y-2">
+        <li>Busca un email de <strong>Fighter ID</strong></li>
+        <li>Revisa carpetas de <strong>spam/promociones</strong></li>
+        <li>Haz clic en "Confirmar mi cuenta"</li>
+      </ol>
+      <p className="mt-4 text-sm text-muted-foreground">
+        ¿No llegó? Espera 2-3 minutos y revisa spam.
+      </p>
+    </AlertDescription>
+  </Alert>
+)}
+```
+
+### Fase 3: Reducir Complejidad del Onboarding
+
+**Archivo**: `src/pages/license/LicenseOnboarding.tsx`
+
+Optimizaciones:
+1. Combinar pasos 1 y 2 en un solo formulario con secciones colapsables
+2. Hacer documento de identidad **opcional inicialmente** (subir después)
+3. Agregar indicador de progreso visual
+4. Guardar automáticamente cada campo (no solo al cambiar de paso)
+
+### Fase 4: Mejorar Estados de Carga
+
+**Archivo**: `src/hooks/useLicenseAuth.tsx`
+
+```typescript
+// Reducir timeout de 15s a 8s
+const backupTimeout = setTimeout(() => {
+  console.warn('License check timeout - allowing access');
+  setLoading(false);
+}, 8000);
+
+// Agregar mensaje de estado durante la carga
+const [loadingMessage, setLoadingMessage] = useState('Verificando sesión...');
+
+// Actualizar mensajes durante el proceso
+setLoadingMessage('Buscando perfil de peleador...');
+setLoadingMessage('Verificando licencia...');
+```
+
+### Fase 5: Verificar Configuración de Email
+
+**Checklist para Resend:**
+
+- [ ] Dominio `fighter-id.org` verificado en Resend
+- [ ] Registros DNS configurados:
+  - SPF: `v=spf1 include:resend.com ~all`
+  - DKIM: Registro proporcionado por Resend
+  - DMARC: `v=DMARC1; p=none;`
+- [ ] API Key con permisos correctos
+- [ ] Email `notificaciones@fighter-id.org` activo
+
 ---
 
-## Resultado
+## Archivos a Modificar
 
-| Disciplina | Campos Utilizados |
-|------------|-------------------|
-| MMA | `mma_record_wins`, `mma_record_losses`, `mma_record_draws` |
-| Boxeo | `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws` |
-
-Un peleador con:
-- MMA: 5-2-0 (13 pts)
-- Boxeo: 3-1-0 (8 pts)
-
-Solo verá su récord de MMA en el ranking de MMA, y su récord de Boxeo en el ranking de Boxeo.
+| Archivo | Cambios |
+|---------|---------|
+| `src/pages/license/LicenseAuth.tsx` | Mejorar feedback post-registro |
+| `src/hooks/useLicenseAuth.tsx` | Reducir timeouts, agregar mensajes |
+| `src/pages/license/LicenseOnboarding.tsx` | Simplificar flujo, progreso visual |
+| `supabase/functions/send-signup-confirmation/index.ts` | Agregar más logging |
 
 ---
 
-## Archivo a Modificar
+## Acciones Inmediatas Requeridas
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useFighterRanking.tsx` | Usar campos específicos por disciplina |
+### Alta Prioridad (Manual)
+
+1. **Configurar Auth Hook en Supabase**
+   - Sin esto, los emails personalizados nunca se envían
+   - URL: https://supabase.com/dashboard/project/eeshomcqztvjkvycdfwi/auth/hooks
+
+2. **Verificar dominio en Resend**
+   - URL: https://resend.com/domains
+   - Agregar registros DNS si faltan
+
+### Media Prioridad (Código)
+
+3. Mejorar mensajes de error y feedback visual
+4. Agregar retry automático para reenvío de email
+5. Simplificar el flujo de onboarding
+
+### Baja Prioridad
+
+6. Agregar analytics de funnel de registro
+7. A/B testing de templates de email
 
 ---
 
-## Beneficio
+## Métricas de Éxito
 
-Rankings precisos que reflejan el récord real de cada peleador en cada disciplina específica.
+| Métrica | Actual | Objetivo |
+|---------|--------|----------|
+| Logs de email function | 0 | >0 por registro |
+| Registros repetidos | Alto | <5% |
+| Tiempo de carga onboarding | ~15s timeout | <3s |
+| Emails en spam | Desconocido | <10% |
+
+---
+
+## Sección Técnica: Configuración del Auth Hook
+
+Para que el sistema funcione correctamente, debes configurar el Auth Hook en Supabase:
+
+```text
+1. Dashboard → Authentication → Hooks
+2. Click "Create a new hook"
+3. Hook type: "Send Email"
+4. HTTP endpoint: https://eeshomcqztvjkvycdfwi.supabase.co/functions/v1/send-signup-confirmation
+5. Add secret: SEND_EMAIL_HOOK_SECRET (generar uno nuevo)
+6. Save and enable
+```
+
+Después de configurar, actualizar la edge function para validar el secret:
+
+```typescript
+// En send-signup-confirmation/index.ts
+const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
+const wh = new Webhook(hookSecret);
+// Validar payload con webhook signature
+```
