@@ -1,210 +1,93 @@
 
 # Auditoría: Sistema de Creación de Perfiles y Confirmación de Email
 
-## Hallazgos Críticos
+## Estado de Implementación
 
-### 1. Función de Email NO Está Siendo Llamada
+### ✅ Completado (Código)
 
-| Indicador | Estado |
-|-----------|--------|
-| Logs de `send-signup-confirmation` | **CERO LOGS** |
-| Auth Hook configurado | **NO** |
-| Emails enviados por | Servicio por defecto de Supabase |
-
-**Problema**: La función edge `send-signup-confirmation` existe pero **nunca se ejecuta** porque el Auth Hook de Supabase no está configurado para llamarla. Los emails se envían a través del servicio genérico de Supabase, que tiene:
-- Templates básicos sin branding
-- Mayor probabilidad de caer en spam
-- Sin tracking de entrega
-
-### 2. Usuarios Intentando Registrarse Múltiples Veces
-
-Los logs de auth muestran:
-```
-"action": "user_repeated_signup"
-"email": "angelamador2222@gmail.com"
-```
-
-Esto indica que los usuarios:
-- No reciben el email de confirmación
-- O no pueden completar el flujo
-- Intentan registrarse de nuevo
-
-### 3. Múltiples Puntos de Entrada Confusos
-
-| Ruta | Redirect después de confirmar |
-|------|------------------------------|
-| `/auth` | `/auth` |
-| `/license/auth` | `/license/onboarding` |
-
-Esto puede confundir a los usuarios que no saben a dónde ir.
-
-### 4. Estados de Carga Problemáticos
-
-En `useLicenseAuth.tsx`:
-```typescript
-// Timeout de respaldo de 15 segundos
-const backupTimeout = setTimeout(() => {
-  setLoading(false);
-}, 15000);
-```
-
-El session replay mostró "ProfileIncompleteNotification" apareciendo, indicando que usuarios ven contenido incompleto.
+| Archivo | Cambio | Estado |
+|---------|--------|--------|
+| `src/pages/license/LicenseAuth.tsx` | Instrucciones paso a paso post-registro | ✅ |
+| `src/hooks/useLicenseAuth.tsx` | Timeout reducido a 8s + mensajes de estado | ✅ |
+| `src/pages/license/LicenseOnboarding.tsx` | Barra de progreso visual + indicador de pasos | ✅ |
 
 ---
 
-## Plan de Mejoras
+## ⚠️ Acciones Manuales Pendientes (CRÍTICO)
 
-### Fase 1: Configurar Auth Hook (Requiere acción manual)
+### 1. Configurar Auth Hook en Supabase
 
-**Acción requerida en Supabase Dashboard:**
-
-1. Ir a: `Authentication → Hooks`
-2. Crear nuevo hook para `Send Email`
-3. Apuntar a: `send-signup-confirmation`
-4. Agregar `SEND_EMAIL_HOOK_SECRET` como secret
+**Sin esto, los emails personalizados NO se envían.**
 
 ```text
-Dashboard URL:
-https://supabase.com/dashboard/project/eeshomcqztvjkvycdfwi/auth/hooks
+URL: https://supabase.com/dashboard/project/eeshomcqztvjkvycdfwi/auth/hooks
+
+Pasos:
+1. Click "Create a new hook"
+2. Hook type: "Send Email"  
+3. HTTP endpoint: https://eeshomcqztvjkvycdfwi.supabase.co/functions/v1/send-signup-confirmation
+4. Add secret: SEND_EMAIL_HOOK_SECRET (generar uno seguro)
+5. Save and enable
 ```
 
-### Fase 2: Mejorar Manejo de Errores en Registro
+### 2. Verificar Dominio en Resend
 
-**Archivo**: `src/pages/license/LicenseAuth.tsx`
+```text
+URL: https://resend.com/domains
 
-Cambios propuestos:
-```typescript
-// Agregar estados para mejor feedback
-const [emailSent, setEmailSent] = useState(false);
-const [sendError, setSendError] = useState<string | null>(null);
-
-// Mostrar instrucciones claras post-registro
-{emailSuccess && (
-  <Alert>
-    <CheckCircle className="h-4 w-4" />
-    <AlertTitle>¡Revisa tu correo!</AlertTitle>
-    <AlertDescription>
-      <ol className="list-decimal ml-4 space-y-2">
-        <li>Busca un email de <strong>Fighter ID</strong></li>
-        <li>Revisa carpetas de <strong>spam/promociones</strong></li>
-        <li>Haz clic en "Confirmar mi cuenta"</li>
-      </ol>
-      <p className="mt-4 text-sm text-muted-foreground">
-        ¿No llegó? Espera 2-3 minutos y revisa spam.
-      </p>
-    </AlertDescription>
-  </Alert>
-)}
+Checklist:
+- [ ] Dominio `fighter-id.org` verificado
+- [ ] SPF: v=spf1 include:resend.com ~all
+- [ ] DKIM: Registro proporcionado por Resend
+- [ ] DMARC: v=DMARC1; p=none;
 ```
-
-### Fase 3: Reducir Complejidad del Onboarding
-
-**Archivo**: `src/pages/license/LicenseOnboarding.tsx`
-
-Optimizaciones:
-1. Combinar pasos 1 y 2 en un solo formulario con secciones colapsables
-2. Hacer documento de identidad **opcional inicialmente** (subir después)
-3. Agregar indicador de progreso visual
-4. Guardar automáticamente cada campo (no solo al cambiar de paso)
-
-### Fase 4: Mejorar Estados de Carga
-
-**Archivo**: `src/hooks/useLicenseAuth.tsx`
-
-```typescript
-// Reducir timeout de 15s a 8s
-const backupTimeout = setTimeout(() => {
-  console.warn('License check timeout - allowing access');
-  setLoading(false);
-}, 8000);
-
-// Agregar mensaje de estado durante la carga
-const [loadingMessage, setLoadingMessage] = useState('Verificando sesión...');
-
-// Actualizar mensajes durante el proceso
-setLoadingMessage('Buscando perfil de peleador...');
-setLoadingMessage('Verificando licencia...');
-```
-
-### Fase 5: Verificar Configuración de Email
-
-**Checklist para Resend:**
-
-- [ ] Dominio `fighter-id.org` verificado en Resend
-- [ ] Registros DNS configurados:
-  - SPF: `v=spf1 include:resend.com ~all`
-  - DKIM: Registro proporcionado por Resend
-  - DMARC: `v=DMARC1; p=none;`
-- [ ] API Key con permisos correctos
-- [ ] Email `notificaciones@fighter-id.org` activo
 
 ---
 
-## Archivos a Modificar
+## Mejoras Implementadas
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/pages/license/LicenseAuth.tsx` | Mejorar feedback post-registro |
-| `src/hooks/useLicenseAuth.tsx` | Reducir timeouts, agregar mensajes |
-| `src/pages/license/LicenseOnboarding.tsx` | Simplificar flujo, progreso visual |
-| `supabase/functions/send-signup-confirmation/index.ts` | Agregar más logging |
+### LicenseAuth.tsx - Feedback Post-Registro
+
+- ✅ Instrucciones claras paso a paso (3 pasos numerados)
+- ✅ Indicación de revisar spam/promociones
+- ✅ Mensaje de tiempo de espera (2-3 minutos)
+- ✅ Botón de reenvío con cooldown
+- ✅ Animación de éxito
+
+### useLicenseAuth.tsx - Optimización de Carga
+
+- ✅ Timeout reducido de 15s a 8s
+- ✅ `loadingMessage` con mensajes granulares:
+  - "Verificando sesión..."
+  - "Buscando perfil de usuario..."
+  - "Buscando perfil de peleador..."
+  - "Verificando licencia..."
+
+### LicenseOnboarding.tsx - Progreso Visual
+
+- ✅ Barra de progreso con porcentaje
+- ✅ Indicadores de paso (1/2)
+- ✅ Descripción dinámica según paso actual
+- ✅ Cálculo automático de campos completados
 
 ---
 
-## Acciones Inmediatas Requeridas
+## Próximos Pasos Opcionales
 
-### Alta Prioridad (Manual)
-
-1. **Configurar Auth Hook en Supabase**
-   - Sin esto, los emails personalizados nunca se envían
-   - URL: https://supabase.com/dashboard/project/eeshomcqztvjkvycdfwi/auth/hooks
-
-2. **Verificar dominio en Resend**
-   - URL: https://resend.com/domains
-   - Agregar registros DNS si faltan
-
-### Media Prioridad (Código)
-
-3. Mejorar mensajes de error y feedback visual
-4. Agregar retry automático para reenvío de email
-5. Simplificar el flujo de onboarding
-
-### Baja Prioridad
-
-6. Agregar analytics de funnel de registro
-7. A/B testing de templates de email
+| Prioridad | Mejora |
+|-----------|--------|
+| Media | Agregar retry automático si falla envío de email |
+| Media | Simplificar onboarding combinando pasos 1 y 2 |
+| Baja | Analytics de funnel de registro |
+| Baja | A/B testing de templates de email |
 
 ---
 
 ## Métricas de Éxito
 
-| Métrica | Actual | Objetivo |
-|---------|--------|----------|
-| Logs de email function | 0 | >0 por registro |
-| Registros repetidos | Alto | <5% |
-| Tiempo de carga onboarding | ~15s timeout | <3s |
-| Emails en spam | Desconocido | <10% |
-
----
-
-## Sección Técnica: Configuración del Auth Hook
-
-Para que el sistema funcione correctamente, debes configurar el Auth Hook en Supabase:
-
-```text
-1. Dashboard → Authentication → Hooks
-2. Click "Create a new hook"
-3. Hook type: "Send Email"
-4. HTTP endpoint: https://eeshomcqztvjkvycdfwi.supabase.co/functions/v1/send-signup-confirmation
-5. Add secret: SEND_EMAIL_HOOK_SECRET (generar uno nuevo)
-6. Save and enable
-```
-
-Después de configurar, actualizar la edge function para validar el secret:
-
-```typescript
-// En send-signup-confirmation/index.ts
-const hookSecret = Deno.env.get('SEND_EMAIL_HOOK_SECRET');
-const wh = new Webhook(hookSecret);
-// Validar payload con webhook signature
-```
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Timeout de carga | 15s | 8s |
+| Feedback post-registro | Básico | Detallado con pasos |
+| Progreso de onboarding | Sin indicador | Barra + porcentaje |
+| Logs de email function | 0 | Pendiente configurar hook |

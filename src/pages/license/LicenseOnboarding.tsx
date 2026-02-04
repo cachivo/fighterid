@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, User, Award, Upload, FileText } from 'lucide-react';
+import { Loader2, User, Award, Upload, FileText, CheckCircle } from 'lucide-react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { ENABLED_DISCIPLINES, WEIGHT_CLASSES } from '@/lib/constants/disciplines';
 
@@ -189,10 +190,63 @@ export default function LicenseOnboarding() {
     );
   }
 
+  // Calculate progress percentage
+  const calculateProgress = () => {
+    let filledFields = 0;
+    const totalFields = 10; // firstName, lastName, gender, phone, birthdate, discipline, level, height, weight, weightClass
+    
+    if (formData.firstName) filledFields++;
+    if (formData.lastName) filledFields++;
+    if (formData.gender) filledFields++;
+    if (formData.phone) filledFields++;
+    if (formData.birthdate) filledFields++;
+    if (formData.martialArts.length > 0) filledFields++;
+    if (formData.level) filledFields++;
+    if (formData.heightCm) filledFields++;
+    if (formData.weightKg) filledFields++;
+    if (formData.weightClass) filledFields++;
+    
+    // Add step 2 fields if on step 2
+    if (step === 2) {
+      const totalStep2 = 2; // identity doc + submission
+      if (identityDocument) filledFields++;
+      return Math.round(((filledFields + 1) / (totalFields + totalStep2)) * 100);
+    }
+    
+    return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const progress = calculateProgress();
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
+          {/* Progress indicator */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Paso {step} de 2</span>
+              <span className="text-xs font-medium text-primary">{progress}% completado</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+            
+            {/* Step indicators */}
+            <div className="flex justify-between mt-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  {step > 1 ? <CheckCircle className="h-4 w-4" /> : '1'}
+                </div>
+                <span className={`text-sm ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Datos personales</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  2
+                </div>
+                <span className={`text-sm ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Documentos</span>
+              </div>
+            </div>
+          </div>
+          
           <div className="flex items-center justify-center mb-4">
             {step === 1 ? (
               <User className="h-12 w-12 text-gray-800" />
@@ -202,7 +256,10 @@ export default function LicenseOnboarding() {
           </div>
           <CardTitle className="text-2xl">Configurar Tu Perfil de Peleador</CardTitle>
           <CardDescription>
-            Necesitamos algunos datos para crear tu perfil y solicitar tu primera licencia
+            {step === 1 
+              ? 'Completa tus datos personales y deportivos'
+              : 'Sube tu documentación para verificar tu identidad'
+            }
           </CardDescription>
         </CardHeader>
         

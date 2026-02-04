@@ -244,9 +244,9 @@ export default function LicenseAuth() {
 
             <TabsContent value="signup" className="animate-fade-in">
               {emailSuccess ? (
-                <div className="space-y-6 py-8">
+                <div className="space-y-6 py-6">
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="bg-green-500/20 rounded-full p-4">
+                    <div className="bg-green-500/20 rounded-full p-4 animate-bounce">
                       <CheckCircle className="h-12 w-12 text-green-500" />
                     </div>
                     <div>
@@ -258,15 +258,36 @@ export default function LicenseAuth() {
                       </p>
                       <p className="text-gold-400 font-semibold mt-1">{email}</p>
                     </div>
-                    <p className="text-sm text-white/70 max-w-md">
-                      Haz clic en el enlace del email para activar tu cuenta. Si no lo ves, revisa tu carpeta de spam.
+                    
+                    {/* Instrucciones claras paso a paso */}
+                    <div className="bg-slate-900/60 rounded-lg p-4 w-full max-w-sm border border-purple-500/20">
+                      <p className="text-sm font-medium text-white mb-3">Sigue estos pasos:</p>
+                      <ol className="text-left text-sm text-white/80 space-y-2">
+                        <li className="flex items-start gap-2">
+                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                          <span>Busca un email de <strong className="text-gold-400">Fighter ID</strong></span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                          <span>Revisa <strong className="text-gold-400">spam</strong> o <strong className="text-gold-400">promociones</strong> si no aparece</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                          <span>Haz clic en <strong className="text-gold-400">"Confirmar mi cuenta"</strong></span>
+                        </li>
+                      </ol>
+                    </div>
+                    
+                    <p className="text-xs text-white/50 max-w-md">
+                      ⏱️ El email puede tardar 2-3 minutos en llegar
                     </p>
+                    
                     <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
                       <Button
                         variant="outline"
                         onClick={handleResendEmail}
                         disabled={resendCooldown > 0}
-                        className="flex-1"
+                        className="flex-1 border-purple-500/30 hover:bg-purple-500/10"
                       >
                         <Mail className="w-4 h-4 mr-2" />
                         {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar email'}
