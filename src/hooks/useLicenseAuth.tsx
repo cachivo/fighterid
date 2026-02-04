@@ -8,6 +8,7 @@ interface LicenseAuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  loadingMessage: string;
   hasActiveLicense: boolean;
   licenseData: any | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -26,6 +27,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMessage, setLoadingMessage] = useState('Verificando sesión...');
   const [hasActiveLicense, setHasActiveLicense] = useState(false);
   const [licenseData, setLicenseData] = useState<any>(null);
   const queryClient = useQueryClient();
@@ -33,9 +35,11 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const checkLicenseStatus = async (userId: string) => {
     console.log('[LICENSE AUTH] Starting check for user:', userId);
+    setLoadingMessage('Verificando tu cuenta...');
     
     try {
       // 1) Get app_user to resolve internal user_id
+      setLoadingMessage('Buscando perfil de usuario...');
       const { data: appUser, error: appUserErr } = await supabase
         .from('app_user')
         .select('id, email')
@@ -62,6 +66,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       // 2) Get fighter profile for this user (including phone from app_user)
+      setLoadingMessage('Buscando perfil de peleador...');
       const { data: profileData, error: profileErr } = await supabase
         .from('fighter_profiles')
         .select(`
@@ -100,6 +105,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       // 3) Resolve license with robust fallbacks (prefer ACTIVE primary)
+      setLoadingMessage('Verificando licencia...');
       console.log('[LICENSE AUTH] Looking for license for fighter_id:', profile.id);
 
       // Try ACTIVE primary first
@@ -200,13 +206,14 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     let mounted = true;
     let realtimeChannel: any = null;
 
-    // Set a backup timeout to prevent infinite loading
+    // Set a backup timeout to prevent infinite loading (reduced from 15s to 8s)
     const backupTimeout = setTimeout(() => {
       if (mounted) {
-        console.log('[TIMEOUT] [LICENSE AUTH] Backup timeout triggered, stopping loading');
+        console.warn('[TIMEOUT] [LICENSE AUTH] Backup timeout triggered after 8s, stopping loading');
+        setLoadingMessage('Carga completada');
         setLoading(false);
       }
-    }, 15000);
+    }, 8000);
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -385,6 +392,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     user,
     session,
     loading,
+    loadingMessage,
     hasActiveLicense,
     licenseData,
     signIn,
