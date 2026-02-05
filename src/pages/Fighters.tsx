@@ -15,6 +15,7 @@ import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy, CheckCir
 import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES as WEIGHT_CLASSES_CONST } from '@/lib/constants/disciplines';
 
 // Helper para mostrar valores descriptivos en los selectores
 const getFilterDisplayValue = (value: string): string => {
@@ -31,51 +32,47 @@ const getFilterDisplayValue = (value: string): string => {
   return value;
 };
 
+// Usar constantes centralizadas con opción "Todos"
 const WEIGHT_CLASSES = [
-  'Todos',
-  'Peso Mosca (125 lbs)',
-  'Peso Gallo (135 lbs)', 
-  'Peso Pluma (145 lbs)',
-  'Peso Ligero (155 lbs)',
-  'Peso Welter (170 lbs)',
-  'Peso Medio (185 lbs)',
-  'Peso Semipesado (205 lbs)',
-  'Peso Pesado (265 lbs)',
+  { value: 'Todos', label: 'Todas las divisiones' },
+  ...WEIGHT_CLASSES_CONST.map(wc => ({ value: wc.value, label: wc.label }))
 ];
 
+// Solo disciplinas de COMPETENCIA (MMA y Boxeo)
 const DISCIPLINES = [
-  'Todas',
-  'MMA',
-  'Boxeo',
-  'Judo',
-  'JiuJitsu',
-  'Kickboxing',
-  'MuayThai',
-  'Grappling',
-  'Otro'
+  { value: 'Todas', label: 'Todas' },
+  ...ENABLED_DISCIPLINES.map(d => ({ value: d.value, label: d.value }))
 ];
 
+// Artes marciales de ENTRENAMIENTO (separadas de disciplina de competencia)
+const MARTIAL_ARTS_OPTIONS = [
+  { value: 'Todos', label: 'Todas' },
+  ...MARTIAL_ARTS_TRAINING.map(m => ({ value: m.value, label: m.label }))
+];
+
+// Estilos de pelea REALES (sin gimnasios)
 const FIGHTING_STYLES = [
-  'Todos',
-  'Striker',
-  'Brawler/Agresivo',
-  'Contra-Atacador',
-  'LUDUS CERBERUS',
-  'ALFA Y OMEGA MMA',
-  'SCHUMMANS/COMAYAGUA',
-  'TEMPLO DEL TIGRE'
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Striker', label: 'Striker' },
+  { value: 'Brawler/Agresivo', label: 'Brawler/Agresivo' },
+  { value: 'Contra-Atacador', label: 'Contra-Atacador' },
+  { value: 'Grappler', label: 'Grappler' },
+  { value: 'Wrestler', label: 'Wrestler' },
+  { value: 'Switch/Híbrido', label: 'Switch/Híbrido' }
 ];
 
 const RECORD_TYPES = [
-  'Todos',
-  'Amateur',
-  'Profesional'
+  { value: 'Todos', label: 'Todos' },
+  { value: 'Amateur', label: 'Amateur' },
+  { value: 'Semi-profesional', label: 'Semi-profesional' },
+  { value: 'Profesional', label: 'Profesional' }
 ];
 
 export default function Fighters() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState('Todos');
   const [selectedDiscipline, setSelectedDiscipline] = useState('Todas');
+  const [selectedMartialArt, setSelectedMartialArt] = useState('Todos');
   const [selectedFightingStyle, setSelectedFightingStyle] = useState('Todos');
   const [selectedRecordType, setSelectedRecordType] = useState('Todos');
   const [includeInactive, setIncludeInactive] = useState(false);
@@ -135,11 +132,16 @@ export default function Fighters() {
         const matchesDiscipline = 
           selectedDiscipline === 'Todas' || fighter.discipline === selectedDiscipline;
         
+        // Filtro de artes marciales de entrenamiento
+        const matchesMartialArt = 
+          selectedMartialArt === 'Todos' || 
+          (fighter.martial_arts && fighter.martial_arts.includes(selectedMartialArt));
+        
         const matchesFightingStyle = 
           selectedFightingStyle === 'Todos' || fighter.fighting_style === selectedFightingStyle;
         
         const matchesRecordType = 
-          selectedRecordType === 'Todos' || fighter.record_type === selectedRecordType;
+          selectedRecordType === 'Todos' || fighter.level === selectedRecordType;
         
         const matchesReadyToFight = 
           !readyToFightOnly || (fighter as any).ready_to_fight === true;
@@ -152,21 +154,29 @@ export default function Fighters() {
           (completionFilter === 'diamond' && (fighter as any).completion_level === 'DIAMOND');
         
         return matchesSearch && matchesWeightClass && matchesDiscipline && 
-               matchesFightingStyle && matchesRecordType && matchesReadyToFight && matchesCompletion;
+               matchesMartialArt && matchesFightingStyle && matchesRecordType && 
+               matchesReadyToFight && matchesCompletion;
       })
       .sort((a, b) => {
         switch (sortBy) {
           case 'name':
             return a.first_name.localeCompare(b.first_name);
           case 'wins':
-            return b.record_wins - a.record_wins;
+            // Usar récords por disciplina
+            const aWins = a.discipline === 'MMA' ? (a.mma_record_wins || 0) : 
+                          a.discipline === 'Boxeo' ? (a.boxeo_record_wins || 0) : 
+                          (a.record_wins || 0);
+            const bWins = b.discipline === 'MMA' ? (b.mma_record_wins || 0) : 
+                          b.discipline === 'Boxeo' ? (b.boxeo_record_wins || 0) : 
+                          (b.record_wins || 0);
+            return bWins - aWins;
           case 'completion':
             return ((b as any).completion_score || 0) - ((a as any).completion_score || 0);
           default:
             return 0;
         }
       });
-  }, [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedFightingStyle, selectedRecordType, includeInactive, readyToFightOnly, completionFilter, sortBy]);
+  }, [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedMartialArt, selectedFightingStyle, selectedRecordType, includeInactive, readyToFightOnly, completionFilter, sortBy]);
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -366,13 +376,19 @@ export default function Fighters() {
                 options: WEIGHT_CLASSES
               },
               { 
-                label: "Disciplina",
+                label: "Compite en",
                 value: selectedDiscipline, 
                 onChange: setSelectedDiscipline, 
                 options: DISCIPLINES
               },
               { 
-                label: "Estilo",
+                label: "Entrena",
+                value: selectedMartialArt, 
+                onChange: setSelectedMartialArt, 
+                options: MARTIAL_ARTS_OPTIONS
+              },
+              { 
+                label: "Estilo de Pelea",
                 value: selectedFightingStyle, 
                 onChange: setSelectedFightingStyle, 
                 options: FIGHTING_STYLES
@@ -382,16 +398,6 @@ export default function Fighters() {
                 value: selectedRecordType, 
                 onChange: setSelectedRecordType, 
                 options: RECORD_TYPES
-              },
-              { 
-                label: "Perfil",
-                value: completionFilter, 
-                onChange: setCompletionFilter, 
-                options: [
-                  { value: 'all', label: 'Todos' },
-                  { value: 'verified', label: 'Verificados (70%+)' },
-                  { value: 'diamond', label: 'Completos' }
-                ]
               },
               { 
                 label: "Ordenar",
@@ -404,13 +410,18 @@ export default function Fighters() {
                 ]
               }
             ].map((filter, index) => (
-              <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <div key={filter.label} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <Select value={filter.value} onValueChange={filter.onChange}>
                   <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300 min-h-[44px] text-sm">
                     <span className="flex items-center gap-1.5 truncate">
                       <span className="text-muted-foreground font-medium">{filter.label}:</span>
                       <span className="text-foreground truncate">
-                        {getFilterDisplayValue(filter.value)}
+                        {typeof filter.options.find((o: any) => 
+                          (typeof o === 'string' ? o : o.value) === filter.value
+                        ) === 'string' 
+                          ? filter.value 
+                          : (filter.options.find((o: any) => o.value === filter.value) as any)?.label || filter.value
+                        }
                       </span>
                     </span>
                   </SelectTrigger>

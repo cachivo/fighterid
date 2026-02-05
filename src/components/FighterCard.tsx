@@ -3,9 +3,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Shield, Award, Medal, Trophy, Gem } from 'lucide-react';
+import { CreditCard, Shield, Award, Medal, Trophy, Gem, Swords } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { getWeightClassLabel } from '@/lib/constants/disciplines';
+import { getWeightClassLabel, MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
 
 interface FighterCardProps {
   fighter: FighterProfile;
@@ -19,6 +19,29 @@ const LEVEL_CONFIG: Record<string, { icon: LucideIcon; gradient: string; label: 
   DIAMOND: { icon: Gem, gradient: 'from-blue-500 to-cyan-400', label: 'Diamante' },
 };
 
+// Helper para obtener récord según disciplina de competencia
+const getRecordForDiscipline = (fighter: FighterProfile) => {
+  if (fighter.discipline === 'MMA') {
+    return {
+      wins: fighter.mma_record_wins || 0,
+      losses: fighter.mma_record_losses || 0,
+      draws: fighter.mma_record_draws || 0
+    };
+  } else if (fighter.discipline === 'Boxeo') {
+    return {
+      wins: fighter.boxeo_record_wins || 0,
+      losses: fighter.boxeo_record_losses || 0,
+      draws: fighter.boxeo_record_draws || 0
+    };
+  }
+  // Fallback a campos legacy
+  return {
+    wins: fighter.record_wins || 0,
+    losses: fighter.record_losses || 0,
+    draws: fighter.record_draws || 0
+  };
+};
+
 export function FighterCard({ fighter, onClick }: FighterCardProps) {
   const navigate = useNavigate();
 
@@ -30,7 +53,10 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
       default: return 'bg-professional-muted';
     }
   };
-  const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
+  
+  // Usar récord por disciplina
+  const record = getRecordForDiscipline(fighter);
+  const totalFights = record.wins + record.losses + record.draws;
   
   // Get completion level config
   const completionLevel = (fighter as any).completion_level || 'BRONZE';
@@ -95,28 +121,35 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
           <div>
             <p className="text-muted-foreground text-xs sm:text-sm">Record</p>
             <p className="font-semibold text-foreground text-sm sm:text-base">
-              {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
+              {record.wins}-{record.losses}-{record.draws}
             </p>
           </div>
-          {(fighter.martial_arts && fighter.martial_arts.length > 0) || fighter.discipline ? (
+          
+          {/* Disciplina de Competencia - siempre visible */}
+          <div>
+            <p className="text-muted-foreground text-xs sm:text-sm flex items-center gap-1">
+              <Swords className="h-3 w-3" />
+              Compite en
+            </p>
+            <Badge variant="default" className="text-xs mt-1">
+              {fighter.discipline || 'N/A'}
+            </Badge>
+          </div>
+          
+          {/* Artes Marciales de Entrenamiento - separadas */}
+          {fighter.martial_arts && fighter.martial_arts.length > 0 && (
             <div className="col-span-2">
-              <p className="text-muted-foreground">Artes Marciales</p>
+              <p className="text-muted-foreground text-xs sm:text-sm">Entrena</p>
               <div className="flex flex-wrap gap-1 mt-1">
-                {fighter.martial_arts && fighter.martial_arts.length > 0 
-                  ? fighter.martial_arts.map(art => (
-                      <Badge key={art} variant="outline" className="text-xs">
-                        {art}
-                      </Badge>
-                    ))
-                  : fighter.discipline && (
-                      <Badge variant="outline" className="text-xs">
-                        {fighter.discipline}
-                      </Badge>
-                    )
-                }
+                {fighter.martial_arts.map(art => (
+                  <Badge key={art} variant="outline" className="text-xs">
+                    {MARTIAL_ARTS_TRAINING.find(m => m.value === art)?.label || art}
+                  </Badge>
+                ))}
               </div>
             </div>
-          ) : null}
+          )}
+          
           {fighter.fighting_style && (
             <div className="col-span-2">
               <p className="text-muted-foreground">Estilo de Pelea</p>

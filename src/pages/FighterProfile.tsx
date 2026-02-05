@@ -1,13 +1,11 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useFighterProfiles, FighterProfile as FighterProfileType } from '@/hooks/useFighterProfiles';
-import { RecordType } from '@/hooks/useFighterHistory';
 import { useCombinedFighterRecord } from '@/hooks/useCombinedFighterRecord';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap } from 'lucide-react';
 import { Crown, Award, Swords } from 'lucide-react';
@@ -21,11 +19,10 @@ import { MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
   const { getFighterById } = useFighterProfiles();
-  const { calculateCombinedRecord, isLoading: isLoadingRecord } = useCombinedFighterRecord(id || null);
+  const { getDisciplineRecord, fighterProfile: recordProfile, isLoading: isLoadingRecord } = useCombinedFighterRecord(id || null);
   const { data: activeLeagues, isLoading: isLoadingLeagues } = useFighterActiveLeagues(id || null);
   const [fighter, setFighter] = useState<FighterProfileType | null>(null);
   const [loading, setLoading] = useState(true);
-  const [recordType, setRecordType] = useState<RecordType>('AMATEUR');
 
   useEffect(() => {
     if (id) {
@@ -91,8 +88,8 @@ export default function FighterProfile() {
     }
   };
 
-  // Calculate record based on selected type
-  const currentRecord = calculateCombinedRecord(recordType);
+  // Calcular récord basado en disciplina de competencia (no Amateur/Pro)
+  const currentRecord = getDisciplineRecord();
   const record = `${currentRecord.wins}-${currentRecord.losses}-${currentRecord.draws}`;
 
   // Record source indicator
@@ -159,18 +156,20 @@ export default function FighterProfile() {
                   <span>{fighter.country}</span>
                 </div>
 
-                {/* Record Type Toggle */}
+                {/* Disciplina de Competencia - Badge prominente */}
                 <div className="my-6">
-                  <Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
-                    <TabsList className="w-full">
-                      <TabsTrigger value="AMATEUR" className="flex-1">
-                        Amateur
-                      </TabsTrigger>
-                      <TabsTrigger value="PROFESSIONAL" className="flex-1">
-                        Profesional
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <Swords className="h-5 w-5 text-primary" />
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Disciplina de Competencia</p>
+                      <p className="font-bold text-lg">{fighter.discipline || 'No definida'}</p>
+                    </div>
+                    {fighter.level && (
+                      <Badge variant="secondary" className="ml-auto">
+                        {fighter.level}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 {/* Fight Stats */}
@@ -417,7 +416,7 @@ export default function FighterProfile() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="h-5 w-5" />
-                  Récord {recordType}
+                  Récord {fighter.discipline || 'General'}
                 </CardTitle>
               </CardHeader>
               <CardContent>

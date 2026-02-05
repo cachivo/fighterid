@@ -19,7 +19,11 @@ export function useCombinedFighterRecord(fighterId: string | null) {
       
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select('record_wins, record_losses, record_draws, record_type')
+        .select(`
+          record_wins, record_losses, record_draws, record_type, discipline, level,
+          mma_record_wins, mma_record_losses, mma_record_draws,
+          boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+        `)
         .eq('id', fighterId)
         .single();
       
@@ -28,6 +32,52 @@ export function useCombinedFighterRecord(fighterId: string | null) {
     },
   });
 
+  // Calcular récord basado en disciplina de competencia
+  const calculateRecordByDiscipline = (): CombinedFighterRecord => {
+    if (!fighterProfile) {
+      return {
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        totalFights: 0,
+        winPercentage: 0,
+        source: 'manual'
+      };
+    }
+
+    let wins = 0, losses = 0, draws = 0;
+
+    // Seleccionar campos según disciplina de competencia
+    if (fighterProfile.discipline === 'MMA') {
+      wins = fighterProfile.mma_record_wins || 0;
+      losses = fighterProfile.mma_record_losses || 0;
+      draws = fighterProfile.mma_record_draws || 0;
+    } else if (fighterProfile.discipline === 'Boxeo') {
+      wins = fighterProfile.boxeo_record_wins || 0;
+      losses = fighterProfile.boxeo_record_losses || 0;
+      draws = fighterProfile.boxeo_record_draws || 0;
+    } else {
+      // Fallback a campos legacy
+      wins = fighterProfile.record_wins || 0;
+      losses = fighterProfile.record_losses || 0;
+      draws = fighterProfile.record_draws || 0;
+    }
+
+    const totalFights = wins + losses + draws;
+    const winPercentage = totalFights > 0 ? Math.round((wins / totalFights) * 100) : 0;
+
+    return {
+      wins,
+      losses,
+      draws,
+      totalFights,
+      winPercentage,
+      source: 'manual',
+      manualRecord: { wins, losses, draws, totalFights, winPercentage }
+    };
+  };
+
+  // Mantener compatibilidad con el método anterior (para Amateur/Pro si se necesita)
   const calculateCombinedRecord = (recordType: RecordType): CombinedFighterRecord => {
     const fightRecord = calculateFightRecord(recordType);
     
@@ -98,11 +148,14 @@ export function useCombinedFighterRecord(fighterId: string | null) {
 
   return {
     calculateCombinedRecord,
+    calculateRecordByDiscipline,
     isLoading: isLoadingFights || isLoadingProfile,
     fightHistory,
     fighterProfile,
     // Helper methods for each record type
     getAmateurRecord: () => calculateCombinedRecord('AMATEUR'),
     getProfessionalRecord: () => calculateCombinedRecord('PROFESSIONAL'),
+    // Nuevo: Récord según disciplina de competencia
+    getDisciplineRecord: () => calculateRecordByDiscipline(),
   };
 }
