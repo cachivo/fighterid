@@ -2024,6 +2024,73 @@ export type Database = {
           },
         ]
       }
+      fighter_rankings: {
+        Row: {
+          created_at: string | null
+          fighter_id: string
+          id: string
+          is_active: boolean | null
+          is_champion: boolean | null
+          last_fight_date: string | null
+          level: string
+          organization_id: string
+          points: number | null
+          ranking_position: number | null
+          updated_at: string | null
+          weight_class: string
+        }
+        Insert: {
+          created_at?: string | null
+          fighter_id: string
+          id?: string
+          is_active?: boolean | null
+          is_champion?: boolean | null
+          last_fight_date?: string | null
+          level: string
+          organization_id: string
+          points?: number | null
+          ranking_position?: number | null
+          updated_at?: string | null
+          weight_class: string
+        }
+        Update: {
+          created_at?: string | null
+          fighter_id?: string
+          id?: string
+          is_active?: boolean | null
+          is_champion?: boolean | null
+          last_fight_date?: string | null
+          level?: string
+          organization_id?: string
+          points?: number | null
+          ranking_position?: number | null
+          updated_at?: string | null
+          weight_class?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_rankings_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_rankings_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fighter_rankings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "ranking_organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_status_updates: {
         Row: {
           bodyfat_pct: number | null
@@ -3415,6 +3482,116 @@ export type Database = {
           },
         ]
       }
+      ranking_organizations: {
+        Row: {
+          allowed_levels: string[]
+          code: string
+          created_at: string | null
+          description: string | null
+          discipline: string
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          short_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_levels: string[]
+          code: string
+          created_at?: string | null
+          description?: string | null
+          discipline: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          short_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_levels?: string[]
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          discipline?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          short_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ranking_point_adjustments: {
+        Row: {
+          adjusted_by: string
+          adjustment_amount: number
+          created_at: string | null
+          fight_id: string | null
+          fighter_id: string
+          id: string
+          new_points: number
+          previous_points: number
+          ranking_id: string
+          reason: string
+        }
+        Insert: {
+          adjusted_by: string
+          adjustment_amount: number
+          created_at?: string | null
+          fight_id?: string | null
+          fighter_id: string
+          id?: string
+          new_points: number
+          previous_points: number
+          ranking_id: string
+          reason: string
+        }
+        Update: {
+          adjusted_by?: string
+          adjustment_amount?: number
+          created_at?: string | null
+          fight_id?: string | null
+          fighter_id?: string
+          id?: string
+          new_points?: number
+          previous_points?: number
+          ranking_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ranking_point_adjustments_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_ranking_id_fkey"
+            columns: ["ranking_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_rankings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       round_contestants: {
         Row: {
           contestant_id: string
@@ -4380,6 +4557,15 @@ export type Database = {
       accept_fighter_invitation: {
         Args: { p_fighter_profile_id: string; p_token: string }
         Returns: boolean
+      }
+      adjust_ranking_points: {
+        Args: {
+          p_fight_id?: string
+          p_new_points: number
+          p_ranking_id: string
+          p_reason: string
+        }
+        Returns: undefined
       }
       admin_create_fighter_profile: {
         Args: { p_profile_data: Json }

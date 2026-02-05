@@ -5,37 +5,42 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useFighterRanking } from "@/hooks/useFighterRanking";
+import { useOrganizationRanking } from "@/hooks/useOrganizationRanking";
+import { useRankingOrganizations } from "@/hooks/useRankingOrganizations";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { useNavigate } from "react-router-dom";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
-import { ENABLED_DISCIPLINES } from "@/lib/constants/disciplines";
 
-const Ranking = () => {
-  const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
+interface RankingProps {
+  organizationCode?: string;
+}
+
+const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [page, setPage] = useState(1);
-  const [allFighters, setAllFighters] = useState<any[]>([]);
   const PAGE_SIZE = 10;
   
-  const { fighters, stats, isLoading, hasMore } = useFighterRanking(selectedDiscipline, 3, page, PAGE_SIZE);
+  const { data: organizations } = useRankingOrganizations();
+  const { data: rankingData, isLoading } = useOrganizationRanking(
+    organizationCode,
+    selectedLevel !== 'all' ? selectedLevel : undefined,
+    undefined,
+    page,
+    PAGE_SIZE
+  );
+  
   const navigate = useNavigate();
 
-  // Reset page y fighters al cambiar disciplina
+  const currentOrg = organizations?.find(org => org.code === organizationCode);
+  const availableLevels = currentOrg?.allowed_levels || [];
+
+  // Reset page when org or level changes
   useEffect(() => {
     setPage(1);
-    setAllFighters([]);
-  }, [selectedDiscipline]);
+  }, [organizationCode, selectedLevel]);
 
-  // Acumular fighters mientras se carga más
-  useEffect(() => {
-    if (fighters && fighters.length > 0) {
-      setAllFighters(prev => {
-        const existingIds = new Set(prev.map(f => f.id));
-        const newFighters = fighters.filter(f => !existingIds.has(f.id));
-        return [...prev, ...newFighters];
-      });
-    }
-  }, [fighters]);
+  const rankings = rankingData?.rankings || [];
+  const hasMore = rankingData?.hasMore || false;
 
   const loadMore = () => {
     if (!isLoading && hasMore) {
@@ -45,23 +50,23 @@ const Ranking = () => {
 
   const estadisticas = [
     {
-      numero: stats?.total_fighters.toString() || "0",
+      numero: rankingData?.totalCount.toString() || "0",
       descripcion: "Peleadores Registrados",
       Icon: Users
     },
     {
-      numero: stats?.total_fights.toString() || "0",
+      numero: rankingData?.totalCount.toString() || "0",
       descripcion: "Peleas Realizadas",
       Icon: Target
     },
     {
-      numero: stats?.professional_fighters.toString() || "0",
+      numero: rankings.filter(r => r.level === 'Profesional').length.toString(),
       descripcion: "Profesionales Activos",
       Icon: Award
     },
     {
-      numero: stats?.undefeated_count.toString() || "0",
-      descripcion: "Invictos",
+      numero: rankings.filter(r => r.is_champion).length.toString(),
+      descripcion: "Campeones",
       Icon: TrendingUp
     }
   ];
@@ -77,10 +82,10 @@ const Ranking = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-8 sm:mb-10 md:mb-12 animate-slide-up">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 md:mb-6">
-            NUESTROS <span className="text-purple-neon-primary">RESULTADOS</span>
+            RANKING <span className="text-purple-neon-primary">{currentOrg?.short_name || 'OFICIAL'}</span>
           </h2>
           <p className="text-sm sm:text-base md:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed">
-            Cifras que demuestran nuestro compromiso con la excelencia en cada evento
+            {currentOrg?.description || 'Clasificación oficial de peleadores'}
           </p>
         </div>
 
@@ -116,25 +121,33 @@ const Ranking = () => {
         {/* Top Peleadores con Infinite Scroll */}
         <div className="mb-8 sm:mb-12">
           <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white mb-4 sm:mb-6">
-            Top Peleadores <span className="text-purple-neon-primary">Ranking</span>
+            Top Peleadores <span className="text-purple-neon-primary">{currentOrg?.discipline || ''}</span>
           </h3>
           
-          {/* Tabs de disciplina */}
-          <div className="flex justify-center mb-6">
-            <Tabs value={selectedDiscipline} onValueChange={(value) => setSelectedDiscipline(value as 'MMA' | 'Boxeo')}>
-              <TabsList className="bg-black/60 border border-purple-neon-primary/30">
-                {ENABLED_DISCIPLINES.map(d => (
+          {/* Tabs de nivel */}
+          {availableLevels.length > 1 && (
+            <div className="flex justify-center mb-6">
+              <Tabs value={selectedLevel} onValueChange={setSelectedLevel}>
+                <TabsList className="bg-black/60 border border-purple-neon-primary/30">
                   <TabsTrigger 
-                    key={d.value} 
-                    value={d.value}
+                    value="all"
                     className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black"
                   >
-                    {d.value}
+                    Todos
                   </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </div>
+                  {availableLevels.map(level => (
+                    <TabsTrigger 
+                      key={level} 
+                      value={level}
+                      className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black"
+                    >
+                      {level === 'Profesional' ? 'Pro' : level === 'Semi-profesional' ? 'Semi' : 'Amateur'}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
           
           {isLoading && page === 1 ? (
             <div className="space-y-3 sm:space-y-4">
@@ -152,22 +165,22 @@ const Ranking = () => {
                 </Card>
               ))}
             </div>
-          ) : allFighters.length > 0 ? (
+          ) : rankings.length > 0 ? (
             <InfiniteScrollContainer
               onLoadMore={loadMore}
               hasMore={hasMore}
               loading={isLoading}
             >
               <div className="space-y-3 sm:space-y-4">
-                {allFighters.map((fighter, index) => {
+                {rankings.map((ranking, index) => {
                 const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
                 const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
                 
                 return (
                   <Card 
-                    key={fighter.id} 
+                    key={ranking.id} 
                     className="bg-black/40 border-purple-neon-primary/20 backdrop-blur-sm hover:bg-black/60 transition-all duration-300 cursor-pointer touch-manipulation group"
-                    onClick={() => navigate(`/fighter/${fighter.id}`)}
+                    onClick={() => navigate(`/fighter/${ranking.fighter_id}`)}
                   >
                     <CardContent className="p-4 sm:p-6">
                       <div className="flex items-center gap-4">
@@ -178,9 +191,9 @@ const Ranking = () => {
 
                         {/* Avatar */}
                         <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-purple-neon-primary/50">
-                          <AvatarImage src={fighter.avatar_url || undefined} />
+                          <AvatarImage src={ranking.fighter.avatar_url || undefined} />
                           <AvatarFallback className="bg-purple-neon-primary/20 text-white">
-                            {fighter.first_name[0]}{fighter.last_name[0]}
+                            {ranking.fighter.first_name[0]}{ranking.fighter.last_name[0]}
                           </AvatarFallback>
                         </Avatar>
 
@@ -188,29 +201,30 @@ const Ranking = () => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
                             <h4 className="text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors truncate">
-                              {fighter.first_name} {fighter.last_name}
+                              {ranking.fighter.first_name} {ranking.fighter.last_name}
                             </h4>
-                            {fighter.nickname && (
-                              <span className="text-xs text-gray-400 italic truncate">"{fighter.nickname}"</span>
+                            {ranking.fighter.nickname && (
+                              <span className="text-xs text-gray-400 italic truncate">"{ranking.fighter.nickname}"</span>
+                            )}
+                            {ranking.is_champion && (
+                              <Badge className="bg-yellow-500 text-yellow-950 text-[10px]">👑 CAMPEÓN</Badge>
                             )}
                           </div>
                           
                           <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-300">
-                              {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
-                            </span>
-                            {fighter.discipline && (
-                              <Badge variant="outline" className="text-xs border-purple-neon-primary/50 text-purple-neon-primary">
-                                {fighter.discipline}
-                              </Badge>
-                            )}
+                            <Badge variant="outline" className="text-xs border-purple-neon-primary/50 text-purple-neon-primary">
+                              {ranking.weight_class}
+                            </Badge>
+                            <Badge variant="secondary" className="text-xs">
+                              {ranking.level}
+                            </Badge>
                           </div>
                         </div>
 
                         {/* Puntos de Ranking */}
                         <div className="text-right min-w-[70px]">
                           <div className="text-base sm:text-lg font-bold text-purple-neon-primary">
-                            {fighter.ranking_points}
+                            {ranking.points}
                           </div>
                           <div className="text-xs text-gray-400">
                             pts
