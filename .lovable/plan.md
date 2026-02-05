@@ -1,173 +1,224 @@
 
-# Plan: Separar Disciplina de Competencia de Artes Marciales de Entrenamiento
+# Plan: Auditoria y Correccion del Panel de Administracion de Peleadores
 
-## Problema Identificado
+## Resumen de Problemas Encontrados
 
-En el panel de administracion (`FighterEditModal.tsx`), la seccion "Disciplinas y Estilo" mezcla dos conceptos diferentes:
+He detectado **inconsistencias criticas** entre los componentes del admin panel que no coinciden con nuestro diseño actualizado de separacion de disciplinas.
 
-**Estado actual (incorrecto):**
+---
+
+## Problema 1: AdminFighterForm.tsx Desactualizado
+
+**Archivo:** `src/components/admin/AdminFighterForm.tsx`
+
+El formulario de creacion/invitacion de peleadores **NO** sigue el diseño que implementamos en `FighterEditModal.tsx`.
+
+| Aspecto | FighterEditModal (CORRECTO) | AdminFighterForm (INCORRECTO) |
+|---------|----------------------------|------------------------------|
+| Disciplina | Select unico (`discipline`) | Checkbox multiple (`martial_arts`) |
+| Artes de entrenamiento | Checkboxes con `MARTIAL_ARTS_TRAINING` | Mezcla con disciplinas de competencia |
+| Logica de records | Usa `formData.discipline === 'MMA'` | Usa `formData.martial_arts?.includes('MMA')` |
+
+**Ubicaciones especificas:**
+- Linea 395-432: Muestra "Disciplina(s) de Competencia" pero permite seleccion multiple guardando en `martial_arts`
+- Linea 102-118: `handleMartialArtsChange` mezcla conceptos
+- Linea 527: Condicion incorrecta `formData.martial_arts?.includes('MMA')`
+- Linea 568: Condicion incorrecta `formData.martial_arts?.includes('Boxeo')`
+
+**Correccion requerida:** Alinear con la estructura de `FighterEditModal.tsx`
+
+---
+
+## Problema 2: Listado de Peleadores Muestra Record Legacy
+
+**Archivo:** `src/pages/admin/FightersProfiles.tsx` (Linea 276-280)
+
+```typescript
+// ACTUAL - Muestra record legacy (incorrecto)
+<Badge variant="secondary">
+  {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
+</Badge>
+
+// DEBERIA - Mostrar segun disciplina
+{fighter.discipline === 'MMA' && (
+  <Badge variant="secondary">
+    {fighter.mma_record_wins}-{fighter.mma_record_losses}-{fighter.mma_record_draws}
+  </Badge>
+)}
 ```
-Disciplinas y Estilo
-├── Nivel (Amateur/Semi/Pro)
-└── Artes Marciales (checkbox multiple)
-    ├── MMA          ← Disciplina de COMPETENCIA
-    ├── Boxeo        ← Disciplina de COMPETENCIA  
-    ├── Judo         ← Arte de ENTRENAMIENTO
-    ├── JiuJitsu     ← Arte de ENTRENAMIENTO
-    └── ...
+
+**Impacto:** El admin ve records que no corresponden con la disciplina real del peleador.
+
+---
+
+## Problema 3: Interface de useAdminFighters Incompleta
+
+**Archivo:** `src/hooks/useAdminFighters.tsx`
+
+La interface `AdminFighterProfile` no incluye los campos de record por disciplina:
+
+```typescript
+// ACTUAL (lineas 5-28)
+export interface AdminFighterProfile {
+  record_wins: number;     // Solo legacy
+  record_losses: number;
+  record_draws: number;
+  // FALTAN: mma_record_*, boxeo_record_*
+}
 ```
 
-**Estado correcto (propuesto):**
-```
-CARD 1: Disciplina de Competencia
-├── Disciplina: [MMA ▼] o [Boxeo ▼]  ← SELECT unico
-└── Nivel: [Amateur/Semi/Pro ▼]
-
-CARD 2: Artes Marciales de Entrenamiento
-└── Checkboxes multiples:
-    ├── Muay Thai
-    ├── Jiu-Jitsu Brasileño
-    ├── Judo
-    ├── Kickboxing
-    ├── Grappling
-    ├── Lucha Libre
-    ├── Karate
-    └── Tae Kwon Do
+**Correccion:**
+```typescript
+export interface AdminFighterProfile {
+  // Legacy (deprecated)
+  record_wins: number;
+  record_losses: number;
+  record_draws: number;
+  // Records por disciplina
+  mma_record_wins?: number;
+  mma_record_losses?: number;
+  mma_record_draws?: number;
+  boxeo_record_wins?: number;
+  boxeo_record_losses?: number;
+  boxeo_record_draws?: number;
+  martial_arts?: string[];  // FALTA
+}
 ```
 
 ---
 
-## Solucion Tecnica
+## Problema 4: FighterDetailModal Muestra Record Legacy
 
-### Archivo: `src/components/admin/FighterEditModal.tsx`
-
-**Cambio 1:** Eliminar la constante local `MARTIAL_ARTS` (linea 24-26) y usar las constantes centralizadas
+**Archivo:** `src/components/admin/FighterDetailModal.tsx` (Linea 136)
 
 ```typescript
-// ANTES (linea 24-26)
-const MARTIAL_ARTS = [
-  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-];
+// ACTUAL
+<Badge variant="outline" className="text-sm">
+  Record: {data.profile?.record_wins || 0}-{data.profile?.record_losses || 0}-{data.profile?.record_draws || 0}
+</Badge>
 
-// DESPUES - Importar desde disciplines.ts
-import { 
-  ENABLED_DISCIPLINES, 
-  MARTIAL_ARTS_TRAINING,  // AGREGAR
-  WEIGHT_CLASSES, 
-  FIGHTER_LEVELS, 
-  STANCES 
-} from '@/lib/constants/disciplines';
-```
-
-**Cambio 2:** Separar en DOS cards distintas (lineas 635-689)
-
-```
-CARD 1: "Disciplina de Competencia"
-├── Select: Disciplina (MMA o Boxeo) - OBLIGATORIO
-└── Select: Nivel (Amateur/Semi/Pro)
-
-CARD 2: "Artes Marciales de Entrenamiento"  
-└── Checkboxes: MARTIAL_ARTS_TRAINING (sin MMA ni Boxeo)
-    - Solo artes de entrenamiento complementarias
-```
-
-**Cambio 3:** Actualizar la logica de manejo
-
-```typescript
-// La disciplina principal (MMA/Boxeo) se guarda en field 'discipline'
-// Las artes de entrenamiento se guardan en field 'martial_arts'
-// Ya NO se mezclan
+// DEBERIA mostrar segun discipline
 ```
 
 ---
 
-## Estructura Visual Propuesta
+## Comparativa Visual de Componentes
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  DISCIPLINA DE COMPETENCIA                                  │
-├─────────────────────────────────────────────────────────────┤
-│  Disciplina *            Nivel Competitivo                  │
-│  ┌─────────────────┐    ┌─────────────────┐                │
-│  │ MMA           ▼│    │ Amateur       ▼│                │
-│  └─────────────────┘    └─────────────────┘                │
-│                                                             │
-│  Define en que ranking aparece el peleador                  │
-└─────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────┐
-│  ARTES MARCIALES DE ENTRENAMIENTO                           │
-├─────────────────────────────────────────────────────────────┤
-│  ☑ Muay Thai        ☐ Judo         ☑ Wrestling            │
-│  ☑ Jiu-Jitsu        ☐ Kickboxing   ☐ Karate               │
-│  ☐ Grappling        ☐ Tae Kwon Do                          │
-│                                                             │
-│  Artes que practica para su preparacion (informativo)       │
-└─────────────────────────────────────────────────────────────┘
+COMPONENTE                    | DISCIPLINA | ARTES ENTRENAMIENTO | RECORDS
+------------------------------|------------|---------------------|----------
+FighterEditModal.tsx          | Correcto   | Correcto            | Correcto
+AdminFighterForm.tsx          | INCORRECTO | INCORRECTO          | INCORRECTO
+FightersProfiles.tsx          | OK         | N/A                 | INCORRECTO
+FighterDetailModal.tsx        | OK         | OK                  | INCORRECTO
+useAdminFighters.tsx          | Parcial    | FALTA               | FALTAN campos
 ```
+
+---
+
+## Plan de Correccion
+
+### Archivo 1: `src/components/admin/AdminFighterForm.tsx`
+
+**Cambios:**
+
+1. Reemplazar la seccion de "Disciplina(s) de Competencia" por dos secciones separadas:
+   - Card 1: **Disciplina de Competencia** (Select unico con `ENABLED_DISCIPLINES`)
+   - Card 2: **Artes Marciales de Entrenamiento** (Checkboxes con `MARTIAL_ARTS_TRAINING`)
+
+2. Agregar import de `MARTIAL_ARTS_TRAINING`
+
+3. Crear funcion `handleDisciplineChange` similar a FighterEditModal
+
+4. Modificar funcion `handleMartialArtsChange` para solo manejar artes de entrenamiento
+
+5. Cambiar condiciones de records:
+   - De: `formData.martial_arts?.includes('MMA')`
+   - A: `formData.discipline === 'MMA'`
+
+### Archivo 2: `src/pages/admin/FightersProfiles.tsx`
+
+**Cambios:**
+
+1. Modificar display de record (linea 276-280) para mostrar segun disciplina:
+```typescript
+// Funcion helper para obtener el record correcto
+const getRecordDisplay = (fighter: AdminFighterProfile) => {
+  if (fighter.discipline === 'MMA') {
+    return `${fighter.mma_record_wins || 0}-${fighter.mma_record_losses || 0}-${fighter.mma_record_draws || 0}`;
+  } else if (fighter.discipline === 'Boxeo') {
+    return `${fighter.boxeo_record_wins || 0}-${fighter.boxeo_record_losses || 0}-${fighter.boxeo_record_draws || 0}`;
+  }
+  // Fallback a legacy
+  return `${fighter.record_wins}-${fighter.record_losses}-${fighter.record_draws}`;
+};
+```
+
+### Archivo 3: `src/hooks/useAdminFighters.tsx`
+
+**Cambios:**
+
+1. Expandir interface `AdminFighterProfile` con campos faltantes:
+```typescript
+// Agregar campos de records por disciplina
+mma_record_wins?: number;
+mma_record_losses?: number;
+mma_record_draws?: number;
+boxeo_record_wins?: number;
+boxeo_record_losses?: number;
+boxeo_record_draws?: number;
+martial_arts?: string[];
+```
+
+2. Expandir interface `AdminFighterFormData` con los mismos campos
+
+### Archivo 4: `src/components/admin/FighterDetailModal.tsx`
+
+**Cambios:**
+
+1. Modificar display de record en header (linea 136) para mostrar segun disciplina
+
+2. Agregar seccion de "Artes Marciales de Entrenamiento" separada de "Disciplina de Competencia" en tab deportivo
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/components/admin/FighterEditModal.tsx` | Separar en 2 cards, usar constantes correctas |
-| `src/lib/constants/disciplines.ts` | Remover MMA y Boxeo de MARTIAL_ARTS_TRAINING |
+| Archivo | Prioridad | Complejidad |
+|---------|-----------|-------------|
+| `src/components/admin/AdminFighterForm.tsx` | Alta | Media |
+| `src/pages/admin/FightersProfiles.tsx` | Alta | Baja |
+| `src/hooks/useAdminFighters.tsx` | Alta | Baja |
+| `src/components/admin/FighterDetailModal.tsx` | Media | Baja |
 
 ---
 
-## Cambio en disciplines.ts
+## Beneficios de las Correcciones
 
-Actualmente `MARTIAL_ARTS_TRAINING` incluye MMA y Boxeo, lo cual es redundante si ya tenemos `ENABLED_DISCIPLINES`. Se propone limpiar:
-
-```typescript
-// ANTES
-export const MARTIAL_ARTS_TRAINING = [
-  { value: 'MMA', label: 'MMA' },           // REMOVER
-  { value: 'Boxeo', label: 'Boxeo' },       // REMOVER
-  { value: 'MuayThai', label: 'Muay Thai' },
-  // ...
-];
-
-// DESPUES - Solo artes de entrenamiento
-export const MARTIAL_ARTS_TRAINING = [
-  { value: 'MuayThai', label: 'Muay Thai' },
-  { value: 'JiuJitsu', label: 'Jiu-Jitsu Brasileño' },
-  { value: 'Judo', label: 'Judo' },
-  { value: 'Kickboxing', label: 'Kickboxing' },
-  { value: 'Grappling', label: 'Grappling' },
-  { value: 'Wrestling', label: 'Lucha Libre' },
-  { value: 'Karate', label: 'Karate' },
-  { value: 'TaeKwonDo', label: 'Tae Kwon Do' },
-];
-```
-
----
-
-## Beneficios
-
-1. **Claridad conceptual**: Disciplina de competencia separada de artes de entrenamiento
-2. **Consistencia con rankings**: El campo `discipline` define en que liga aparece
-3. **Mejor UX**: El admin entiende que MMA/Boxeo es para rankings, el resto es informativo
-4. **Dato limpio**: `martial_arts[]` contendra solo artes de entrenamiento, no disciplinas
+1. **Coherencia total** entre edicion y creacion de peleadores
+2. **Records correctos** mostrados segun disciplina de competencia
+3. **Separacion clara** entre disciplinas de ranking y artes de entrenamiento
+4. **TypeScript correcto** con interfaces completas
+5. **Mejor UX** para administradores
 
 ---
 
 ## Seccion Tecnica
 
-### Mapeo de campos en base de datos
+### Estructura de Datos Correcta
 
-| Campo | Uso |
-|-------|-----|
-| `discipline` | Disciplina de competencia (MMA o Boxeo) - Define ranking |
-| `martial_arts` | Array de artes marciales de entrenamiento (informativo) |
-| `level` | Nivel competitivo (Amateur/Semi/Pro) |
+```typescript
+// CAMPO discipline → Define ranking (MMA o Boxeo)
+// CAMPO martial_arts[] → Artes de entrenamiento (informativo)
+// CAMPOS mma_record_* → Solo si discipline === 'MMA'
+// CAMPOS boxeo_record_* → Solo si discipline === 'Boxeo'
+```
 
-### Logica de Records
+### Flujo de Validacion Propuesto
 
-Los records de combate se muestran segun el valor de `discipline`:
-- Si `discipline = 'MMA'` → Mostrar campos `mma_record_*`
-- Si `discipline = 'Boxeo'` → Mostrar campos `boxeo_record_*`
-
-Esto ya funciona correctamente, solo necesitamos asegurar que la seleccion de disciplina sea clara y separada.
+```text
+1. Usuario selecciona Disciplina de Competencia (obligatorio)
+2. Sistema habilita campos de record correspondientes
+3. Usuario puede agregar artes de entrenamiento (opcional)
+4. Al guardar: discipline y martial_arts se guardan por separado
+```
