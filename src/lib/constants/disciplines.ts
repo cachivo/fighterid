@@ -84,3 +84,35 @@ export const STANCES = [
 ] as const;
 
 export type Stance = typeof STANCES[number]['value'];
+
+// Países de Centroamérica y región (estandarizados)
+export const COUNTRIES = [
+  { value: 'Honduras', label: 'Honduras' },
+  { value: 'Guatemala', label: 'Guatemala' },
+  { value: 'El Salvador', label: 'El Salvador' },
+  { value: 'Nicaragua', label: 'Nicaragua' },
+  { value: 'Panamá', label: 'Panamá' },
+  { value: 'Costa Rica', label: 'Costa Rica' },
+  { value: 'México', label: 'México' },
+  { value: 'Estados Unidos', label: 'Estados Unidos' },
+  { value: 'Canadá', label: 'Canadá' },
+  { value: 'Otro', label: 'Otro' },
+] as const;
+
+export type Country = typeof COUNTRIES[number]['value'];
+
+// Artes marciales para perfil de entrenamiento (NO son disciplinas de competencia)
+export const MARTIAL_ARTS_TRAINING = [
+  { value: 'MMA', label: 'MMA' },
+  { value: 'Boxeo', label: 'Boxeo' },
+  { value: 'MuayThai', label: 'Muay Thai' },
+  { value: 'JiuJitsu', label: 'Jiu-Jitsu Brasileño' },
+  { value: 'Judo', label: 'Judo' },
+  { value: 'Kickboxing', label: 'Kickboxing' },
+  { value: 'Grappling', label: 'Grappling' },
+  { value: 'Wrestling', label: 'Lucha Libre' },
+  { value: 'Karate', label: 'Karate' },
+  { value: 'TaeKwonDo', label: 'Tae Kwon Do' },
+] as const;
+
+export type MartialArt = typeof MARTIAL_ARTS_TRAINING[number]['value'];

@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileUpload } from '@/components/ui/file-upload';
 import { User, Award, Weight, Building2, MapPin } from 'lucide-react';
-import { WEIGHT_CLASSES, ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
+import { WEIGHT_CLASSES, COUNTRIES } from '@/lib/constants/disciplines';
 
 interface ExternalFighterFormProps {
   formData: {
@@ -134,12 +134,21 @@ export const ExternalFighterForm = ({
           <MapPin className="h-4 w-4 inline mr-2" />
           País
         </Label>
-        <Input
-          id="external-country"
-          value={formData.country || 'HN'}
-          onChange={(e) => onFormChange({ ...formData, country: e.target.value })}
-          placeholder="HN"
-        />
+        <Select
+          value={formData.country || 'Honduras'}
+          onValueChange={(value) => onFormChange({ ...formData, country: value })}
+        >
+          <SelectTrigger id="external-country">
+            <SelectValue placeholder="Seleccionar país" />
+          </SelectTrigger>
+          <SelectContent>
+            {COUNTRIES.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Record (Optional) */}
