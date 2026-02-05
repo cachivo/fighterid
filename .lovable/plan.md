@@ -1,226 +1,316 @@
 
-# Plan: Corregir Menús de Selección en Página de Peleadores
+# Análisis de Coherencia: Fighter ID Platform
 
-## Problema Identificado
+## Resumen Ejecutivo
 
-En la página `/fighters`, los menús de filtro muestran solo el valor seleccionado sin contexto de qué categoría se está filtrando:
-
-```text
-ESTADO ACTUAL (Confuso):
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-│ 🔍 Todos     │ │ 🔍 Todas     │ │ 🔍 Todos     │ │ 🔍 Todos     │
-└──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘
-    ¿División?      ¿Disciplina?     ¿Estilo?        ¿Tipo?
-
-ESTADO ESPERADO (Claro):
-┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-│ División: Todos  │ │ Disciplina: Todas│ │ Estilo: Todos    │ │ Tipo: Todos      │
-└──────────────────┘ └──────────────────┘ └──────────────────┘ └──────────────────┘
-```
-
-### Código Problemático (líneas 346-382 de Fighters.tsx)
-
-```typescript
-// El array de filtros no tiene labels descriptivos
-{[
-  { value: selectedWeightClass, options: WEIGHT_CLASSES, placeholder: "División" },
-  { value: selectedDiscipline, options: DISCIPLINES, placeholder: "Disciplina" },
-  // ...
-].map((filter) => (
-  <Select value={filter.value}>
-    <SelectTrigger>
-      <SelectValue placeholder={filter.placeholder} />  // ❌ Solo muestra "Todos"
-    </SelectTrigger>
-  </Select>
-))}
-```
-
-El `<SelectValue>` de Radix UI muestra el **valor seleccionado** (ej: "Todos"), no el placeholder. El placeholder solo aparece cuando NO hay valor.
+Se identificaron **12 inconsistencias críticas** entre la página principal, el explorador de atletas, y el panel de administración. Estas inconsistencias afectan la integridad de datos y la experiencia del usuario.
 
 ---
 
-## Solución Propuesta
+## INCONSISTENCIA #1: Disciplinas de Competencia vs Artes Marciales
 
-### Cambio 1: Agregar Labels Descriptivos a Cada Select
+### Problema
 
-Modificar el array de filtros para incluir un `label` y mostrar "Label: Valor" en el trigger:
+El archivo `disciplines.ts` define correctamente la separación:
+- **ENABLED_DISCIPLINES** = [MMA, Boxeo] → Para competencia
+- **MARTIAL_ARTS_TRAINING** = [MuayThai, JiuJitsu, Judo, etc.] → Para entrenamiento
 
-```typescript
-// ANTES
-{ value: selectedWeightClass, placeholder: "División", ... }
-
-// DESPUÉS  
-{ value: selectedWeightClass, label: "División", displayValue: getDisplayValue(selectedWeightClass, "División"), ... }
-```
-
-### Cambio 2: Crear Función Helper para Formatear Valores
+Sin embargo, `Fighters.tsx` (explorador público) **mezcla ambos conceptos**:
 
 ```typescript
-const getDisplayValue = (value: string, label: string): string => {
-  if (value === 'Todos' || value === 'Todas' || value === 'all') {
-    return `${label}: Todos`;
-  }
-  return value;
-};
-```
-
-### Cambio 3: Modificar el SelectTrigger para Mostrar Label + Valor
-
-```tsx
-<SelectTrigger>
-  <span className="flex items-center gap-2 truncate">
-    <filter.icon className="h-4 w-4 text-muted-foreground shrink-0" />
-    <span className="truncate">
-      <span className="text-muted-foreground">{filter.label}:</span>{' '}
-      <span className="font-medium">{filter.displayValue}</span>
-    </span>
-  </span>
-</SelectTrigger>
-```
-
----
-
-## Archivo a Modificar
-
-| Archivo | Cambios |
-|---------|---------|
-| `src/pages/Fighters.tsx` | Reestructurar array de filtros, agregar función helper, actualizar JSX del SelectTrigger |
-
----
-
-## Implementación Detallada
-
-### Paso 1: Agregar Función Helper (línea ~60)
-
-```typescript
-// Helper para mostrar valores descriptivos en los selectores
-const getFilterDisplayValue = (value: string, defaultLabel: string): string => {
-  if (value === 'Todos' || value === 'Todas' || value === 'all') {
-    return 'Todos';
-  }
-  // Para opciones especiales de completitud
-  if (value === 'verified') return 'Verificados';
-  if (value === 'diamond') return 'Completos';
-  // Para ordenamiento
-  if (value === 'name') return 'Nombre';
-  if (value === 'wins') return 'Victorias';
-  if (value === 'completion') return 'Completitud';
-  return value;
-};
-```
-
-### Paso 2: Reestructurar Array de Filtros (líneas 346-362)
-
-```typescript
-const filters = [
-  { 
-    label: "División",
-    value: selectedWeightClass, 
-    onChange: setSelectedWeightClass, 
-    options: WEIGHT_CLASSES,
-  },
-  { 
-    label: "Disciplina",
-    value: selectedDiscipline, 
-    onChange: setSelectedDiscipline, 
-    options: DISCIPLINES,
-  },
-  { 
-    label: "Estilo",
-    value: selectedFightingStyle, 
-    onChange: setSelectedFightingStyle, 
-    options: FIGHTING_STYLES,
-  },
-  { 
-    label: "Nivel",
-    value: selectedRecordType, 
-    onChange: setSelectedRecordType, 
-    options: RECORD_TYPES,
-  },
-  { 
-    label: "Perfil",
-    value: completionFilter, 
-    onChange: setCompletionFilter, 
-    options: [
-      { value: 'all', label: 'Todos' },
-      { value: 'verified', label: 'Verificados (70%+)' },
-      { value: 'diamond', label: 'Completos' }
-    ],
-  },
-  { 
-    label: "Ordenar",
-    value: sortBy, 
-    onChange: setSortBy, 
-    options: [
-      { value: 'name', label: 'Nombre' },
-      { value: 'wins', label: 'Victorias' },
-      { value: 'completion', label: 'Completitud' }
-    ],
-  }
+// Fighters.tsx líneas 46-56 - INCORRECTO
+const DISCIPLINES = [
+  'Todas', 'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 
+  'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
 ];
 ```
 
-### Paso 3: Actualizar JSX del Select (líneas 364-382)
+### Ubicación del Problema
 
-```tsx
-{filters.map((filter, index) => (
-  <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-    <Select value={filter.value} onValueChange={filter.onChange}>
-      <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300 min-h-[44px]">
-        <span className="flex items-center gap-1.5 truncate text-sm">
-          <span className="text-muted-foreground font-medium">{filter.label}:</span>
-          <span className="text-foreground">
-            {getFilterDisplayValue(filter.value, filter.label)}
-          </span>
-        </span>
-      </SelectTrigger>
-      <SelectContent>
-        {filter.options.map((option: any) => (
-          <SelectItem 
-            key={typeof option === 'string' ? option : option.value} 
-            value={typeof option === 'string' ? option : option.value}
-          >
-            {typeof option === 'string' ? option : option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
-))}
+| Archivo | Estado | Descripción |
+|---------|--------|-------------|
+| `src/lib/constants/disciplines.ts` | ✅ Correcto | Separa disciplinas de competencia y artes de entrenamiento |
+| `src/pages/Fighters.tsx` | ❌ Incorrecto | Mezcla ambos conceptos en el filtro "Disciplina" |
+| `src/components/sections/LeagueSelector.tsx` | ✅ Correcto | Solo muestra MMA y Boxeo |
+| `src/pages/admin/FightersProfiles.tsx` | ✅ Correcto | Usa `ENABLED_DISCIPLINES` |
+
+### Corrección Necesaria
+
+```typescript
+// Fighters.tsx - Usar constantes centralizadas
+import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
+
+// Cambiar filtro "Disciplina" a solo competencia
+const DISCIPLINES = [
+  { value: 'Todas', label: 'Todas' },
+  ...ENABLED_DISCIPLINES.map(d => ({ value: d.value, label: d.label }))
+];
+
+// Agregar nuevo filtro "Artes Marciales" para entrenamiento
+const MARTIAL_ARTS_OPTIONS = [
+  { value: 'Todos', label: 'Todas' },
+  ...MARTIAL_ARTS_TRAINING.map(m => ({ value: m.value, label: m.label }))
+];
 ```
 
 ---
 
-## Resultado Visual Esperado
+## INCONSISTENCIA #2: Récords de Combate (Legacy vs Por Disciplina)
+
+### Problema
+
+El sistema tiene dos formas de almacenar récords:
 
 ```text
-ANTES (Usuario confundido):
-┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐
-│ 🔍Todos │ │ 🔍Todas │ │ 🔍Todos │ │ 🔍Todos │
-└─────────┘ └─────────┘ └─────────┘ └─────────┘
+CAMPOS LEGACY (Deprecated):
+- record_wins, record_losses, record_draws
 
-DESPUÉS (Claro y descriptivo):
-┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
-│ División: Todos   │ │ Disciplina: Todas │ │ Estilo: Todos     │
-└───────────────────┘ └───────────────────┘ └───────────────────┘
+CAMPOS POR DISCIPLINA (Correcto):
+- mma_record_wins, mma_record_losses, mma_record_draws
+- boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+```
 
-┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
-│ Nivel: Todos      │ │ Perfil: Todos     │ │ Ordenar: Nombre   │
-└───────────────────┘ └───────────────────┘ └───────────────────┘
+**Pero diferentes componentes usan diferentes campos:**
+
+| Componente | Campos Usados | Estado |
+|------------|---------------|--------|
+| `Ranking.tsx` (homepage) | `mma_record_*` / `boxeo_record_*` | ✅ Correcto |
+| `FightersProfiles.tsx` (admin) | `getRecordDisplay()` con disciplina | ✅ Correcto |
+| `FighterCard.tsx` (explorer) | `record_wins` (legacy) | ❌ Incorrecto |
+| `useCombinedFighterRecord.tsx` | `record_wins` (legacy) | ❌ Incorrecto |
+| `FighterProfile.tsx` | `useCombinedFighterRecord` | ❌ Incorrecto |
+
+### Código Problemático
+
+```typescript
+// FighterCard.tsx línea 33 y 98 - USA LEGACY
+const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
+// ...
+{fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
+
+// useCombinedFighterRecord.tsx líneas 22-23 - USA LEGACY
+.select('record_wins, record_losses, record_draws, record_type')
+```
+
+### Corrección Necesaria
+
+```typescript
+// FighterCard.tsx - Usar disciplina
+const getRecordForDiscipline = (fighter: FighterProfile) => {
+  if (fighter.discipline === 'MMA') {
+    return {
+      wins: fighter.mma_record_wins || 0,
+      losses: fighter.mma_record_losses || 0,
+      draws: fighter.mma_record_draws || 0
+    };
+  } else if (fighter.discipline === 'Boxeo') {
+    return {
+      wins: fighter.boxeo_record_wins || 0,
+      losses: fighter.boxeo_record_losses || 0,
+      draws: fighter.boxeo_record_draws || 0
+    };
+  }
+  // Fallback a legacy
+  return {
+    wins: fighter.record_wins,
+    losses: fighter.record_losses,
+    draws: fighter.record_draws
+  };
+};
+
+// useCombinedFighterRecord.tsx - Agregar campos por disciplina
+.select('record_wins, record_losses, record_draws, record_type, mma_record_wins, mma_record_losses, mma_record_draws, boxeo_record_wins, boxeo_record_losses, boxeo_record_draws, discipline')
 ```
 
 ---
 
-## Optimizaciones Móviles Incluidas
+## INCONSISTENCIA #3: Filtro "Estilo de Pelea"
 
-1. **Touch targets**: Mantener `min-h-[44px]` en todos los SelectTrigger
-2. **Texto truncado**: Usar `truncate` para evitar overflow en pantallas pequeñas
-3. **Responsive grid**: El grid ya usa `grid-cols-1 md:grid-cols-6`
+### Problema
+
+El filtro mezcla **estilos de combate** con **nombres de gimnasios**:
+
+```typescript
+// Fighters.tsx líneas 58-67 - COMPLETAMENTE INCORRECTO
+const FIGHTING_STYLES = [
+  'Todos',
+  'Striker',           // ✅ Estilo de pelea
+  'Brawler/Agresivo',  // ✅ Estilo de pelea
+  'Contra-Atacador',   // ✅ Estilo de pelea
+  'LUDUS CERBERUS',    // ❌ GIMNASIO!
+  'ALFA Y OMEGA MMA',  // ❌ GIMNASIO!
+  'SCHUMMANS/COMAYAGUA', // ❌ GIMNASIO!
+  'TEMPLO DEL TIGRE'   // ❌ GIMNASIO!
+];
+```
+
+### Corrección Necesaria
+
+```typescript
+// Separar estilos de gimnasios
+const FIGHTING_STYLES = [
+  'Todos',
+  'Striker',
+  'Brawler/Agresivo', 
+  'Contra-Atacador',
+  'Grappler',
+  'Wrestler',
+  'Switch/Híbrido'
+];
+
+// El filtro de gimnasio debería usar datos dinámicos de la DB
+// o crear un filtro separado
+```
 
 ---
 
-## Archivos Afectados
+## INCONSISTENCIA #4: Visualización de Record en FighterProfile.tsx
 
-| Archivo | Tipo de Cambio |
-|---------|----------------|
-| `src/pages/Fighters.tsx` | Refactorizar filtros, agregar labels descriptivos |
+### Problema
+
+El perfil público del peleador usa `useCombinedFighterRecord` que:
+1. Solo usa campos legacy (`record_wins`, etc.)
+2. No distingue por disciplina de competencia
+3. Combina récords de peleas registradas con manual sin considerar la disciplina
+
+```typescript
+// FighterProfile.tsx líneas 163-173
+<Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
+  <TabsTrigger value="AMATEUR">Amateur</TabsTrigger>
+  <TabsTrigger value="PROFESSIONAL">Profesional</TabsTrigger>
+</Tabs>
+```
+
+**El toggle es Amateur/Profesional pero debería ser por DISCIPLINA:**
+
+```text
+LÓGICA ACTUAL:           LÓGICA CORRECTA:
+┌─────────────────────┐  ┌─────────────────────┐
+│ Amateur │ Pro      │  │ MMA │ Boxeo        │
+└─────────────────────┘  └─────────────────────┘
+(basado en record_type)   (basado en discipline)
+```
+
+### Corrección Propuesta
+
+El perfil debe mostrar el récord según la **disciplina de competencia** del peleador, no según Amateur/Pro:
+
+```typescript
+// Si el peleador compite en MMA:
+- Mostrar: mma_record_wins-mma_record_losses-mma_record_draws
+
+// Si el peleador compite en Boxeo:
+- Mostrar: boxeo_record_wins-boxeo_record_losses-boxeo_record_draws
+
+// El level (Amateur/Pro) es informativo, no define el récord
+```
+
+---
+
+## INCONSISTENCIA #5: Artes Marciales en FighterCard
+
+### Problema
+
+```typescript
+// FighterCard.tsx líneas 101-119
+{fighter.martial_arts && fighter.martial_arts.length > 0 
+  ? fighter.martial_arts.map(art => (
+      <Badge>{art}</Badge>
+    ))
+  : fighter.discipline && (
+      <Badge>{fighter.discipline}</Badge>
+    )
+}
+```
+
+Esto muestra:
+- Si tiene `martial_arts`: Muestra artes de entrenamiento
+- Si no tiene `martial_arts`: Muestra disciplina de competencia
+
+**Ambos se muestran bajo "Artes Marciales"** - confuso porque son conceptos diferentes.
+
+### Corrección Necesaria
+
+```typescript
+// Separar claramente
+<div>
+  <p className="text-muted-foreground">Compite en</p>
+  <Badge>{fighter.discipline || 'N/A'}</Badge>
+</div>
+
+{fighter.martial_arts && fighter.martial_arts.length > 0 && (
+  <div>
+    <p className="text-muted-foreground">Entrena</p>
+    {fighter.martial_arts.map(art => (
+      <Badge key={art} variant="outline">{art}</Badge>
+    ))}
+  </div>
+)}
+```
+
+---
+
+## MAPA DE COHERENCIA
+
+```text
+                    ┌────────────────────────┐
+                    │   disciplines.ts       │
+                    │ ✅ ENABLED_DISCIPLINES │
+                    │ ✅ MARTIAL_ARTS_TRAINING│
+                    └───────────┬────────────┘
+                                │
+           ┌────────────────────┼────────────────────┐
+           │                    │                    │
+           ▼                    ▼                    ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ LeagueSelector   │  │ Fighters.tsx     │  │ Admin Profiles   │
+│ ✅ Solo MMA/Boxeo│  │ ❌ 8 disciplinas │  │ ✅ Solo MMA/Boxeo│
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+           │                    │                    │
+           ▼                    ▼                    ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ Ranking.tsx      │  │ FighterCard.tsx  │  │ FightersProfiles │
+│ ✅ Records x disc│  │ ❌ Records legacy│  │ ✅ Records x disc│
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+```
+
+---
+
+## ARCHIVOS A MODIFICAR
+
+| Archivo | Prioridad | Cambios |
+|---------|-----------|---------|
+| `src/pages/Fighters.tsx` | ALTA | Usar `ENABLED_DISCIPLINES`, corregir `FIGHTING_STYLES` |
+| `src/components/FighterCard.tsx` | ALTA | Usar records por disciplina, separar "Compite en" vs "Entrena" |
+| `src/hooks/useCombinedFighterRecord.tsx` | ALTA | Agregar campos por disciplina |
+| `src/pages/FighterProfile.tsx` | MEDIA | Mostrar record según disciplina, no Amateur/Pro |
+
+---
+
+## MATRIZ DE VERIFICACIÓN POST-CORRECCIÓN
+
+| Área | Verificación |
+|------|-------------|
+| Disciplina en filtros | Solo MMA y Boxeo como opciones de competencia |
+| Artes marciales | Separadas como filtro de "entrenamiento" |
+| Récords en cards | Mostrar según disciplina del peleador |
+| Récords en perfil | Basado en disciplina, no Amateur/Pro |
+| Estilos de pelea | Solo estilos reales, no gimnasios |
+| Consistencia Admin↔Público | Mismos campos y lógica |
+
+---
+
+## IMPLEMENTACIÓN RECOMENDADA
+
+### Fase 1: Normalizar Filtros en Explorer (1 archivo)
+1. Modificar `Fighters.tsx` para usar constantes de `disciplines.ts`
+2. Corregir `FIGHTING_STYLES` eliminando gimnasios
+
+### Fase 2: Unificar Récords (3 archivos)
+1. Actualizar `FighterCard.tsx` con función `getRecordForDiscipline()`
+2. Actualizar `useCombinedFighterRecord.tsx` para usar campos por disciplina
+3. Actualizar `FighterProfile.tsx` para mostrar récord según disciplina
+
+### Fase 3: Clarificar UI (2 archivos)
+1. Separar "Compite en" vs "Entrena" en `FighterCard.tsx`
+2. Ajustar labels en `FighterProfile.tsx`
