@@ -229,13 +229,13 @@ export default function FightersProfiles() {
                       }
                       priority={false}
                     />
-                    <div>
-                      <CardTitle className="text-lg">
+                    <div className="min-h-[3rem]">
+                      <CardTitle className="text-lg leading-tight">
                         {fighter.first_name} {fighter.last_name}
                       </CardTitle>
-                      {fighter.nickname && (
-                        <p className="text-sm text-muted-foreground">"{fighter.nickname}"</p>
-                      )}
+                      <p className="text-sm text-muted-foreground h-5">
+                        {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-1 sm:gap-2">
