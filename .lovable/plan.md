@@ -1,553 +1,246 @@
 
-# Plan: Sistema de Ranking por Puntos - Fighter ID
+# Plan: Estabilización del Sistema y Unificación de Idioma
 
-## Resumen Ejecutivo
+## Problemas Identificados
 
-Implementar un sistema de ranking profesional basado **exclusivamente en puntos** con trazabilidad completa por pelea. Sin porcentajes, sin win rates, solo puntos acumulados.
+### 1. VIOLACIÓN CRÍTICA: Win Rate/Porcentaje de Victorias en el Código
 
----
+El sistema muestra **win rate** y **porcentaje de victorias** en múltiples lugares, lo cual viola las reglas del sistema de ranking que establecen claramente:
 
-## Arquitectura del Sistema
+> ⚠️ "No hay win rate. No hay porcentaje de victorias. Rankings son 100% basados en puntos."
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                        RANKINGS ACTIVOS                             │
-├─────────────────────────────────────────────────────────────────────┤
-│  UCC_MMA          │  BDG_PRO_BOX       │  HHF_AMATEUR               │
-│  MMA Profesional  │  Boxeo Profesional │  Boxeo Amateur             │
-│  UCC Honduras     │  BDG Pro Box       │  Honduras Hood Fights      │
-└─────────────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────────────┐
-│                     FLUJO DE PUNTOS                                 │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│   1. PELEA FINALIZADA                                               │
-│         ↓                                                           │
-│   2. calculate_fight_points() → Calcula puntos según reglas         │
-│         ↓                                                           │
-│   3. INSERT → fighter_points_log (inmutable)                        │
-│         ↓                                                           │
-│   4. TRIGGER → update_fighter_points_balance()                      │
-│         ↓                                                           │
-│   5. Actualiza fighter_points_balance (para queries rápidas)        │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+**Archivos afectados:**
+
+| Archivo | Problema |
+|---------|----------|
+| `src/pages/FighterProfile.tsx` | Muestra `{winPercentage}% Victorias` (líneas 199, 379) |
+| `src/hooks/useFighterHistory.tsx` | Calcula `winPercentage` (línea 71) |
+| `src/hooks/useCombinedFighterRecord.tsx` | Retorna `winPercentage` (línea 65) |
+| `src/components/FighterMiniature.tsx` | Muestra "Efectividad: X%" (líneas 128-134) |
+| `src/components/EnhancedFighterID.tsx` | Muestra `{winPercentage}% Victorias` (línea 165) |
+| `src/components/AdminAnalytics.tsx` | Muestra "X% win rate" (línea 304) |
+| `src/pages/social/UserProfile.tsx` | Etiqueta "Win Rate" (línea 321) |
+| `src/components/admin/AIAssistant/ChatWidget.tsx` | Muestra "Win Rate" (línea 133) |
 
 ---
 
-## Fase 1: Schema de Base de Datos
+### 2. Textos en Inglés que Requieren Traducción
 
-### 1.1 Tabla `rankings` - Los 3 rankings activos
+**Términos encontrados:**
 
-```sql
-CREATE TABLE IF NOT EXISTS public.rankings (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  code text UNIQUE NOT NULL,
-  name text NOT NULL,
-  discipline text NOT NULL,
-  organization text,
-  description text,
-  active boolean DEFAULT true,
-  created_at timestamptz DEFAULT now()
-);
-
--- Datos iniciales
-INSERT INTO public.rankings (code, name, discipline, organization, description) VALUES
-  ('UCC_MMA', 'UCC MMA Profesional', 'MMA', 'UCC Honduras', 'Ranking oficial de MMA profesional'),
-  ('BDG_PRO_BOX', 'BDG Boxeo Profesional', 'Boxeo', 'BDG Pro Box', 'Ranking oficial de boxeo profesional'),
-  ('HHF_AMATEUR', 'Honduras Hood Fights', 'Boxeo', 'HHF', 'Ranking de boxeo amateur callejero');
-```
-
-### 1.2 Tabla `ranking_point_rules` - Reglas configurables por admin
-
-```sql
-CREATE TABLE IF NOT EXISTS public.ranking_point_rules (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  ranking_id uuid REFERENCES public.rankings(id) ON DELETE CASCADE,
-  version int NOT NULL DEFAULT 1,
-  is_active boolean DEFAULT true,
-  
-  -- Puntos base
-  participation_points int NOT NULL DEFAULT 5,
-  win_points int NOT NULL DEFAULT 10,
-  loss_points int NOT NULL DEFAULT 0,
-  draw_points int NOT NULL DEFAULT 3,
-  
-  -- Bonos por tipo de finalización
-  ko_tko_bonus int NOT NULL DEFAULT 5,
-  submission_bonus int NOT NULL DEFAULT 5,
-  decision_bonus int NOT NULL DEFAULT 0,
-  
-  -- Multiplicadores por nivel de oponente
-  opponent_pro_multiplier numeric(4,2) DEFAULT 1.5,
-  opponent_semipro_multiplier numeric(4,2) DEFAULT 1.2,
-  opponent_amateur_multiplier numeric(4,2) DEFAULT 1.0,
-  
-  -- Penalidades
-  inactivity_months int DEFAULT 9,
-  inactivity_penalty_percent int DEFAULT 10,
-  
-  -- Auditoría
-  created_at timestamptz DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id),
-  
-  UNIQUE(ranking_id, version)
-);
-```
-
-### 1.3 Tabla `fighter_points_log` - Log inmutable de puntos
-
-```sql
-CREATE TABLE IF NOT EXISTS public.fighter_points_log (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  fighter_id uuid NOT NULL REFERENCES public.fighter_profiles(id) ON DELETE CASCADE,
-  ranking_id uuid NOT NULL REFERENCES public.rankings(id) ON DELETE CASCADE,
-  fight_id uuid REFERENCES public.fights(id) ON DELETE SET NULL,
-  event_id uuid REFERENCES public.events(id) ON DELETE SET NULL,
-  
-  -- Desglose de puntos
-  participation_points int NOT NULL DEFAULT 0,
-  result_points int NOT NULL DEFAULT 0,
-  bonus_points int NOT NULL DEFAULT 0,
-  opponent_multiplier numeric(4,2) DEFAULT 1.0,
-  total_points numeric(8,2) NOT NULL,
-  
-  -- Contexto
-  opponent_id uuid REFERENCES public.fighter_profiles(id),
-  opponent_level text,
-  result_type text NOT NULL, -- 'win' | 'loss' | 'draw' | 'nc' | 'penalty'
-  finish_method text,
-  reason text, -- Para penalidades o ajustes manuales
-  
-  -- Auditoría
-  created_at timestamptz DEFAULT now(),
-  created_by uuid REFERENCES auth.users(id)
-);
-
--- Índices para queries rápidas
-CREATE INDEX idx_points_log_fighter ON public.fighter_points_log(fighter_id);
-CREATE INDEX idx_points_log_ranking ON public.fighter_points_log(ranking_id);
-CREATE INDEX idx_points_log_fight ON public.fighter_points_log(fight_id);
-CREATE INDEX idx_points_log_created ON public.fighter_points_log(created_at DESC);
-```
-
-### 1.4 Tabla `fighter_points_balance` - Balance actual (para ranking queries)
-
-```sql
-CREATE TABLE IF NOT EXISTS public.fighter_points_balance (
-  fighter_id uuid NOT NULL REFERENCES public.fighter_profiles(id) ON DELETE CASCADE,
-  ranking_id uuid NOT NULL REFERENCES public.rankings(id) ON DELETE CASCADE,
-  
-  -- Balance
-  total_points numeric(10,2) DEFAULT 0,
-  fights_count int DEFAULT 0,
-  wins_count int DEFAULT 0,
-  losses_count int DEFAULT 0,
-  draws_count int DEFAULT 0,
-  
-  -- Estado
-  status text DEFAULT 'ACTIVE', -- ACTIVE | INACTIVE | FROZEN | SUSPENDED
-  last_fight_date date,
-  last_points_update timestamptz,
-  
-  -- Metadata
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now(),
-  
-  PRIMARY KEY (fighter_id, ranking_id)
-);
-
-CREATE INDEX idx_balance_ranking_points ON public.fighter_points_balance(ranking_id, total_points DESC);
-CREATE INDEX idx_balance_status ON public.fighter_points_balance(status);
-```
-
-### 1.5 Columna `fighter_level` en fighter_profiles
-
-```sql
--- Agregar nivel de peleador (1=Amateur, 2=Semi-Pro, 3=Profesional)
-ALTER TABLE public.fighter_profiles 
-ADD COLUMN IF NOT EXISTS fighter_level int NOT NULL DEFAULT 1;
-
-COMMENT ON COLUMN public.fighter_profiles.fighter_level IS 
-'1=Amateur, 2=Semi-profesional, 3=Profesional';
-```
+| Inglés | Español Correcto |
+|--------|------------------|
+| "Win Rate" | Eliminar (no usar porcentajes) |
+| "Stance" | "Guardia" |
+| "Fighters" | "Peleadores" |
+| "Loading..." | "Cargando..." |
+| "Error" | "Error" (correcto) |
+| "Success" | "Éxito" |
+| "Failed" | "Falló" |
+| "Please" | "Por favor" |
 
 ---
 
-## Fase 2: Funciones de Base de Datos
+### 3. Problemas de Estabilidad Potenciales
 
-### 2.1 Función de cálculo de puntos
+**A. Errores asíncronos no manejados**
 
-```sql
-CREATE OR REPLACE FUNCTION calculate_fight_points(
-  p_ranking_id uuid,
-  p_result_type text,
-  p_finish_method text,
-  p_opponent_level int
-) RETURNS TABLE (
-  participation_points int,
-  result_points int,
-  bonus_points int,
-  opponent_multiplier numeric,
-  total_points numeric
-) AS $$
-DECLARE
-  v_rules record;
-  v_participation int;
-  v_result int;
-  v_bonus int;
-  v_multiplier numeric;
-BEGIN
-  -- Obtener reglas activas del ranking
-  SELECT * INTO v_rules
-  FROM public.ranking_point_rules
-  WHERE ranking_id = p_ranking_id AND is_active = true
-  ORDER BY version DESC
-  LIMIT 1;
-
-  IF v_rules IS NULL THEN
-    RAISE EXCEPTION 'No active rules found for ranking %', p_ranking_id;
-  END IF;
-
-  -- Puntos de participación (siempre)
-  v_participation := v_rules.participation_points;
-
-  -- Puntos por resultado
-  v_result := CASE p_result_type
-    WHEN 'win' THEN v_rules.win_points
-    WHEN 'loss' THEN v_rules.loss_points
-    WHEN 'draw' THEN v_rules.draw_points
-    ELSE 0
-  END;
-
-  -- Bonos por finalización (solo si ganó)
-  v_bonus := 0;
-  IF p_result_type = 'win' THEN
-    v_bonus := CASE 
-      WHEN p_finish_method IN ('KO', 'TKO') THEN v_rules.ko_tko_bonus
-      WHEN p_finish_method = 'Submission' THEN v_rules.submission_bonus
-      ELSE v_rules.decision_bonus
-    END;
-  END IF;
-
-  -- Multiplicador por nivel de oponente
-  v_multiplier := CASE p_opponent_level
-    WHEN 3 THEN v_rules.opponent_pro_multiplier
-    WHEN 2 THEN v_rules.opponent_semipro_multiplier
-    ELSE v_rules.opponent_amateur_multiplier
-  END;
-
-  RETURN QUERY SELECT 
-    v_participation,
-    v_result,
-    v_bonus,
-    v_multiplier,
-    (v_participation + v_result + v_bonus)::numeric * v_multiplier;
-END;
-$$ LANGUAGE plpgsql;
-```
-
-### 2.2 Trigger para actualizar balance
-
-```sql
-CREATE OR REPLACE FUNCTION update_fighter_points_balance()
-RETURNS TRIGGER AS $$
-BEGIN
-  INSERT INTO public.fighter_points_balance (
-    fighter_id, 
-    ranking_id, 
-    total_points, 
-    fights_count,
-    wins_count,
-    losses_count,
-    draws_count,
-    last_fight_date,
-    last_points_update,
-    status
-  )
-  VALUES (
-    NEW.fighter_id,
-    NEW.ranking_id,
-    NEW.total_points,
-    CASE WHEN NEW.fight_id IS NOT NULL THEN 1 ELSE 0 END,
-    CASE WHEN NEW.result_type = 'win' THEN 1 ELSE 0 END,
-    CASE WHEN NEW.result_type = 'loss' THEN 1 ELSE 0 END,
-    CASE WHEN NEW.result_type = 'draw' THEN 1 ELSE 0 END,
-    CASE WHEN NEW.fight_id IS NOT NULL THEN CURRENT_DATE ELSE NULL END,
-    NOW(),
-    'ACTIVE'
-  )
-  ON CONFLICT (fighter_id, ranking_id)
-  DO UPDATE SET
-    total_points = fighter_points_balance.total_points + NEW.total_points,
-    fights_count = fighter_points_balance.fights_count + 
-      CASE WHEN NEW.fight_id IS NOT NULL THEN 1 ELSE 0 END,
-    wins_count = fighter_points_balance.wins_count + 
-      CASE WHEN NEW.result_type = 'win' THEN 1 ELSE 0 END,
-    losses_count = fighter_points_balance.losses_count + 
-      CASE WHEN NEW.result_type = 'loss' THEN 1 ELSE 0 END,
-    draws_count = fighter_points_balance.draws_count + 
-      CASE WHEN NEW.result_type = 'draw' THEN 1 ELSE 0 END,
-    last_fight_date = CASE 
-      WHEN NEW.fight_id IS NOT NULL THEN CURRENT_DATE 
-      ELSE fighter_points_balance.last_fight_date 
-    END,
-    last_points_update = NOW(),
-    status = 'ACTIVE',
-    updated_at = NOW();
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_update_points_balance
-AFTER INSERT ON public.fighter_points_log
-FOR EACH ROW
-EXECUTE FUNCTION update_fighter_points_balance();
-```
-
-### 2.3 Función para aplicar penalidad por inactividad
-
-```sql
-CREATE OR REPLACE FUNCTION apply_inactivity_penalties()
-RETURNS void AS $$
-DECLARE
-  v_ranking record;
-  v_rules record;
-  v_affected_count int;
-BEGIN
-  FOR v_ranking IN SELECT * FROM public.rankings WHERE active = true LOOP
-    -- Obtener reglas activas
-    SELECT * INTO v_rules
-    FROM public.ranking_point_rules
-    WHERE ranking_id = v_ranking.id AND is_active = true
-    ORDER BY version DESC
-    LIMIT 1;
-
-    IF v_rules IS NOT NULL THEN
-      -- Aplicar penalidad a peleadores inactivos
-      WITH frozen_fighters AS (
-        UPDATE public.fighter_points_balance
-        SET 
-          status = 'FROZEN',
-          total_points = total_points * (1 - v_rules.inactivity_penalty_percent::numeric / 100),
-          updated_at = NOW()
-        WHERE 
-          ranking_id = v_ranking.id
-          AND status = 'ACTIVE'
-          AND last_fight_date < CURRENT_DATE - (v_rules.inactivity_months || ' months')::interval
-        RETURNING fighter_id
-      )
-      SELECT count(*) INTO v_affected_count FROM frozen_fighters;
-
-      -- Registrar en log si hubo cambios
-      IF v_affected_count > 0 THEN
-        INSERT INTO public.fighter_points_log (
-          fighter_id, ranking_id, total_points, result_type, reason, created_at
-        )
-        SELECT 
-          fighter_id, 
-          v_ranking.id,
-          -total_points * v_rules.inactivity_penalty_percent::numeric / 100,
-          'penalty',
-          'Penalidad por inactividad (' || v_rules.inactivity_months || ' meses)',
-          NOW()
-        FROM public.fighter_points_balance
-        WHERE ranking_id = v_ranking.id AND status = 'FROZEN';
-      END IF;
-    END IF;
-  END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-```
-
----
-
-## Fase 3: Políticas RLS
-
-```sql
--- Rankings: lectura pública
-ALTER TABLE public.rankings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY rankings_read ON public.rankings FOR SELECT USING (true);
-CREATE POLICY rankings_admin_write ON public.rankings 
-  FOR ALL USING (public.is_admin());
-
--- Reglas de puntos: lectura pública, escritura admin
-ALTER TABLE public.ranking_point_rules ENABLE ROW LEVEL SECURITY;
-CREATE POLICY rules_read ON public.ranking_point_rules FOR SELECT USING (true);
-CREATE POLICY rules_admin_write ON public.ranking_point_rules 
-  FOR ALL USING (public.is_admin());
-
--- Log de puntos: lectura pública (transparencia), escritura admin
-ALTER TABLE public.fighter_points_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY points_log_read ON public.fighter_points_log FOR SELECT USING (true);
-CREATE POLICY points_log_admin_write ON public.fighter_points_log 
-  FOR INSERT WITH CHECK (public.is_admin());
-
--- Balance: lectura pública
-ALTER TABLE public.fighter_points_balance ENABLE ROW LEVEL SECURITY;
-CREATE POLICY balance_read ON public.fighter_points_balance FOR SELECT USING (true);
-CREATE POLICY balance_admin_write ON public.fighter_points_balance 
-  FOR ALL USING (public.is_admin());
-```
-
----
-
-## Fase 4: Hooks en Frontend
-
-### 4.1 Hook `useRankingSystem.tsx`
-
-| Función | Descripción |
-|---------|-------------|
-| `useRankings()` | Lista los 3 rankings activos |
-| `useRankingLeaderboard(code)` | Obtiene el leaderboard de un ranking específico |
-| `useFighterPointsHistory(fighterId)` | Historial de puntos de un peleador |
-| `useRecordFightPoints()` | Mutation para registrar puntos post-pelea |
-
-### 4.2 Actualizar `useFighterRanking.tsx`
-
-Modificar el hook existente para usar el nuevo sistema:
+El `App.tsx` no tiene un manejador global de promesas rechazadas, lo que puede causar pantallas blancas:
 
 ```typescript
-// ANTES (basado en récord del perfil)
-const ranking_points = (wins * 3) + (draws * 1) - (losses * 1);
-
-// DESPUÉS (basado en fighter_points_balance)
-const { data } = await supabase
-  .from('fighter_points_balance')
-  .select(`
-    fighter_id,
-    total_points,
-    fights_count,
-    status,
-    fighter_profiles!inner (
-      first_name, last_name, nickname, avatar_url, 
-      weight_class, fighter_level
-    )
-  `)
-  .eq('ranking_id', rankingId)
-  .eq('status', 'ACTIVE')
-  .order('total_points', { ascending: false });
+// FALTA en App.tsx
+useEffect(() => {
+  const handleRejection = (event: PromiseRejectionEvent) => {
+    console.error("Error no manejado:", event.reason);
+    toast.error("Ocurrió un error. Intenta nuevamente.");
+    event.preventDefault();
+  };
+  window.addEventListener("unhandledrejection", handleRejection);
+  return () => window.removeEventListener("unhandledrejection", handleRejection);
+}, []);
 ```
+
+**B. Timeout de 8 segundos puede ser insuficiente**
+
+En conexiones lentas, el timeout de 8s en `useLicenseAuth.tsx` puede cortar la carga prematuramente.
 
 ---
 
-## Fase 5: Edge Function para Inactividad
+## Solución Propuesta
 
-### `apply-inactivity-penalties/index.ts`
+### Fase 1: Eliminar Win Rate/Porcentajes (CRÍTICO)
 
-Edge function programada (CRON) para ejecutar mensualmente:
+**1.1 Modificar `src/pages/FighterProfile.tsx`**
+
+Reemplazar:
+```tsx
+// ANTES (INCORRECTO)
+<Trophy className="h-4 w-4 text-green-600" />
+{winPercentage}% Victorias
+```
+
+Por:
+```tsx
+// DESPUÉS (CORRECTO)
+<Trophy className="h-4 w-4 text-green-600" />
+{currentRecord.wins} Victoria{currentRecord.wins !== 1 ? 's' : ''}
+```
+
+**1.2 Modificar `src/components/FighterMiniature.tsx`**
+
+Eliminar la barra de progreso de "Efectividad" y reemplazar con conteo de peleas:
+```tsx
+// ANTES
+<span>Efectividad:</span>
+<span>{winPercentage}%</span>
+
+// DESPUÉS
+<span>Peleas Totales:</span>
+<span>{totalFights}</span>
+```
+
+**1.3 Modificar `src/components/EnhancedFighterID.tsx`**
+
+Cambiar porcentaje por texto de victorias:
+```tsx
+// ANTES
+{calculateRecord(recordType).winPercentage}% Victorias
+
+// DESPUÉS
+{calculateRecord(recordType).wins} Victoria{calculateRecord(recordType).wins !== 1 ? 's' : ''} Registradas
+```
+
+**1.4 Modificar `src/pages/social/UserProfile.tsx`**
+
+Cambiar label de "Win Rate":
+```tsx
+// ANTES
+<div>Win Rate</div>
+
+// DESPUÉS  
+<div>Victorias</div>
+```
+
+**1.5 Actualizar hooks para no calcular porcentajes**
+
+En `useFighterHistory.tsx` y `useCombinedFighterRecord.tsx`:
+- Mantener `winPercentage` en la interfaz por compatibilidad pero documentar como deprecado
+- No mostrar el valor en ninguna UI
+
+---
+
+### Fase 2: Unificación de Idioma a Español
+
+**2.1 Términos a cambiar globalmente:**
 
 ```typescript
-// Llamar a la función de DB
-const { error } = await supabase.rpc('apply_inactivity_penalties');
+// src/pages/FighterProfile.tsx - línea 241
+{ label: 'Stance', value: ... }  →  { label: 'Guardia', value: ... }
+
+// src/pages/FighterProfile.tsx - línea 69
+Volver a Fighters  →  Volver a Peleadores
+
+// Múltiples archivos - toasts
+title: "Error"  →  title: "Error" (ya correcto)
+title: "Success"  →  title: "Éxito"
+```
+
+**2.2 Buscar y reemplazar sistemáticamente:**
+
+| Patrón | Reemplazo |
+|--------|-----------|
+| `"Fighters"` (como label) | `"Peleadores"` |
+| `"Stance"` | `"Guardia"` |
+| `"Win Rate"` | Eliminar o `"Victorias"` |
+| `"Loading"` | `"Cargando"` |
+
+---
+
+### Fase 3: Mejoras de Estabilidad
+
+**3.1 Agregar manejador global de errores en `App.tsx`:**
+
+```typescript
+const App = () => {
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('[GLOBAL ERROR]', event.reason);
+      event.preventDefault();
+    };
+    
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+  }, []);
+
+  return (
+    // ... resto del código
+  );
+};
+```
+
+**3.2 Aumentar timeout en `useLicenseAuth.tsx` para conexiones lentas:**
+
+```typescript
+// De 8s a 12s con mensaje de progreso
+const backupTimeout = setTimeout(() => {
+  if (mounted) {
+    console.warn('[TIMEOUT] Backup timeout triggered');
+    setLoadingMessage('La carga está tardando más de lo esperado...');
+    setLoading(false);
+  }
+}, 12000);
+```
+
+**3.3 Agregar try-catch defensivo en componentes de perfil:**
+
+```typescript
+// En getUserFighterProfile
+try {
+  const profile = await getUserFighterProfile();
+  if (profile) {
+    setProfile(profile);
+  }
+} catch (error) {
+  console.error('Error cargando perfil:', error);
+  toast({ 
+    title: "Error", 
+    description: "No se pudo cargar el perfil. Intenta refrescar la página.",
+    variant: "destructive"
+  });
+}
 ```
 
 ---
 
-## Fase 6: UI Components
+## Archivos a Modificar
 
-### 6.1 Componentes Nuevos
-
-| Componente | Descripción |
-|------------|-------------|
-| `RankingSelector.tsx` | Tabs para seleccionar ranking (UCC, BDG, HHF) |
-| `RankingLeaderboard.tsx` | Lista de peleadores ordenados por puntos |
-| `FighterPointsCard.tsx` | Muestra desglose de puntos de un peleador |
-| `PointsHistoryTable.tsx` | Historial de todas las transacciones de puntos |
-| `AdminPointRulesEditor.tsx` | Panel admin para editar reglas de puntos |
-
-### 6.2 Actualizar `Ranking.tsx` (Homepage)
-
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                     RANKINGS OFICIALES                              │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐          │
-│  │   UCC MMA     │  │  BDG PRO BOX  │  │  HHF AMATEUR  │          │
-│  │   (activo)    │  │               │  │               │          │
-│  └───────────────┘  └───────────────┘  └───────────────┘          │
-│                                                                     │
-│  #1 🏆 Juan Pérez        250.5 pts    Pro                          │
-│  #2    María López       198.0 pts    Pro                          │
-│  #3    Pedro Rodríguez   175.5 pts    Semi                         │
-│  #4    Ana García        150.0 pts    Amateur                      │
-│                                                                     │
-│  ▼ Ver historial de puntos                                         │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| Archivo | Cambios |
+|---------|---------|
+| `src/pages/FighterProfile.tsx` | Eliminar winPercentage, traducir "Stance" → "Guardia", "Fighters" → "Peleadores" |
+| `src/components/FighterMiniature.tsx` | Eliminar barra de efectividad, mostrar peleas totales |
+| `src/components/EnhancedFighterID.tsx` | Eliminar porcentaje de victorias |
+| `src/pages/social/UserProfile.tsx` | Cambiar "Win Rate" → "Victorias" |
+| `src/components/admin/AIAssistant/ChatWidget.tsx` | Cambiar "Win Rate" → "Récord" |
+| `src/components/AdminAnalytics.tsx` | Eliminar cálculo de win rate |
+| `src/App.tsx` | Agregar manejador global de errores |
+| `src/hooks/useLicenseAuth.tsx` | Aumentar timeout, mejorar mensajes |
 
 ---
 
-## Archivos a Crear/Modificar
+## Resultado Esperado
 
-| Archivo | Acción | Descripción |
-|---------|--------|-------------|
-| Migration SQL | CREATE | Tablas, funciones, triggers, RLS |
-| `src/hooks/useRankingSystem.tsx` | CREATE | Nuevo hook para sistema de puntos |
-| `src/hooks/useFighterRanking.tsx` | MODIFY | Usar balance de puntos en vez de récord |
-| `src/components/ranking/RankingSelector.tsx` | CREATE | Selector de los 3 rankings |
-| `src/components/ranking/RankingLeaderboard.tsx` | CREATE | Leaderboard por puntos |
-| `src/components/ranking/PointsHistoryTable.tsx` | CREATE | Historial de puntos |
-| `src/components/sections/Ranking.tsx` | MODIFY | Integrar nuevo sistema |
-| `src/pages/admin/RankingManagement.tsx` | CREATE | Admin para gestionar rankings |
-| `supabase/functions/apply-inactivity-penalties/` | CREATE | CRON para penalidades |
-| `supabase/config.toml` | MODIFY | Agregar nueva edge function |
+1. **Sin porcentajes de victoria** en ninguna parte de la UI
+2. **Idioma 100% español** en toda la aplicación
+3. **Mayor estabilidad** con manejo de errores robusto
+4. **Mejor UX** en conexiones lentas con mensajes de progreso
 
 ---
 
-## Query Final de Ranking (LA ÚNICA VÁLIDA)
+## Métricas de Éxito
 
-```sql
-SELECT 
-  f.first_name,
-  f.last_name,
-  f.nickname,
-  f.avatar_url,
-  f.fighter_level,
-  b.total_points,
-  b.fights_count,
-  b.wins_count,
-  b.status
-FROM public.fighter_points_balance b
-JOIN public.fighter_profiles f ON f.id = b.fighter_id
-WHERE 
-  b.ranking_id = :ranking_id
-  AND b.status = 'ACTIVE'
-ORDER BY b.total_points DESC;
-```
-
-**Si el ORDER BY no es por `total_points`, el sistema está MAL implementado.**
-
----
-
-## Reglas de Puntos por Defecto
-
-| Concepto | UCC MMA | BDG Pro | HHF Amateur |
-|----------|---------|---------|-------------|
-| Participación | 5 | 5 | 3 |
-| Victoria | 10 | 10 | 8 |
-| Derrota | 0 | 0 | 0 |
-| Empate | 3 | 3 | 2 |
-| Bonus KO/TKO | 5 | 5 | 3 |
-| Bonus Submission | 5 | 0 | 0 |
-| Mult. vs Pro | 1.5x | 1.5x | 1.0x |
-| Mult. vs Semi | 1.2x | 1.2x | 1.0x |
-| Inactividad | 9 meses | 9 meses | 6 meses |
-| Penalidad | -10% | -10% | -5% |
-
----
-
-## Criterios de Éxito
-
-- [ ] NO existe win rate en ninguna parte del código
-- [ ] Todos los puntos tienen referencia a `fight_id`
-- [ ] Balance se actualiza automáticamente via trigger
-- [ ] Admin puede modificar reglas sin tocar código
-- [ ] Penalidad de inactividad se ejecuta automáticamente
-- [ ] Rankings separados por disciplina/organización
-- [ ] Historial de puntos 100% auditable
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Instancias de "win rate" | 9+ archivos | 0 |
+| Textos en inglés visibles | Múltiples | 0 |
+| Crashes reportados | Variable | Reducción significativa |
+| Timeout para carga | 8s | 12s |
