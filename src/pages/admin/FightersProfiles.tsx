@@ -238,7 +238,7 @@ export default function FightersProfiles() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 sm:gap-2">
                     <Button
                       variant="ghost"
                       size="icon"
@@ -247,28 +247,28 @@ export default function FightersProfiles() {
                         console.log('View button clicked for fighter:', fighter.id);
                         setViewingFighter(fighter.id);
                       }}
-                      className="h-8 w-8 hover:bg-muted"
+                      className="h-10 w-10 min-h-[44px] min-w-[44px] hover:bg-muted touch-manipulation"
                       title="Ver información completa"
                     >
-                      <Eye className="h-4 w-4" />
+                      <Eye className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setEditingFighter(fighter)}
-                      className="h-8 w-8"
+                      className="h-10 w-10 min-h-[44px] min-w-[44px] touch-manipulation"
                       title="Editar peleador"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => setDeletingFighter(fighter)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-10 w-10 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive touch-manipulation"
                       title="Eliminar peleador"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   </div>
                 </div>

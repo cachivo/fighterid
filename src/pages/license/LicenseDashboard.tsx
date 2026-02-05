@@ -291,29 +291,62 @@ export default function LicenseDashboard() {
                     )}
                   </div>
 
-                  {/* Fighter Record */}
-                  <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4 md:gap-6 pt-1 sm:pt-2">
-                    <div className="text-center">
-                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-success">
-                        {fighterProfile?.record_wins || 0}
-                      </p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Victorias</p>
-                    </div>
-                    <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
-                    <div className="text-center">
-                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-danger">
-                        {fighterProfile?.record_losses || 0}
-                      </p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Derrotas</p>
-                    </div>
-                    <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
-                    <div className="text-center">
-                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-warning">
-                        {fighterProfile?.record_draws || 0}
-                      </p>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Empates</p>
-                    </div>
-                  </div>
+                  {/* Fighter Record - Discipline Specific */}
+                  {(() => {
+                    // Get discipline-specific record
+                    const discipline = fighterProfile?.discipline;
+                    let wins = 0, losses = 0, draws = 0;
+                    
+                    if (discipline === 'MMA') {
+                      wins = (fighterProfile as any)?.mma_record_wins || fighterProfile?.record_wins || 0;
+                      losses = (fighterProfile as any)?.mma_record_losses || fighterProfile?.record_losses || 0;
+                      draws = (fighterProfile as any)?.mma_record_draws || fighterProfile?.record_draws || 0;
+                    } else if (discipline === 'Boxeo') {
+                      wins = (fighterProfile as any)?.boxeo_record_wins || fighterProfile?.record_wins || 0;
+                      losses = (fighterProfile as any)?.boxeo_record_losses || fighterProfile?.record_losses || 0;
+                      draws = (fighterProfile as any)?.boxeo_record_draws || fighterProfile?.record_draws || 0;
+                    } else {
+                      // Fallback to legacy
+                      wins = fighterProfile?.record_wins || 0;
+                      losses = fighterProfile?.record_losses || 0;
+                      draws = fighterProfile?.record_draws || 0;
+                    }
+                    
+                    return (
+                      <div className="flex items-center justify-center md:justify-start gap-3 sm:gap-4 md:gap-6 pt-1 sm:pt-2">
+                        <div className="text-center">
+                          <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-success">
+                            {wins}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Victorias</p>
+                        </div>
+                        <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
+                        <div className="text-center">
+                          <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-danger">
+                            {losses}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Derrotas</p>
+                        </div>
+                        <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
+                        <div className="text-center">
+                          <p className="text-lg sm:text-xl md:text-2xl font-bold text-fighter-warning">
+                            {draws}
+                          </p>
+                          <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">Empates</p>
+                        </div>
+                        {discipline && (
+                          <>
+                            <Separator orientation="vertical" className="h-8 sm:h-10 md:h-12" />
+                            <div className="text-center">
+                              <Badge variant="outline" className="text-xs">
+                                {discipline}
+                              </Badge>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* Additional Quick Info */}
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-muted-foreground pt-1 sm:pt-2">
