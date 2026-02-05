@@ -15,7 +15,7 @@
  import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
  import { format } from 'date-fns';
  import { cn } from '@/lib/utils';
- import { ENABLED_DISCIPLINES, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES, COUNTRIES } from '@/lib/constants/disciplines';
+import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES, COUNTRIES } from '@/lib/constants/disciplines';
  
  const GENDERS = [
    { value: 'M', label: 'Masculino' },
@@ -39,6 +39,7 @@
      nickname: '',
      country: 'Honduras',
      weight_class: 'Peso Ligero',
+    discipline: undefined,
      martial_arts: [],
      record_wins: 0,
      record_losses: 0,
@@ -99,23 +100,29 @@
      }));
    };
  
-   const handleMartialArtsChange = (art: string, checked: boolean) => {
-     const currentArts = formData.martial_arts || [];
-     if (checked) {
-       setFormData(prev => ({
-         ...prev,
-         martial_arts: [...currentArts, art],
-         discipline: currentArts.length === 0 ? art as any : prev.discipline
-       }));
-     } else {
-       const newArts = currentArts.filter(a => a !== art);
-       setFormData(prev => ({
-         ...prev,
-         martial_arts: newArts,
-         discipline: newArts.length > 0 ? newArts[0] as any : undefined
-       }));
-     }
-   };
+  // Handle competition discipline change (single select)
+  const handleDisciplineChange = (discipline: string) => {
+    setFormData(prev => ({
+      ...prev,
+      discipline: discipline as any
+    }));
+  };
+
+  // Handle training arts change (multiple checkboxes)
+  const handleTrainingArtsChange = (art: string, checked: boolean) => {
+    const currentArts = formData.martial_arts || [];
+    if (checked) {
+      setFormData(prev => ({
+        ...prev,
+        martial_arts: [...currentArts, art]
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        martial_arts: currentArts.filter(a => a !== art)
+      }));
+    }
+  };
  
    const handleDateSelect = (date: Date | undefined) => {
      setBirthDate(date);
@@ -136,10 +143,10 @@
        return;
      }
  
-     if (!formData.martial_arts || formData.martial_arts.length === 0) {
+      if (!formData.discipline) {
        toast({
          title: "Error de validación",
-         description: "Selecciona al menos un arte marcial",
+          description: "Selecciona una disciplina de competencia",
          variant: "destructive",
        });
        return;
@@ -392,43 +399,22 @@
                </div>
  
                <div>
-                 <Label>Disciplina(s) de Competencia *</Label>
-                 <div className="space-y-3 mt-2">
-                   {ENABLED_DISCIPLINES.map((discipline) => (
-                     <div 
-                       key={discipline.value}
-                       className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                         formData.martial_arts?.includes(discipline.value) 
-                           ? 'border-primary bg-primary/5' 
-                           : 'hover:border-muted-foreground/30'
-                       }`}
-                       onClick={() => handleMartialArtsChange(discipline.value, !formData.martial_arts?.includes(discipline.value))}
-                     >
-                       <Checkbox
-                         id={`admin-${discipline.value}`}
-                         checked={formData.martial_arts?.includes(discipline.value) || false}
-                         onCheckedChange={(checked) => handleMartialArtsChange(discipline.value, checked as boolean)}
-                       />
-                       <div className="flex-1">
-                         <Label htmlFor={`admin-${discipline.value}`} className="text-sm font-medium cursor-pointer">
-                           {discipline.label}
-                         </Label>
-                         <p className="text-xs text-muted-foreground mt-1">
-                           {discipline.description}
-                         </p>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-                 {formData.martial_arts && formData.martial_arts.length > 0 && (
-                   <div className="flex flex-wrap gap-2 mt-3">
-                     {formData.martial_arts.map((art) => (
-                       <Badge key={art} variant="secondary">
-                         {ENABLED_DISCIPLINES.find(d => d.value === art)?.label || art}
-                       </Badge>
-                     ))}
-                   </div>
-                 )}
+                  <Label>Disciplina de Competencia *</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Define en qué ranking aparecerá el peleador
+                  </p>
+                  <Select value={formData.discipline || ''} onValueChange={handleDisciplineChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar disciplina" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ENABLED_DISCIPLINES.map((d) => (
+                        <SelectItem key={d.value} value={d.value}>
+                          {d.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                </div>
  
                <div>
@@ -524,7 +510,7 @@
                <div className="space-y-4 pt-4 border-t">
                  <h4 className="font-semibold text-sm text-muted-foreground">Récords por Disciplina</h4>
                  
-                 {formData.martial_arts?.includes('MMA') && (
+                  {formData.discipline === 'MMA' && (
                    <div className="p-4 border rounded-lg bg-muted/30">
                      <h4 className="font-semibold mb-3">Récord MMA</h4>
                      <div className="grid grid-cols-3 gap-4">
@@ -565,7 +551,7 @@
                    </div>
                  )}
  
-                 {formData.martial_arts?.includes('Boxeo') && (
+                  {formData.discipline === 'Boxeo' && (
                    <div className="p-4 border rounded-lg bg-muted/30">
                      <h4 className="font-semibold mb-3">Récord Boxeo</h4>
                      <div className="grid grid-cols-3 gap-4">
@@ -606,25 +592,74 @@
                    </div>
                  )}
  
-                 {(!formData.martial_arts || formData.martial_arts.length === 0) && (
+                  {!formData.discipline && (
                    <div className="text-center p-6 text-muted-foreground border rounded-lg border-dashed">
-                     Selecciona una disciplina para editar récords
+                      Selecciona una disciplina de competencia para editar récords
                    </div>
                  )}
                </div>
  
-               <div>
-                 <Label htmlFor="bio">Biografía</Label>
-                 <Textarea
-                   id="bio"
-                   value={formData.bio}
-                   onChange={(e) => handleChange('bio', e.target.value)}
-                   placeholder="Describe la trayectoria del peleador..."
-                   rows={4}
-                 />
-               </div>
              </CardContent>
            </Card>
+
+            {/* Training Arts Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Artes Marciales de Entrenamiento</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Artes que practica para su preparación (informativo)
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {MARTIAL_ARTS_TRAINING.map((art) => (
+                    <div
+                      key={art.value}
+                      className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all ${
+                        formData.martial_arts?.includes(art.value)
+                          ? 'border-primary bg-primary/5'
+                          : 'hover:border-muted-foreground/30'
+                      }`}
+                      onClick={() => handleTrainingArtsChange(art.value, !formData.martial_arts?.includes(art.value))}
+                    >
+                      <Checkbox
+                        id={`training-${art.value}`}
+                        checked={formData.martial_arts?.includes(art.value) || false}
+                        onCheckedChange={(checked) => handleTrainingArtsChange(art.value, checked as boolean)}
+                      />
+                      <Label htmlFor={`training-${art.value}`} className="text-sm cursor-pointer">
+                        {art.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                {formData.martial_arts && formData.martial_arts.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {formData.martial_arts.map((art) => (
+                      <Badge key={art} variant="secondary">
+                        {MARTIAL_ARTS_TRAINING.find(a => a.value === art)?.label || art}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Bio Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Biografía</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={(e) => handleChange('bio', e.target.value)}
+                  placeholder="Describe la trayectoria del peleador..."
+                  rows={4}
+                />
+              </CardContent>
+            </Card>
          </TabsContent>
        </Tabs>
  

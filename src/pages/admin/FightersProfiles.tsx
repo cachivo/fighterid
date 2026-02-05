@@ -17,6 +17,17 @@ import { WEIGHT_CLASSES, getWeightClassLabel, ENABLED_DISCIPLINES } from '@/lib/
 
 const PAGE_SIZE = 20;
 
+// Helper function to get correct record based on discipline
+const getRecordDisplay = (fighter: AdminFighterProfile) => {
+  if (fighter.discipline === 'MMA') {
+    return `${fighter.mma_record_wins || 0}-${fighter.mma_record_losses || 0}-${fighter.mma_record_draws || 0}`;
+  } else if (fighter.discipline === 'Boxeo') {
+    return `${fighter.boxeo_record_wins || 0}-${fighter.boxeo_record_losses || 0}-${fighter.boxeo_record_draws || 0}`;
+  }
+  // Fallback to legacy
+  return `${fighter.record_wins}-${fighter.record_losses}-${fighter.record_draws}`;
+};
+
 export default function FightersProfiles() {
   const navigate = useNavigate();
   const { fighters, loading, error, fetchFighters } = useAdminFighters();
@@ -276,7 +287,7 @@ export default function FightersProfiles() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Récord:</span>
                     <Badge variant="secondary">
-                      {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
+                      {getRecordDisplay(fighter)}
                     </Badge>
                   </div>
                   

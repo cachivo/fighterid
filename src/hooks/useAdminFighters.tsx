@@ -16,15 +16,24 @@ export interface AdminFighterProfile {
   gym_name?: string;
   bio?: string;
   avatar_url?: string;
+  // Legacy records (deprecated)
   record_wins: number;
   record_losses: number;
   record_draws: number;
+  // Discipline-specific records
+  mma_record_wins?: number;
+  mma_record_losses?: number;
+  mma_record_draws?: number;
+  boxeo_record_wins?: number;
+  boxeo_record_losses?: number;
+  boxeo_record_draws?: number;
   active: boolean;
   created_at: string;
   updated_at: string;
   user_id?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
-   level?: string;
+  level?: string;
+  martial_arts?: string[];
 }
 
 export interface AdminFighterFormData {
@@ -40,10 +49,18 @@ export interface AdminFighterFormData {
   gym_name?: string;
   bio?: string;
   avatar_url?: string;
+  discipline?: string;
   record_wins?: number;
   record_losses?: number;
   record_draws?: number;
-  
+  mma_record_wins?: number;
+  mma_record_losses?: number;
+  mma_record_draws?: number;
+  boxeo_record_wins?: number;
+  boxeo_record_losses?: number;
+  boxeo_record_draws?: number;
+  level?: string;
+  martial_arts?: string[];
 }
 
 export function useAdminFighters() {
