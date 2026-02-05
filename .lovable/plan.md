@@ -1,166 +1,151 @@
 
-# Auditoría Crítica: Sincronización Bidireccional + Uniformidad Visual
+# Plan: Sincronización Completa de Disciplina + Corrección Visual Final
 
-## HALLAZGOS DE LA AUDITORÍA
+## DIAGNÓSTICO DE LA AUDITORÍA
 
-### PROBLEMA CRÍTICO 1: Sincronización Unidireccional (INCOMPLETA)
-
-La sincronización actual es de **una sola vía**:
+### Hallazgo Crítico: Cambio de Disciplina No Sincronizado
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                    FLUJO ACTUAL DE SINCRONIZACIÓN                       │
+│                      INCOHERENCIA DETECTADA                             │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│  ┌──────────────────────┐         ┌──────────────────────┐              │
-│  │  fighter_profiles    │  ────►  │  fighter_rankings    │              │
-│  │  (Perfil del luchador)│   ✅   │  (Ranking)           │              │
-│  └──────────────────────┘         └──────────────────────┘              │
-│                                                                         │
-│  Funciona via: admin_update_fighter_profile (RPC)                       │
-│                                                                         │
-│  ┌──────────────────────┐         ┌──────────────────────┐              │
-│  │  fighter_rankings    │  ────►  │  fighter_profiles    │              │
-│  │  (Ranking)           │   ❌    │  (Perfil del luchador)│              │
-│  └──────────────────────┘         └──────────────────────┘              │
-│                                                                         │
-│  NO EXISTE: update_fighter_ranking_level NO sincroniza                  │
+│  PELEADOR          │ PERFIL      │ RANKING ACTUAL  │ ESPERADO          │
+│  ─────────────────────────────────────────────────────────────────────  │
+│  Moises Cardenas   │ Boxeo       │ UCC_MMA (MMA)   │ BDG_PRO o HHF     │
+│  Willis Yang       │ Boxeo       │ UCC_MMA (MMA)   │ BDG_PRO o HHF     │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Código de la función `update_fighter_ranking_level` actual:
+### Causa Raíz
 
-```sql
--- SOLO actualiza fighter_rankings, NO toca fighter_profiles
-UPDATE public.fighter_rankings
-SET level = p_new_level
-WHERE id = p_ranking_id;
--- ❌ Falta: UPDATE fighter_profiles SET level = p_new_level WHERE id = fighter_id
-```
+La función `admin_update_fighter_profile` sincroniza:
+- ✅ `level` → fighter_rankings
+- ✅ `weight_class` → fighter_rankings  
+- ❌ `discipline` → **NO SINCRONIZA** (rankings incompatibles permanecen activos)
 
-### Matriz de Puntos de Edición Auditada
+### Organizaciones Disponibles
 
-| Módulo | Acción | Tabla Primaria | ¿Sync a Profiles? | ¿Sync a Rankings? |
-|--------|--------|----------------|-------------------|-------------------|
-| **Perfiles de Peleadores** → Editar (Tab Combate) | Cambiar nivel | fighter_profiles | N/A | ✅ Sí |
-| **Perfiles de Peleadores** → Editar (Tab Combate) | Cambiar peso | fighter_profiles | N/A | ✅ Sí |
-| **Perfiles de Peleadores** → Editar (Tab Ligas) | Cambiar nivel | fighter_rankings | ❌ NO | N/A |
-| **Gestión de Rankings** → Ajustar Puntos | Solo puntos | fighter_rankings | N/A | N/A |
-| **Gestión de Rankings** → Agregar Peleador | Inscribir | fighter_rankings | ❌ NO | N/A |
-
----
-
-### PROBLEMA 2: Layout de Tarjetas No Uniforme
-
-**Código actual (líneas 232-239):**
-```tsx
-<div className="min-h-[3rem]">  // ❌ min-h permite expansión
-  <CardTitle className="text-lg leading-tight">
-    {fighter.first_name} {fighter.last_name}  // ❌ Sin límite de líneas
-  </CardTitle>
-  <p className="text-sm text-muted-foreground h-5">
-    {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
-  </p>
-</div>
-```
-
-**Problema visual identificado:**
-
-```text
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Dayan           │  │ Eduardo Enrique │  │ Erick           │
-│ Mercado         │  │ Godoy           │  │ Tzoc            │
-│                 │  │ Velasquez       │  │ "Super zod"     │
-│ [Completitud]   │  │                 │  │                 │
-├─────────────────┤  │ [Completitud]   │  │ [Completitud]   │
-│ Récord: 4-3-0   │  ├─────────────────┤  ├─────────────────┤
-│ Peso: 185 lbs   │  │ Récord: 0-1-0   │  │ Récord: 3-1-0   │
-└─────────────────┘  │ Peso: 125 lbs   │  │ Peso: 155 lbs   │
-     ↑               └─────────────────┘  └─────────────────┘
-   Corto                  ↑ Más alto           ↑ Normal
-                     (4 palabras = 3 líneas)
-```
+| Código | Disciplina | Niveles Permitidos |
+|--------|------------|-------------------|
+| UCC_MMA | MMA | Amateur, Semi-profesional, Profesional |
+| BDG_PRO | Boxeo | Profesional, Semi-profesional |
+| HHF_AMATEUR | Boxeo | Amateur |
 
 ---
 
 ## SOLUCIÓN PROPUESTA
 
-### Parte 1: Sincronización Bidireccional Completa
+### Parte 1: Actualizar RPC para Sincronizar Disciplina
 
-**Modificar la función `update_fighter_ranking_level` para sincronizar INVERSAMENTE:**
+Modificar `admin_update_fighter_profile` para:
+
+1. **Detectar cambio de disciplina**
+2. **Desactivar rankings incompatibles** (donde la disciplina de la organización no coincide)
+3. **Inscribir automáticamente** en la organización correcta según disciplina + nivel
 
 ```sql
-CREATE OR REPLACE FUNCTION public.update_fighter_ranking_level(
-  p_ranking_id uuid, 
-  p_new_level text
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-DECLARE
-  v_fighter_id UUID;
-  v_organization_id UUID;
-  v_allowed_levels TEXT[];
-BEGIN
-  -- [Validaciones existentes...]
+-- Nueva lógica cuando cambia discipline:
+IF p_profile_data ? 'discipline' THEN
+  -- 1. Obtener nueva disciplina y nivel actual
+  v_new_discipline := p_profile_data->>'discipline';
+  SELECT level INTO v_current_level FROM fighter_profiles WHERE id = p_fighter_id;
   
-  -- Obtener fighter_id del ranking
-  SELECT fighter_id, organization_id INTO v_fighter_id, v_organization_id
-  FROM public.fighter_rankings
-  WHERE id = p_ranking_id;
-
-  -- Actualizar ranking
-  UPDATE public.fighter_rankings
-  SET level = p_new_level
-  WHERE id = p_ranking_id;
-
-  -- ✅ NUEVO: Sincronizar a fighter_profiles
-  UPDATE public.fighter_profiles
-  SET level = p_new_level, updated_at = now()
-  WHERE id = v_fighter_id;
-END;
-$$;
+  -- 2. Desactivar rankings de organizaciones con disciplina diferente
+  UPDATE fighter_rankings fr
+  SET is_active = false, updated_at = now()
+  FROM ranking_organizations ro
+  WHERE fr.organization_id = ro.id
+    AND fr.fighter_id = p_fighter_id
+    AND fr.is_active = true
+    AND ro.discipline != v_new_discipline;
+  
+  -- 3. Inscribir automáticamente en organización correcta
+  -- MMA → UCC_MMA
+  -- Boxeo Amateur → HHF_AMATEUR
+  -- Boxeo Pro/Semi → BDG_PRO
+  v_target_org := CASE
+    WHEN v_new_discipline = 'MMA' THEN 'UCC_MMA'
+    WHEN v_new_discipline = 'Boxeo' AND v_current_level = 'Amateur' THEN 'HHF_AMATEUR'
+    WHEN v_new_discipline = 'Boxeo' THEN 'BDG_PRO'
+    ELSE NULL
+  END;
+  
+  -- 4. Insertar si no existe ranking activo en la nueva org
+  IF v_target_org IS NOT NULL THEN
+    INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points)
+    SELECT p_fighter_id, ro.id, v_current_level, fp.weight_class, 0
+    FROM ranking_organizations ro, fighter_profiles fp
+    WHERE ro.code = v_target_org AND fp.id = p_fighter_id
+    ON CONFLICT DO NOTHING;
+  END IF;
+END IF;
 ```
 
-### Parte 2: Layout Uniforme con Altura Fija
+### Parte 2: Corregir Datos Existentes (One-time fix)
 
-**Nuevo código para tarjetas:**
+```sql
+-- Desactivar rankings incompatibles para Moises y Willis
+UPDATE fighter_rankings fr
+SET is_active = false, updated_at = now()
+FROM fighter_profiles fp, ranking_organizations ro
+WHERE fr.fighter_id = fp.id
+  AND fr.organization_id = ro.id
+  AND fr.is_active = true
+  AND fp.discipline::text != ro.discipline;
+
+-- Inscribir en organizaciones correctas según disciplina + nivel
+INSERT INTO fighter_rankings (fighter_id, organization_id, weight_class, level, points)
+SELECT 
+  fp.id,
+  ro.id,
+  fp.weight_class,
+  fp.level,
+  0
+FROM fighter_profiles fp
+CROSS JOIN ranking_organizations ro
+WHERE fp.discipline::text = ro.discipline
+  AND fp.level = ANY(ro.allowed_levels)
+  AND NOT EXISTS (
+    SELECT 1 FROM fighter_rankings fr 
+    WHERE fr.fighter_id = fp.id 
+    AND fr.organization_id = ro.id 
+    AND fr.is_active = true
+  )
+  -- Solo para peleadores que tienen disciplina pero no ranking correcto
+  AND fp.discipline IS NOT NULL
+  AND EXISTS (
+    SELECT 1 FROM fighter_rankings fr2
+    JOIN ranking_organizations ro2 ON fr2.organization_id = ro2.id
+    WHERE fr2.fighter_id = fp.id AND ro2.discipline != fp.discipline::text
+  );
+```
+
+### Parte 3: Corregir Layout de Tarjetas (Altura Fija Real)
+
+El fix anterior usó `h-[3.5rem]` pero no es suficiente para nombres largos. Necesitamos:
 
 ```tsx
+// ANTES (insuficiente):
 <div className="h-[3.5rem] flex flex-col justify-start overflow-hidden">
-  <CardTitle className="text-lg leading-tight line-clamp-2">
+
+// DESPUÉS (solución robusta):
+<div className="h-14 flex flex-col justify-center">
+  <CardTitle className="text-base font-semibold leading-tight line-clamp-1">
     {fighter.first_name} {fighter.last_name}
   </CardTitle>
-  <p className="text-sm text-muted-foreground truncate">
+  <p className="text-sm text-muted-foreground truncate mt-0.5">
     {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
   </p>
 </div>
 ```
 
 **Cambios clave:**
-- `h-[3.5rem]` en lugar de `min-h-[3rem]` - altura FIJA
-- `line-clamp-2` - limita nombre a máximo 2 líneas
-- `truncate` - corta apodo con "..." si es muy largo
-- `overflow-hidden` - previene desbordamiento
-
-**Resultado esperado:**
-
-```text
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Dayan           │  │ Eduardo Enrique │  │ Erick           │
-│ Mercado         │  │ Godoy Velas...  │  │ Tzoc            │
-│                 │  │                 │  │ "Super zod"     │
-├─────────────────┤  ├─────────────────┤  ├─────────────────┤
-│ [Completitud]   │  │ [Completitud]   │  │ [Completitud]   │
-│ Récord: 4-3-0   │  │ Récord: 0-1-0   │  │ Récord: 3-1-0   │
-│ Peso: 185 lbs   │  │ Peso: 125 lbs   │  │ Peso: 155 lbs   │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-      ↑                    ↑                    ↑
-   UNIFORMES - Misma altura en todas las tarjetas
-```
+- `h-14` (56px) - altura fija estandarizada
+- `line-clamp-1` - limita nombre a UNA sola línea (trunca con ...)
+- `text-base` en lugar de `text-lg` - reduce tamaño para mejor fit
+- `justify-center` - centra verticalmente cuando hay poco texto
 
 ---
 
@@ -168,91 +153,80 @@ $$;
 
 | Archivo | Cambio | Criticidad |
 |---------|--------|------------|
-| **Nueva migración SQL** | Modificar `update_fighter_ranking_level` para sync bidireccional | CRÍTICA |
-| `src/pages/admin/FightersProfiles.tsx` | Aplicar altura fija y line-clamp al área de nombre | ALTA |
-| `src/hooks/useFighterRankingMembership.tsx` | Invalidar query `fighters` tras cambio de nivel | MEDIA |
+| **Nueva migración SQL** | Actualizar RPC + fix de datos existentes | CRÍTICA |
+| `src/pages/admin/FightersProfiles.tsx` | Aplicar altura fija h-14 y line-clamp-1 | ALTA |
+
+---
+
+## FLUJO VISUAL POST-IMPLEMENTACIÓN
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│     ANTES DE CAMBIAR DISCIPLINA (Perfil: MMA, Ranking: UCC_MMA)        │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  fighter_profiles          fighter_rankings                             │
+│  ┌─────────────────┐      ┌─────────────────────────────┐               │
+│  │ discipline: MMA │      │ UCC_MMA (MMA) - is_active: ✓ │              │
+│  │ level: Amateur  │      │ points: 100                  │              │
+│  └─────────────────┘      └─────────────────────────────┘               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+                              ▼ Admin cambia disciplina a Boxeo ▼
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│    DESPUÉS DE CAMBIAR DISCIPLINA (Perfil: Boxeo, Ranking: HHF_AMATEUR) │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  fighter_profiles          fighter_rankings                             │
+│  ┌───────────────────┐    ┌─────────────────────────────┐               │
+│  │ discipline: Boxeo │    │ UCC_MMA (MMA) - is_active: ✗ │ ← Desactivado│
+│  │ level: Amateur    │    │ points: 100 (preservado)    │               │
+│  └───────────────────┘    ├─────────────────────────────┤               │
+│                           │ HHF_AMATEUR (Boxeo) - ✓     │ ← Nuevo       │
+│                           │ points: 0 (inicio)          │               │
+│                           └─────────────────────────────┘               │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## VERIFICACIÓN POST-IMPLEMENTACIÓN
 
-### Test 1: Sincronización Bidireccional
-1. Ir a **Perfiles de Peleadores** → Abrir peleador → Pestaña **Ligas**
-2. Hacer clic en "Nivel" y cambiar de Amateur a Semi-profesional
-3. Verificar que en **fighter_profiles.level** también cambió
-4. Verificar que en la tarjeta del peleador muestra el nuevo nivel
+### Test 1: Sincronización de Disciplina
+1. Abrir perfil de **Moises Cardenas** en Perfiles de Peleadores
+2. Verificar que ahora aparece en **BDG Pro** o **HHF Amateur** (según su nivel)
+3. Verificar que YA NO aparece en **UCC MMA**
 
-### Test 2: Uniformidad Visual
-1. Verificar que todas las tarjetas tienen la misma altura
-2. Verificar que nombres largos se truncan correctamente con "..."
-3. Verificar que apodos largos se truncan correctamente
+### Test 2: Cambio de Disciplina en Vivo
+1. Seleccionar un peleador con disciplina MMA
+2. Cambiar disciplina a Boxeo desde tab Combate
+3. Verificar automáticamente:
+   - Ranking de MMA se desactiva
+   - Se crea ranking en organización de Boxeo correcta
 
----
+### Test 3: Uniformidad Visual
+1. Verificar que TODAS las tarjetas tienen exactamente la misma altura
+2. Verificar que nombres largos se truncan con "..."
 
-## SECCIÓN TÉCNICA: Detalles de Migración SQL
-
+### Query de Validación
 ```sql
--- Actualizar función RPC para sincronización bidireccional
-DROP FUNCTION IF EXISTS public.update_fighter_ranking_level(uuid, text);
-
-CREATE FUNCTION public.update_fighter_ranking_level(
-  p_ranking_id uuid,
-  p_new_level text
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $$
-DECLARE
-  v_is_admin BOOLEAN;
-  v_fighter_id UUID;
-  v_organization_id UUID;
-  v_allowed_levels TEXT[];
-BEGIN
-  -- Verificar admin
-  SELECT is_admin INTO v_is_admin FROM public.app_user WHERE auth_user_id = auth.uid();
-  IF NOT COALESCE(v_is_admin, false) THEN
-    RAISE EXCEPTION 'Unauthorized: Only admins can update ranking levels';
-  END IF;
-
-  -- Obtener fighter_id y organization_id
-  SELECT fighter_id, organization_id INTO v_fighter_id, v_organization_id
-  FROM public.fighter_rankings
-  WHERE id = p_ranking_id;
-
-  IF v_fighter_id IS NULL THEN
-    RAISE EXCEPTION 'Ranking entry not found: %', p_ranking_id;
-  END IF;
-
-  -- Validar nivel permitido
-  SELECT allowed_levels INTO v_allowed_levels
-  FROM public.ranking_organizations
-  WHERE id = v_organization_id;
-
-  IF NOT (p_new_level = ANY(v_allowed_levels)) THEN
-    RAISE EXCEPTION 'Level "%" is not allowed for this organization', p_new_level;
-  END IF;
-
-  -- Actualizar ranking
-  UPDATE public.fighter_rankings
-  SET level = p_new_level, updated_at = now()
-  WHERE id = p_ranking_id;
-
-  -- ✅ SINCRONIZACIÓN BIDIRECCIONAL: Actualizar perfil
-  UPDATE public.fighter_profiles
-  SET level = p_new_level, updated_at = now()
-  WHERE id = v_fighter_id;
-END;
-$$;
+-- Debe devolver 0 filas si todo está coherente
+SELECT fp.first_name, fp.discipline::text, ro.discipline as ranking_org
+FROM fighter_profiles fp
+JOIN fighter_rankings fr ON fp.id = fr.fighter_id AND fr.is_active = true
+JOIN ranking_organizations ro ON fr.organization_id = ro.id
+WHERE fp.discipline::text != ro.discipline;
 ```
 
 ---
 
 ## RESUMEN DE CAMBIOS
 
-1. ✅ Sincronización Rankings → Profiles (nueva)
-2. ✅ Mantener sincronización Profiles → Rankings (existente)  
-3. ✅ Altura fija para tarjetas de peleadores
-4. ✅ Truncamiento de nombres/apodos largos
-5. ✅ Invalidación de cache adicional en hooks
+1. ✅ Sincronización automática de disciplina (nueva funcionalidad)
+2. ✅ Desactivación de rankings incompatibles al cambiar disciplina
+3. ✅ Inscripción automática en organización correcta
+4. ✅ Fix de datos existentes (Moises, Willis)
+5. ✅ Layout uniforme con altura fija y truncamiento
