@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,9 +14,11 @@ import { useOrganizationRanking } from '@/hooks/useOrganizationRanking';
 import { PointAdjustmentModal } from '@/components/admin/PointAdjustmentModal';
 import { EnrollFighterModal } from '@/components/admin/EnrollFighterModal';
 import { getWeightClassLabel } from '@/lib/constants/disciplines';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
+  const queryClient = useQueryClient();
   const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
   const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
@@ -29,6 +31,16 @@ export default function RankingsManagement() {
     currentPoints: number;
   } | null>(null);
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+
+  // Listen for fighter profile updates to refresh rankings
+  useEffect(() => {
+    const handleFighterUpdate = () => {
+      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+    };
+    
+    window.addEventListener('admin-fighter-updated', handleFighterUpdate);
+    return () => window.removeEventListener('admin-fighter-updated', handleFighterUpdate);
+  }, [queryClient]);
 
   const { data: rankingData, isLoading: loadingRanking } = useOrganizationRanking(
     selectedOrg,

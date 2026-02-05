@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { getPublicFighterFieldsSelect } from '@/lib/fighterDataFilter';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface FighterProfile {
   id: string;
@@ -170,6 +170,7 @@ export function useFighterProfiles() {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const fetchFighters = useCallback(async (includeInactive = false) => {
     try {
@@ -435,6 +436,10 @@ export function useFighterProfiles() {
         title: "Éxito",
         description: "Perfil de peleador actualizado correctamente.",
       });
+
+      // Invalidate ranking queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+      queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
 
       // Refrescar la lista para mostrar los cambios
       await fetchFighters();
