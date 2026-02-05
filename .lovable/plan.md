@@ -1,210 +1,298 @@
 
-# Plan: Sincronizar Cambios de Perfil con Gestión de Rankings
 
-## Problema Identificado
+# Auditoria Completa: Backend, Frontend y Escalabilidad
 
-Existe una **desconexión entre dos sistemas**:
+## Resumen Ejecutivo
+
+He realizado una auditoria exhaustiva del sistema Fighter ID, identificando **41 issues de seguridad**, inconsistencias entre frontend y backend, y areas que requieren optimizacion para crecimiento exponencial.
+
+---
+
+## PARTE 1: PROBLEMAS DE SEGURIDAD (Backend)
+
+### 1.1 Issues Criticos del Linter de Supabase
+
+| Categoria | Cantidad | Severidad |
+|-----------|----------|-----------|
+| RLS Policy Always True | 27 | WARN |
+| Function Search Path Mutable | 9 | WARN |
+| Security Definer View | 1 | ERROR |
+| Extension in Public | 1 | WARN |
+| Auth OTP Long Expiry | 1 | WARN |
+| Leaked Password Protection | 1 | WARN |
+| Postgres Security Patches | 1 | WARN |
+
+### 1.2 Politicas RLS Permisivas Detectadas
+
+Las siguientes tablas tienen politicas `WITH CHECK (true)` que permiten escritura sin restricciones:
 
 ```text
-GESTIÓN DE PERFILES                    GESTIÓN DE RANKINGS
-┌─────────────────────┐               ┌─────────────────────┐
-│ fighter_profiles    │               │ fighter_rankings    │
-│ ├── discipline: MMA │ ──NO SYNC──→ │ ├── organization_id │
-│ └── level: Amateur  │               │ └── level: Amateur  │
-└─────────────────────┘               └─────────────────────┘
+- ai_inference_logs (INSERT: true)
+- ai_strike_events (INSERT: true)
+- audit_log (INSERT: true)
+- app_user (INSERT: true)
+- + 24 tablas adicionales
 ```
 
-**Cuando cambias disciplina de MMA a Boxeo en el perfil:**
-- Se actualiza `fighter_profiles.discipline` = 'Boxeo'
-- Las membresías en `fighter_rankings` quedan sin cambios
-- El cache de React Query (`organization-ranking`) no se invalida
-- El peleador sigue apareciendo en ranking de MMA
+**Riesgo**: Cualquier usuario autenticado podria insertar datos maliciosos.
+
+### 1.3 Funciones sin Search Path Seguro
+
+9 funciones RPC no tienen `SET search_path = public`, lo que las hace vulnerables a ataques de inyeccion de schema:
+
+```sql
+-- Ejemplo de funcion vulnerable
+CREATE FUNCTION some_function()
+RETURNS void AS $$
+  -- Sin search_path definido
+$$ LANGUAGE plpgsql;
+
+-- Correccion necesaria
+CREATE FUNCTION some_function()
+RETURNS void 
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  -- Codigo seguro
+$$ LANGUAGE plpgsql;
+```
+
+### 1.4 Configuracion de Auth Insegura
+
+- **OTP Expiry**: 3600 segundos (1 hora) - Deberia ser 300-600s
+- **Leaked Password Protection**: DESHABILITADA - Permitir
 
 ---
 
-## Solución Propuesta
+## PARTE 2: INCONSISTENCIAS FRONTEND-BACKEND
 
-### Opción A: Invalidar Cache de Rankings (Mínimo)
+### 2.1 Flujo de Onboarding vs Sistema de Rankings
 
-Después de actualizar un perfil, invalidar los queries de rankings para forzar refetch.
+**Problema Principal**: El onboarding del usuario (LicenseOnboarding.tsx) NO inscribe automaticamente al peleador en ningun ranking.
 
-**Archivo:** `src/hooks/useFighterProfiles.tsx`
+```text
+FLUJO ACTUAL (INCORRECTO):
+1. Usuario completa onboarding
+2. Se llama create_fighter_profile_with_license()
+3. Se crea fighter_profile + fighter_licenses
+4. ❌ NO se crea fighter_rankings
+5. Peleador NO aparece en rankings
 
-```typescript
-// Importar queryClient
-import { useQueryClient } from '@tanstack/react-query';
-
-const adminUpdateFighterProfile = async (...) => {
-  // ... código existente ...
-  
-  // NUEVO: Invalidar queries de rankings
-  queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-  queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
-  
-  return true;
-};
+FLUJO ESPERADO:
+1. Usuario completa onboarding
+2. Se crea perfil + licencia
+3. ✅ Se crea fighter_rankings segun disciplina seleccionada
+4. Peleador aparece en ranking correspondiente
 ```
 
-### Opción B: Sincronización Automática (Recomendada)
+**Archivo afectado**: `src/hooks/useOptimizedOnboarding.ts`
 
-Cuando se cambia la disciplina del perfil, **migrar automáticamente las membresías de ranking** a la nueva disciplina/organización.
+**Lineas 78-106**: La funcion RPC `create_fighter_profile_with_license` no llama a `enroll_fighter_in_ranking`.
 
-**Lógica:**
-1. Si disciplina cambia de MMA → Boxeo:
-   - Desactivar membresías en organizaciones MMA (UCC_MMA)
-   - Crear/reactivar membresías en organizaciones Boxeo (BDG_PRO, HHF_AMATEUR)
-   - Mantener el nivel y categoría de peso
+### 2.2 Manejo de Records por Disciplina
 
-**Nuevo archivo:** `src/utils/syncDisciplineToRankings.ts`
+**Problema**: El onboarding maneja records de forma inconsistente con el admin panel.
+
+| Componente | Campo de Records | Logica |
+|------------|------------------|--------|
+| LicenseOnboarding | `amateurWins/proWins` | Segun `level` |
+| AdminFighterForm | `mma_record_wins/boxeo_record_wins` | Segun `discipline` |
+| useOptimizedOnboarding | `p_record_wins` (legacy) | Campo unico |
+| LicenseDashboard | `record_wins` (legacy) | Muestra legacy |
+
+**Solucion Necesaria**: Unificar logica para que:
+- Records MMA se guarden en `mma_record_*`
+- Records Boxeo se guarden en `boxeo_record_*`
+- El `level` define Amateur/Pro, no la estructura de datos
+
+### 2.3 Campo `discipline` vs `martialArts`
 
 ```typescript
-export async function syncDisciplineToRankings(
-  fighterId: string,
-  newDiscipline: 'MMA' | 'Boxeo',
-  weightClass: string,
-  level: string
-) {
-  // 1. Obtener membresías actuales
-  // 2. Desactivar las de disciplina anterior
-  // 3. Crear/activar en disciplina nueva
-}
+// LicenseOnboarding.tsx - Linea 62-64
+const discipline = formData.martialArts[0] || 'MMA';
+// Toma el primer arte marcial como disciplina
+
+// AdminFighterForm.tsx - Usa campo separado
+formData.discipline = 'MMA'; // Campo independiente
+formData.martial_arts = ['MuayThai', 'JiuJitsu']; // Artes de entrenamiento
 ```
+
+**Problema**: El onboarding mezcla conceptos. Si usuario selecciona MMA + Boxeo, el sistema solo usa el primero.
 
 ---
 
-## Cambios Requeridos
+## PARTE 3: OPTIMIZACION MOVIL
 
-### Archivo 1: `src/hooks/useFighterProfiles.tsx`
+### 3.1 Estado Actual de Optimizacion
 
-**Cambios:**
-1. Importar `useQueryClient` de React Query
-2. Después de `adminUpdateFighterProfile` exitoso:
-   - Invalidar `['organization-ranking']`
-   - Invalidar `['fighter-active-leagues']`
-   - Invalidar `['admin-fighters']` si existe
+**Archivos con buena optimizacion movil (18 archivos)**:
+- `LicenseOnboarding.tsx` - Botones con min-h-[44px]
+- `LicenseDashboard.tsx` - Responsive completo
+- `UserFighterProfileEditForm.tsx` - Touch targets correctos
+- `ErrorBoundary.tsx` - Botones accesibles
 
-### Archivo 2: `src/hooks/useAdminFighters.tsx`
+### 3.2 Areas que Requieren Mejoras
 
-**Cambios:**
-1. Convertir a React Query para mejor manejo de cache
-2. O agregar invalidación de otros queries después de update
+| Archivo | Problema | Linea |
+|---------|----------|-------|
+| `AdminFighterForm.tsx` | Submit button sin min-h-[44px] | ~200 |
+| `FighterEditModal.tsx` | Footer no sticky | ~950 |
+| `FightersProfiles.tsx` | Botones de accion pequenos | 242-272 |
+| `RankingsManagement.tsx` | Select triggers pequenos | ~160 |
 
-### Archivo 3: `src/components/admin/FighterEditModal.tsx`
-
-**Cambios:**
-1. Agregar advertencia visual cuando se cambia disciplina:
-   ```
-   ⚠️ Cambiar la disciplina NO actualiza automáticamente las membresías de ranking.
-   Ve a la pestaña "Ligas" del peleador para ajustar sus membresías.
-   ```
-
-### Archivo 4: `src/pages/admin/RankingsManagement.tsx`
-
-**Cambios:**
-1. Escuchar evento `admin-fighter-updated`
-2. Invalidar query de rankings cuando se recibe el evento
-
----
-
-## Implementación Detallada
-
-### Paso 1: Invalidación de Cache (Inmediato)
-
-```typescript
-// En useFighterProfiles.tsx
-import { useQueryClient } from '@tanstack/react-query';
-
-export function useFighterProfiles() {
-  const queryClient = useQueryClient();
-  
-  const adminUpdateFighterProfile = async (fighterId, profileData) => {
-    // ... código existente ...
-    
-    // Después de éxito:
-    queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-    queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues', fighterId] });
-    
-    return true;
-  };
-}
-```
-
-### Paso 2: Advertencia en UI
+### 3.3 Correcciones Necesarias
 
 ```tsx
-// En FighterEditModal.tsx, sección de disciplina
-{formData.discipline !== fighter.discipline && (
-  <div className="bg-amber-50 border border-amber-200 rounded-md p-3 text-sm">
-    <p className="font-medium text-amber-800">
-      ⚠️ Cambio de disciplina detectado
-    </p>
-    <p className="text-amber-700">
-      Las membresías de ranking existentes no se modificarán automáticamente.
-      Utiliza la pestaña "Ligas" para gestionar los rankings del peleador.
-    </p>
-  </div>
-)}
+// Antes (incorrecto)
+<Button type="submit">Guardar</Button>
+
+// Despues (correcto)
+<Button 
+  type="submit"
+  className="min-h-[44px] touch-manipulation"
+>
+  Guardar
+</Button>
+
+// Footer sticky para modales largos
+<div className="sticky bottom-0 bg-background pt-4 border-t">
+  <Button className="min-h-[44px] w-full touch-manipulation">
+    Guardar Cambios
+  </Button>
+</div>
 ```
 
-### Paso 3: Listener en RankingsManagement
+---
 
-```tsx
-// En RankingsManagement.tsx
-import { useQueryClient } from '@tanstack/react-query';
+## PARTE 4: ESCALABILIDAD
 
-export default function RankingsManagement() {
-  const queryClient = useQueryClient();
-  
-  useEffect(() => {
-    const handleFighterUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-    };
-    
-    window.addEventListener('admin-fighter-updated', handleFighterUpdate);
-    return () => window.removeEventListener('admin-fighter-updated', handleFighterUpdate);
-  }, [queryClient]);
-}
+### 4.1 Indices Existentes (Positivo)
+
+La base de datos tiene buenos indices para consultas frecuentes:
+
+```sql
+-- Fighter profiles
+idx_fighter_profiles_active (active WHERE active = true)
+idx_fighter_profiles_search (first_name, last_name, license_number)
+idx_fighter_profiles_martial_arts (GIN index para arrays)
+
+-- Fighter rankings
+idx_fighter_rankings_active_ranking
+idx_fighter_rankings_org_level_weight
+
+-- User roles
+user_roles_user_id_role_key (UNIQUE)
 ```
+
+### 4.2 Indices Faltantes Recomendados
+
+```sql
+-- Para busquedas por disciplina + nivel
+CREATE INDEX idx_fighter_profiles_discipline_level 
+ON fighter_profiles(discipline, level) 
+WHERE active = true;
+
+-- Para consultas de ranking por organizacion
+CREATE INDEX idx_fighter_rankings_points_desc 
+ON fighter_rankings(organization_id, points DESC) 
+WHERE is_active = true;
+
+-- Para busquedas de licencias activas
+CREATE INDEX idx_fighter_licenses_active 
+ON fighter_licenses(fighter_id, status) 
+WHERE status = 'ACTIVE';
+```
+
+### 4.3 Consultas sin Paginacion
+
+**Archivos que necesitan paginacion del lado del servidor**:
+
+| Archivo | Query | Recomendacion |
+|---------|-------|---------------|
+| `useFighterProfiles.tsx` | `select('*')` sin limit | Agregar `.range(0, 50)` |
+| `useOrganizationRanking.tsx` | Carga todos los rankings | Paginacion por 100 |
+| `useCoaches.tsx` | `select('*')` | Limit de 100 |
+
+---
+
+## PARTE 5: PLAN DE CORRECCION
+
+### Fase 1: Seguridad Backend (Prioridad CRITICA)
+
+1. **Migrar funciones con search_path inseguro** (9 funciones)
+2. **Revisar y endurecer politicas RLS** con `WITH CHECK (true)`
+3. **Reducir OTP expiry** a 600 segundos
+4. **Habilitar leaked password protection**
+
+### Fase 2: Sincronizacion Frontend-Backend (Prioridad ALTA)
+
+1. **Modificar `useOptimizedOnboarding.ts`**:
+   - Agregar seleccion de liga inicial en onboarding
+   - Llamar `enroll_fighter_in_ranking` despues de crear perfil
+
+2. **Actualizar `create_fighter_profile_with_license`**:
+   - Agregar parametros de organizacion inicial
+   - Crear registro en `fighter_rankings` automaticamente
+
+3. **Unificar manejo de records**:
+   - Modificar onboarding para guardar en campos `mma_record_*` o `boxeo_record_*`
+   - Actualizar `LicenseDashboard` para mostrar records por disciplina
+
+### Fase 3: Optimizacion Movil (Prioridad MEDIA)
+
+1. Agregar `min-h-[44px] touch-manipulation` a todos los botones de accion
+2. Implementar sticky footers en modales largos
+3. Aumentar touch targets en select triggers
+
+### Fase 4: Escalabilidad (Prioridad MEDIA)
+
+1. Crear indices recomendados
+2. Implementar paginacion del servidor en hooks de datos masivos
+3. Agregar cache con React Query staleTime configurado
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio | Prioridad |
-|---------|--------|-----------|
-| `src/hooks/useFighterProfiles.tsx` | Invalidar queries de rankings | Alta |
-| `src/pages/admin/RankingsManagement.tsx` | Listener para refrescar datos | Alta |
-| `src/components/admin/FighterEditModal.tsx` | Advertencia visual de cambio de disciplina | Media |
+| Archivo | Tipo de Cambio | Prioridad |
+|---------|----------------|-----------|
+| Nueva migracion SQL | Indices + RLS | CRITICA |
+| `src/hooks/useOptimizedOnboarding.ts` | Liga inicial + records | ALTA |
+| `src/pages/license/LicenseOnboarding.tsx` | UI liga + records por disciplina | ALTA |
+| `src/pages/license/LicenseDashboard.tsx` | Mostrar records por disciplina | ALTA |
+| `src/components/admin/AdminFighterForm.tsx` | Touch targets | MEDIA |
+| `src/components/admin/FighterEditModal.tsx` | Sticky footer | MEDIA |
+| `src/pages/admin/FightersProfiles.tsx` | Touch targets | MEDIA |
+| `src/hooks/useFighterProfiles.tsx` | Paginacion servidor | MEDIA |
 
 ---
 
-## Flujo Corregido
+## Seccion Tecnica: Migracion SQL Propuesta
 
-```text
-ANTES (Problema):
-1. Admin cambia disciplina MMA → Boxeo en perfil
-2. Se guarda en fighter_profiles
-3. RankingsManagement muestra cache viejo
-4. Peleador sigue en ranking MMA
+```sql
+-- 1. Indices de escalabilidad
+CREATE INDEX CONCURRENTLY idx_fighter_profiles_discipline_level 
+ON fighter_profiles(discipline, level) WHERE active = true;
 
-DESPUÉS (Solución):
-1. Admin cambia disciplina MMA → Boxeo en perfil
-2. Se guarda en fighter_profiles
-3. Se invalida cache de organization-ranking
-4. RankingsManagement hace refetch
-5. Admin ve advertencia de ajustar membresías
-6. Admin va a tab "Ligas" y ajusta manualmente
+CREATE INDEX CONCURRENTLY idx_fighter_rankings_points_desc 
+ON fighter_rankings(organization_id, points DESC) WHERE is_active = true;
+
+-- 2. Actualizar funciones con search_path seguro
+ALTER FUNCTION create_fighter_profile_with_license(...)
+SET search_path = public;
+
+-- 3. Agregar inscripcion a ranking en la funcion de onboarding
+-- (Modificar create_fighter_profile_with_license para aceptar p_organization_code)
 ```
 
 ---
 
-## Aclaración Arquitectónica
+## Metricas de Exito
 
-El campo `discipline` en `fighter_profiles` es **informativo/preferencia**. El sistema real de rankings se basa en `fighter_rankings.organization_id`.
+| Metrica | Actual | Objetivo |
+|---------|--------|----------|
+| Issues de seguridad | 41 | 0 |
+| Botones con touch target correcto | ~70% | 100% |
+| Queries paginadas | ~30% | 100% |
+| Peleadores inscritos en ranking automaticamente | 0% | 100% |
 
-**Esto significa:**
-- Un peleador puede tener `discipline: 'MMA'` pero estar inscrito en rankings de Boxeo
-- El cambio de disciplina del perfil es una preferencia, no una migración automática
-- Las membresías de ranking se gestionan independientemente en el tab "Ligas"
-
-Esta separación es intencional para permitir flexibilidad (peleadores en múltiples disciplinas).
