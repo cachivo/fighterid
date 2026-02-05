@@ -17,6 +17,7 @@ import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { AlertTriangle } from 'lucide-react';
 
 import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES } from '@/lib/constants/disciplines';
 
@@ -661,6 +662,24 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                       <p className="text-xs text-muted-foreground mt-1">
                         Define en qué ranking aparece el peleador
                       </p>
+                      {/* Warning when discipline changes */}
+                      {fighter.discipline !== formData.discipline && 
+                       (fighter.discipline !== undefined || formData.discipline !== undefined) && (
+                        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md p-3 mt-3">
+                          <div className="flex items-start gap-2">
+                            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="font-medium text-amber-800 dark:text-amber-400 text-sm">
+                                Cambio de disciplina detectado
+                              </p>
+                              <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
+                                Las membresías de ranking existentes no se modificarán automáticamente. 
+                                Utiliza la pestaña "Ligas" del peleador para gestionar sus rankings.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div>
