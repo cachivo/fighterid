@@ -103,8 +103,6 @@ export type Country = typeof COUNTRIES[number]['value'];
 
 // Artes marciales para perfil de entrenamiento (NO son disciplinas de competencia)
 export const MARTIAL_ARTS_TRAINING = [
-  { value: 'MMA', label: 'MMA' },
-  { value: 'Boxeo', label: 'Boxeo' },
   { value: 'MuayThai', label: 'Muay Thai' },
   { value: 'JiuJitsu', label: 'Jiu-Jitsu Brasileño' },
   { value: 'Judo', label: 'Judo' },
