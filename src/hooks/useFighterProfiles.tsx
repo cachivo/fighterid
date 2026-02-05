@@ -440,12 +440,16 @@ export function useFighterProfiles() {
       // Invalidate ranking queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
       queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
+      queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
+      queryClient.invalidateQueries({ queryKey: ['fighters'] });
 
       // Refrescar la lista para mostrar los cambios
       await fetchFighters();
 
       // Notificar a otras vistas para refrescar
-      window.dispatchEvent(new CustomEvent('admin-fighter-updated'));
+      window.dispatchEvent(new CustomEvent('admin-fighter-updated', {
+        detail: { fighterId, fields: Object.keys(profileData) }
+      }));
       return true;
     } catch (err) {
       console.error('Error completo:', err);

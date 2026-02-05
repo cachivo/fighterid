@@ -15,9 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
+import { useFighterActiveLeagues } from '@/hooks/useFighterActiveLeagues';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { AlertTriangle } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES } from '@/lib/constants/disciplines';
 
@@ -53,6 +56,7 @@ interface FighterEditModalProps {
 
 export function FighterEditModal({ fighter, open, onClose }: FighterEditModalProps) {
   const { adminUpdateFighterProfile } = useFighterProfiles();
+  const { data: activeLeagues = [] } = useFighterActiveLeagues(fighter?.id || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [formData, setFormData] = useState<AdminFighterFormData>({
@@ -565,6 +569,18 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                       </Select>
                     </div>
 
+                    {/* Weight class change sync alert */}
+                    {fighter.weight_class !== formData.weight_class && activeLeagues.length > 0 && (
+                      <Alert className="border-primary/30 bg-primary/5">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                        <AlertDescription className="text-foreground">
+                          <span className="font-medium">Sincronización automática:</span> La categoría de peso se actualizará en{' '}
+                          <span className="font-bold">{activeLeagues.length}</span> ranking(s):{' '}
+                          {activeLeagues.map(l => l.organization_short_name).join(', ')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     <div>
                       <Label htmlFor="stance">Postura</Label>
                       <Select value={formData.stance} onValueChange={(value) => handleChange('stance', value)}>
@@ -700,6 +716,18 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Level change sync alert */}
+                    {fighter.level !== formData.level && activeLeagues.length > 0 && (
+                      <Alert className="border-primary/30 bg-primary/5">
+                        <RefreshCw className="h-4 w-4 text-primary" />
+                        <AlertDescription className="text-foreground">
+                          <span className="font-medium">Sincronización automática:</span> El nivel se actualizará en{' '}
+                          <span className="font-bold">{activeLeagues.length}</span> ranking(s):{' '}
+                          {activeLeagues.map(l => l.organization_short_name).join(', ')}
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </CardContent>
                 </Card>
 
