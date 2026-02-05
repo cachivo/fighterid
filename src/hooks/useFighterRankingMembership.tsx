@@ -73,6 +73,7 @@
        // Invalidate relevant queries
        queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
        queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+       queryClient.invalidateQueries({ queryKey: ['admin-fighters'] });
  
        return true;
      } catch (err) {
