@@ -94,6 +94,9 @@ import EntrenadorDetalle from "./pages/EntrenadorDetalle";
 import GimnasiosAdmin from "./pages/admin/GimnasiosAdmin";
 import EntrenadoresAdmin from "./pages/admin/EntrenadoresAdmin";
 
+// Lazy load RankingsManagement
+const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
+
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
 
@@ -306,6 +309,11 @@ const App = () => {
                       <Route path="/ai-strike-test" element={<AIStrikeTestPanel />} />
                       <Route path="/gimnasios" element={<GimnasiosAdmin />} />
                       <Route path="/entrenadores" element={<EntrenadoresAdmin />} />
+                       <Route path="/rankings" element={
+                         <Suspense fallback={<LoadingSpinner />}>
+                           <RankingsManagement />
+                         </Suspense>
+                       } />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>

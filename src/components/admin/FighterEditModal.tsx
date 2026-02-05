@@ -63,7 +63,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     first_name: '',
     last_name: '',
     nickname: '',
-    country: 'HN',
+     country: 'Honduras',
     weight_class: 'Peso Ligero',
     avatar_url: '',
     discipline: undefined,
@@ -923,7 +923,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
           </Tabs>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
+           <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-background pb-4 -mb-4">
             <Button
               type="button"
               variant="outline"
