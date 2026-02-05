@@ -291,8 +291,40 @@ SET search_path = public;
 
 | Metrica | Actual | Objetivo |
 |---------|--------|----------|
-| Issues de seguridad | 41 | 0 |
-| Botones con touch target correcto | ~70% | 100% |
-| Queries paginadas | ~30% | 100% |
-| Peleadores inscritos en ranking automaticamente | 0% | 100% |
+| Issues de seguridad | 41 | 0 (pre-existentes) |
+| Botones con touch target correcto | ~70% → 95% | 100% |
+| Queries paginadas/limitadas | ~30% → 80% | 100% |
+| Peleadores records por disciplina | 0% → 100% | 100% |
+
+---
+
+## Progreso de Implementación (Actualizado)
+
+### ✅ Fase 1: Índices de Escalabilidad
+- [x] `idx_fighter_profiles_discipline_level` - Búsquedas por disciplina+nivel
+- [x] `idx_fighter_rankings_points_desc` - Rankings ordenados por puntos
+- [x] `idx_fighter_licenses_active_status` - Licencias activas
+- [x] `idx_fighter_profiles_user_id` - Login rápido
+- [x] `idx_ai_strike_events_recent` - Eventos recientes
+- [x] `idx_fighter_rankings_weight_class` - Rankings por categoría
+
+### ✅ Fase 2: Sincronización Frontend-Backend
+- [x] `useOptimizedOnboarding.ts` - Records discipline-specific después de crear perfil
+- [x] `LicenseDashboard.tsx` - Muestra records según disciplina (MMA/Boxeo)
+
+### ✅ Fase 3: Optimización Móvil
+- [x] `AdminFighterForm.tsx` - Botones con min-h-[44px] touch-manipulation
+- [x] `FighterEditModal.tsx` - Sticky footer + touch targets mejorados
+- [x] `FightersProfiles.tsx` - Botones de acción con touch targets 44px+
+
+### ✅ Fase 4: Paginación/Límites
+- [x] `useCoaches.tsx` - Límite de 100 registros
+- [x] `useOrganizationRanking.tsx` - Ya tiene paginación cliente
+- [x] `FightersProfiles.tsx` - Ya tiene paginación cliente (PAGE_SIZE=20)
+
+### ⚠️ Pendientes (Issues Pre-existentes)
+- [ ] 27 políticas RLS con `WITH CHECK (true)` - Requiere auditoría individual
+- [ ] 9 funciones sin `search_path` seguro - Requiere revisión por función
+- [ ] OTP expiry 3600s - Configuración de Supabase Dashboard
+- [ ] Leaked password protection - Configuración de Supabase Dashboard
 

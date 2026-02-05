@@ -16,7 +16,7 @@ export function useCoaches(params?: { gym_id?: string }) {
         query = query.eq('gym_id', params.gym_id);
       }
       
-      const { data, error } = await query.order('nombre');
+      const { data, error } = await query.order('nombre').limit(100);
       
       if (error) throw error;
       return data as Coach[];

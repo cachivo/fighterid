@@ -971,17 +971,18 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
             </TabsContent>
           </Tabs>
 
-          {/* Actions */}
-           <div className="flex justify-end gap-3 pt-4 border-t sticky bottom-0 bg-background pb-4 -mb-4">
+          {/* Actions - Sticky Footer for Mobile */}
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t sticky bottom-0 bg-background pb-4 -mb-4 mt-6">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={isSubmitting}
+              className="min-h-[44px] touch-manipulation w-full sm:w-auto"
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="min-h-[44px] touch-manipulation w-full sm:w-auto">
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar Cambios
             </Button>

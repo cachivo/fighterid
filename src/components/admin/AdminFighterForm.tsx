@@ -773,11 +773,12 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
              variant="outline"
              onClick={onCancel}
              disabled={isSubmitting}
+              className="min-h-[44px] touch-manipulation"
            >
              Cancelar
            </Button>
          )}
-         <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="min-h-[44px] touch-manipulation">
            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
            {mode === 'create' ? 'Crear Perfil' : 'Actualizar Perfil'}
          </Button>
