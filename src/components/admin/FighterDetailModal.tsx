@@ -18,6 +18,17 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+// Helper function to get correct record based on discipline
+const getRecordDisplay = (profile: any) => {
+  if (profile?.discipline === 'MMA') {
+    return `${profile.mma_record_wins || 0}-${profile.mma_record_losses || 0}-${profile.mma_record_draws || 0}`;
+  } else if (profile?.discipline === 'Boxeo') {
+    return `${profile.boxeo_record_wins || 0}-${profile.boxeo_record_losses || 0}-${profile.boxeo_record_draws || 0}`;
+  }
+  // Fallback to legacy
+  return `${profile?.record_wins || 0}-${profile?.record_losses || 0}-${profile?.record_draws || 0}`;
+};
+
 interface FighterDetailModalProps {
   fighterId: string | null;
   open: boolean;
@@ -133,7 +144,7 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
                         )}
                         <div className="flex gap-4 flex-wrap">
                           <Badge variant="outline" className="text-sm">
-                            Récord: {data.profile?.record_wins || 0}-{data.profile?.record_losses || 0}-{data.profile?.record_draws || 0}
+                            Récord: {getRecordDisplay(data.profile)}
                           </Badge>
                           <Badge variant="secondary">
                             {data.profile?.weight_class}
