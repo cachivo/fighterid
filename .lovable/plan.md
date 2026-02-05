@@ -1,224 +1,236 @@
 
-# Plan: Auditoria y Correccion del Panel de Administracion de Peleadores
+# Plan: Sincronización de Perfiles de Peleadores y Sistema de Rankings Multi-Liga
 
-## Resumen de Problemas Encontrados
+## Resumen del Problema
 
-He detectado **inconsistencias criticas** entre los componentes del admin panel que no coinciden con nuestro diseño actualizado de separacion de disciplinas.
+Actualmente existe una **desconexión arquitectónica** entre la gestión de perfiles de peleadores y el sistema de rankings:
+
+| Componente | Estado Actual | Problema |
+|------------|---------------|----------|
+| `fighter_profiles` | Tiene `discipline`, `level` | Campos informativos que no conectan con rankings |
+| `fighter_rankings` | Tabla separada con membresías | No se crea automáticamente al crear perfil |
+| Admin UI | Crea perfiles | No inscribe al peleador en ningún ranking |
+| Rankings Management | Solo ajusta puntos | No puede agregar peleadores nuevos |
+
+**Dato importante**: Los 57 peleadores activos en BD ya tienen rankings, probablemente migrados manualmente. Pero el flujo de creación nuevo NO automatiza esto.
 
 ---
 
-## Problema 1: AdminFighterForm.tsx Desactualizado
+## Arquitectura Propuesta
+
+```text
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           FIGHTER_PROFILES                                   │
+│  (Datos del peleador: nombre, país, avatar, artes de entrenamiento, etc.)    │
+│  - discipline: informativo (disciplina principal de preferencia)             │
+│  - level: informativo (nivel principal actual)                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     │ 1:N
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           FIGHTER_RANKINGS                                   │
+│  (Membresías en ligas - UN PELEADOR puede tener MÚLTIPLES registros)         │
+│                                                                              │
+│  Ejemplo: Randy Tercero puede tener:                                         │
+│  ├── UCC MMA → Amateur → Peso Ligero → 45 pts                                │
+│  ├── UCC MMA → Semi-profesional → Peso Ligero → 12 pts                       │
+│  └── BDG Pro → Profesional → Peso Welter → 8 pts                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Cambios Requeridos
+
+### Parte 1: Modificar Formulario de Creación de Perfiles
 
 **Archivo:** `src/components/admin/AdminFighterForm.tsx`
 
-El formulario de creacion/invitacion de peleadores **NO** sigue el diseño que implementamos en `FighterEditModal.tsx`.
+**Cambios:**
+1. Agregar sección "Liga Inicial de Competencia" con:
+   - Select de Organización (UCC MMA, BDG Pro, HHF Amateur)
+   - Select de Nivel (filtrado según organización)
+   - Categoría de peso ya existe
 
-| Aspecto | FighterEditModal (CORRECTO) | AdminFighterForm (INCORRECTO) |
-|---------|----------------------------|------------------------------|
-| Disciplina | Select unico (`discipline`) | Checkbox multiple (`martial_arts`) |
-| Artes de entrenamiento | Checkboxes con `MARTIAL_ARTS_TRAINING` | Mezcla con disciplinas de competencia |
-| Logica de records | Usa `formData.discipline === 'MMA'` | Usa `formData.martial_arts?.includes('MMA')` |
+2. Modificar `handleSubmit` para:
+   - Crear `fighter_profile`
+   - Crear registro en `fighter_rankings` con la liga seleccionada
 
-**Ubicaciones especificas:**
-- Linea 395-432: Muestra "Disciplina(s) de Competencia" pero permite seleccion multiple guardando en `martial_arts`
-- Linea 102-118: `handleMartialArtsChange` mezcla conceptos
-- Linea 527: Condicion incorrecta `formData.martial_arts?.includes('MMA')`
-- Linea 568: Condicion incorrecta `formData.martial_arts?.includes('Boxeo')`
-
-**Correccion requerida:** Alinear con la estructura de `FighterEditModal.tsx`
-
----
-
-## Problema 2: Listado de Peleadores Muestra Record Legacy
-
-**Archivo:** `src/pages/admin/FightersProfiles.tsx` (Linea 276-280)
-
-```typescript
-// ACTUAL - Muestra record legacy (incorrecto)
-<Badge variant="secondary">
-  {fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
-</Badge>
-
-// DEBERIA - Mostrar segun disciplina
-{fighter.discipline === 'MMA' && (
-  <Badge variant="secondary">
-    {fighter.mma_record_wins}-{fighter.mma_record_losses}-{fighter.mma_record_draws}
-  </Badge>
-)}
-```
-
-**Impacto:** El admin ve records que no corresponden con la disciplina real del peleador.
-
----
-
-## Problema 3: Interface de useAdminFighters Incompleta
-
-**Archivo:** `src/hooks/useAdminFighters.tsx`
-
-La interface `AdminFighterProfile` no incluye los campos de record por disciplina:
-
-```typescript
-// ACTUAL (lineas 5-28)
-export interface AdminFighterProfile {
-  record_wins: number;     // Solo legacy
-  record_losses: number;
-  record_draws: number;
-  // FALTAN: mma_record_*, boxeo_record_*
-}
-```
-
-**Correccion:**
-```typescript
-export interface AdminFighterProfile {
-  // Legacy (deprecated)
-  record_wins: number;
-  record_losses: number;
-  record_draws: number;
-  // Records por disciplina
-  mma_record_wins?: number;
-  mma_record_losses?: number;
-  mma_record_draws?: number;
-  boxeo_record_wins?: number;
-  boxeo_record_losses?: number;
-  boxeo_record_draws?: number;
-  martial_arts?: string[];  // FALTA
-}
-```
-
----
-
-## Problema 4: FighterDetailModal Muestra Record Legacy
-
-**Archivo:** `src/components/admin/FighterDetailModal.tsx` (Linea 136)
-
-```typescript
-// ACTUAL
-<Badge variant="outline" className="text-sm">
-  Record: {data.profile?.record_wins || 0}-{data.profile?.record_losses || 0}-{data.profile?.record_draws || 0}
-</Badge>
-
-// DEBERIA mostrar segun discipline
-```
-
----
-
-## Comparativa Visual de Componentes
+**Estructura UI propuesta:**
 
 ```text
-COMPONENTE                    | DISCIPLINA | ARTES ENTRENAMIENTO | RECORDS
-------------------------------|------------|---------------------|----------
-FighterEditModal.tsx          | Correcto   | Correcto            | Correcto
-AdminFighterForm.tsx          | INCORRECTO | INCORRECTO          | INCORRECTO
-FightersProfiles.tsx          | OK         | N/A                 | INCORRECTO
-FighterDetailModal.tsx        | OK         | OK                  | INCORRECTO
-useAdminFighters.tsx          | Parcial    | FALTA               | FALTAN campos
+┌─────────────────────────────────────────────────────────────────────┐
+│  INSCRIPCIÓN A LIGA DE COMPETENCIA *                                │
+├─────────────────────────────────────────────────────────────────────┤
+│  Este peleador competirá inicialmente en:                           │
+│                                                                     │
+│  Liga/Organización *          Nivel *                               │
+│  ┌─────────────────────┐     ┌─────────────────────┐               │
+│  │ UCC MMA           ▼│     │ Amateur           ▼│               │
+│  └─────────────────────┘     └─────────────────────┘               │
+│                                                                     │
+│  ⓘ Un administrador puede agregar ligas adicionales después        │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
----
+### Parte 2: Crear Hook para Gestión de Rankings
 
-## Plan de Correccion
+**Nuevo archivo:** `src/hooks/useFighterRankingMembership.tsx`
 
-### Archivo 1: `src/components/admin/AdminFighterForm.tsx`
+**Funcionalidades:**
+- `addFighterToRanking(fighterId, organizationId, level, weightClass)`
+- `removeFighterFromRanking(rankingId)`
+- `updateFighterRankingLevel(rankingId, newLevel)`
 
-**Cambios:**
+### Parte 3: Agregar UI en Admin para Gestionar Membresías
 
-1. Reemplazar la seccion de "Disciplina(s) de Competencia" por dos secciones separadas:
-   - Card 1: **Disciplina de Competencia** (Select unico con `ENABLED_DISCIPLINES`)
-   - Card 2: **Artes Marciales de Entrenamiento** (Checkboxes con `MARTIAL_ARTS_TRAINING`)
+**Archivo:** `src/components/admin/FighterDetailModal.tsx`
 
-2. Agregar import de `MARTIAL_ARTS_TRAINING`
+**Nuevo tab:** "Ligas y Rankings"
 
-3. Crear funcion `handleDisciplineChange` similar a FighterEditModal
+Mostrar:
+- Lista de ligas donde compite el peleador (con useFighterActiveLeagues)
+- Botón "Agregar a nueva liga" (solo admin)
+- Opción de remover de una liga (solo admin)
 
-4. Modificar funcion `handleMartialArtsChange` para solo manejar artes de entrenamiento
+**Estructura UI propuesta:**
 
-5. Cambiar condiciones de records:
-   - De: `formData.martial_arts?.includes('MMA')`
-   - A: `formData.discipline === 'MMA'`
-
-### Archivo 2: `src/pages/admin/FightersProfiles.tsx`
-
-**Cambios:**
-
-1. Modificar display de record (linea 276-280) para mostrar segun disciplina:
-```typescript
-// Funcion helper para obtener el record correcto
-const getRecordDisplay = (fighter: AdminFighterProfile) => {
-  if (fighter.discipline === 'MMA') {
-    return `${fighter.mma_record_wins || 0}-${fighter.mma_record_losses || 0}-${fighter.mma_record_draws || 0}`;
-  } else if (fighter.discipline === 'Boxeo') {
-    return `${fighter.boxeo_record_wins || 0}-${fighter.boxeo_record_losses || 0}-${fighter.boxeo_record_draws || 0}`;
-  }
-  // Fallback a legacy
-  return `${fighter.record_wins}-${fighter.record_losses}-${fighter.record_draws}`;
-};
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│  LIGAS DE COMPETENCIA                                               │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────────────────────┐ │
+│  │ 🥊 UCC MMA                                                    │ │
+│  │    Amateur • Peso Ligero • 45 pts • #3                        │ │
+│  │    [Cambiar Nivel] [Remover]                                  │ │
+│  └───────────────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────────────┐ │
+│  │ 🥊 BDG Pro Boxing                                             │ │
+│  │    Profesional • Peso Welter • 8 pts • #12                    │ │
+│  │    [Cambiar Nivel] [Remover]                                  │ │
+│  └───────────────────────────────────────────────────────────────┘ │
+│                                                                     │
+│  [+ Agregar a Nueva Liga]                                           │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Archivo 3: `src/hooks/useAdminFighters.tsx`
+### Parte 4: Agregar Peleadores desde Rankings Management
 
-**Cambios:**
+**Archivo:** `src/pages/admin/RankingsManagement.tsx`
 
-1. Expandir interface `AdminFighterProfile` con campos faltantes:
-```typescript
-// Agregar campos de records por disciplina
-mma_record_wins?: number;
-mma_record_losses?: number;
-mma_record_draws?: number;
-boxeo_record_wins?: number;
-boxeo_record_losses?: number;
-boxeo_record_draws?: number;
-martial_arts?: string[];
+**Nuevo componente:** "Agregar Peleador al Ranking"
+
+- Modal para buscar peleador existente
+- Seleccionar nivel y categoría (según organización actual)
+- Crear registro en fighter_rankings
+
+### Parte 5: Base de Datos (opcional pero recomendado)
+
+**Función RPC sugerida:** `enroll_fighter_in_ranking`
+
+```sql
+CREATE OR REPLACE FUNCTION enroll_fighter_in_ranking(
+  p_fighter_id UUID,
+  p_organization_code TEXT,
+  p_level TEXT,
+  p_weight_class TEXT
+) RETURNS UUID
 ```
 
-2. Expandir interface `AdminFighterFormData` con los mismos campos
-
-### Archivo 4: `src/components/admin/FighterDetailModal.tsx`
-
-**Cambios:**
-
-1. Modificar display de record en header (linea 136) para mostrar segun disciplina
-
-2. Agregar seccion de "Artes Marciales de Entrenamiento" separada de "Disciplina de Competencia" en tab deportivo
+Esta función:
+- Valida que el nivel sea permitido para la organización
+- Verifica que no exista duplicado (mismo peleador+org+nivel+categoría)
+- Crea el registro con puntos iniciales = 0
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Prioridad | Complejidad |
-|---------|-----------|-------------|
-| `src/components/admin/AdminFighterForm.tsx` | Alta | Media |
-| `src/pages/admin/FightersProfiles.tsx` | Alta | Baja |
-| `src/hooks/useAdminFighters.tsx` | Alta | Baja |
-| `src/components/admin/FighterDetailModal.tsx` | Media | Baja |
+| Archivo | Cambio | Prioridad |
+|---------|--------|-----------|
+| `src/components/admin/AdminFighterForm.tsx` | Agregar selección de liga inicial | Alta |
+| `src/hooks/useFighterRankingMembership.tsx` | Nuevo hook para gestión | Alta |
+| `src/components/admin/FighterDetailModal.tsx` | Tab de ligas con gestión | Alta |
+| `src/pages/admin/RankingsManagement.tsx` | Botón agregar peleador | Media |
+| `src/hooks/useRankingOrganizations.tsx` | Posible extensión | Baja |
 
 ---
 
-## Beneficios de las Correcciones
+## Flujo de Usuario Propuesto
 
-1. **Coherencia total** entre edicion y creacion de peleadores
-2. **Records correctos** mostrados segun disciplina de competencia
-3. **Separacion clara** entre disciplinas de ranking y artes de entrenamiento
-4. **TypeScript correcto** con interfaces completas
-5. **Mejor UX** para administradores
-
----
-
-## Seccion Tecnica
-
-### Estructura de Datos Correcta
-
-```typescript
-// CAMPO discipline → Define ranking (MMA o Boxeo)
-// CAMPO martial_arts[] → Artes de entrenamiento (informativo)
-// CAMPOS mma_record_* → Solo si discipline === 'MMA'
-// CAMPOS boxeo_record_* → Solo si discipline === 'Boxeo'
-```
-
-### Flujo de Validacion Propuesto
+### Escenario 1: Crear nuevo peleador
 
 ```text
-1. Usuario selecciona Disciplina de Competencia (obligatorio)
-2. Sistema habilita campos de record correspondientes
-3. Usuario puede agregar artes de entrenamiento (opcional)
-4. Al guardar: discipline y martial_arts se guardan por separado
+1. Admin va a "Crear Perfil"
+2. Llena datos básicos (nombre, país, categoría de peso)
+3. Selecciona liga inicial: "UCC MMA - Amateur"
+4. Guarda
+5. Sistema crea:
+   - fighter_profiles (perfil básico)
+   - fighter_rankings (inscripción en UCC MMA Amateur con 0 pts)
 ```
+
+### Escenario 2: Promover peleador a otra liga/nivel
+
+```text
+1. Admin abre detalle de peleador existente
+2. Va a tab "Ligas y Rankings"
+3. Ve: "UCC MMA - Amateur - 45 pts"
+4. Clic en "Agregar a Nueva Liga"
+5. Selecciona: "BDG Pro Boxing - Profesional"
+6. Confirma
+7. Sistema crea nuevo registro en fighter_rankings
+8. Peleador ahora aparece en ambos rankings con puntos independientes
+```
+
+### Escenario 3: Agregar desde Rankings Management
+
+```text
+1. Admin va a "Gestión de Rankings"
+2. Selecciona "HHF Amateur"
+3. Clic en "Agregar Peleador"
+4. Busca: "José Mejía"
+5. Selecciona nivel "Amateur" y categoría "Peso Mosca"
+6. Confirma
+7. José ahora aparece en el ranking HHF Amateur con 0 pts
+```
+
+---
+
+## Reglas de Negocio
+
+1. **Un peleador puede estar en MÚLTIPLES ligas** (UCC + BDG + HHF)
+2. **Un peleador puede estar en MÚLTIPLES niveles** dentro de la misma liga (Amateur + Semi)
+3. **Los records por disciplina son GLOBALES** (mma_record_* aplica a todas las ligas MMA)
+4. **Los puntos son POR INSCRIPCIÓN** (independientes en cada liga/nivel)
+5. **Solo admin puede agregar/remover membresías de liga**
+6. **Al crear perfil, se DEBE seleccionar una liga inicial**
+
+---
+
+## Sección Técnica
+
+### Validaciones de la función RPC
+
+```sql
+-- Validar que el nivel esté permitido
+IF p_level NOT IN (SELECT unnest(allowed_levels) FROM ranking_organizations WHERE code = p_organization_code) THEN
+  RAISE EXCEPTION 'Nivel % no permitido para organización %', p_level, p_organization_code;
+END IF;
+
+-- Evitar duplicados exactos
+IF EXISTS (SELECT 1 FROM fighter_rankings 
+           WHERE fighter_id = p_fighter_id 
+           AND organization_id = (SELECT id FROM ranking_organizations WHERE code = p_organization_code)
+           AND level = p_level 
+           AND weight_class = p_weight_class) THEN
+  RAISE EXCEPTION 'El peleador ya está inscrito en esta liga/nivel/categoría';
+END IF;
+```
+
+### Relación con campos del perfil
+
+Los campos `discipline` y `level` en `fighter_profiles` se mantienen como **preferencias informativas**. El sistema real de rankings se basa 100% en `fighter_rankings`.
+
+**Opción futura**: Sincronizar automáticamente `fighter_profiles.discipline` y `level` con la primera/principal inscripción de ranking.
