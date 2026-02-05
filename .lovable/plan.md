@@ -1,197 +1,171 @@
 
-# Auditoría de Sincronización: Admin Panel ↔ Rankings
+# Plan: Sincronización Robusta + Corrección Estética de Tarjetas
 
-## PROBLEMA CRÍTICO CONFIRMADO
+## Diagnóstico Confirmado
 
-He encontrado evidencia directa de la desincronización que reportas:
-
-### Caso Real Detectado: Erick Tzoc
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│ FIGHTER_PROFILES (Editado desde Admin)                         │
-│ - level: "Semi-profesional" ✅ (Actualizado correctamente)     │
-├─────────────────────────────────────────────────────────────────┤
-│ FIGHTER_RANKINGS (NO se actualizó)                             │
-│ - level: "Amateur" ❌ (Datos desincronizados)                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-El peleador muestra **Semi-profesional** en su perfil, pero aparece en el ranking de **Amateur**.
-
----
-
-## CAUSA RAÍZ
-
-Existen **DOS sistemas paralelos** que no se comunican:
-
-### Sistema 1: Edición de Perfil (FighterEditModal.tsx)
-```
-Admin edita nivel → Actualiza fighter_profiles.level → ✅
-                  → NO toca fighter_rankings.level → ❌
-```
-
-### Sistema 2: Gestión de Ligas (FighterLeaguesTab.tsx)
-```
-Admin edita nivel en pestaña "Ligas" → Actualiza fighter_rankings.level → ✅
-                                     → NO toca fighter_profiles.level → ❌
-```
-
-### Resultado: Dos fuentes de verdad desincronizadas
+### Problema 1: Sincronización
+**Causa raíz identificada:** El usuario editó el perfil de Erick Tzoc a las **04:36:56**, pero la migración del trigger se aplicó a las **04:39:46** - es decir, **3 minutos DESPUÉS** de la edición.
 
 ```text
-                    ┌─────────────────────┐
-                    │ FighterEditModal    │
-                    │ (Tab "Combate")     │
-                    └──────────┬──────────┘
-                               │ Actualiza
-                               ▼
-                    ┌─────────────────────┐
-                    │ fighter_profiles    │
-                    │ level: Semi-pro     │ ← El admin ve esto
-                    └─────────────────────┘
-                               ✗ Sin conexión
-                    ┌─────────────────────┐
-                    │ fighter_rankings    │
-                    │ level: Amateur      │ ← El ranking muestra esto
-                    └─────────────────────┘
-                               ▲
-                               │ Actualiza
-                    ┌──────────┴──────────┐
-                    │ FighterLeaguesTab   │
-                    │ (Tab "Ligas")       │
-                    └─────────────────────┘
+LÍNEA DE TIEMPO:
+04:36:56 → Usuario edita perfil de Erick Tzoc (nivel: Semi-profesional)
+04:39:46 → Migración del trigger se aplica
+          ↳ Trigger no existía cuando se hizo la edición
+
+RESULTADO: El perfil se actualizó pero el ranking NO porque el trigger aún no existía.
 ```
 
+**Solución:** Hacer la sincronización DIRECTAMENTE en la función RPC además del trigger, garantizando que SIEMPRE se sincronice.
+
+### Problema 2: Estético (Tarjetas Descuadradas)
+El código actual solo muestra el apodo si existe:
+
+```tsx
+// Líneas 232-238 de FightersProfiles.tsx
+<div>
+  <CardTitle>{fighter.first_name} {fighter.last_name}</CardTitle>
+  {fighter.nickname && (
+    <p>"{fighter.nickname}"</p>  // ← Solo aparece si hay apodo
+  )}
+</div>
+```
+
+**Resultado visual:**
+
+```text
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ Juan Pérez      │  │ Carlos López    │  │ Ana García      │
+│ "El Destructor" │  │                 │  │ "La Tigresa"    │
+├─────────────────┤  ├─────────────────┤  ├─────────────────┤
+│ Récord: 5-2-0   │  │ Récord: 3-1-0   │  │ Récord: 8-0-0   │
+│ Peso: Ligero    │  │ Peso: Pluma     │  │ Peso: Gallo     │
+│ ...             │  │ ...             │  │ ...             │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+     ↑                    ↑ DESCUADRADO        ↑
+   (OK)                 (Sin apodo)          (OK)
+```
+
+**Solución:** Fijar altura mínima del contenedor del nombre para mantener uniformidad.
+
 ---
 
-## CAMPOS AFECTADOS POR LA DESINCRONIZACIÓN
+## Implementación
 
-| Campo | En `fighter_profiles` | En `fighter_rankings` | ¿Sincronizado? |
-|-------|----------------------|----------------------|----------------|
-| `level` | ✅ Editable | ✅ Editable | ❌ NO |
-| `weight_class` | ✅ Editable | ✅ Editable | ❌ NO |
-| `discipline` | ✅ Editable | ❌ Solo lectura (via org) | ⚠️ Parcial |
+### Parte 1: Sincronización Directa en Función RPC (Base de Datos)
 
----
-
-## SOLUCIÓN PROPUESTA
-
-### Estrategia: Sincronización Bidireccional Automática
-
-Cuando se actualiza `fighter_profiles.level` o `fighter_profiles.weight_class`, automáticamente actualizar todos los `fighter_rankings` activos del peleador.
-
-### Implementación en 3 Partes:
-
-#### Parte 1: Nueva Función RPC (Base de Datos)
+Modificar `admin_update_fighter_profile` para sincronizar directamente:
 
 ```sql
-CREATE OR REPLACE FUNCTION sync_fighter_profile_to_rankings()
-RETURNS TRIGGER AS $$
-BEGIN
-  -- Sincronizar level a todos los rankings activos
-  IF OLD.level IS DISTINCT FROM NEW.level THEN
-    UPDATE fighter_rankings
-    SET level = NEW.level
-    WHERE fighter_id = NEW.id 
-      AND is_active = true;
-  END IF;
-  
-  -- Sincronizar weight_class a todos los rankings activos
-  IF OLD.weight_class IS DISTINCT FROM NEW.weight_class THEN
-    UPDATE fighter_rankings
-    SET weight_class = NEW.weight_class
-    WHERE fighter_id = NEW.id 
-      AND is_active = true;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- AL FINAL de la función, ANTES del RETURN, agregar:
 
--- Trigger automático
-CREATE TRIGGER sync_profile_to_rankings_trigger
-AFTER UPDATE OF level, weight_class ON fighter_profiles
-FOR EACH ROW
-EXECUTE FUNCTION sync_fighter_profile_to_rankings();
+-- Sincronizar a fighter_rankings si level o weight_class cambiaron
+IF p_profile_data ? 'level' OR p_profile_data ? 'weight_class' THEN
+  UPDATE public.fighter_rankings
+  SET 
+    level = CASE 
+      WHEN p_profile_data ? 'level' 
+        AND p_profile_data->>'level' NOT IN ('', 'null')
+      THEN p_profile_data->>'level'
+      ELSE level
+    END,
+    weight_class = CASE 
+      WHEN p_profile_data ? 'weight_class' 
+        AND p_profile_data->>'weight_class' NOT IN ('', 'null')
+      THEN p_profile_data->>'weight_class'
+      ELSE weight_class
+    END,
+    updated_at = now()
+  WHERE fighter_id = p_fighter_id
+    AND is_active = true;
+END IF;
 ```
 
-#### Parte 2: Actualización del Hook (Frontend)
+### Parte 2: Corregir Datos Existentes (One-time fix)
 
-Modificar `useFighterProfiles.tsx` para invalidar queries adicionales:
-
-```typescript
-// Después de actualizar el perfil exitosamente
-queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
-queryClient.invalidateQueries({ queryKey: ['ranking-data'] }); // Nuevo
-
-// Emitir evento global
-window.dispatchEvent(new CustomEvent('admin-fighter-updated', {
-  detail: { fighterId, fields: ['level', 'weight_class'] }
-}));
+```sql
+-- Sincronizar TODOS los registros desincronizados actuales
+UPDATE fighter_rankings fr
+SET 
+  level = fp.level,
+  weight_class = fp.weight_class,
+  updated_at = now()
+FROM fighter_profiles fp
+WHERE fr.fighter_id = fp.id
+  AND fr.is_active = true
+  AND (fr.level IS DISTINCT FROM fp.level 
+       OR fr.weight_class IS DISTINCT FROM fp.weight_class);
 ```
 
-#### Parte 3: UI de Advertencia
+### Parte 3: Corrección Estética de Tarjetas
 
-Actualizar `FighterEditModal.tsx` para mostrar cuántos rankings se actualizarán:
+Modificar `FightersProfiles.tsx` para altura uniforme:
 
-```typescript
-// Cuando cambia el nivel, mostrar advertencia informativa
-{levelChanged && fighterActiveLeagues.length > 0 && (
-  <Alert>
-    <Info className="h-4 w-4" />
-    <AlertDescription>
-      El nivel se actualizará en {fighterActiveLeagues.length} ranking(s):
-      {fighterActiveLeagues.map(l => l.organization_name).join(', ')}
-    </AlertDescription>
-  </Alert>
-)}
+```tsx
+// ANTES (líneas 232-239):
+<div>
+  <CardTitle className="text-lg">
+    {fighter.first_name} {fighter.last_name}
+  </CardTitle>
+  {fighter.nickname && (
+    <p className="text-sm text-muted-foreground">"{fighter.nickname}"</p>
+  )}
+</div>
+
+// DESPUÉS:
+<div className="min-h-[3rem]">  {/* Altura fija para uniformidad */}
+  <CardTitle className="text-lg leading-tight">
+    {fighter.first_name} {fighter.last_name}
+  </CardTitle>
+  <p className="text-sm text-muted-foreground h-5">
+    {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}  {/* Espacio invisible si no hay apodo */}
+  </p>
+</div>
+```
+
+**Resultado visual esperado:**
+
+```text
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│ Juan Pérez      │  │ Carlos López    │  │ Ana García      │
+│ "El Destructor" │  │                 │  │ "La Tigresa"    │
+├─────────────────┤  ├─────────────────┤  ├─────────────────┤
+│ Récord: 5-2-0   │  │ Récord: 3-1-0   │  │ Récord: 8-0-0   │
+│ Peso: Ligero    │  │ Peso: Pluma     │  │ Peso: Gallo     │
+│ ...             │  │ ...             │  │ ...             │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+     ↑                     ↑                    ↑
+   (OK)               (UNIFORME)              (OK)
 ```
 
 ---
 
-## ARCHIVOS A MODIFICAR
+## Archivos a Modificar
 
 | Archivo | Cambio | Prioridad |
 |---------|--------|-----------|
-| **Nueva migración SQL** | Crear trigger de sincronización | CRÍTICA |
-| `src/hooks/useFighterProfiles.tsx` | Invalidar queries adicionales | ALTA |
-| `src/components/admin/FighterEditModal.tsx` | UI de advertencia al cambiar nivel | MEDIA |
-| `src/pages/admin/RankingsManagement.tsx` | Forzar refresh después de cambios | MEDIA |
+| **Nueva migración SQL** | Agregar sincronización directa a la función RPC + fix de datos existentes | CRÍTICA |
+| `src/pages/admin/FightersProfiles.tsx` | Agregar altura fija al contenedor de nombre/apodo | ALTA |
 
 ---
 
-## BENEFICIOS POST-IMPLEMENTACIÓN
+## Verificación Post-Implementación
 
-1. **Un admin edita nivel** → Se actualiza automáticamente en todos los rankings
-2. **Un admin edita peso** → Se actualiza automáticamente en todos los rankings
-3. **Sin intervención manual** → No hay que ir a "Ligas" por separado
-4. **Datos consistentes** → Una sola fuente de verdad efectiva
-5. **Trazabilidad** → El trigger puede incluir log de auditoría
-
----
-
-## VERIFICACIÓN POST-IMPLEMENTACIÓN
-
-```sql
--- Query para verificar consistencia (debería devolver 0 filas)
-SELECT fp.first_name, fp.last_name,
-       fp.level as profile_level,
-       fr.level as ranking_level
-FROM fighter_profiles fp
-JOIN fighter_rankings fr ON fp.id = fr.fighter_id
-WHERE fp.level != fr.level
-  AND fr.is_active = true;
-```
+1. **Sincronización:** Editar cualquier peleador desde Admin → El ranking debe actualizarse inmediatamente
+2. **Estética:** Verificar que todas las tarjetas tengan la misma altura independientemente del apodo
+3. **Query de validación:**
+   ```sql
+   -- Debe devolver 0 filas si todo está sincronizado
+   SELECT fp.first_name, fp.level as profile, fr.level as ranking
+   FROM fighter_profiles fp
+   JOIN fighter_rankings fr ON fp.id = fr.fighter_id
+   WHERE fp.level != fr.level AND fr.is_active = true;
+   ```
 
 ---
 
-## SECCIÓN TÉCNICA: Detalles de Migración
+## Resumen de Cambios
 
-La migración creará:
-1. Función `sync_fighter_profile_to_rankings()` con SECURITY DEFINER
-2. Trigger `sync_profile_to_rankings_trigger` en UPDATE de `fighter_profiles`
-3. Índice optimizado para búsquedas de rankings por fighter_id
-
-El trigger se ejecutará automáticamente cada vez que se actualice `level` o `weight_class` en cualquier perfil de peleador, garantizando sincronización inmediata sin importar desde dónde se haga el cambio (UI, API, SQL directo).
+1. ✅ Sincronización directa en función RPC (no depender solo del trigger)
+2. ✅ Fix automático de datos desincronizados existentes (Erick Tzoc)
+3. ✅ Mantener trigger como respaldo
+4. ✅ Tarjetas con altura uniforme independientemente del apodo
