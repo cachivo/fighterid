@@ -16,6 +16,21 @@ import { Skeleton } from '@/components/ui/skeleton';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
+// Helper para mostrar valores descriptivos en los selectores
+const getFilterDisplayValue = (value: string): string => {
+  if (value === 'Todos' || value === 'Todas' || value === 'all') {
+    return 'Todos';
+  }
+  // Para opciones especiales de completitud
+  if (value === 'verified') return 'Verificados';
+  if (value === 'diamond') return 'Completos';
+  // Para ordenamiento
+  if (value === 'name') return 'Nombre';
+  if (value === 'wins') return 'Victorias';
+  if (value === 'completion') return 'Completitud';
+  return value;
+};
+
 const WEIGHT_CLASSES = [
   'Todos',
   'Peso Mosca (125 lbs)',
@@ -344,28 +359,60 @@ export default function Fighters() {
           {/* Filter dropdowns */}
           <div className={`grid grid-cols-1 md:grid-cols-6 gap-4 ${showFilters || 'hidden md:grid'}`}>
             {[
-              { value: selectedWeightClass, onChange: setSelectedWeightClass, options: WEIGHT_CLASSES, placeholder: "División", icon: Filter },
-              { value: selectedDiscipline, onChange: setSelectedDiscipline, options: DISCIPLINES, placeholder: "Disciplina", icon: Filter },
-              { value: selectedFightingStyle, onChange: setSelectedFightingStyle, options: FIGHTING_STYLES, placeholder: "Estilo", icon: Filter },
-              { value: selectedRecordType, onChange: setSelectedRecordType, options: RECORD_TYPES, placeholder: "Tipo", icon: Filter },
               { 
+                label: "División",
+                value: selectedWeightClass, 
+                onChange: setSelectedWeightClass, 
+                options: WEIGHT_CLASSES
+              },
+              { 
+                label: "Disciplina",
+                value: selectedDiscipline, 
+                onChange: setSelectedDiscipline, 
+                options: DISCIPLINES
+              },
+              { 
+                label: "Estilo",
+                value: selectedFightingStyle, 
+                onChange: setSelectedFightingStyle, 
+                options: FIGHTING_STYLES
+              },
+              { 
+                label: "Nivel",
+                value: selectedRecordType, 
+                onChange: setSelectedRecordType, 
+                options: RECORD_TYPES
+              },
+              { 
+                label: "Perfil",
                 value: completionFilter, 
                 onChange: setCompletionFilter, 
                 options: [
-                  { value: 'all', label: 'Todos los perfiles', icon: null },
-                  { value: 'verified', label: 'Solo verificados (70%+)', icon: CheckCircle },
-                  { value: 'diamond', label: 'Solo perfiles completos', icon: Gem }
-                ], 
-                placeholder: "Completitud", 
-                icon: Filter 
+                  { value: 'all', label: 'Todos' },
+                  { value: 'verified', label: 'Verificados (70%+)' },
+                  { value: 'diamond', label: 'Completos' }
+                ]
               },
-              { value: sortBy, onChange: setSortBy, options: [{ value: 'name', label: 'Nombre' }, { value: 'wins', label: 'Victorias' }, { value: 'completion', label: 'Completitud' }], placeholder: "Ordenar por", icon: ArrowUpDown }
+              { 
+                label: "Ordenar",
+                value: sortBy, 
+                onChange: setSortBy, 
+                options: [
+                  { value: 'name', label: 'Nombre' },
+                  { value: 'wins', label: 'Victorias' },
+                  { value: 'completion', label: 'Completitud' }
+                ]
+              }
             ].map((filter, index) => (
               <div key={index} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <Select value={filter.value} onValueChange={filter.onChange}>
-                  <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300 text-sm sm:text-base">
-                    <filter.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder={filter.placeholder} />
+                  <SelectTrigger className="bg-card/50 backdrop-blur-sm border-border/50 hover:bg-card transition-all duration-300 min-h-[44px] text-sm">
+                    <span className="flex items-center gap-1.5 truncate">
+                      <span className="text-muted-foreground font-medium">{filter.label}:</span>
+                      <span className="text-foreground truncate">
+                        {getFilterDisplayValue(filter.value)}
+                      </span>
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     {filter.options.map((option: any) => (
