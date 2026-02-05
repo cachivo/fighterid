@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle } from 'lucide-react';
+import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,9 @@ import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
 import { FighterDetailModal } from '@/components/admin/FighterDetailModal';
 import { useAdminFighters, AdminFighterProfile } from '@/hooks/useAdminFighters';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
-import { WEIGHT_CLASSES, getWeightClassLabel } from '@/lib/constants/disciplines';
+import { WEIGHT_CLASSES, getWeightClassLabel, ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
+
+const PAGE_SIZE = 20;
 
 export default function FightersProfiles() {
   const navigate = useNavigate();
@@ -22,20 +24,23 @@ export default function FightersProfiles() {
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
   const [showIncomplete, setShowIncomplete] = useState(false);
+   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('all');
+   const [page, setPage] = useState(1);
   const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
   const [deletingFighter, setDeletingFighter] = useState<AdminFighterProfile | null>(null);
   const [viewingFighter, setViewingFighter] = useState<string | null>(null);
 
   // Filtrar y ordenar peleadores
-  const filteredFighters = fighters
+   const filteredFighters = useMemo(() => fighters
     .filter(fighter => {
       const matchesSearch = `${fighter.first_name} ${fighter.last_name} ${fighter.nickname || ''}`
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesWeight = selectedWeightClass === 'all' || fighter.weight_class === selectedWeightClass;
+       const matchesDiscipline = selectedDiscipline === 'all' || fighter.discipline === selectedDiscipline;
       const completionScore = (fighter as any).completion_score || 0;
       const matchesCompletion = !showIncomplete || completionScore < 70;
-      return matchesSearch && matchesWeight && matchesCompletion;
+       return matchesSearch && matchesWeight && matchesDiscipline && matchesCompletion;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -50,7 +55,20 @@ export default function FightersProfiles() {
         default:
           return a.first_name.localeCompare(b.first_name);
       }
-    });
+     }), [fighters, searchTerm, selectedWeightClass, selectedDiscipline, showIncomplete, sortBy]);
+
+   // Pagination
+   const totalPages = Math.ceil(filteredFighters.length / PAGE_SIZE);
+   const paginatedFighters = useMemo(() => 
+     filteredFighters.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+     [filteredFighters, page]
+   );
+
+   // Reset page when filters change
+   const handleFilterChange = (setter: (value: string) => void) => (value: string) => {
+     setter(value);
+     setPage(1);
+   };
   
   const incompleteCount = fighters.filter(f => ((f as any).completion_score || 0) < 70).length;
 
@@ -121,12 +139,25 @@ export default function FightersProfiles() {
                 <Input
                   placeholder="Buscar peleadores..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                   onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
                   className="pl-9"
                 />
               </div>
             </div>
-            <Select value={selectedWeightClass} onValueChange={setSelectedWeightClass}>
+             <Select value={selectedDiscipline} onValueChange={handleFilterChange(setSelectedDiscipline)}>
+               <SelectTrigger className="w-full md:w-40">
+                 <SelectValue placeholder="Disciplina" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todas</SelectItem>
+                 {ENABLED_DISCIPLINES.map(d => (
+                   <SelectItem key={d.value} value={d.value}>
+                     {d.label}
+                   </SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+             <Select value={selectedWeightClass} onValueChange={handleFilterChange(setSelectedWeightClass)}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
@@ -155,11 +186,11 @@ export default function FightersProfiles() {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Mostrando {filteredFighters.length} de {fighters.length} peleadores
+         Mostrando {paginatedFighters.length} de {filteredFighters.length} peleadores (página {page} de {totalPages || 1})
       </div>
 
       {/* Fighters Grid */}
-      {filteredFighters.length === 0 ? (
+       {paginatedFighters.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -171,7 +202,7 @@ export default function FightersProfiles() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredFighters.map((fighter) => (
+           {paginatedFighters.map((fighter) => (
             <Card key={fighter.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
@@ -282,6 +313,33 @@ export default function FightersProfiles() {
           ))}
         </div>
       )}
+
+       {/* Pagination Controls */}
+       {totalPages > 1 && (
+         <div className="flex items-center justify-center gap-2 pt-4">
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={() => setPage(p => Math.max(1, p - 1))}
+             disabled={page === 1}
+           >
+             <ChevronLeft className="h-4 w-4" />
+             Anterior
+           </Button>
+           <span className="text-sm text-muted-foreground px-4">
+             Página {page} de {totalPages}
+           </span>
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+             disabled={page === totalPages}
+           >
+             Siguiente
+             <ChevronRight className="h-4 w-4" />
+           </Button>
+         </div>
+       )}
 
       {/* Detail Modal */}
       <FighterDetailModal

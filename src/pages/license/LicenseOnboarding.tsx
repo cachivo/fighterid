@@ -28,7 +28,7 @@ export default function LicenseOnboarding() {
     firstName: '',
     lastName: '',
     nickname: '',
-    country: 'HN',
+     country: 'Honduras',
     weightClass: '',
     heightCm: '',
     weightKg: '',

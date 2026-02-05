@@ -17,7 +17,8 @@ import {
   Activity,
   TestTube2,
   Mail,
-  Send
+   Send,
+   Medal
 } from 'lucide-react';
 import {
   Sidebar,
@@ -41,6 +42,7 @@ const adminItems = [
   { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Calendar },
   { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },
+   { title: 'Gestión de Rankings', url: '/admin/rankings', icon: Medal },
   { title: 'Gimnasios / Escuelas', url: '/admin/gimnasios', icon: Briefcase },
   { title: 'Entrenadores', url: '/admin/entrenadores', icon: Users },
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
