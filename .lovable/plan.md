@@ -1,316 +1,197 @@
 
-# Análisis de Coherencia: Fighter ID Platform
+# Auditoría de Sincronización: Admin Panel ↔ Rankings
 
-## Resumen Ejecutivo
+## PROBLEMA CRÍTICO CONFIRMADO
 
-Se identificaron **12 inconsistencias críticas** entre la página principal, el explorador de atletas, y el panel de administración. Estas inconsistencias afectan la integridad de datos y la experiencia del usuario.
+He encontrado evidencia directa de la desincronización que reportas:
 
----
-
-## INCONSISTENCIA #1: Disciplinas de Competencia vs Artes Marciales
-
-### Problema
-
-El archivo `disciplines.ts` define correctamente la separación:
-- **ENABLED_DISCIPLINES** = [MMA, Boxeo] → Para competencia
-- **MARTIAL_ARTS_TRAINING** = [MuayThai, JiuJitsu, Judo, etc.] → Para entrenamiento
-
-Sin embargo, `Fighters.tsx` (explorador público) **mezcla ambos conceptos**:
-
-```typescript
-// Fighters.tsx líneas 46-56 - INCORRECTO
-const DISCIPLINES = [
-  'Todas', 'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 
-  'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-];
-```
-
-### Ubicación del Problema
-
-| Archivo | Estado | Descripción |
-|---------|--------|-------------|
-| `src/lib/constants/disciplines.ts` | ✅ Correcto | Separa disciplinas de competencia y artes de entrenamiento |
-| `src/pages/Fighters.tsx` | ❌ Incorrecto | Mezcla ambos conceptos en el filtro "Disciplina" |
-| `src/components/sections/LeagueSelector.tsx` | ✅ Correcto | Solo muestra MMA y Boxeo |
-| `src/pages/admin/FightersProfiles.tsx` | ✅ Correcto | Usa `ENABLED_DISCIPLINES` |
-
-### Corrección Necesaria
-
-```typescript
-// Fighters.tsx - Usar constantes centralizadas
-import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
-
-// Cambiar filtro "Disciplina" a solo competencia
-const DISCIPLINES = [
-  { value: 'Todas', label: 'Todas' },
-  ...ENABLED_DISCIPLINES.map(d => ({ value: d.value, label: d.label }))
-];
-
-// Agregar nuevo filtro "Artes Marciales" para entrenamiento
-const MARTIAL_ARTS_OPTIONS = [
-  { value: 'Todos', label: 'Todas' },
-  ...MARTIAL_ARTS_TRAINING.map(m => ({ value: m.value, label: m.label }))
-];
-```
-
----
-
-## INCONSISTENCIA #2: Récords de Combate (Legacy vs Por Disciplina)
-
-### Problema
-
-El sistema tiene dos formas de almacenar récords:
+### Caso Real Detectado: Erick Tzoc
 
 ```text
-CAMPOS LEGACY (Deprecated):
-- record_wins, record_losses, record_draws
-
-CAMPOS POR DISCIPLINA (Correcto):
-- mma_record_wins, mma_record_losses, mma_record_draws
-- boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+┌─────────────────────────────────────────────────────────────────┐
+│ FIGHTER_PROFILES (Editado desde Admin)                         │
+│ - level: "Semi-profesional" ✅ (Actualizado correctamente)     │
+├─────────────────────────────────────────────────────────────────┤
+│ FIGHTER_RANKINGS (NO se actualizó)                             │
+│ - level: "Amateur" ❌ (Datos desincronizados)                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-**Pero diferentes componentes usan diferentes campos:**
-
-| Componente | Campos Usados | Estado |
-|------------|---------------|--------|
-| `Ranking.tsx` (homepage) | `mma_record_*` / `boxeo_record_*` | ✅ Correcto |
-| `FightersProfiles.tsx` (admin) | `getRecordDisplay()` con disciplina | ✅ Correcto |
-| `FighterCard.tsx` (explorer) | `record_wins` (legacy) | ❌ Incorrecto |
-| `useCombinedFighterRecord.tsx` | `record_wins` (legacy) | ❌ Incorrecto |
-| `FighterProfile.tsx` | `useCombinedFighterRecord` | ❌ Incorrecto |
-
-### Código Problemático
-
-```typescript
-// FighterCard.tsx línea 33 y 98 - USA LEGACY
-const totalFights = fighter.record_wins + fighter.record_losses + fighter.record_draws;
-// ...
-{fighter.record_wins}-{fighter.record_losses}-{fighter.record_draws}
-
-// useCombinedFighterRecord.tsx líneas 22-23 - USA LEGACY
-.select('record_wins, record_losses, record_draws, record_type')
-```
-
-### Corrección Necesaria
-
-```typescript
-// FighterCard.tsx - Usar disciplina
-const getRecordForDiscipline = (fighter: FighterProfile) => {
-  if (fighter.discipline === 'MMA') {
-    return {
-      wins: fighter.mma_record_wins || 0,
-      losses: fighter.mma_record_losses || 0,
-      draws: fighter.mma_record_draws || 0
-    };
-  } else if (fighter.discipline === 'Boxeo') {
-    return {
-      wins: fighter.boxeo_record_wins || 0,
-      losses: fighter.boxeo_record_losses || 0,
-      draws: fighter.boxeo_record_draws || 0
-    };
-  }
-  // Fallback a legacy
-  return {
-    wins: fighter.record_wins,
-    losses: fighter.record_losses,
-    draws: fighter.record_draws
-  };
-};
-
-// useCombinedFighterRecord.tsx - Agregar campos por disciplina
-.select('record_wins, record_losses, record_draws, record_type, mma_record_wins, mma_record_losses, mma_record_draws, boxeo_record_wins, boxeo_record_losses, boxeo_record_draws, discipline')
-```
+El peleador muestra **Semi-profesional** en su perfil, pero aparece en el ranking de **Amateur**.
 
 ---
 
-## INCONSISTENCIA #3: Filtro "Estilo de Pelea"
+## CAUSA RAÍZ
 
-### Problema
+Existen **DOS sistemas paralelos** que no se comunican:
 
-El filtro mezcla **estilos de combate** con **nombres de gimnasios**:
-
-```typescript
-// Fighters.tsx líneas 58-67 - COMPLETAMENTE INCORRECTO
-const FIGHTING_STYLES = [
-  'Todos',
-  'Striker',           // ✅ Estilo de pelea
-  'Brawler/Agresivo',  // ✅ Estilo de pelea
-  'Contra-Atacador',   // ✅ Estilo de pelea
-  'LUDUS CERBERUS',    // ❌ GIMNASIO!
-  'ALFA Y OMEGA MMA',  // ❌ GIMNASIO!
-  'SCHUMMANS/COMAYAGUA', // ❌ GIMNASIO!
-  'TEMPLO DEL TIGRE'   // ❌ GIMNASIO!
-];
+### Sistema 1: Edición de Perfil (FighterEditModal.tsx)
+```
+Admin edita nivel → Actualiza fighter_profiles.level → ✅
+                  → NO toca fighter_rankings.level → ❌
 ```
 
-### Corrección Necesaria
-
-```typescript
-// Separar estilos de gimnasios
-const FIGHTING_STYLES = [
-  'Todos',
-  'Striker',
-  'Brawler/Agresivo', 
-  'Contra-Atacador',
-  'Grappler',
-  'Wrestler',
-  'Switch/Híbrido'
-];
-
-// El filtro de gimnasio debería usar datos dinámicos de la DB
-// o crear un filtro separado
+### Sistema 2: Gestión de Ligas (FighterLeaguesTab.tsx)
+```
+Admin edita nivel en pestaña "Ligas" → Actualiza fighter_rankings.level → ✅
+                                     → NO toca fighter_profiles.level → ❌
 ```
 
----
-
-## INCONSISTENCIA #4: Visualización de Record en FighterProfile.tsx
-
-### Problema
-
-El perfil público del peleador usa `useCombinedFighterRecord` que:
-1. Solo usa campos legacy (`record_wins`, etc.)
-2. No distingue por disciplina de competencia
-3. Combina récords de peleas registradas con manual sin considerar la disciplina
-
-```typescript
-// FighterProfile.tsx líneas 163-173
-<Tabs value={recordType} onValueChange={(value) => setRecordType(value as RecordType)}>
-  <TabsTrigger value="AMATEUR">Amateur</TabsTrigger>
-  <TabsTrigger value="PROFESSIONAL">Profesional</TabsTrigger>
-</Tabs>
-```
-
-**El toggle es Amateur/Profesional pero debería ser por DISCIPLINA:**
+### Resultado: Dos fuentes de verdad desincronizadas
 
 ```text
-LÓGICA ACTUAL:           LÓGICA CORRECTA:
-┌─────────────────────┐  ┌─────────────────────┐
-│ Amateur │ Pro      │  │ MMA │ Boxeo        │
-└─────────────────────┘  └─────────────────────┘
-(basado en record_type)   (basado en discipline)
-```
-
-### Corrección Propuesta
-
-El perfil debe mostrar el récord según la **disciplina de competencia** del peleador, no según Amateur/Pro:
-
-```typescript
-// Si el peleador compite en MMA:
-- Mostrar: mma_record_wins-mma_record_losses-mma_record_draws
-
-// Si el peleador compite en Boxeo:
-- Mostrar: boxeo_record_wins-boxeo_record_losses-boxeo_record_draws
-
-// El level (Amateur/Pro) es informativo, no define el récord
+                    ┌─────────────────────┐
+                    │ FighterEditModal    │
+                    │ (Tab "Combate")     │
+                    └──────────┬──────────┘
+                               │ Actualiza
+                               ▼
+                    ┌─────────────────────┐
+                    │ fighter_profiles    │
+                    │ level: Semi-pro     │ ← El admin ve esto
+                    └─────────────────────┘
+                               ✗ Sin conexión
+                    ┌─────────────────────┐
+                    │ fighter_rankings    │
+                    │ level: Amateur      │ ← El ranking muestra esto
+                    └─────────────────────┘
+                               ▲
+                               │ Actualiza
+                    ┌──────────┴──────────┐
+                    │ FighterLeaguesTab   │
+                    │ (Tab "Ligas")       │
+                    └─────────────────────┘
 ```
 
 ---
 
-## INCONSISTENCIA #5: Artes Marciales en FighterCard
+## CAMPOS AFECTADOS POR LA DESINCRONIZACIÓN
 
-### Problema
+| Campo | En `fighter_profiles` | En `fighter_rankings` | ¿Sincronizado? |
+|-------|----------------------|----------------------|----------------|
+| `level` | ✅ Editable | ✅ Editable | ❌ NO |
+| `weight_class` | ✅ Editable | ✅ Editable | ❌ NO |
+| `discipline` | ✅ Editable | ❌ Solo lectura (via org) | ⚠️ Parcial |
 
-```typescript
-// FighterCard.tsx líneas 101-119
-{fighter.martial_arts && fighter.martial_arts.length > 0 
-  ? fighter.martial_arts.map(art => (
-      <Badge>{art}</Badge>
-    ))
-  : fighter.discipline && (
-      <Badge>{fighter.discipline}</Badge>
-    )
-}
+---
+
+## SOLUCIÓN PROPUESTA
+
+### Estrategia: Sincronización Bidireccional Automática
+
+Cuando se actualiza `fighter_profiles.level` o `fighter_profiles.weight_class`, automáticamente actualizar todos los `fighter_rankings` activos del peleador.
+
+### Implementación en 3 Partes:
+
+#### Parte 1: Nueva Función RPC (Base de Datos)
+
+```sql
+CREATE OR REPLACE FUNCTION sync_fighter_profile_to_rankings()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Sincronizar level a todos los rankings activos
+  IF OLD.level IS DISTINCT FROM NEW.level THEN
+    UPDATE fighter_rankings
+    SET level = NEW.level
+    WHERE fighter_id = NEW.id 
+      AND is_active = true;
+  END IF;
+  
+  -- Sincronizar weight_class a todos los rankings activos
+  IF OLD.weight_class IS DISTINCT FROM NEW.weight_class THEN
+    UPDATE fighter_rankings
+    SET weight_class = NEW.weight_class
+    WHERE fighter_id = NEW.id 
+      AND is_active = true;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger automático
+CREATE TRIGGER sync_profile_to_rankings_trigger
+AFTER UPDATE OF level, weight_class ON fighter_profiles
+FOR EACH ROW
+EXECUTE FUNCTION sync_fighter_profile_to_rankings();
 ```
 
-Esto muestra:
-- Si tiene `martial_arts`: Muestra artes de entrenamiento
-- Si no tiene `martial_arts`: Muestra disciplina de competencia
+#### Parte 2: Actualización del Hook (Frontend)
 
-**Ambos se muestran bajo "Artes Marciales"** - confuso porque son conceptos diferentes.
-
-### Corrección Necesaria
+Modificar `useFighterProfiles.tsx` para invalidar queries adicionales:
 
 ```typescript
-// Separar claramente
-<div>
-  <p className="text-muted-foreground">Compite en</p>
-  <Badge>{fighter.discipline || 'N/A'}</Badge>
-</div>
+// Después de actualizar el perfil exitosamente
+queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
+queryClient.invalidateQueries({ queryKey: ['ranking-data'] }); // Nuevo
 
-{fighter.martial_arts && fighter.martial_arts.length > 0 && (
-  <div>
-    <p className="text-muted-foreground">Entrena</p>
-    {fighter.martial_arts.map(art => (
-      <Badge key={art} variant="outline">{art}</Badge>
-    ))}
-  </div>
+// Emitir evento global
+window.dispatchEvent(new CustomEvent('admin-fighter-updated', {
+  detail: { fighterId, fields: ['level', 'weight_class'] }
+}));
+```
+
+#### Parte 3: UI de Advertencia
+
+Actualizar `FighterEditModal.tsx` para mostrar cuántos rankings se actualizarán:
+
+```typescript
+// Cuando cambia el nivel, mostrar advertencia informativa
+{levelChanged && fighterActiveLeagues.length > 0 && (
+  <Alert>
+    <Info className="h-4 w-4" />
+    <AlertDescription>
+      El nivel se actualizará en {fighterActiveLeagues.length} ranking(s):
+      {fighterActiveLeagues.map(l => l.organization_name).join(', ')}
+    </AlertDescription>
+  </Alert>
 )}
-```
-
----
-
-## MAPA DE COHERENCIA
-
-```text
-                    ┌────────────────────────┐
-                    │   disciplines.ts       │
-                    │ ✅ ENABLED_DISCIPLINES │
-                    │ ✅ MARTIAL_ARTS_TRAINING│
-                    └───────────┬────────────┘
-                                │
-           ┌────────────────────┼────────────────────┐
-           │                    │                    │
-           ▼                    ▼                    ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│ LeagueSelector   │  │ Fighters.tsx     │  │ Admin Profiles   │
-│ ✅ Solo MMA/Boxeo│  │ ❌ 8 disciplinas │  │ ✅ Solo MMA/Boxeo│
-└──────────────────┘  └──────────────────┘  └──────────────────┘
-           │                    │                    │
-           ▼                    ▼                    ▼
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│ Ranking.tsx      │  │ FighterCard.tsx  │  │ FightersProfiles │
-│ ✅ Records x disc│  │ ❌ Records legacy│  │ ✅ Records x disc│
-└──────────────────┘  └──────────────────┘  └──────────────────┘
 ```
 
 ---
 
 ## ARCHIVOS A MODIFICAR
 
-| Archivo | Prioridad | Cambios |
-|---------|-----------|---------|
-| `src/pages/Fighters.tsx` | ALTA | Usar `ENABLED_DISCIPLINES`, corregir `FIGHTING_STYLES` |
-| `src/components/FighterCard.tsx` | ALTA | Usar records por disciplina, separar "Compite en" vs "Entrena" |
-| `src/hooks/useCombinedFighterRecord.tsx` | ALTA | Agregar campos por disciplina |
-| `src/pages/FighterProfile.tsx` | MEDIA | Mostrar record según disciplina, no Amateur/Pro |
+| Archivo | Cambio | Prioridad |
+|---------|--------|-----------|
+| **Nueva migración SQL** | Crear trigger de sincronización | CRÍTICA |
+| `src/hooks/useFighterProfiles.tsx` | Invalidar queries adicionales | ALTA |
+| `src/components/admin/FighterEditModal.tsx` | UI de advertencia al cambiar nivel | MEDIA |
+| `src/pages/admin/RankingsManagement.tsx` | Forzar refresh después de cambios | MEDIA |
 
 ---
 
-## MATRIZ DE VERIFICACIÓN POST-CORRECCIÓN
+## BENEFICIOS POST-IMPLEMENTACIÓN
 
-| Área | Verificación |
-|------|-------------|
-| Disciplina en filtros | Solo MMA y Boxeo como opciones de competencia |
-| Artes marciales | Separadas como filtro de "entrenamiento" |
-| Récords en cards | Mostrar según disciplina del peleador |
-| Récords en perfil | Basado en disciplina, no Amateur/Pro |
-| Estilos de pelea | Solo estilos reales, no gimnasios |
-| Consistencia Admin↔Público | Mismos campos y lógica |
+1. **Un admin edita nivel** → Se actualiza automáticamente en todos los rankings
+2. **Un admin edita peso** → Se actualiza automáticamente en todos los rankings
+3. **Sin intervención manual** → No hay que ir a "Ligas" por separado
+4. **Datos consistentes** → Una sola fuente de verdad efectiva
+5. **Trazabilidad** → El trigger puede incluir log de auditoría
 
 ---
 
-## IMPLEMENTACIÓN RECOMENDADA
+## VERIFICACIÓN POST-IMPLEMENTACIÓN
 
-### Fase 1: Normalizar Filtros en Explorer (1 archivo)
-1. Modificar `Fighters.tsx` para usar constantes de `disciplines.ts`
-2. Corregir `FIGHTING_STYLES` eliminando gimnasios
+```sql
+-- Query para verificar consistencia (debería devolver 0 filas)
+SELECT fp.first_name, fp.last_name,
+       fp.level as profile_level,
+       fr.level as ranking_level
+FROM fighter_profiles fp
+JOIN fighter_rankings fr ON fp.id = fr.fighter_id
+WHERE fp.level != fr.level
+  AND fr.is_active = true;
+```
 
-### Fase 2: Unificar Récords (3 archivos)
-1. Actualizar `FighterCard.tsx` con función `getRecordForDiscipline()`
-2. Actualizar `useCombinedFighterRecord.tsx` para usar campos por disciplina
-3. Actualizar `FighterProfile.tsx` para mostrar récord según disciplina
+---
 
-### Fase 3: Clarificar UI (2 archivos)
-1. Separar "Compite en" vs "Entrena" en `FighterCard.tsx`
-2. Ajustar labels en `FighterProfile.tsx`
+## SECCIÓN TÉCNICA: Detalles de Migración
+
+La migración creará:
+1. Función `sync_fighter_profile_to_rankings()` con SECURITY DEFINER
+2. Trigger `sync_profile_to_rankings_trigger` en UPDATE de `fighter_profiles`
+3. Índice optimizado para búsquedas de rankings por fighter_id
+
+El trigger se ejecutará automáticamente cada vez que se actualice `level` o `weight_class` en cualquier perfil de peleador, garantizando sincronización inmediata sin importar desde dónde se haga el cambio (UI, API, SQL directo).
