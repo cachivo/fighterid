@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,10 +12,12 @@ import Footer from "@/components/Footer";
 import UrbanDecorations from "@/components/UrbanDecorations";
 import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import { FighterIDCallToAction } from "@/components/FighterIDCallToAction";
+import LeagueSelector from "@/components/sections/LeagueSelector";
 
 const Index = () => {
   const queryClient = useQueryClient();
   const { user, loading } = useAuth();
+  const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
 
   useEffect(() => {
     // Prefetch strategic partners data immediately
@@ -76,7 +79,8 @@ const Index = () => {
         <>
           <FighterIDCallToAction />
           <QuickStats />
-          <Ranking />
+          <LeagueSelector value={selectedOrg} onChange={setSelectedOrg} />
+          <Ranking organizationCode={selectedOrg} />
           <StrategicAllies />
         </>
       )}
