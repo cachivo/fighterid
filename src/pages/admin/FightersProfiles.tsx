@@ -229,11 +229,11 @@ export default function FightersProfiles() {
                       }
                       priority={false}
                     />
-                    <div className="h-[3.5rem] flex flex-col justify-start overflow-hidden">
-                      <CardTitle className="text-lg leading-tight line-clamp-2">
+                    <div className="h-14 flex flex-col justify-center">
+                      <CardTitle className="text-base font-semibold leading-tight line-clamp-1">
                         {fighter.first_name} {fighter.last_name}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground truncate">
+                      <p className="text-sm text-muted-foreground truncate mt-0.5">
                         {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
                       </p>
                     </div>
