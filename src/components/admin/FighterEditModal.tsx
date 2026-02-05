@@ -18,12 +18,7 @@ import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hook
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-import { ENABLED_DISCIPLINES, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES } from '@/lib/constants/disciplines';
-
-// All martial arts for legacy support
-const MARTIAL_ARTS = [
-  'MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'
-];
+import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES } from '@/lib/constants/disciplines';
 
 const GENDERS = [
   { value: 'M', label: 'Masculino' },
@@ -159,20 +154,27 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     }));
   };
 
-  const handleMartialArtsChange = (art: string, checked: boolean) => {
+  const handleDisciplineChange = (discipline: string) => {
+    // Map placeholder back to null/undefined
+    const actualValue = discipline === '__none__' ? undefined : discipline;
+    setFormData(prev => ({
+      ...prev,
+      discipline: actualValue as any
+    }));
+  };
+
+  const handleTrainingArtsChange = (art: string, checked: boolean) => {
     const currentArts = formData.martial_arts || [];
     if (checked) {
       setFormData(prev => ({
         ...prev,
-        martial_arts: [...currentArts, art],
-        discipline: currentArts.length === 0 ? art as any : prev.discipline
+        martial_arts: [...currentArts, art]
       }));
     } else {
       const newArts = currentArts.filter(a => a !== art);
       setFormData(prev => ({
         ...prev,
-        martial_arts: newArts,
-        discipline: newArts.length > 0 ? newArts[0] as any : undefined
+        martial_arts: newArts
       }));
     }
   };
@@ -632,13 +634,37 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
             {/* Combat Information Tab */}
             <TabsContent value="combat" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Card 1: Disciplina de Competencia */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Disciplinas y Estilo</CardTitle>
+                    <CardTitle>Disciplina de Competencia</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="level">Nivel Profesional</Label>
+                      <Label htmlFor="discipline">Disciplina *</Label>
+                      <Select 
+                        value={formData.discipline || '__none__'} 
+                        onValueChange={handleDisciplineChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar disciplina" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sin selección</SelectItem>
+                          {ENABLED_DISCIPLINES.map(disc => (
+                            <SelectItem key={disc.value} value={disc.value}>
+                              {disc.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Define en qué ranking aparece el peleador
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="level">Nivel Competitivo</Label>
                       <Select 
                         value={formData.level || 'AMATEUR'} 
                         onValueChange={(value) => handleChange('level', value)}
@@ -655,22 +681,29 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                         </SelectContent>
                       </Select>
                     </div>
+                  </CardContent>
+                </Card>
 
+                {/* Card 2: Artes Marciales de Entrenamiento */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Artes Marciales de Entrenamiento</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
-                      <Label>Artes Marciales / Estilos de Pelea</Label>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Selecciona todas las artes marciales que practica
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Selecciona las artes que practica para su preparación (informativo)
                       </p>
                       <div className="grid grid-cols-2 gap-3">
-                        {MARTIAL_ARTS.map((art) => (
-                          <div key={art} className="flex items-center space-x-2">
+                        {MARTIAL_ARTS_TRAINING.map((art) => (
+                          <div key={art.value} className="flex items-center space-x-2">
                             <Checkbox
-                              id={art}
-                              checked={formData.martial_arts?.includes(art) || false}
-                              onCheckedChange={(checked) => handleMartialArtsChange(art, checked as boolean)}
+                              id={art.value}
+                              checked={formData.martial_arts?.includes(art.value) || false}
+                              onCheckedChange={(checked) => handleTrainingArtsChange(art.value, checked as boolean)}
                             />
-                            <Label htmlFor={art} className="text-sm font-normal cursor-pointer">
-                              {art}
+                            <Label htmlFor={art.value} className="text-sm font-normal cursor-pointer">
+                              {art.label}
                             </Label>
                           </div>
                         ))}
@@ -679,7 +712,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                         <div className="flex flex-wrap gap-2 mt-3">
                           {formData.martial_arts.map((art) => (
                             <Badge key={art} variant="secondary" className="text-xs">
-                              {art}
+                              {MARTIAL_ARTS_TRAINING.find(a => a.value === art)?.label || art}
                             </Badge>
                           ))}
                         </div>
@@ -687,14 +720,17 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     </div>
                   </CardContent>
                 </Card>
+              </div>
 
+              {/* Records Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Récord de Combate</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {/* MMA Record - Solo si MMA está seleccionado */}
-                    {formData.martial_arts?.includes('MMA') && (
+                    {formData.discipline === 'MMA' && (
                       <div className="p-4 border rounded-lg bg-muted/30">
                         <h4 className="font-semibold mb-3">Récord MMA</h4>
                         <div className="grid grid-cols-3 gap-4">
@@ -736,7 +772,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     )}
 
                     {/* Boxeo Record - Solo si Boxeo está seleccionado */}
-                    {formData.martial_arts?.includes('Boxeo') && (
+                    {formData.discipline === 'Boxeo' && (
                       <div className="p-4 border rounded-lg bg-muted/30">
                         <h4 className="font-semibold mb-3">Récord Boxeo</h4>
                         <div className="grid grid-cols-3 gap-4">
