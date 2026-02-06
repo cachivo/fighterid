@@ -16,6 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { uploadFighterAvatar } from '@/lib/photoUtils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 const fighterProfileSchema = z.object({
   first_name: z.string().min(1, 'Nombre es requerido').max(50, 'Máximo 50 caracteres'),
@@ -61,6 +62,7 @@ interface UserFighterProfileEditFormProps {
 
 export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: UserFighterProfileEditFormProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -287,6 +289,21 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         }
 
         console.log("[SUCCESS] Immediate updates applied, gamification score updated via trigger");
+        
+        // Invalidate all related caches for immediate UI sync
+        queryClient.invalidateQueries({ queryKey: ['fighters'] });
+        queryClient.invalidateQueries({ queryKey: ['fighter', profileId] });
+        queryClient.invalidateQueries({ queryKey: ['fighter-profile', profileId] });
+        queryClient.invalidateQueries({ queryKey: ['userFighterProfile'] });
+        queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+        queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
+        queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
+        queryClient.invalidateQueries({ queryKey: ['license'] });
+        
+        // Dispatch global event for non-query-based components
+        window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+          detail: { fighterId: profileId, fields: Object.keys(updates) }
+        }));
       }
 
       // 2. CREAR SOLICITUD para récord (solo si está bloqueado Y hay cambios)

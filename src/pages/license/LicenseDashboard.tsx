@@ -3,6 +3,7 @@ import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
 import { useFighterProfiles } from '@/hooks/useFighterProfiles';
 import { useDopingTests } from '@/hooks/useDopingTests';
+import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
 import { EnhancedFighterID } from '@/components/EnhancedFighterID';
 import { UserFighterProfileEditForm } from '@/components/UserFighterProfileEditForm';
 import { ProfileProgressWidget } from '@/components/ProfileProgressWidget';
@@ -31,6 +32,9 @@ export default function LicenseDashboard() {
   const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Enable realtime updates for the current user's fighter profile
+  useRealtimeFighterUpdates(licenseData?.fighter_profile_id);
 
   console.log('Dashboard - licenseData:', licenseData);
   console.log('Dashboard - license:', license);

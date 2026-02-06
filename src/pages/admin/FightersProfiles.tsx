@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -13,6 +13,7 @@ import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
 import { FighterDetailModal } from '@/components/admin/FighterDetailModal';
 import { useAdminFighters, AdminFighterProfile } from '@/hooks/useAdminFighters';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
+import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
 import { WEIGHT_CLASSES, getWeightClassLabel, ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
 
 const PAGE_SIZE = 20;
@@ -40,6 +41,22 @@ export default function FightersProfiles() {
   const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
   const [deletingFighter, setDeletingFighter] = useState<AdminFighterProfile | null>(null);
   const [viewingFighter, setViewingFighter] = useState<string | null>(null);
+
+  // Enable realtime updates for all fighters (global subscription)
+  useRealtimeFighterUpdates();
+
+  // Listen for fighter update events and refresh the list
+  useEffect(() => {
+    const handleFighterUpdate = () => {
+      console.log('[FightersProfiles] Received update event, refreshing...');
+      fetchFighters();
+    };
+    
+    window.addEventListener('fighter-profile-updated', handleFighterUpdate);
+    return () => {
+      window.removeEventListener('fighter-profile-updated', handleFighterUpdate);
+    };
+  }, [fetchFighters]);
 
   // Filtrar y ordenar peleadores
    const filteredFighters = useMemo(() => fighters

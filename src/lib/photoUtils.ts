@@ -1,10 +1,15 @@
 import { supabase } from '@/integrations/supabase/client';
-
 import { toast } from 'sonner';
 
+/**
+ * Upload a fighter avatar image
+ * - Uses fighterId for folder path (works for both admin and user uploads)
+ * - Admins can upload to any fighter's folder via storage policies
+ * - Users can upload to their own folder (auth.uid() match)
+ */
 export async function uploadFighterAvatar(
   file: File, 
-  userId: string, 
+  userId: string, // For backwards compatibility - can be the uploading user's ID or fighter's user_id
   fighterProfileId: string,
   currentAvatarUrl?: string
 ): Promise<string | null> {
@@ -22,12 +27,6 @@ export async function uploadFighterAvatar(
     if (!file) {
       console.error('No file provided');
       toast.error('Error: No se proporcionó archivo');
-      return null;
-    }
-
-    if (!userId) {
-      console.error('No userId provided');
-      toast.error('Error: ID de usuario no válido');
       return null;
     }
 
@@ -75,9 +74,32 @@ export async function uploadFighterAvatar(
       }
     }
 
-    // Upload processed photo
-    const photoFileName = `${userId}/photo-${Date.now()}.webp`;
-    console.log('Starting upload to storage:', photoFileName);
+    // Get current authenticated user to determine folder strategy
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    
+    if (!currentUser) {
+      console.error('No authenticated user');
+      toast.error('Error: Usuario no autenticado');
+      return null;
+    }
+
+    // Check if current user is admin
+    const { data: appUser } = await supabase
+      .from('app_user')
+      .select('is_admin')
+      .eq('auth_user_id', currentUser.id)
+      .single();
+
+    const isAdmin = appUser?.is_admin === true;
+
+    // Use fighterId-based folder for admins (covered by admin storage policy)
+    // Use auth.uid()-based folder for regular users (covered by user storage policy)
+    const folderPath = isAdmin 
+      ? `fighters/${fighterProfileId}` 
+      : `${currentUser.id}`;
+    
+    const photoFileName = `${folderPath}/photo-${Date.now()}.webp`;
+    console.log('Starting upload to storage:', photoFileName, { isAdmin });
     
     const { error: uploadError } = await supabase.storage
       .from('fighter-photos')
