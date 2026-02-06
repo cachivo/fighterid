@@ -53,13 +53,14 @@ const StrategicAllies = () => {
             <Card key={partner.id} className="bg-urban-darker border-purple-neon-primary/20 hover:border-purple-neon-primary/40 transition-all duration-300 group animate-slide-up touch-manipulation" style={{ animationDelay: `${index * 100}ms` }}>
               <div className="p-4 sm:p-6 text-center">
                 <div className="mb-4 flex justify-center">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors overflow-hidden">
+                  <div className="w-full max-w-[140px] h-20 sm:h-24 bg-white/10 rounded-lg flex items-center justify-center p-2 sm:p-3 group-hover:bg-white/20 transition-colors">
                     {partner.logo ? (
                       <OptimizedImage
                         src={partner.logo}
                         alt={partner.nombre}
-                        className="w-16 h-16 sm:w-20 sm:h-20 object-contain transition-all duration-300"
-                        priority={index < 3} // Prioritize first 3 images
+                        className="w-full h-full"
+                        objectFit="contain"
+                        priority={index < 3}
                         fallbackIcon={
                           <div className="text-purple-neon-primary">
                             {partner.tipo === "Gimnasio" ? 

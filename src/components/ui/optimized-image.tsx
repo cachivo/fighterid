@@ -7,6 +7,7 @@ interface OptimizedImageProps {
   className?: string;
   fallbackIcon?: React.ReactNode;
   priority?: boolean;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none';
   onLoad?: () => void;
   onError?: () => void;
 }
@@ -17,6 +18,7 @@ export const OptimizedImage = ({
   className, 
   fallbackIcon,
   priority = false,
+  objectFit = 'cover',
   onLoad,
   onError 
 }: OptimizedImageProps) => {
@@ -81,7 +83,10 @@ export const OptimizedImage = ({
           src={src}
           alt={alt}
           className={cn(
-            "absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-300",
+            "absolute inset-0 w-full h-full object-center transition-opacity duration-300",
+            objectFit === 'contain' ? 'object-contain' : 
+            objectFit === 'fill' ? 'object-fill' : 
+            objectFit === 'none' ? 'object-none' : 'object-cover',
             isLoaded ? "opacity-100" : "opacity-0"
           )}
           onLoad={handleLoad}
