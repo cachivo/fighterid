@@ -485,4 +485,33 @@ img, video {
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
   }
+
+  /* Mobile Select Optimization - Fix for iOS and low-end devices */
+  @media (max-width: 768px) {
+    [data-radix-select-content] {
+      /* Disable backdrop blur on mobile for performance */
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      
+      /* Solid background for legibility */
+      background-color: hsl(var(--popover)) !important;
+      
+      /* Immediate touch response */
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    [data-radix-select-item] {
+      /* Larger touch targets (minimum 48px for accessibility) */
+      min-height: 48px !important;
+      padding-top: 12px !important;
+      padding-bottom: 12px !important;
+    }
+    
+    [data-radix-select-trigger] {
+      /* Ensure trigger is also touch-friendly */
+      min-height: 44px;
+      touch-action: manipulation;
+    }
+  }
 }
