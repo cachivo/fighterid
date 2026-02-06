@@ -437,11 +437,15 @@ export function useFighterProfiles() {
         description: "Perfil de peleador actualizado correctamente.",
       });
 
-      // Invalidate ranking queries to ensure consistency
+      // Complete cache invalidation for all fighter-related queries
       queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
       queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
       queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
       queryClient.invalidateQueries({ queryKey: ['fighters'] });
+      queryClient.invalidateQueries({ queryKey: ['fighter', fighterId] });
+      queryClient.invalidateQueries({ queryKey: ['fighter-profile', fighterId] });
+      queryClient.invalidateQueries({ queryKey: ['userFighterProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['license'] });
 
       // Refrescar la lista para mostrar los cambios
       await fetchFighters();

@@ -1,7 +1,8 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useFighterProfiles, FighterProfile as FighterProfileType } from '@/hooks/useFighterProfiles';
 import { useCombinedFighterRecord } from '@/hooks/useCombinedFighterRecord';
+import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,15 +24,36 @@ export default function FighterProfile() {
   const { data: activeLeagues, isLoading: isLoadingLeagues } = useFighterActiveLeagues(id || null);
   const [fighter, setFighter] = useState<FighterProfileType | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Enable realtime updates for this fighter
+  useRealtimeFighterUpdates(id);
 
-  useEffect(() => {
+  const fetchFighter = useCallback(async () => {
     if (id) {
-      getFighterById(id).then((profile) => {
-        setFighter(profile);
-        setLoading(false);
-      });
+      const profile = await getFighterById(id);
+      setFighter(profile);
+      setLoading(false);
     }
   }, [id, getFighterById]);
+
+  useEffect(() => {
+    fetchFighter();
+  }, [fetchFighter]);
+
+  // Listen for profile updates and refresh
+  useEffect(() => {
+    const handleProfileUpdate = (event: CustomEvent) => {
+      if (event.detail?.fighterId === id) {
+        console.log('[FighterProfile] Received update event, refreshing...');
+        fetchFighter();
+      }
+    };
+    
+    window.addEventListener('fighter-profile-updated', handleProfileUpdate as EventListener);
+    return () => {
+      window.removeEventListener('fighter-profile-updated', handleProfileUpdate as EventListener);
+    };
+  }, [id, fetchFighter]);
 
   if (loading) {
     return (

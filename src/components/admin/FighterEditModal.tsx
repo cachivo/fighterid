@@ -16,6 +16,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
 import { useFighterActiveLeagues } from '@/hooks/useFighterActiveLeagues';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { AlertTriangle } from 'lucide-react';
@@ -218,32 +219,34 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
       let finalFormData = { ...formData };
       
       if ((formData as any)._avatarFile) {
-        if (!fighter.user_id) {
+        // Admin can upload avatar regardless of fighter.user_id
+        // photoUtils now handles admin vs user folder paths via storage policies
+        try {
+          const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+          // Get current user's auth id for the upload function
+          const { data: { user: currentUser } } = await supabase.auth.getUser();
+          
+          if (!currentUser) {
+            throw new Error('No authenticated user');
+          }
+          
+          const avatarUrl = await uploadFighterAvatar(
+            (formData as any)._avatarFile, 
+            currentUser.id, // Pass current user's ID - photoUtils will determine folder based on admin status
+            fighter.id,
+            fighter.avatar_url
+          );
+          
+          if (avatarUrl) {
+            finalFormData.avatar_url = avatarUrl;
+          }
+        } catch (avatarError) {
+          console.error('Avatar upload error:', avatarError);
           toast({
-            title: "Advertencia",
-            description: "No se puede subir avatar: usuario no válido. Se actualizarán los demás datos.",
+            title: "Error de imagen",
+            description: "Error al subir la imagen. Se actualizarán los demás datos.",
             variant: "destructive",
           });
-        } else {
-          try {
-            const { uploadFighterAvatar } = await import('@/lib/photoUtils');
-            const avatarUrl = await uploadFighterAvatar(
-              (formData as any)._avatarFile, 
-              fighter.user_id, 
-              fighter.id,
-              fighter.avatar_url
-            );
-            
-            if (avatarUrl) {
-              finalFormData.avatar_url = avatarUrl;
-            }
-          } catch (avatarError) {
-            toast({
-              title: "Error de imagen",
-              description: "Error al subir la imagen. Se actualizarán los demás datos.",
-              variant: "destructive",
-            });
-          }
         }
         
         delete (finalFormData as any)._avatarFile;
