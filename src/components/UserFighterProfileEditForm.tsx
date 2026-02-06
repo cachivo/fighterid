@@ -17,6 +17,7 @@ import { uploadFighterAvatar } from '@/lib/photoUtils';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { WEIGHT_CLASSES, FIGHTER_LEVELS, COUNTRIES } from '@/lib/constants/disciplines';
 
 const fighterProfileSchema = z.object({
   first_name: z.string().min(1, 'Nombre es requerido').max(50, 'Máximo 50 caracteres'),
@@ -115,7 +116,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       last_name: profile.last_name || '',
       nickname: profile.nickname || '',
       gender: profile.gender || '',
-      country: profile.country || 'HN',
+      country: profile.country || 'Honduras',
       birthdate: profile.birthdate || '',
       birthplace: profile.birthplace || '',
       phone: profile.phone || '',
@@ -547,15 +548,30 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                     </FormItem>
                   )}
                 />
-                <FormField
+              <FormField
                   control={form.control}
                   name="country"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>País</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="HN" />
-                      </FormControl>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="min-h-[44px] touch-manipulation">
+                            <SelectValue placeholder="Seleccionar país" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
+                          {COUNTRIES.map((c) => (
+                            <SelectItem key={c.value} value={c.value}>
+                              {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -741,15 +757,11 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
-                          <SelectItem value="Strawweight">Strawweight</SelectItem>
-                          <SelectItem value="Flyweight">Flyweight</SelectItem>
-                          <SelectItem value="Bantamweight">Bantamweight</SelectItem>
-                          <SelectItem value="Featherweight">Featherweight</SelectItem>
-                          <SelectItem value="Lightweight">Lightweight</SelectItem>
-                          <SelectItem value="Welterweight">Welterweight</SelectItem>
-                          <SelectItem value="Middleweight">Middleweight</SelectItem>
-                          <SelectItem value="Light Heavyweight">Light Heavyweight</SelectItem>
-                          <SelectItem value="Heavyweight">Heavyweight</SelectItem>
+                          {WEIGHT_CLASSES.map((wc) => (
+                            <SelectItem key={wc.value} value={wc.value}>
+                              {wc.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -773,9 +785,11 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
-                          <SelectItem value="AMATEUR">Amateur</SelectItem>
-                          <SelectItem value="SEMI_PRO">Semi-Profesional</SelectItem>
-                          <SelectItem value="PROFESSIONAL">Profesional</SelectItem>
+                          {FIGHTER_LEVELS.map((level) => (
+                            <SelectItem key={level.value} value={level.value}>
+                              {level.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
