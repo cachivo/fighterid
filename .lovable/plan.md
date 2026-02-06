@@ -1,210 +1,207 @@
 
-# Correccion Completa del Sistema de Edicion de Perfiles
+# Optimizacion de Botones de Edicion de Perfil para Movil
 
-## Diagnostico - Causa Raiz del Error
+## Problemas Identificados
 
-### Error Critico Identificado
+### 1. LicenseDashboard.tsx (Dashboard del Peleador Licenciado)
+**Ubicacion:** Lineas 214-225
 
-Los logs de la base de datos muestran:
+El boton "Actualizar" SOLO aparece cuando hay campos faltantes:
+```tsx
+{missingFields.length > 0 && (
+  <Button onClick={handleUpdateInfo} ...>
+    <Edit /> Actualizar
+  </Button>
+)}
 ```
-ERROR: type "public.competition_discipline" does not exist
-```
 
-**Ubicacion del problema:** La funcion `admin_update_fighter_profile` actualmente en produccion tiene esta linea erronea (linea 40):
-```sql
-discipline = COALESCE(p_profile_data->>'discipline', discipline::TEXT)::public.competition_discipline
-```
-
-El tipo correcto que existe en la base de datos es `discipline`, NO `competition_discipline`.
-
-### Evidencia en la Base de Datos
-
-| Tipo existente | Valores del ENUM |
-|----------------|------------------|
-| `discipline` | MMA, Boxeo, Judo, JiuJitsu, Kickboxing, MuayThai, Grappling, Otro |
-
-El tipo `competition_discipline` NO existe en `pg_type`.
+**Problema:** Si el perfil esta completo al 100%, NO existe forma de editar la informacion. El `ProfileProgressWidget` tiene un boton pero dice "Perfil 100% Completo" y no indica claramente que se puede editar.
 
 ---
 
-## Problemas Secundarios Identificados
+### 2. social/UserProfile.tsx (Perfil Social de Otros)
+**Ubicacion:** Lineas 222-243
 
-### 1. Formulario de Usuario Bypasa Sincronizacion
-
-El componente `UserFighterProfileEditForm.tsx` (lineas 274-277) hace updates directos:
-```typescript
-const { error: updateError } = await supabase
-  .from('fighter_profiles')
-  .update(updates)
-  .eq('id', profileId);
+Solo muestra boton de accion para OTROS usuarios (agregar amigo):
+```tsx
+{!isOwnProfile && (
+  <Button onClick={handleFriendAction}>
+    Agregar Amigo
+  </Button>
+)}
 ```
 
-**Consecuencia:** Los cambios de usuarios (nivel, peso, disciplina) NO se sincronizan automaticamente a rankings.
-
-### 2. Sin RPC para Usuarios
-
-No existe una funcion `user_update_fighter_profile`. Solo existe `admin_update_fighter_profile`.
-
-### 3. Politicas RLS Correctas
-
-Las politicas de `fighter_profiles` SI permiten que usuarios actualicen su perfil:
-```sql
-UPDATE policy: EXISTS(SELECT 1 FROM app_user WHERE app_user.id = fighter_profiles.user_id AND auth_user_id = auth.uid()) OR is_admin()
-```
-
-Sin embargo, el update directo no sincroniza a rankings.
+**Problema:** Cuando un usuario visita su propio perfil social (`isOwnProfile = true`), NO hay boton de edicion visible.
 
 ---
 
-## Plan de Implementacion
+### 3. FighterProfile.tsx (Perfil Publico del Peleador)
+**Ubicacion:** Pagina completa
 
-### Fase 1: Corregir Funcion RPC (Critico)
+**Problema:** Es un perfil 100% publico sin ninguna logica para detectar si el visitante es el dueno del perfil. No hay boton de edicion ni para el propio peleador cuando visita su perfil publico.
 
-**Archivo:** Nueva migracion SQL
+---
 
-Recrear `admin_update_fighter_profile` con el tipo correcto:
+### 4. SocialProfile.tsx (Perfil Social Propio)
+**Ubicacion:** Lineas 129-158
 
-```sql
-CREATE OR REPLACE FUNCTION public.admin_update_fighter_profile(p_fighter_id uuid, p_profile_data jsonb)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
--- ... resto del codigo ...
--- CAMBIO CRITICO (linea ~40):
--- DE: ::public.competition_discipline
--- A:  ::public.discipline
-discipline = CASE
-  WHEN p_profile_data ? 'discipline' THEN
-    CASE
-      WHEN p_profile_data->>'discipline' IN ('', 'null') THEN NULL
-      WHEN p_profile_data->>'discipline' = ANY (ARRAY['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'])
-        THEN (p_profile_data->>'discipline')::discipline  -- tipo correcto
-      ELSE discipline
-    END
-  ELSE discipline
-END,
--- ... resto de la funcion ...
-$function$;
+Los botones de camara usan `group-hover:opacity-100`:
+```tsx
+<Button className="opacity-0 group-hover:opacity-100 transition-opacity">
+  <Camera /> Cambiar portada
+</Button>
 ```
 
-### Fase 2: Crear RPC para Usuarios
+**Problema:** En dispositivos tactiles NO existe `hover`, por lo que estos botones son INVISIBLES en movil.
 
-**Archivo:** Nueva migracion SQL
+---
 
-Crear `user_update_fighter_profile` que:
-1. Verifique que el usuario sea dueno del perfil
-2. Aplique las mismas reglas de sincronizacion a rankings
-3. Respete campos sensibles vs inmediatos
+## Plan de Correccion
 
-```sql
-CREATE OR REPLACE FUNCTION public.user_update_fighter_profile(
-  p_fighter_id uuid,
-  p_profile_data jsonb
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path TO 'public'
-AS $function$
-DECLARE
-  v_user_id UUID;
-  v_owner_id UUID;
-BEGIN
-  -- Obtener user_id del caller
-  SELECT id INTO v_user_id FROM public.app_user WHERE auth_user_id = auth.uid();
-  
-  -- Verificar propiedad del perfil
-  SELECT user_id INTO v_owner_id FROM public.fighter_profiles WHERE id = p_fighter_id;
-  
-  IF v_user_id IS NULL OR v_user_id != v_owner_id THEN
-    RAISE EXCEPTION 'Unauthorized: You can only update your own profile';
-  END IF;
-  
-  -- Actualizar perfil (campos permitidos solamente)
-  UPDATE public.fighter_profiles
-  SET 
-    nickname = COALESCE(p_profile_data->>'nickname', nickname),
-    bio = COALESCE(p_profile_data->>'bio', bio),
-    fighting_style = COALESCE(p_profile_data->>'fighting_style', fighting_style),
-    -- ... demas campos permitidos ...
-    updated_at = now()
-  WHERE id = p_fighter_id;
-  
-  -- Sincronizar a rankings si cambia nivel/peso/disciplina
-  -- (logica similar a admin_update_fighter_profile)
-END;
-$function$;
+### Fase 1: LicenseDashboard.tsx - Boton de Edicion Siempre Visible
+
+Modificar el header para mostrar SIEMPRE un boton de edicion, independientemente del estado de completitud:
+
+```tsx
+// ANTES: Solo si hay campos faltantes
+{missingFields.length > 0 && (
+  <Button onClick={handleUpdateInfo}>...</Button>
+)}
+
+// DESPUES: Siempre visible con texto dinamico
+<Button onClick={handleUpdateInfo}>
+  <Edit />
+  {missingFields.length > 0 ? 'Completar Perfil' : 'Editar Perfil'}
+</Button>
 ```
 
-### Fase 3: Actualizar Frontend
+Adicionalmente, optimizar el boton para movil:
+- Altura minima de 44px
+- `touch-manipulation` para evitar delays
+- Icono siempre visible, texto responsive
 
-**Archivo:** `src/components/UserFighterProfileEditForm.tsx`
+---
 
-Cambiar de update directo a RPC:
+### Fase 2: social/UserProfile.tsx - Boton de Edicion para Perfil Propio
 
-```typescript
-// ANTES (update directo - sin sincronizacion):
-const { error: updateError } = await supabase
-  .from('fighter_profiles')
-  .update(updates)
-  .eq('id', profileId);
+Agregar boton de edicion cuando el usuario visita su propio perfil:
 
-// DESPUES (usando RPC con sincronizacion):
-const { error: updateError } = await supabase.rpc('user_update_fighter_profile', {
-  p_fighter_id: profileId,
-  p_profile_data: updates
-});
+```tsx
+{isOwnProfile ? (
+  <Button asChild variant="default" size="lg">
+    <Link to="/social/profile">
+      <Edit /> Editar Perfil
+    </Link>
+  </Button>
+) : (
+  <Button onClick={handleFriendAction} disabled={isPending}>
+    {isFriend ? 'Amigos' : 'Agregar Amigo'}
+  </Button>
+)}
 ```
 
-### Fase 4: Verificar Hook de Realtime
+---
 
-El hook `useRealtimeFighterUpdates.tsx` ya fue creado pero necesita integrarse en:
-- `LicenseDashboard.tsx` - (ya integrado)
-- `FighterProfile.tsx` - (ya integrado)
-- `FightersProfiles.tsx` - (ya integrado)
+### Fase 3: FighterProfile.tsx - Detectar Propietario y Mostrar Edicion
+
+1. Agregar logica para detectar si el visitante es el dueno:
+```tsx
+const [isOwner, setIsOwner] = useState(false);
+
+useEffect(() => {
+  const checkOwnership = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user && fighter?.user_id) {
+      const { data: appUser } = await supabase
+        .from('app_user')
+        .select('id')
+        .eq('auth_user_id', user.id)
+        .single();
+      setIsOwner(appUser?.id === fighter.user_id);
+    }
+  };
+  checkOwnership();
+}, [fighter]);
+```
+
+2. Mostrar boton de edicion condicional:
+```tsx
+{isOwner && (
+  <Button asChild className="min-h-[44px] touch-manipulation">
+    <Link to="/license/dashboard">
+      <Edit /> Editar Mi Perfil
+    </Link>
+  </Button>
+)}
+```
+
+---
+
+### Fase 4: SocialProfile.tsx - Botones de Camara Visibles en Movil
+
+Reemplazar `group-hover:opacity-100` con visibilidad permanente en movil:
+
+```tsx
+// ANTES: Invisible en movil
+<Button className="opacity-0 group-hover:opacity-100">
+
+// DESPUES: Visible en movil, hover en desktop
+<Button className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+```
+
+Alternativa: Usar un boton de edicion flotante (FAB) siempre visible en movil.
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio |
-|---------|--------|
-| Nueva migracion SQL | Corregir `admin_update_fighter_profile` (tipo `discipline`) |
-| Nueva migracion SQL | Crear `user_update_fighter_profile` |
-| `src/components/UserFighterProfileEditForm.tsx` | Usar RPC en lugar de update directo |
-| `src/hooks/useFighterProfiles.tsx` | Agregar `userUpdateFighterProfile` |
+| Archivo | Cambios |
+|---------|---------|
+| `src/pages/license/LicenseDashboard.tsx` | Boton de edicion siempre visible en header |
+| `src/pages/social/UserProfile.tsx` | Agregar boton de edicion cuando `isOwnProfile` |
+| `src/pages/FighterProfile.tsx` | Detectar propietario + boton de edicion |
+| `src/pages/social/SocialProfile.tsx` | Botones de camara visibles en movil |
 
 ---
 
-## Validacion Post-Implementacion
+## Especificaciones de UX Movil
 
-### Test 1: Admin edita perfil de Willis Yang
-1. Abrir modal de edicion
-2. Cambiar cualquier campo (ej: apodo)
-3. Guardar cambios
-4. Verificar toast de exito (no error)
+Siguiendo los estandares del proyecto:
 
-### Test 2: Usuario edita su propio perfil
-1. Login como Willis Yang
-2. Ir a dashboard de licencia
-3. Editar bio o estilo de pelea
-4. Verificar actualizacion inmediata
+1. **Altura minima de botones:** 44px (`min-h-[44px]`)
+2. **Touch optimization:** `touch-manipulation`
+3. **Responsive text:** Texto corto en movil, completo en desktop
+4. **Iconos:** Siempre visibles, texto opcional
+5. **Sticky footer:** Para botones de guardar en formularios largos
 
-### Test 3: Sincronizacion a rankings
-1. Admin cambia nivel de Amateur a Semi-profesional
-2. Verificar que ranking se actualiza automaticamente
-3. Verificar que peleador aparece en liga correcta
+---
+
+## Flujo de Usuario Post-Implementacion
+
+### Peleador Licenciado
+1. Entra a `/license/dashboard`
+2. Ve boton "Editar Perfil" siempre visible en header
+3. Click abre formulario de edicion
+
+### Usuario en Perfil Social
+1. Entra a `/social/profile/:id` (su propio ID)
+2. Ve boton "Editar Perfil" en lugar de "Agregar Amigo"
+3. Click lo lleva a `/social/profile` para editar
+
+### Peleador en Perfil Publico
+1. Entra a `/fighter/:id` (su propio perfil)
+2. Ve boton "Editar Mi Perfil" cerca del nombre
+3. Click lo lleva a `/license/dashboard` para editar
 
 ---
 
 ## Resumen Tecnico
 
-| Problema | Causa | Solucion |
-|----------|-------|----------|
-| Error al guardar perfil | Tipo `competition_discipline` no existe | Usar tipo `discipline` |
-| Sin sincronizacion usuarios | Update directo sin RPC | Crear `user_update_fighter_profile` |
-| Datos desactualizados | Sin realtime | Hook `useRealtimeFighterUpdates` |
+| Vista | Problema Actual | Solucion |
+|-------|-----------------|----------|
+| LicenseDashboard | Boton solo si perfil incompleto | Boton siempre visible |
+| social/UserProfile | Sin boton para perfil propio | Agregar boton condicional |
+| FighterProfile | Sin deteccion de propietario | Hook de ownership + boton |
+| SocialProfile | Hover invisible en touch | Clases responsive |
 
-La correccion del tipo de disciplina es CRITICA y debe aplicarse primero para que cualquier edicion funcione.
+Todas las correcciones siguen los estandares de optimizacion movil del proyecto: botones tactiles de 44px, `touch-manipulation`, layouts responsivos flex-col en movil y flex-row en desktop.
