@@ -1,18 +1,19 @@
- import { useState, useEffect } from 'react';
- import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
- import { Button } from '@/components/ui/button';
- import { Input } from '@/components/ui/input';
- import { Textarea } from '@/components/ui/textarea';
- import { Badge } from '@/components/ui/badge';
- import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search } from 'lucide-react';
- import { supabase } from '@/integrations/supabase/client';
- import { useToast } from '@/hooks/use-toast';
- import { useAuth } from '@/hooks/useAuth';
- import { useEvents, useFights, BdgEvent } from '@/hooks/useEvents';
- import { useExternalFighters } from '@/hooks/useExternalFighters';
- import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
- import { FileUpload } from '@/components/ui/file-upload';
- import { Switch } from '@/components/ui/switch';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { useEvents, useFights, BdgEvent } from '@/hooks/useEvents';
+import { useExternalFighters } from '@/hooks/useExternalFighters';
+import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
+import { FileUpload } from '@/components/ui/file-upload';
+import { Switch } from '@/components/ui/switch';
+import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
  
  import {
    Table,
@@ -1255,16 +1256,13 @@
                    <SelectTrigger>
                      <SelectValue placeholder="Seleccionar categoría" />
                    </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="Flyweight">Peso Mosca (125 lbs)</SelectItem>
-                     <SelectItem value="Bantamweight">Peso Gallo (135 lbs)</SelectItem>
-                     <SelectItem value="Featherweight">Peso Pluma (145 lbs)</SelectItem>
-                     <SelectItem value="Lightweight">Peso Ligero (155 lbs)</SelectItem>
-                     <SelectItem value="Welterweight">Peso Wélter (170 lbs)</SelectItem>
-                     <SelectItem value="Middleweight">Peso Medio (185 lbs)</SelectItem>
-                     <SelectItem value="Light Heavyweight">Peso Semipesado (205 lbs)</SelectItem>
-                     <SelectItem value="Heavyweight">Peso Pesado (265 lbs)</SelectItem>
-                   </SelectContent>
+                  <SelectContent>
+                      {WEIGHT_CLASSES.map((wc) => (
+                        <SelectItem key={wc.value} value={wc.value}>
+                          {wc.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                  </Select>
                </div>
                <div>

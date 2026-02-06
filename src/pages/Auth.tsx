@@ -248,8 +248,8 @@ export default function Auth() {
               user_id: appUser.id,
               first_name: invitation.first_name,
               last_name: invitation.last_name,
-              weight_class: invitation.weight_class || 'Lightweight',
-              country: 'HN',
+              weight_class: invitation.weight_class || 'Peso Ligero',
+              country: 'Honduras',
             })
             .select('id')
             .single();

@@ -8,19 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-
-const WEIGHT_CLASSES = [
-  'Strawweight',
-  'Flyweight',
-  'Bantamweight',
-  'Featherweight',
-  'Lightweight',
-  'Welterweight',
-  'Middleweight',
-  'Light Heavyweight',
-  'Heavyweight',
-  'Super Heavyweight',
-];
+import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
 
 export default function FightersProfilesInvite() {
   const navigate = useNavigate();
@@ -33,7 +21,7 @@ export default function FightersProfilesInvite() {
     firstName: '',
     lastName: '',
     phone: '',
-    weightClass: 'Lightweight',
+    weightClass: 'Peso Ligero',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +58,7 @@ export default function FightersProfilesInvite() {
         firstName: '',
         lastName: '',
         phone: '',
-        weightClass: 'Lightweight',
+        weightClass: 'Peso Ligero',
       });
     } catch (error: any) {
       console.error('Error enviando invitación:', error);
@@ -177,9 +165,9 @@ export default function FightersProfilesInvite() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {WEIGHT_CLASSES.map((weightClass) => (
-                    <SelectItem key={weightClass} value={weightClass}>
-                      {weightClass}
+                  {WEIGHT_CLASSES.map((wc) => (
+                    <SelectItem key={wc.value} value={wc.value}>
+                      {wc.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
