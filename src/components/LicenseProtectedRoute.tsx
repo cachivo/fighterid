@@ -163,15 +163,26 @@ export default function LicenseProtectedRoute({
     return <Navigate to="/license/auth?mode=signin" replace />;
   }
 
+  // Check multiple sources of truth for active license status
+  const profileLicenseStatus = licenseData?.fighter_profiles?.license_status;
+  const hasPrimaryLicenseId = !!licenseData?.fighter_profiles?.primary_license_id;
+  const licenseIsActive = licenseData?.status === 'ACTIVE';
+  
+  // User is considered to have active license if any of these are true
+  const effectiveHasActiveLicense = 
+    hasActiveLicense || 
+    licenseIsActive || 
+    (profileLicenseStatus === 'active' && hasPrimaryLicenseId);
+
   // Redirect users with ACTIVE licenses away from pending/onboarding pages
-  if (hasActiveLicense && licenseData?.status === 'ACTIVE') {
+  if (effectiveHasActiveLicense) {
     const currentPath = window.location.pathname;
     if (currentPath === '/license/pending' || currentPath === '/license/onboarding') {
       return <Navigate to="/license/dashboard" replace />;
     }
   }
 
-  if (requireActiveLicense && !hasActiveLicense) {
+  if (requireActiveLicense && !effectiveHasActiveLicense) {
     // Handle different license states appropriately
     const licenseStatus = licenseData?.status;
     

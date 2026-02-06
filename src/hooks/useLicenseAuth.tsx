@@ -39,7 +39,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Type for RPC response
   interface LicenseStatusResponse {
-    status: 'no_user' | 'no_profile' | 'active_license' | 'pending_license' | 'no_license';
+    status: 'no_user' | 'no_profile' | 'active_license' | 'pending_license' | 'suspended_license' | 'no_license';
     user_id?: string;
     email?: string;
     message?: string;
@@ -101,6 +101,15 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (window.location.pathname === '/license/pending') {
           window.location.href = '/license/dashboard';
         }
+      } else if (data.status === 'suspended_license' && license) {
+        console.log('[LICENSE AUTH] Suspended license found');
+        const combinedData = { ...license, fighter_profiles: profile };
+        setLicenseData(combinedData);
+        setHasActiveLicense(false);
+        
+        if (window.location.pathname !== '/license/suspended') {
+          window.location.href = '/license/suspended';
+        }
       } else if (data.status === 'pending_license' && license) {
         console.log('[LICENSE AUTH] Pending license found');
         const combinedData = { ...license, fighter_profiles: profile };
@@ -110,6 +119,54 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (window.location.pathname === '/license/dashboard') {
           window.location.href = '/license/pending';
         }
+      } else if (data.status === 'no_license' && profile) {
+        // CONSISTENCY FALLBACK: RPC says no_license but profile has active license data
+        const profileLicenseStatus = (profile as any).license_status;
+        const primaryLicenseId = (profile as any).primary_license_id;
+        
+        if (profileLicenseStatus === 'active' && primaryLicenseId) {
+          console.log('[FALLBACK] Profile shows active license but RPC missed it. Fetching directly...');
+          
+          // Try to fetch the license directly
+          const { data: directLicense, error: directError } = await supabase
+            .from('fighter_licenses')
+            .select('id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url, created_at')
+            .eq('id', primaryLicenseId)
+            .maybeSingle();
+          
+          if (directLicense && directLicense.status === 'ACTIVE') {
+            console.log('[FALLBACK] Direct fetch found ACTIVE license!');
+            const combinedLicenseData = { ...directLicense, fighter_profiles: profile };
+            setLicenseData(combinedLicenseData);
+            setHasActiveLicense(true);
+            
+            if (window.location.pathname === '/license/pending') {
+              window.location.href = '/license/dashboard';
+            }
+            return;
+          } else if (!directError) {
+            // License exists but not ACTIVE, or couldn't be fetched
+            // Build minimal license data from profile to allow dashboard access
+            console.log('[FALLBACK] Building minimal license data from profile');
+            const minimalLicenseData = {
+              id: primaryLicenseId,
+              status: 'ACTIVE',
+              license_number: (profile as any).license_number || 'N/A',
+              fighter_profiles: profile
+            };
+            setLicenseData(minimalLicenseData);
+            setHasActiveLicense(true);
+            
+            if (window.location.pathname === '/license/pending') {
+              window.location.href = '/license/dashboard';
+            }
+            return;
+          }
+        }
+        
+        // No fallback matched - truly no license
+        setLicenseData({ fighter_profiles: profile });
+        setHasActiveLicense(false);
       } else {
         // Has profile but no license
         setLicenseData({ fighter_profiles: profile });
