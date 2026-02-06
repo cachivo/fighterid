@@ -231,6 +231,11 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                               </Badge>
                             )}
                           </div>
+                          {ranking.fighter.nickname && (
+                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-purple-neon-primary/80 font-medium truncate block mb-0.5">
+                              "{ranking.fighter.nickname}"
+                            </span>
+                          )}
                           
                           <div className="flex flex-wrap items-center gap-1 xs:gap-1.5 sm:gap-2">
                             <Badge variant="outline" className="text-[9px] xs:text-[10px] sm:text-xs border-purple-neon-primary/50 text-purple-neon-primary px-1 xs:px-1.5">
