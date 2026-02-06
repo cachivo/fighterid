@@ -1,233 +1,151 @@
 
-# Correccion de Sincronizacion de Licencias - Bug RPC con RLS
+## Hallazgos (lo que está pasando realmente)
 
-## Problema Identificado
+1. En tu cuenta (Moisés Cárdenas) **sí existe una licencia ACTIVA** en la base de datos:
+   - `fighter_profiles.license_status = 'active'`
+   - `fighter_profiles.primary_license_id = c6880f31-a6af-4101-92cc-e3c0b68946ea`
+   - `fighter_licenses.id = c6880f31...` con `status = 'ACTIVE'` e `is_primary = true`
 
-La funcion RPC `check_user_license_status` devuelve `"status": "no_license"` aunque la licencia existe y esta ACTIVA en la base de datos.
+2. Pero el RPC que decide el estado para la app:
+   - `check_user_license_status(auth_uid)`
+   está respondiendo **“status: no_license”** (lo vimos en Network y Console del navegador), aunque en el `profile` viene “license_status: active” y el `primary_license_id`.
 
-### Diagnostico Completo
+3. Resultado en UI:
+   - `useLicenseAuth` interpreta `no_license` como “sin licencia” y deja `hasActiveLicense=false`
+   - `/license/pending` se queda pegado mostrando “En revisión”
+   - No redirige a `/license/dashboard`, por eso no ves tu Fighter ID, ni tu licencia, ni el flujo correcto como peleador.
 
-| Paso | Query Directa | RPC |
-|------|--------------|-----|
-| 1. Buscar app_user | Encuentra `c52a3393...` | Encuentra `c52a3393...` |
-| 2. Buscar fighter_profile | Encuentra Willis Yang | Encuentra Willis Yang |
-| 3. Buscar fighter_license | **Encuentra licencia ACTIVE** | **NO encuentra (retorna NULL)** |
-
-### Causa Raiz
-
-El RPC tiene `SECURITY DEFINER` pero **RLS (Row Level Security) sigue activo** en la tabla `fighter_licenses`. La politica RLS usa `auth.uid()` para verificar permisos:
-
-```sql
--- Politica actual en fighter_licenses
-qual: (is_admin() OR (EXISTS ( 
-  SELECT 1 FROM fighter_profiles fp 
-  WHERE fp.id = fighter_licenses.fighter_id 
-  AND EXISTS (
-    SELECT 1 FROM app_user au 
-    WHERE au.id = fp.user_id 
-    AND au.auth_user_id = auth.uid()
-  )
-)))
-```
-
-Cuando la funcion SECURITY DEFINER ejecuta queries, el contexto de `auth.uid()` puede perderse o no estar disponible, causando que RLS bloquee el acceso a la licencia.
+Conclusión: ahora el problema ya no es “cache/realtime”; es que el **RPC está fallando al devolver la licencia** aunque existe. Hay que corregir esa lógica y además meter un “fallback” en frontend para que nunca vuelva a pasar.
 
 ---
 
-## Solucion
+## Objetivo del arreglo
 
-Modificar la funcion RPC para deshabilitar RLS explicitamente durante su ejecucion.
-
-### Cambio en la Migracion SQL
-
-```sql
-CREATE OR REPLACE FUNCTION public.check_user_license_status(p_auth_user_id uuid)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-SET row_security = off  -- NUEVO: Deshabilita RLS dentro de la funcion
-AS $$
-...resto de la funcion sin cambios...
-$$;
-```
-
-La clausula `SET row_security = off` permite que la funcion bypasee las politicas RLS mientras se ejecuta, ya que tiene SECURITY DEFINER y se ejecuta con privilegios elevados.
+- Que el estado mostrado en el Fighter ID sea **100% consistente** con la base de datos.
+- Que si un peleador tiene `fighter_profiles.license_status = active` + `primary_license_id`, **SIEMPRE** sea tratado como ACTIVO y pueda entrar a:
+  - `/license/dashboard` (Fighter ID)
+  - ver su licencia
+  - editar/subir información extra como peleador
 
 ---
 
-## Archivos a Modificar
+## Cambios a implementar (DB + Frontend)
 
-| Archivo | Cambio |
-|---------|--------|
-| Nueva migracion SQL | Recrear funcion con `SET row_security = off` |
+### A) Base de datos: rehacer `check_user_license_status` para que use `primary_license_id` como fuente principal
 
----
+**Problema actual del RPC:** está buscando la licencia por `fighter_id/status/is_primary`, pero por alguna razón está devolviendo vacío en producción/cliente aunque la fila existe.
 
-## Codigo de la Nueva Migracion
+**Solución robusta (más fiable):**
+1. Encontrar `app_user` por `auth_user_id` (igual que ahora)
+2. Encontrar `fighter_profiles` activo del usuario (igual que ahora)
+3. Para la licencia:
+   - Primero: si `fighter_profiles.primary_license_id` existe, **traer la licencia por `id = primary_license_id`**
+   - Validar `status`:
+     - si `ACTIVE` → `active_license`
+     - si `PENDING_REVIEW` o `APPLIED` → `pending_license`
+   - Si `primary_license_id` no existe, hacer fallback (buscar por `fighter_id`, y escoger la más reciente/primaria)
 
-```sql
--- Fix: RPC function not finding licenses due to RLS policies
--- Adding SET row_security = off to bypass RLS within the SECURITY DEFINER function
+**Implementación recomendada:**
+- Reemplazar el function PL/pgSQL por una versión **LANGUAGE SQL con CTEs**, porque:
+  - evita edge cases raros de `record` en PL/pgSQL
+  - es más determinística
+  - es más fácil de auditar
 
-CREATE OR REPLACE FUNCTION public.check_user_license_status(p_auth_user_id uuid)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-SET row_security = off
-AS $$
-DECLARE
-  v_app_user record;
-  v_profile record;
-  v_license record;
-  v_pending_license record;
-BEGIN
-  -- 1. Get app_user
-  SELECT id, email, phone INTO v_app_user
-  FROM app_user 
-  WHERE auth_user_id = p_auth_user_id;
-  
-  IF v_app_user IS NULL THEN
-    RETURN jsonb_build_object(
-      'status', 'no_user',
-      'message', 'No app_user found for this auth user'
-    );
-  END IF;
-  
-  -- 2. Get active fighter profile
-  SELECT * INTO v_profile
-  FROM fighter_profiles
-  WHERE user_id = v_app_user.id 
-    AND active = true;
-  
-  IF v_profile IS NULL THEN
-    RETURN jsonb_build_object(
-      'status', 'no_profile',
-      'user_id', v_app_user.id,
-      'email', v_app_user.email
-    );
-  END IF;
-  
-  -- 3. Try to get ACTIVE primary license first
-  SELECT id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url, created_at
-  INTO v_license
-  FROM fighter_licenses
-  WHERE fighter_id = v_profile.id
-    AND status = 'ACTIVE'
-    AND is_primary = true;
-  
-  IF v_license IS NOT NULL THEN
-    RETURN jsonb_build_object(
-      'status', 'active_license',
-      'license', jsonb_build_object(
-        'id', v_license.id,
-        'license_number', v_license.license_number,
-        'status', v_license.status,
-        'license_level', v_license.license_level,
-        'issued_at', v_license.issued_at,
-        'expires_at', v_license.expires_at,
-        'is_primary', v_license.is_primary,
-        'qr_code_url', v_license.qr_code_url,
-        'created_at', v_license.created_at
-      ),
-      'profile', to_jsonb(v_profile) || jsonb_build_object('phone', v_app_user.phone)
-    );
-  END IF;
-  
-  -- 4. Fallback: check for PENDING_REVIEW or APPLIED license
-  SELECT id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url, created_at
-  INTO v_pending_license
-  FROM fighter_licenses
-  WHERE fighter_id = v_profile.id
-    AND status IN ('PENDING_REVIEW', 'APPLIED')
-  ORDER BY created_at DESC
-  LIMIT 1;
-  
-  IF v_pending_license IS NOT NULL THEN
-    RETURN jsonb_build_object(
-      'status', 'pending_license',
-      'license', jsonb_build_object(
-        'id', v_pending_license.id,
-        'license_number', v_pending_license.license_number,
-        'status', v_pending_license.status,
-        'license_level', v_pending_license.license_level,
-        'issued_at', v_pending_license.issued_at,
-        'expires_at', v_pending_license.expires_at,
-        'is_primary', v_pending_license.is_primary,
-        'qr_code_url', v_pending_license.qr_code_url,
-        'created_at', v_pending_license.created_at
-      ),
-      'profile', to_jsonb(v_profile) || jsonb_build_object('phone', v_app_user.phone)
-    );
-  END IF;
-  
-  -- 5. Has profile but no license
-  RETURN jsonb_build_object(
-    'status', 'no_license',
-    'profile', to_jsonb(v_profile) || jsonb_build_object('phone', v_app_user.phone)
-  );
-END;
-$$;
+**Entregable:**
+- Nueva migration SQL en `supabase/migrations/` con `CREATE OR REPLACE FUNCTION public.check_user_license_status(...) ...`
 
--- Ensure permissions are granted
-GRANT EXECUTE ON FUNCTION public.check_user_license_status(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.check_user_license_status(uuid) TO service_role;
-```
+**Notas de seguridad:**
+- Mantener `SECURITY DEFINER` + `SET row_security = off` como ya hicimos, para que el RPC no dependa de `auth.uid()` para “ver” la licencia (especialmente en flows donde el contexto JWT puede variar).
 
 ---
 
-## Beneficios Esperados
+### B) Frontend: “Fallback de consistencia” en `useLicenseAuth`
 
-| Metrica | Antes | Despues |
-|---------|-------|---------|
-| RPC encuentra licencias activas | NO | SI |
-| Usuarios ven estado correcto | NO | SI |
-| Redireccion automatica funciona | NO | SI |
-| Campos de licencia muestran datos | NO | SI |
+Aunque el RPC quede bien, conviene blindar el frontend contra cualquier inconsistencia futura.
+
+**Cambio:**
+En `checkLicenseStatusOptimized`, cuando el RPC responda:
+- `status === 'no_license'` pero `profile.license_status === 'active'` y existe `profile.primary_license_id`
+
+Entonces:
+1. Hacer un fetch directo:
+   - `fighter_licenses` por `id = profile.primary_license_id`
+2. Si viene `status='ACTIVE'`:
+   - Forzar:
+     - `setHasActiveLicense(true)`
+     - `setLicenseData({ ...license, fighter_profiles: profile })`
+     - redirigir `/license/pending` → `/license/dashboard`
+3. Si la licencia no se puede traer por RLS (no debería, pero por si acaso):
+   - construir un “licenseData mínimo” para permitir el dashboard:
+     - `id = primary_license_id`
+     - `status = 'ACTIVE'`
+     - `license_number` desde el perfil (ya viene denormalizado)
+     - `fighter_profiles = profile`
+
+**Archivos:**
+- `src/hooks/useLicenseAuth.tsx`
 
 ---
 
-## Seccion Tecnica
+### C) Ajuste menor: rutas / pantallas para que no dependan de un único campo
 
-### Por que `SET row_security = off` es seguro aqui
+**LicensePending.tsx**
+- Actualmente solo redirige si `licenseData.status === 'ACTIVE'` o si polling ve `active_license`.
+- Con los cambios A/B, ya debería funcionar, pero añadiremos una condición extra:
+  - si `licenseData?.fighter_profiles?.license_status === 'active'` y `licenseData?.fighter_profiles?.primary_license_id` → redirigir
 
-1. **SECURITY DEFINER**: La funcion ya se ejecuta con privilegios del owner (superuser)
-2. **Parametro validado**: Solo busca datos para el `p_auth_user_id` proporcionado
-3. **Sin exposicion de datos**: Solo retorna datos del usuario que hace la consulta
-4. **Consistencia**: El usuario solo puede consultar su propia informacion
+**LicenseProtectedRoute.tsx**
+- Asegurar que si `licenseData.status` está undefined pero el perfil indica licencia activa, no lo mande a pending/onboarding.
 
-### Diferencia entre SECURITY DEFINER y row_security
+**Archivos:**
+- `src/pages/license/LicensePending.tsx`
+- `src/components/LicenseProtectedRoute.tsx`
 
-```text
-SECURITY DEFINER:
-  - Ejecuta la funcion con privilegios del owner
-  - NO deshabilita RLS automaticamente
-  - Las queries dentro de la funcion siguen evaluando RLS
+---
 
-SET row_security = off:
-  - Deshabilita RLS durante la ejecucion de la funcion
-  - Solo funciona con SECURITY DEFINER
-  - Permite acceso completo a las tablas dentro de la funcion
-```
+## Plan de ejecución (paso a paso)
 
-### Flujo corregido
+1. **DB migration**
+   - Crear migration que reemplace `check_user_license_status` con lógica:
+     - usa `primary_license_id` primero
+     - devuelve `active_license` y el objeto `license` completo
+     - fallback a búsquedas por `fighter_id` solo si falta el primary
+   - Regenerar/actualizar `src/integrations/supabase/types.ts` si el tipado cambió (idealmente mantener mismo shape: `{ status, profile, license }`).
 
-```text
-Usuario llama RPC
-       |
-       v
-Funcion se ejecuta como owner (SECURITY DEFINER)
-       |
-       v
-RLS se deshabilita (SET row_security = off)
-       |
-       v
-Query encuentra la licencia ACTIVA
-       |
-       v
-Retorna 'active_license' con todos los datos
-       |
-       v
-UI muestra dashboard correctamente
-```
+2. **Frontend: fallback de consistencia**
+   - Modificar `checkLicenseStatusOptimized`:
+     - si RPC dice `no_license` pero el perfil dice `license_status='active'`, “autocorregir”
+     - setear `hasActiveLicense` y `licenseData` correctamente
+   - Dejar logs claros (solo debug) para confirmar en consola que activó el fallback.
+
+3. **Rutas**
+   - Ajustar `LicensePending` y `LicenseProtectedRoute` para que:
+     - no se queden “pegados” si `status` viene incompleto
+     - prioricen consistencia con `fighter_profiles.license_status` cuando aplique
+
+---
+
+## Criterios de aceptación (cómo sabremos que quedó)
+
+Con el usuario Moisés (auth uid `a10df579-...`):
+
+1. Al entrar a `/license/pending`:
+   - en menos de 1–2s redirige a `/license/dashboard`
+2. En `/license/dashboard`:
+   - el badge de estado muestra **Activa**
+   - se visualiza el Fighter ID y los datos de licencia
+3. En `/profile`:
+   - si ya es peleador con licencia, redirige correctamente al Fighter ID (dashboard)
+4. En consola:
+   - `RPC result` debe traer `status: active_license` y un objeto `license` (ya no solo `profile`)
+
+---
+
+## Nota importante sobre “Licencia” vs “Fighter ID”
+
+Hoy, técnicamente el acceso al “Fighter ID” (dashboard) está gateado por el estado de la **licencia**. Si ustedes manejan “Fighter ID” como una entidad separada (por ejemplo un objeto/tabla distinta), luego podemos separar la lógica en dos estados:
+- estado de licencia (médico/legal)
+- estado de Fighter ID (perfil digital)
+
+Pero primero hay que lograr que el gate actual sea correcto y consistente (esto es el bug que te está bloqueando ahora).
+
