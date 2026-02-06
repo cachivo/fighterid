@@ -133,29 +133,29 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
             </Tabs>
           </div>
 
-          {/* Enhanced Fight Stats */}
+          {/* Enhanced Fight Stats - Mobile optimized */}
           <div className="grid grid-cols-3 gap-2 xs:gap-3 sm:gap-4 lg:gap-6 mb-3 sm:mb-4 md:mb-6 max-w-full">
             <div className="text-center min-w-0">
-              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(142,76%,50%) font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+              <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-fighter-success font-mono mb-0.5 xs:mb-1 md:mb-2">
                 {calculateRecord(recordType).wins}
               </div>
-              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-professional-accent uppercase tracking-wide">
                 Victorias
               </div>
             </div>
             <div className="text-center min-w-0">
-              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-hsl(0,84%,66%) font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.4)'}}>
+              <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-fighter-danger font-mono mb-0.5 xs:mb-1 md:mb-2">
                 {calculateRecord(recordType).losses}
               </div>
-              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-professional-accent uppercase tracking-wide">
                 Derrotas
               </div>
             </div>
             <div className="text-center min-w-0">
-              <div className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-professional-muted font-mono mb-0.5 xs:mb-1 md:mb-2 drop-shadow-2xl break-words" style={{textShadow: '0 4px 12px rgba(0,0,0,0.3)'}}>
+              <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-fighter-warning font-mono mb-0.5 xs:mb-1 md:mb-2">
                 {calculateRecord(recordType).draws}
               </div>
-              <div className="text-[10px] xs:text-xs sm:text-sm font-medium text-professional-accent uppercase tracking-wider">
+              <div className="text-[9px] xs:text-[10px] sm:text-xs font-medium text-professional-accent uppercase tracking-wide">
                 Empates
               </div>
             </div>
@@ -164,7 +164,7 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           {/* Additional Stats */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 lg:gap-6 text-sm text-professional-accent mb-3 md:mb-4">
             <span className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-hsl(142,76%,50%)" />
+              <Star className="h-4 w-4 text-fighter-success" />
               {calculateRecord(recordType).totalFights} Peleas Totales
             </span>
           </div>

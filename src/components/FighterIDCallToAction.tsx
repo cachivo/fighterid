@@ -80,15 +80,15 @@ export function FighterIDCallToAction() {
           </div>
         </div>
 
-        {/* CTA Button */}
-        <div className="space-y-3">
+        {/* CTA Button - Optimized padding for mobile */}
+        <div className="space-y-3 px-2">
           <Button 
             size="lg"
             onClick={() => navigate('/license/request')}
-            className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold px-10 py-7 text-lg shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105"
+            className="w-full xs:w-auto bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold px-6 xs:px-10 py-4 xs:py-6 text-base xs:text-lg shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 min-h-[56px] touch-manipulation"
           >
-            <Shield className="w-5 h-5 mr-2" />
-            Solicitar mi Fighter ID
+            <Shield className="w-5 h-5 mr-2 shrink-0" />
+            <span>Solicitar mi Fighter ID</span>
           </Button>
           
           <p className="text-xs text-white/60">
