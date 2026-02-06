@@ -196,10 +196,17 @@ serve(async (req) => {
     // Build confirmation link - use redirect_to from emailData if provided
     const tokenHash = emailData.token_hash;
     const emailActionType = emailData.email_action_type;
-    const siteBase = (Deno.env.get("SITE_URL") || "https://fighter-id.org").replace(/\/$/, "");
     
-    // Respect redirect_to from emailData, fallback to /auth
-    const redirectTo = emailData.redirect_to || `${siteBase}/auth`;
+    // Use the redirect_to from email data, or fallback to license/auth
+    // This ensures the link works regardless of which domain the user came from
+    let redirectTo = emailData.redirect_to;
+    
+    // If no redirect_to provided, build a default one
+    if (!redirectTo) {
+      // Try to use SITE_URL, fallback to the Lovable app URL
+      const siteBase = Deno.env.get("SITE_URL") || "https://fighterid.lovable.app";
+      redirectTo = `${siteBase.replace(/\/$/, "")}/license/auth`;
+    }
 
     const confirmationLink = `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${emailActionType}&redirect_to=${encodeURIComponent(redirectTo)}`;
 
