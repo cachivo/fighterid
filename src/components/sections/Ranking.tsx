@@ -57,6 +57,23 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const rankings = rankingData?.rankings || [];
   const hasMore = rankingData?.hasMore || false;
 
+  // Helper function for record fallback logic (discipline-specific → legacy)
+  const getRecordWithFallback = (fighter: typeof rankings[0]['fighter'], discipline: 'MMA' | 'Boxeo') => {
+    if (discipline === 'MMA') {
+      const hasSpecificRecord = (fighter.mma_record_wins || 0) + (fighter.mma_record_losses || 0) + (fighter.mma_record_draws || 0) > 0;
+      if (hasSpecificRecord) {
+        return { wins: fighter.mma_record_wins || 0, losses: fighter.mma_record_losses || 0, draws: fighter.mma_record_draws || 0 };
+      }
+    } else {
+      const hasSpecificRecord = (fighter.boxeo_record_wins || 0) + (fighter.boxeo_record_losses || 0) + (fighter.boxeo_record_draws || 0) > 0;
+      if (hasSpecificRecord) {
+        return { wins: fighter.boxeo_record_wins || 0, losses: fighter.boxeo_record_losses || 0, draws: fighter.boxeo_record_draws || 0 };
+      }
+    }
+    // Fallback to legacy record fields
+    return { wins: fighter.record_wins || 0, losses: fighter.record_losses || 0, draws: fighter.record_draws || 0 };
+  };
+
   const loadMore = () => {
     if (!isLoading && hasMore) {
       setPage(prev => prev + 1);
@@ -185,16 +202,11 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                   const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
                   const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
                   
-                  // Get record based on discipline
-                  const wins = rankingData?.discipline === 'MMA' 
-                    ? ranking.fighter.mma_record_wins 
-                    : ranking.fighter.boxeo_record_wins;
-                  const losses = rankingData?.discipline === 'MMA'
-                    ? ranking.fighter.mma_record_losses
-                    : ranking.fighter.boxeo_record_losses;
-                  const draws = rankingData?.discipline === 'MMA'
-                    ? ranking.fighter.mma_record_draws
-                    : ranking.fighter.boxeo_record_draws;
+                  // Get record with fallback to legacy fields
+                  const { wins, losses, draws } = getRecordWithFallback(
+                    ranking.fighter, 
+                    rankingData?.discipline || 'MMA'
+                  );
                   
                   return (
                   <Card 
