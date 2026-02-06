@@ -117,12 +117,12 @@ const Events = () => {
       </section>
 
       {/* Filtros */}
-      <section className="py-4 border-b">
+      <section className="py-3 sm:py-4 border-b">
         <div className="container mx-auto px-3 sm:px-4">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col xs:flex-row flex-wrap gap-2 sm:gap-4">
             {/* Filtro por estado */}
             <Select value={stateFilter} onValueChange={setStateFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full xs:w-[160px] sm:w-[180px] min-h-[44px] touch-manipulation">
                 <SelectValue placeholder="Filtrar por estado" />
               </SelectTrigger>
               <SelectContent>
@@ -135,7 +135,7 @@ const Events = () => {
 
             {/* Filtro por disciplina */}
             <Select value={disciplineFilter} onValueChange={setDisciplineFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-full xs:w-[160px] sm:w-[180px] min-h-[44px] touch-manipulation">
                 <SelectValue placeholder="Filtrar por disciplina" />
               </SelectTrigger>
               <SelectContent>

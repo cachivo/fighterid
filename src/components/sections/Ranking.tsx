@@ -104,26 +104,26 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
         </div>
 
         {/* Estadísticas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-8 sm:mb-10 md:mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-6 mb-6 sm:mb-10 md:mb-12">
           {isLoading ? (
             Array.from({ length: 4 }).map((_, index) => (
               <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm">
-                <CardContent className="p-4 sm:p-6">
-                  <EnhancedSkeleton className="h-10 w-10 mx-auto mb-2 rounded-full" />
-                  <EnhancedSkeleton className="h-8 w-16 mx-auto mb-2" />
-                  <EnhancedSkeleton className="h-4 w-24 mx-auto" />
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                  <EnhancedSkeleton className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 mx-auto mb-2 rounded-full" />
+                  <EnhancedSkeleton className="h-6 sm:h-8 w-12 sm:w-16 mx-auto mb-2" />
+                  <EnhancedSkeleton className="h-3 sm:h-4 w-16 sm:w-24 mx-auto" />
                 </CardContent>
               </Card>
             ))
           ) : (
             estadisticas.map((stat, index) => (
               <Card key={index} className="bg-black/60 border-purple-neon-primary/30 backdrop-blur-sm text-center group hover:scale-105 transition-all duration-300 touch-manipulation">
-                <CardContent className="p-4 sm:p-6">
-                  <stat.Icon className="h-8 w-8 sm:h-10 sm:w-10 mx-auto mb-2 text-purple-neon-primary" />
-                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-neon-primary mb-2 group-hover:animate-pulse-purple-neon">
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                  <stat.Icon className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10 mx-auto mb-1.5 sm:mb-2 text-purple-neon-primary" />
+                  <div className="text-lg sm:text-xl md:text-3xl font-bold text-purple-neon-primary mb-1 sm:mb-2 group-hover:animate-pulse-purple-neon">
                     {stat.numero}
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm md:text-base">
+                  <p className="text-gray-300 text-[10px] sm:text-xs md:text-sm leading-tight">
                     {stat.descripcion}
                   </p>
                 </CardContent>

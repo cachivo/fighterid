@@ -231,18 +231,24 @@ export default function LicenseOnboarding() {
             <Progress value={progress} className="h-2" />
             
             {/* Step indicators */}
-            <div className="flex justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                  {step > 1 ? <CheckCircle className="h-4 w-4" /> : '1'}
+            <div className="flex justify-between mt-3 sm:mt-4">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${step >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                  {step > 1 ? <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" /> : '1'}
                 </div>
-                <span className={`text-sm ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>Datos personales</span>
+                <span className={`text-xs sm:text-sm ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span className="hidden xs:inline">Datos personales</span>
+                  <span className="xs:hidden">Datos</span>
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium ${step >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                   2
                 </div>
-                <span className={`text-sm ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>Documentos</span>
+                <span className={`text-xs sm:text-sm ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                  <span className="hidden xs:inline">Documentos</span>
+                  <span className="xs:hidden">Docs</span>
+                </span>
               </div>
             </div>
           </div>
@@ -267,7 +273,7 @@ export default function LicenseOnboarding() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {step === 1 && (
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <Label htmlFor="firstName">Nombre *</Label>
                     <Input
@@ -288,7 +294,7 @@ export default function LicenseOnboarding() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <Label htmlFor="nickname">Apodo (Opcional)</Label>
                     <Input
@@ -319,7 +325,7 @@ export default function LicenseOnboarding() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <Label htmlFor="phone">Teléfono *</Label>
                     <Input
