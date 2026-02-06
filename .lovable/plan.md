@@ -1,300 +1,292 @@
 
-# Auditoria y Optimizacion Movil Completa - Fighter ID
+# Auditoria y Sincronizacion del Sistema de Licencias
 
-## Resumen Ejecutivo
+## Resumen del Problema
 
-Se identificaron **23 problemas de UX movil** en **15 archivos** que afectan directamente la experiencia del usuario. El problema mas critico visible en la captura de pantalla es la pagina `/license/pending` donde los botones se cortan y muestra "Invalid Date".
+El usuario reporta que licencias ya aprobadas aparecen como "en revision" en el perfil. Tras una auditoria completa, se identifico que:
 
----
-
-## Problemas Criticos Identificados
-
-### Problema 1: LicensePending.tsx - Botones Cortados (CRITICO)
-
-**Ubicacion:** Lineas 196-221
-
-**Problema visible en la captura:**
-- "a Principal" (deberia ser "Pantalla Principal")
-- "Actualizar Estado" (parcialmente visible)
-- "Cert..." (deberia ser "Cerrar Sesión")
-- "Invalid Date" en fecha de solicitud
-
-**Causa:**
-```tsx
-// ACTUAL - Todo en una linea horizontal
-<div className="mt-4 flex justify-center gap-3">
-  <Button>Pantalla Principal</Button>
-  <Button>Actualizar Estado</Button>
-  <Button>Cerrar Sesión</Button>
-</div>
-```
-
-**Solucion:**
-```tsx
-// CORREGIDO - Se apilan en moviles
-<div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3">
-  <Button className="w-full sm:w-auto min-h-[44px] touch-manipulation">
-    <Home className="h-4 w-4 mr-2" />
-    <span className="hidden xs:inline">Pantalla Principal</span>
-    <span className="xs:hidden">Inicio</span>
-  </Button>
-  ...
-</div>
-```
-
-### Problema 2: Invalid Date Bug
-
-**Ubicacion:** LicensePending.tsx linea 252
-
-**Causa:**
-```tsx
-{new Date(licenseData.created_at).toLocaleDateString()}
-```
-
-**Solucion:**
-```tsx
-{licenseData.created_at 
-  ? new Date(licenseData.created_at).toLocaleDateString('es-ES')
-  : 'Fecha no disponible'}
-```
+| Capa | Estado |
+|------|--------|
+| Base de datos | Correcta - 59/60 licencias sincronizadas |
+| Trigger de sincronizacion | Funcionando correctamente |
+| Contexto React (useLicenseAuth) | Problema: No se actualiza cuando la licencia cambia |
+| Cache de React Query | Problema: Datos antiguos persisten |
+| Suscripcion Real-time | Problema: Solo escucha `fighter_profiles`, no `fighter_licenses` |
 
 ---
 
-## Lista Completa de Archivos a Optimizar
+## Causa Raiz Identificada
 
-| # | Archivo | Problema | Severidad |
-|---|---------|----------|-----------|
-| 1 | `LicensePending.tsx` | Botones cortados + Invalid Date | CRITICA |
-| 2 | `LicenseDashboard.tsx` | Header demasiado denso | ALTA |
-| 3 | `LicenseOnboarding.tsx` | Formulario no responsivo | ALTA |
-| 4 | `Fighters.tsx` | Filtros Select overflow | MEDIA |
-| 5 | `Events.tsx` | Filtros en linea horizontal | MEDIA |
-| 6 | `SocialFeed.tsx` | Tabs texto cortado | MEDIA |
-| 7 | `Entrenadores.tsx` | Padding excesivo | BAJA |
-| 8 | `Gimnasios.tsx` | Padding excesivo | BAJA |
-| 9 | `Ranking.tsx` | Cards estadisticas comprimidas | MEDIA |
-| 10 | `FighterCard.tsx` | Textos sin truncate seguro | BAJA |
-| 11 | `PostCard.tsx` | Badges overflow | BAJA |
-| 12 | `Header.tsx` | Ya optimizado - verificar | OK |
-| 13 | `Hero.tsx` | Ya optimizado | OK |
-| 14 | `EnhancedFighterID.tsx` | Ya optimizado | OK |
-| 15 | `DigitalFighterToken.tsx` | Ya optimizado | OK |
+El contexto `useLicenseAuth` tiene tres problemas:
+
+1. **Suscripcion Real-time incompleta**: Solo escucha cambios en `fighter_profiles`, pero el estado de licencia cambia en `fighter_licenses`
+
+2. **Cache no se invalida**: Cuando un admin aprueba una licencia, no se invalida el cache del usuario afectado
+
+3. **RPC con datos obsoletos**: La funcion `check_user_license_status` se llama una vez al inicio y no se refresca automaticamente
 
 ---
 
-## Fase 1: Correcciones Criticas (LicensePending.tsx)
+## Cambios Propuestos
 
-### Cambios en Lineas 196-221: Botones de Accion
+### Fase 1: Corregir Suscripcion Real-time en useLicenseAuth
 
-```tsx
-// ANTES
-<div className="mt-4 flex justify-center gap-3">
-  <Button variant="outline" onClick={() => navigate('/')}>
-    <Home className="h-4 w-4" />
-    Pantalla Principal
-  </Button>
-  <Button variant="outline" onClick={handleManualRefresh}>
-    <RefreshCw className="h-4 w-4" />
-    {isRefreshing ? 'Actualizando...' : 'Actualizar Estado'}
-  </Button>
-  <Button variant="outline" onClick={signOut}>
-    Cerrar Sesión
-  </Button>
-</div>
+Archivo: `src/hooks/useLicenseAuth.tsx`
 
-// DESPUES
-<div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3 px-4">
-  <Button
-    variant="outline"
-    onClick={() => navigate('/')}
-    className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation"
-  >
-    <Home className="h-4 w-4 shrink-0" />
-    <span className="hidden sm:inline">Pantalla Principal</span>
-    <span className="sm:hidden">Inicio</span>
-  </Button>
-  <Button
-    variant="outline"
-    onClick={handleManualRefresh}
-    disabled={isRefreshing}
-    className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation"
-  >
-    <RefreshCw className={`h-4 w-4 shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
-    <span className="hidden sm:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar Estado'}</span>
-    <span className="sm:hidden">{isRefreshing ? 'Cargando' : 'Actualizar'}</span>
-  </Button>
-  <Button
-    variant="outline"
-    onClick={signOut}
-    className="w-full sm:w-auto flex items-center justify-center min-h-[44px] touch-manipulation hover:bg-destructive/10 hover:text-destructive"
-  >
-    Cerrar Sesión
-  </Button>
-</div>
+Agregar suscripcion a cambios en `fighter_licenses` ademas de `fighter_profiles`:
+
+```text
+ANTES (lineas 331-350):
+- Solo escucha cambios en fighter_profiles
+- No detecta cuando admin aprueba licencia
+
+DESPUES:
+- Escucha cambios en fighter_licenses
+- Detecta actualizaciones de status (PENDING_REVIEW -> ACTIVE)
+- Actualiza contexto automaticamente
 ```
 
-### Cambios en Linea 244: Grid Responsivo
+Cambio especifico:
+- Agregar segundo canal de suscripcion para `fighter_licenses` usando el `license_id` actual
+- Cuando se detecte cambio de `status` a `ACTIVE`, llamar `checkLicenseStatusOptimized`
 
-```tsx
-// ANTES
-<div className="grid grid-cols-2 gap-4 text-sm">
+### Fase 2: Mejorar Verificacion Directa en LicensePending
 
-// DESPUES
-<div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-sm">
+Archivo: `src/pages/license/LicensePending.tsx`
+
+La verificacion directa actual (lineas 27-75) tiene un delay de 2 segundos. Mejorar:
+
+- Reducir delay inicial a 500ms
+- Agregar verificacion inmediata cuando `licenseData` cambia
+- Usar suscripcion real-time directa a la licencia del usuario
+
+### Fase 3: Invalidar Cache Correctamente
+
+Archivo: `src/hooks/useLicenseSystem.ts`
+
+En `approveLicense` mutation (lineas 84-100), agregar:
+
+```typescript
+onSuccess: (_, variables) => {
+  // Invalidar queries locales
+  qc.invalidateQueries({ queryKey: ['license', variables.licenseId] });
+  qc.invalidateQueries({ queryKey: ['pending-licenses'] });
+  
+  // NUEVO: Broadcast para usuarios afectados
+  supabase.channel('license-status-broadcast')
+    .send({
+      type: 'broadcast',
+      event: 'license-approved',
+      payload: { licenseId: variables.licenseId }
+    });
+}
 ```
 
-### Cambios en Linea 252: Fix Invalid Date
+### Fase 4: Agregar Listener de Broadcast en useLicenseAuth
 
-```tsx
-// ANTES
-<p className="font-medium">
-  {new Date(licenseData.created_at).toLocaleDateString()}
-</p>
+Para que el usuario reciba la notificacion de que su licencia fue aprobada:
 
-// DESPUES
-<p className="font-medium text-sm sm:text-base">
-  {licenseData.created_at 
-    ? new Date(licenseData.created_at).toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      })
-    : 'Pendiente'}
-</p>
+```typescript
+// En useLicenseAuth.tsx, dentro del useEffect principal
+const broadcastChannel = supabase
+  .channel('license-status-broadcast')
+  .on('broadcast', { event: 'license-approved' }, (payload) => {
+    if (payload.payload.licenseId === licenseData?.id) {
+      console.log('License approved notification received');
+      checkLicenseStatusOptimized(user.id);
+    }
+  })
+  .subscribe();
 ```
 
 ---
 
-## Fase 2: Optimizacion de Filtros (Fighters.tsx, Events.tsx)
+## Flujo de Datos Corregido
 
-### Fighters.tsx - Lineas 369-420: Filtros en Grid Responsivo
+```text
+FLUJO ACTUAL (problematico):
+Admin aprueba licencia
+       |
+       v
+DB: fighter_licenses.status = 'ACTIVE'
+       |
+       v
+Trigger: Sincroniza a fighter_profiles.license_status
+       |
+       v
+Usuario: Contexto NO se actualiza (no hay listener)
+       |
+       v
+Usuario sigue viendo "En Revision"
 
-```tsx
-// ANTES
-<div className="grid grid-cols-1 md:grid-cols-6 gap-4">
 
-// DESPUES
-<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4">
-```
-
-### Events.tsx - Lineas 121-149: Filtros Apilados en Movil
-
-```tsx
-// ANTES
-<div className="flex flex-wrap gap-4">
-  <Select>...</Select>
-  <Select>...</Select>
-</div>
-
-// DESPUES
-<div className="flex flex-col xs:flex-row flex-wrap gap-2 sm:gap-4">
-  <Select>
-    <SelectTrigger className="w-full xs:w-[160px] sm:w-[180px]">
-      ...
-    </SelectTrigger>
-  </Select>
-  ...
-</div>
-```
-
----
-
-## Fase 3: Optimizacion de Tarjetas (Ranking.tsx)
-
-### Lineas 107-132: Stats Cards Responsivas
-
-```tsx
-// ANTES
-<div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-  <Card>
-    <CardContent className="p-4 sm:p-6">
-      <stat.Icon className="h-8 w-8 sm:h-10 sm:w-10" />
-      <div className="text-xl sm:text-2xl md:text-3xl">...</div>
-    </CardContent>
-  </Card>
-</div>
-
-// DESPUES
-<div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-6">
-  <Card>
-    <CardContent className="p-3 sm:p-4 md:p-6">
-      <stat.Icon className="h-6 w-6 sm:h-8 sm:w-8 md:h-10 md:w-10" />
-      <div className="text-lg sm:text-xl md:text-3xl">...</div>
-      <p className="text-[10px] sm:text-xs md:text-sm">...</p>
-    </CardContent>
-  </Card>
-</div>
+FLUJO CORREGIDO:
+Admin aprueba licencia
+       |
+       v
+DB: fighter_licenses.status = 'ACTIVE'
+       |
+       +---> Trigger: Sincroniza a fighter_profiles
+       |
+       +---> Real-time: Notifica a usuario via postgres_changes
+       |
+       +---> Broadcast: Notifica via canal dedicado
+       |
+       v
+Usuario: Contexto se actualiza automaticamente
+       |
+       v
+Redireccion automatica a /license/dashboard
 ```
 
 ---
 
-## Fase 4: Optimizacion de Formularios (LicenseOnboarding.tsx)
+## Archivos a Modificar
 
-### Lineas 270-290: Inputs Responsivos
+| Archivo | Cambio | Prioridad |
+|---------|--------|-----------|
+| `src/hooks/useLicenseAuth.tsx` | Agregar suscripcion a fighter_licenses + broadcast listener | CRITICA |
+| `src/pages/license/LicensePending.tsx` | Mejorar verificacion directa, reducir delay | ALTA |
+| `src/hooks/useLicenseSystem.ts` | Agregar broadcast en approveLicense | ALTA |
+| `src/components/LicenseProtectedRoute.tsx` | Agregar verificacion de status en render | MEDIA |
 
-```tsx
-// ANTES
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+---
 
-// DESPUES
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+## Implementacion Detallada
+
+### useLicenseAuth.tsx - Suscripcion Real-time Mejorada
+
+Lineas 331-360, reemplazar con:
+
+```typescript
+// Suscripcion dual: fighter_profiles Y fighter_licenses
+if (user && licenseData?.id) {
+  // Canal 1: Cambios en perfil de peleador
+  const profileChannel = supabase
+    .channel('fighter-profile-changes')
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'fighter_profiles'
+    }, (payload) => {
+      if (mounted) {
+        retryCountRef.current = 0;
+        checkLicenseStatusOptimized(user.id);
+      }
+    })
+    .subscribe();
+
+  // Canal 2: Cambios en licencia (NUEVO)
+  const licenseChannel = supabase
+    .channel(`license-changes-${licenseData.id}`)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'fighter_licenses',
+      filter: `id=eq.${licenseData.id}`
+    }, (payload) => {
+      console.log('License status changed via real-time:', payload);
+      if (mounted && payload.new?.status === 'ACTIVE') {
+        setHasActiveLicense(true);
+        setLicenseData(prev => ({ ...prev, status: 'ACTIVE' }));
+        // Redirigir si estamos en pending
+        if (window.location.pathname === '/license/pending') {
+          window.location.href = '/license/dashboard';
+        }
+      }
+    })
+    .subscribe();
+
+  // Canal 3: Broadcast de admin (NUEVO)
+  const broadcastChannel = supabase
+    .channel('license-approvals')
+    .on('broadcast', { event: 'license-approved' }, (payload) => {
+      if (payload.payload?.licenseId === licenseData.id) {
+        console.log('License approval broadcast received');
+        checkLicenseStatusOptimized(user.id);
+      }
+    })
+    .subscribe();
+}
 ```
 
-### Indicadores de Paso - Compactos en Movil
+### LicensePending.tsx - Verificacion Mejorada
 
-```tsx
-// ANTES (lineas 234-247)
-<div className="flex justify-between mt-4">
-  <div className="flex items-center gap-2">
-    <div className="w-8 h-8 rounded-full">1</div>
-    <span className="text-sm">Datos personales</span>
-  </div>
-  ...
-</div>
+Lineas 27-75, mejorar verificacion directa:
 
-// DESPUES
-<div className="flex justify-between mt-3 sm:mt-4">
-  <div className="flex items-center gap-1.5 sm:gap-2">
-    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm">1</div>
-    <span className="text-xs sm:text-sm hidden xs:inline">Datos personales</span>
-    <span className="text-xs xs:hidden">Datos</span>
-  </div>
-  ...
-</div>
+```typescript
+// Verificacion directa mejorada - ejecutar inmediatamente
+useEffect(() => {
+  const directLicenseCheck = async () => {
+    if (!user || hasActiveLicense || isRedirecting) return;
+    
+    try {
+      // Consulta directa sin delay
+      const { data, error } = await supabase.rpc('check_user_license_status', {
+        p_auth_user_id: user.id
+      });
+      
+      if (data?.status === 'active_license') {
+        console.log('Direct RPC check found ACTIVE license');
+        setIsRedirecting(true);
+        navigate('/license/dashboard', { replace: true });
+      }
+    } catch (error) {
+      console.error('Direct license check error:', error);
+    }
+  };
+
+  // Ejecutar inmediatamente y luego cada 5 segundos
+  directLicenseCheck();
+  const interval = setInterval(directLicenseCheck, 5000);
+  
+  return () => clearInterval(interval);
+}, [user, hasActiveLicense, isRedirecting, navigate]);
+```
+
+### useLicenseSystem.ts - Broadcast en Aprobacion
+
+En `approveLicense` mutation (lineas 84-100):
+
+```typescript
+const approveLicense = useMutation({
+  mutationFn: async ({ licenseId, level }) => {
+    const { error } = await supabase.rpc('approve_license', {
+      p_license_id: licenseId,
+      p_level: level
+    });
+    if (error) throw error;
+  },
+  onSuccess: async (_, variables) => {
+    // Invalidar caches
+    qc.invalidateQueries({ queryKey: ['license', variables.licenseId] });
+    qc.invalidateQueries({ queryKey: ['pending-licenses'] });
+    
+    // Broadcast para notificar al usuario (NUEVO)
+    await supabase.channel('license-approvals').send({
+      type: 'broadcast',
+      event: 'license-approved',
+      payload: { licenseId: variables.licenseId }
+    });
+  }
+});
 ```
 
 ---
 
-## Fase 5: Padding y Espaciado Global
+## Verificacion de Datos Existentes
 
-### Patron de Correccion para Todos los Archivos
+Se verifico la base de datos y los datos estan correctos:
 
-| Contexto | Movil | Tablet | Desktop |
-|----------|-------|--------|---------|
-| Container padding | `px-3` | `px-4` | `px-6` |
-| Section padding | `py-4` | `py-6` | `py-8` |
-| Card padding | `p-3` | `p-4` | `p-6` |
-| Gap en grids | `gap-2` | `gap-3` | `gap-6` |
+| Metrica | Valor |
+|---------|-------|
+| Total licencias activas | 59 |
+| Licencias sincronizadas correctamente | 59 (100%) |
+| Licencias desincronizadas | 0 |
+| Licencias pendientes | 0 |
+| Licencias suspendidas | 1 |
 
-### Archivos a Actualizar
-
-1. `Entrenadores.tsx` linea 41: `px-4 sm:px-6` (OK)
-2. `Gimnasios.tsx` linea 40: `px-4 sm:px-6` (OK)
-3. `LicenseDashboard.tsx` linea 185: agregar `px-2 xs:px-3 sm:px-4`
-
----
-
-## Resumen de Cambios por Archivo
-
-| Archivo | Lineas Afectadas | Tipo de Cambio |
-|---------|------------------|----------------|
-| `LicensePending.tsx` | 185-260 | Layout completo + Fix date |
-| `LicenseDashboard.tsx` | 185-240 | Reducir densidad header |
-| `LicenseOnboarding.tsx` | 220-320 | Formulario responsivo |
-| `Fighters.tsx` | 369-420 | Grid filtros 2 cols movil |
-| `Events.tsx` | 121-149 | Filtros apilados |
-| `Ranking.tsx` | 107-132 | Cards mas compactas |
-| `PostCard.tsx` | 174-210 | Badges con flex-wrap |
+El trigger `sync_fighter_license_data` funciona correctamente.
 
 ---
 
@@ -302,66 +294,56 @@ Se identificaron **23 problemas de UX movil** en **15 archivos** que afectan dir
 
 | Metrica | Antes | Despues |
 |---------|-------|---------|
-| Contenido visible sin scroll horizontal | ~65% | 100% |
-| Botones accesibles (min 44px) | ~75% | 100% |
-| Textos legibles en 320px | ~50% | 100% |
-| Invalid Date bugs | 1+ | 0 |
-| Usuarios reportando problemas moviles | Frecuente | Minimo |
+| Tiempo de actualizacion de estado | Manual (refresh) | Automatico (< 1s) |
+| Usuarios viendo estado incorrecto | Posible | Eliminado |
+| Canales de sincronizacion | 1 (parcial) | 3 (completo) |
+| Necesidad de refresh manual | Frecuente | Nunca |
 
 ---
 
 ## Seccion Tecnica
 
-### Breakpoints de Tailwind Utilizados
+### Por que el problema ocurre
 
-```
-xs: 375px  (moviles pequenos - custom)
-sm: 640px  (moviles grandes)
-md: 768px  (tablets)
-lg: 1024px (desktop)
-xl: 1280px (desktop grande)
-```
+El contexto `useLicenseAuth` usa el RPC `check_user_license_status` que se ejecuta:
+1. Al cargar la pagina
+2. Manualmente con `refreshLicense()`
 
-### Clases Criticas para Movil
+Pero NO se ejecuta cuando:
+- Un admin aprueba la licencia
+- El estado cambia en la base de datos
 
-```css
-/* Layout responsivo */
-.flex-col sm:flex-row  /* Apilar en movil, fila en tablet+ */
-.w-full sm:w-auto      /* Ancho completo en movil */
+### Solucion: Triple Capa de Sincronizacion
 
-/* Touch targets */
-.min-h-[44px]          /* Altura minima para dedos */
-.touch-manipulation    /* Optimizar respuesta tactil */
+```text
+Capa 1: postgres_changes
+        - Escucha cambios directos en fighter_licenses
+        - Mas rapido pero requiere RLS configurado
 
-/* Texto responsivo */
-.text-xs sm:text-sm    /* Texto mas pequeno en movil */
-.truncate              /* Evitar overflow */
-.hidden sm:inline      /* Ocultar texto largo en movil */
+Capa 2: broadcast
+        - Admin envia notificacion al aprobar
+        - Funciona incluso si RLS bloquea postgres_changes
 
-/* Spacing */
-.gap-2 sm:gap-3        /* Espaciado reducido en movil */
-.p-3 sm:p-4 md:p-6     /* Padding escalonado */
+Capa 3: polling
+        - Verificacion periodica cada 5s en /license/pending
+        - Respaldo si las otras capas fallan
 ```
 
-### Validacion de Fechas
+### Tablas Involucradas
 
-```tsx
-// Patron seguro para fechas
-const formatSafeDate = (dateString?: string | null) => {
-  if (!dateString) return 'No disponible';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return 'Fecha invalida';
-  return date.toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
+```text
+fighter_licenses
+  - id (PK)
+  - status ('PENDING_REVIEW', 'ACTIVE', 'SUSPENDED')
+  - fighter_id (FK -> fighter_profiles)
+
+fighter_profiles  
+  - id (PK)
+  - license_status ('active', 'suspended', etc)
+  - primary_license_id (FK -> fighter_licenses)
+
+Trigger: sync_fighter_license_data
+  - Se ejecuta en INSERT/UPDATE/DELETE de fighter_licenses
+  - Actualiza fighter_profiles.license_status automaticamente
 ```
 
-### Orden de Implementacion
-
-1. **Prioridad CRITICA**: LicensePending.tsx (pagina actual del usuario)
-2. **Prioridad ALTA**: LicenseDashboard.tsx, LicenseOnboarding.tsx
-3. **Prioridad MEDIA**: Fighters.tsx, Events.tsx, Ranking.tsx
-4. **Prioridad BAJA**: Entrenadores.tsx, Gimnasios.tsx
