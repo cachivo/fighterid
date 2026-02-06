@@ -64,13 +64,16 @@ export function EnhancedFighterID({ profile, onEdit, onGenerateQR, showAdmin = f
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
               <div className="relative shrink-0">
-                <img
-                  src={profile.avatar_url || '/placeholder-avatar.png'}
-                  alt={`${profile.first_name} ${profile.last_name}`}
-                  className="h-16 w-16 xs:h-20 xs:w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 rounded-xl object-cover border-2 border-professional-accent/40"
-                />
+                <div className="h-14 w-14 xs:h-16 xs:w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-xl overflow-hidden border-2 border-professional-accent/40 bg-professional-muted/20">
+                  <img
+                    src={profile.avatar_url || '/placeholder-avatar.png'}
+                    alt={`${profile.first_name} ${profile.last_name}`}
+                    className="h-full w-full object-cover"
+                    loading="eager"
+                  />
+                </div>
                 <Badge 
-                  className={`absolute -bottom-1 -right-1 text-[10px] xs:text-xs ${getStatusColor(profile.license_status)}`}
+                  className={`absolute -bottom-1 -right-1 text-[9px] xs:text-[10px] sm:text-xs ${getStatusColor(profile.license_status)}`}
                 >
                   {profile.license_status?.toUpperCase() || 'ACTIVE'}
                 </Badge>
