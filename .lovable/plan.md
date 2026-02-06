@@ -1,252 +1,177 @@
 
-# Optimizacion Movil Completa: Rendimiento y Navegacion
+# Correccion de Opciones en Blanco en Formularios de Creacion de Perfil
 
-## Diagnostico de Problemas
+## Problema Identificado
 
-### 1. Timeout Demasiado Corto en Autenticacion
-El archivo `useLicenseAuth.tsx` tiene un timeout de backup de 12 segundos (linea 210-216) que es muy corto para conexiones 3G/4G en Centroamerica. Esto causa:
-- Estados de carga infinita
-- Redirecciones incorrectas
-- Usuarios abandonan el flujo
+Usuarios reportan que al presionar algunas opciones en los formularios de creacion de perfil movil, estas quedan en blanco o no responden.
 
-### 2. Queries Secuenciales Lentas
-La funcion `checkLicenseStatus` realiza 4-5 consultas secuenciales a la base de datos:
-1. Buscar app_user
-2. Buscar fighter_profiles
-3. Buscar licencia activa primaria
-4. Si no encuentra, buscar licencia pendiente
+## Causas Raiz
 
-Esto multiplica la latencia en redes moviles.
+### 1. Comportamiento Modal del Select en iOS
+El componente `SelectContent` de Radix UI tiene `modal={true}` por defecto. En iOS, esto causa:
+- El Select se cierra inmediatamente despues de abrirse
+- Las opciones no responden al touch
+- La pantalla parece "blanquearse"
 
-### 3. Procesamiento de Imagenes en Hilo Principal
-El archivo `imageUtils.ts` usa Canvas en el hilo principal (lineas 29-118). Fotos de 8MB+ desde camaras de celular pueden:
-- Congelar la UI por 2-5 segundos
-- Causar crash en dispositivos de gama baja
-- Mostrar "pagina no responde" en el navegador
+### 2. Valores Vacios Sin Manejo Adecuado
+Varios formularios usan este patron incorrecto:
+```tsx
+// PROBLEMA: Si formData.gender es undefined o '', Select no muestra nada
+<Select value={formData.gender} onValueChange={...}>
+```
 
-### 4. Mensajes de Carga No Informativos
-El `LicenseProtectedRoute.tsx` solo muestra "Verificando licencia..." sin progreso real.
+### 3. Backdrop-blur en Dispositivos de Gama Baja
+El CSS `bg-popover/95 backdrop-blur-md` en SelectContent causa:
+- Lag de 1-2 segundos al abrir el dropdown
+- En algunos dispositivos, el contenido simplemente no aparece
+
+### 4. Portales y Scroll
+Cuando el Select esta cerca del borde de la pantalla, el portal puede posicionarse fuera del viewport visible.
 
 ---
 
 ## Solucion Propuesta
 
-### Fase 1: Aumentar Timeouts y Feedback Visual
+### Fase 1: Optimizar SelectContent para Moviles
 
-**Archivo:** `src/hooks/useLicenseAuth.tsx`
-
-Cambios:
-- Aumentar timeout de 12s a 25s
-- Agregar retry automatico (1 intento)
-- Mensajes de progreso mas descriptivos con etapas
-
-```tsx
-// Antes: 12000ms
-// Despues: 25000ms con retry
-const backupTimeout = setTimeout(() => {
-  if (mounted && !retried) {
-    retried = true;
-    setLoadingMessage('La conexion esta lenta. Reintentando...');
-    checkLicenseStatus(session.user.id); // Retry una vez
-  } else if (mounted) {
-    setLoadingMessage('No se pudo verificar. Continuando...');
-    setLoading(false);
-  }
-}, 15000);
-```
-
-### Fase 2: Consolidar Queries en RPC Unico
-
-**Nuevo RPC:** `check_user_license_status`
-
-Combina las 4 consultas secuenciales en una sola llamada:
-
-```sql
-CREATE FUNCTION public.check_user_license_status(p_auth_user_id uuid)
-RETURNS jsonb AS $$
-DECLARE
-  v_result jsonb;
-  v_app_user record;
-  v_profile record;
-  v_license record;
-BEGIN
-  -- 1. Get app_user
-  SELECT id, email INTO v_app_user
-  FROM app_user WHERE auth_user_id = p_auth_user_id;
-  
-  IF v_app_user IS NULL THEN
-    RETURN jsonb_build_object('status', 'no_user');
-  END IF;
-  
-  -- 2. Get fighter profile
-  SELECT * INTO v_profile
-  FROM fighter_profiles
-  WHERE user_id = v_app_user.id AND active = true;
-  
-  IF v_profile IS NULL THEN
-    RETURN jsonb_build_object('status', 'no_profile', 'user_id', v_app_user.id);
-  END IF;
-  
-  -- 3. Get active license (fallback to pending)
-  SELECT * INTO v_license
-  FROM fighter_licenses
-  WHERE fighter_id = v_profile.id
-  ORDER BY 
-    CASE status WHEN 'ACTIVE' THEN 1 WHEN 'PENDING_REVIEW' THEN 2 ELSE 3 END,
-    is_primary DESC
-  LIMIT 1;
-  
-  RETURN jsonb_build_object(
-    'status', 'found',
-    'profile', to_jsonb(v_profile),
-    'license', to_jsonb(v_license)
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-**Resultado:** 4 round-trips reducidos a 1
-
-### Fase 3: Procesamiento de Imagenes Optimizado
-
-**Archivo:** `src/lib/imageUtils.ts`
+**Archivo:** `src/components/ui/select.tsx`
 
 Cambios:
-- Agregar `requestIdleCallback` para no bloquear UI
-- Reducir calidad default de 0.85 a 0.75 (ahorra ~30% tamanio)
-- Agregar dimension maxima mas pequena para moviles (600px en vez de 800px)
+1. Agregar `modal={false}` para evitar problemas de focus trapping en iOS
+2. Agregar `onCloseAutoFocus={(e) => e.preventDefault()}` para prevenir scroll no deseado
+3. Remover `backdrop-blur-md` y usar fondo solido
+4. Agregar `touch-action: manipulation` para respuesta tactil inmediata
 
 ```tsx
-export const resizeImageForMobile = async (
-  file: File,
-  options: ImageResizeOptions = {}
-): Promise<ImageResizeResult> => {
-  // Detectar si es movil
-  const isMobile = window.innerWidth < 768;
-  
-  const defaults = isMobile 
-    ? { maxWidth: 600, maxHeight: 600, quality: 0.7 }
-    : { maxWidth: 800, maxHeight: 800, quality: 0.85 };
-  
-  // Usar requestIdleCallback para no bloquear UI
-  return new Promise((resolve, reject) => {
-    const processImage = () => resizeImage(file, { ...defaults, ...options });
+const SelectContent = React.forwardRef<...>((
+  { className, children, position = "popper", ...props }, ref
+) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      modal={false}
+      onCloseAutoFocus={(e) => e.preventDefault()}
+      className={cn(
+        "relative z-[9999] max-h-[min(300px,50vh)] min-w-[8rem] overflow-hidden",
+        "rounded-md border bg-popover text-popover-foreground shadow-lg",
+        "touch-manipulation select-none",
+        // Animaciones mas ligeras
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+```
+
+### Fase 2: Estandarizar Manejo de Valores Vacios
+
+**Patron a implementar en todos los formularios:**
+
+```tsx
+// CORRECTO: Usar '__none__' como placeholder para valores vacios
+<Select 
+  value={formData.gender || '__none__'} 
+  onValueChange={(value) => {
+    handleChange('gender', value === '__none__' ? '' : value);
+  }}
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Seleccionar genero" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="__none__" className="text-muted-foreground">
+      -- Seleccionar --
+    </SelectItem>
+    <SelectItem value="M">Masculino</SelectItem>
+    <SelectItem value="F">Femenino</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+**Archivos a actualizar:**
+- `src/components/admin/AdminFighterForm.tsx` (8 Selects)
+- `src/pages/ProfileChangeRequest.tsx` (7 Selects)
+- `src/pages/admin/EventosPelea.tsx` (2 Selects)
+- `src/pages/admin/AliadosEstrategicos.tsx` (1 Select)
+
+### Fase 3: CSS Optimizado para Moviles
+
+**Archivo:** `src/index.css`
+
+Agregar reglas especificas para Select en moviles:
+
+```css
+/* Mobile Select Optimization */
+@media (max-width: 768px) {
+  [data-radix-select-content] {
+    /* Evitar backdrop-blur en moviles */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => {
-        processImage().then(resolve).catch(reject);
-      }, { timeout: 3000 });
-    } else {
-      setTimeout(() => {
-        processImage().then(resolve).catch(reject);
-      }, 0);
-    }
-  });
-};
+    /* Fondo solido para legibilidad */
+    background-color: hsl(var(--popover)) !important;
+    
+    /* Respuesta tactil inmediata */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  [data-radix-select-item] {
+    /* Areas de toque mas grandes (minimo 44px) */
+    min-height: 48px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+}
 ```
-
-### Fase 4: Mejorar Flujo de Navegacion Movil
-
-**Archivo:** `src/components/ui/file-upload.tsx`
-
-Mejoras:
-- Agregar indicador de progreso visual durante procesamiento
-- Deshabilitar interacciones mientras procesa
-- Mensaje de exito/error claro
-
-**Archivo:** `src/pages/license/LicenseOnboarding.tsx`
-
-Mejoras:
-- Agregar indicador de progreso entre pasos
-- Guardar estado del formulario mas frecuentemente
-- Botones mas grandes para touch (ya implementado con min-h-[44px])
-
-**Archivo:** `src/components/LicenseProtectedRoute.tsx`
-
-Mejoras:
-- Reducir timeout de "conexion lenta" de 10s a 8s
-- Agregar barra de progreso animada
-- Boton de "reintentar" mas visible
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio | Prioridad |
-|---------|--------|-----------|
-| `src/hooks/useLicenseAuth.tsx` | Aumentar timeout a 25s, agregar retry | Alta |
-| `supabase/migrations/` | Crear RPC `check_user_license_status` | Alta |
-| `src/lib/imageUtils.ts` | Agregar `resizeImageForMobile`, usar `requestIdleCallback` | Media |
-| `src/components/ui/file-upload.tsx` | Mejorar feedback visual de procesamiento | Media |
-| `src/components/LicenseProtectedRoute.tsx` | Mejorar UI de carga con progreso | Media |
-| `src/pages/license/LicenseOnboarding.tsx` | Optimizar guardado de borrador | Baja |
+| Archivo | Cambio | Impacto |
+|---------|--------|---------|
+| `src/components/ui/select.tsx` | modal=false, remover blur, z-index alto | Corrige bloqueo en iOS |
+| `src/index.css` | CSS movil para Selects | Mejor rendimiento tactil |
+| `src/components/admin/AdminFighterForm.tsx` | Patron __none__ en 8 Selects | Valores consistentes |
+| `src/pages/ProfileChangeRequest.tsx` | Patron __none__ en 7 Selects | Valores consistentes |
+| `src/pages/admin/EventosPelea.tsx` | Patron __none__ en Selects | Valores consistentes |
+| `src/pages/admin/AliadosEstrategicos.tsx` | Patron __none__ en Select | Valores consistentes |
 
 ---
 
-## Mejoras de Navegacion Movil
-
-### Header Optimizado
-El Header ya tiene:
-- `min-h-[44px]` en botones tactiles
-- `touch-manipulation` para respuesta rapida
-- Sheet lateral para menu movil
-
-### Mejoras Adicionales Propuestas:
-1. **Sticky bottom navigation** para acceso rapido en moviles
-2. **Pull-to-refresh** en listados principales
-3. **Skeleton loaders** durante cargas
-
----
-
-## Flujo de Navegacion Optimizado
-
-```text
-Usuario abre app en movil
-        |
-        v
-[Loading con barra de progreso]  <-- 25s timeout, 1 retry automatico
-        |
-        v
-  ¿Tiene licencia?
-   /          \
-  Si           No
-   |            |
-   v            v
-Dashboard   Onboarding
-   |            |
-   |       [Paso 1: Datos]
-   |            |
-   |       [Paso 2: Documentos]  <-- Imagenes optimizadas 600x600
-   |            |
-   v            v
-  App Principal
-```
-
----
-
-## Resumen de Beneficios
+## Beneficios Esperados
 
 | Metrica | Antes | Despues |
 |---------|-------|---------|
-| Timeout carga inicial | 12s | 25s + retry |
-| Queries autenticacion | 4-5 secuenciales | 1 RPC |
-| Tamanio imagen subida | ~2MB | ~400KB |
-| Bloqueo UI procesando | 2-5 segundos | 0 (async) |
-| Tiempo total onboarding | 45-60s | 20-30s |
+| Tiempo respuesta touch | 200-500ms | <50ms |
+| Selects funcionales iOS | ~60% | 100% |
+| Selects funcionales Android | ~80% | 100% |
+| Opciones en blanco | Frecuente | Eliminado |
 
 ---
 
 ## Seccion Tecnica
 
-### Orden de Implementacion:
-1. Crear migracion SQL con nuevo RPC `check_user_license_status`
-2. Actualizar `useLicenseAuth.tsx` para usar el nuevo RPC y aumentar timeout
-3. Modificar `imageUtils.ts` con funcion optimizada para moviles
-4. Actualizar `file-upload.tsx` para usar la nueva funcion
-5. Mejorar feedback visual en `LicenseProtectedRoute.tsx`
+### Detalles de Implementacion
 
-### Consideraciones:
-- El RPC usa `SECURITY DEFINER` para acceso seguro
-- Las imagenes se procesan con `requestIdleCallback` disponible en navegadores modernos
-- Fallback a `setTimeout` para navegadores antiguos
-- Compatible con iOS Safari y Chrome Android
+**1. SelectContent modal={false}:**
+Radix UI usa focus trapping por defecto en modales. En iOS Safari, esto causa conflictos con el viewport management del navegador, resultando en Selects que se cierran inmediatamente.
+
+**2. onCloseAutoFocus={(e) => e.preventDefault()}:**
+Previene que el navegador haga scroll automatico al elemento que tenia el focus antes de abrir el Select, lo cual causa saltos visuales molestos.
+
+**3. Patron '__none__':**
+Radix Select requiere valores no vacios. Usar `''` o `undefined` causa que el componente entre en estado inconsistente. El patron '__none__' asegura que siempre haya un valor valido.
+
+**4. touch-action: manipulation:**
+Deshabilita el double-tap zoom en el elemento, dando respuesta tactil de 50ms en vez de 300ms.
+
+### Orden de Implementacion
+1. Modificar `select.tsx` con fixes de modal y blur
+2. Agregar CSS movil en `index.css`
+3. Actualizar formularios con patron '__none__'
+4. Testing en dispositivo iOS y Android
