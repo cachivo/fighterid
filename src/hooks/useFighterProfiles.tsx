@@ -450,9 +450,9 @@ export function useFighterProfiles() {
       // Refrescar la lista para mostrar los cambios
       await fetchFighters();
 
-      // Notificar a otras vistas para refrescar
-      window.dispatchEvent(new CustomEvent('admin-fighter-updated', {
-        detail: { fighterId, fields: Object.keys(profileData) }
+      // Notificar a otras vistas para refrescar con evento unificado
+      window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+        detail: { fighterId, source: 'admin-update', fields: Object.keys(profileData) }
       }));
       return true;
     } catch (err) {

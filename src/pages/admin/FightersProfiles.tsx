@@ -45,16 +45,22 @@ export default function FightersProfiles() {
   // Enable realtime updates for all fighters (global subscription)
   useRealtimeFighterUpdates();
 
-  // Listen for fighter update events and refresh the list
+  // Listen for unified fighter update events and refresh the list
+  // Note: useAdminFighters already handles this event, but we add a direct listener
+  // as a backup and for logging purposes
   useEffect(() => {
-    const handleFighterUpdate = () => {
-      console.log('[FightersProfiles] Received update event, refreshing...');
-      fetchFighters();
+    const handleFighterUpdate = (event: CustomEvent) => {
+      console.log('[FightersProfiles] Received update event:', event.detail);
+      // Only call fetchFighters if the event came from a different source
+      // to avoid double-fetching since useAdminFighters already handles this
+      if (event.detail?.source === 'modal-close') {
+        fetchFighters();
+      }
     };
     
-    window.addEventListener('fighter-profile-updated', handleFighterUpdate);
+    window.addEventListener('fighter-profile-updated', handleFighterUpdate as EventListener);
     return () => {
-      window.removeEventListener('fighter-profile-updated', handleFighterUpdate);
+      window.removeEventListener('fighter-profile-updated', handleFighterUpdate as EventListener);
     };
   }, [fetchFighters]);
 

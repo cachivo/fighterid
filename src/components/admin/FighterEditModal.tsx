@@ -289,6 +289,16 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
           title: "¡Actualización exitosa!",
           description: "El perfil del peleador ha sido actualizado correctamente.",
         });
+        
+        // Wait for refresh to complete before closing modal
+        // This ensures the list shows updated data
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Force an additional refresh event to ensure all listeners update
+        window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+          detail: { fighterId: fighter.id, source: 'modal-close' }
+        }));
+        
         onClose();
       } else {
         toast({
