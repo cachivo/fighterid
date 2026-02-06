@@ -244,7 +244,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                             )}
                           </div>
                           {ranking.fighter.nickname && (
-                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-purple-neon-primary/80 font-medium truncate block mb-0.5">
+                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium truncate block mb-0.5">
                               "{ranking.fighter.nickname}"
                             </span>
                           )}
