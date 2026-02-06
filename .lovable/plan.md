@@ -1,155 +1,231 @@
 
-# Optimizacion de Botones de Edicion de Perfil para Movil
+# Auditoria Completa: Sistema de Edicion de Perfiles de Peleadores
+
+## Resumen Ejecutivo
+
+El sistema de edicion de perfiles tiene **multiples problemas de arquitectura** que causan que los datos no se guarden o no se muestren correctamente despues de editar. Identifique 6 problemas criticos y presento el plan de correccion.
+
+---
 
 ## Problemas Identificados
 
-### 1. LicenseDashboard.tsx (Dashboard del Peleador Licenciado)
-**Ubicacion:** Lineas 214-225
+### Problema 1: Desconexion de Eventos (CRITICO)
 
-El boton "Actualizar" SOLO aparece cuando hay campos faltantes:
-```tsx
-{missingFields.length > 0 && (
-  <Button onClick={handleUpdateInfo} ...>
-    <Edit /> Actualizar
-  </Button>
-)}
-```
+**Ubicacion:** `FightersProfiles.tsx` linea 55, `useFighterProfiles.tsx` linea 454
 
-**Problema:** Si el perfil esta completo al 100%, NO existe forma de editar la informacion. El `ProfileProgressWidget` tiene un boton pero dice "Perfil 100% Completo" y no indica claramente que se puede editar.
+| Componente | Evento que ESCUCHA | Evento que DISPARA |
+|------------|-------------------|-------------------|
+| FightersProfiles.tsx | `fighter-profile-updated` | - |
+| useFighterProfiles.adminUpdateFighterProfile | - | `admin-fighter-updated` |
+| useAdminFighters.tsx | `admin-fighter-updated` | - |
+| useRealtimeFighterUpdates | - | `fighter-profile-updated` |
 
----
-
-### 2. social/UserProfile.tsx (Perfil Social de Otros)
-**Ubicacion:** Lineas 222-243
-
-Solo muestra boton de accion para OTROS usuarios (agregar amigo):
-```tsx
-{!isOwnProfile && (
-  <Button onClick={handleFriendAction}>
-    Agregar Amigo
-  </Button>
-)}
-```
-
-**Problema:** Cuando un usuario visita su propio perfil social (`isOwnProfile = true`), NO hay boton de edicion visible.
+**Problema:** El modal usa `adminUpdateFighterProfile` de `useFighterProfiles` que dispara `admin-fighter-updated`, pero la pagina de admin escucha `fighter-profile-updated`. Aunque `useAdminFighters` escucha el evento correcto, hay confusion en el flujo.
 
 ---
 
-### 3. FighterProfile.tsx (Perfil Publico del Peleador)
-**Ubicacion:** Pagina completa
+### Problema 2: Closure Stale en useAdminFighters
 
-**Problema:** Es un perfil 100% publico sin ninguna logica para detectar si el visitante es el dueno del perfil. No hay boton de edicion ni para el propio peleador cuando visita su perfil publico.
+**Ubicacion:** `useAdminFighters.tsx` lineas 173-180
+
+```typescript
+useEffect(() => {
+  const onAdminUpdated = () => {
+    fetchFighters(); // Esta funcion puede estar STALE
+  };
+  window.addEventListener('admin-fighter-updated', onAdminUpdated);
+  return () => window.removeEventListener('admin-fighter-updated', onAdminUpdated);
+}, []); // <-- DEPENDENCIAS VACIAS - fetchFighters no esta incluido
+```
+
+**Problema:** El `fetchFighters` capturado en el closure puede ser una version antigua de la funcion.
 
 ---
 
-### 4. SocialProfile.tsx (Perfil Social Propio)
-**Ubicacion:** Lineas 129-158
+### Problema 3: Doble Sistema de Estado Sin Sincronizacion
 
-Los botones de camara usan `group-hover:opacity-100`:
-```tsx
-<Button className="opacity-0 group-hover:opacity-100 transition-opacity">
-  <Camera /> Cambiar portada
-</Button>
+**Ubicacion:** Hooks `useAdminFighters` y `useFighterProfiles`
+
+Ambos hooks mantienen su propia lista de peleadores con `useState`:
+
+```text
+useAdminFighters.fighters (useState) ←→ NO SINCRONIZADO ←→ useFighterProfiles.fighters (useState)
 ```
 
-**Problema:** En dispositivos tactiles NO existe `hover`, por lo que estos botones son INVISIBLES en movil.
+La pagina de admin usa datos de `useAdminFighters`, pero el modal actualiza via `useFighterProfiles`.
+
+---
+
+### Problema 4: RPC con COALESCE que Preserva Valores Null
+
+**Ubicacion:** Funcion SQL `admin_update_fighter_profile`
+
+```sql
+height_cm = COALESCE((p_profile_data->>'height_cm')::INTEGER, height_cm),
+```
+
+Si el frontend envia `0` o `null`, COALESCE preserva el valor antiguo en lugar de actualizarlo.
+
+---
+
+### Problema 5: Modal Cierra Antes de Confirmar Refresh
+
+**Ubicacion:** `FighterEditModal.tsx` lineas 286-292
+
+```typescript
+const success = await adminUpdateFighterProfile(fighter.id, sanitizedData);
+if (success) {
+  toast({ title: "Actualizacion exitosa!" });
+  onClose(); // El modal cierra INMEDIATAMENTE
+}
+```
+
+El modal se cierra antes de que la lista tenga tiempo de refrescarse, mostrando datos antiguos.
+
+---
+
+### Problema 6: Formulario de Usuario Falta Campos Criticos
+
+**Ubicacion:** `UserFighterProfileEditForm.tsx` funcion `user_update_fighter_profile`
+
+El RPC de usuario NO incluye estos campos que si puede editar:
+- `first_name`, `last_name` (identidad)
+- `country`, `birthdate`, `birthplace`, `gender` (datos personales)
+- `record_wins`, `record_losses`, `record_draws` (cuando licencia no esta activa)
 
 ---
 
 ## Plan de Correccion
 
-### Fase 1: LicenseDashboard.tsx - Boton de Edicion Siempre Visible
+### Fase 1: Unificar Sistema de Eventos
 
-Modificar el header para mostrar SIEMPRE un boton de edicion, independientemente del estado de completitud:
+**Archivos a modificar:**
+- `src/hooks/useFighterProfiles.tsx`
+- `src/hooks/useAdminFighters.tsx`
+- `src/pages/admin/FightersProfiles.tsx`
 
-```tsx
-// ANTES: Solo si hay campos faltantes
-{missingFields.length > 0 && (
-  <Button onClick={handleUpdateInfo}>...</Button>
-)}
+**Cambios:**
+1. Estandarizar a un unico evento: `fighter-profile-updated`
+2. Incluir metadata util en el evento (fighterId, source, fields)
 
-// DESPUES: Siempre visible con texto dinamico
-<Button onClick={handleUpdateInfo}>
-  <Edit />
-  {missingFields.length > 0 ? 'Completar Perfil' : 'Editar Perfil'}
-</Button>
-```
-
-Adicionalmente, optimizar el boton para movil:
-- Altura minima de 44px
-- `touch-manipulation` para evitar delays
-- Icono siempre visible, texto responsive
-
----
-
-### Fase 2: social/UserProfile.tsx - Boton de Edicion para Perfil Propio
-
-Agregar boton de edicion cuando el usuario visita su propio perfil:
-
-```tsx
-{isOwnProfile ? (
-  <Button asChild variant="default" size="lg">
-    <Link to="/social/profile">
-      <Edit /> Editar Perfil
-    </Link>
-  </Button>
-) : (
-  <Button onClick={handleFriendAction} disabled={isPending}>
-    {isFriend ? 'Amigos' : 'Agregar Amigo'}
-  </Button>
-)}
+```typescript
+// useFighterProfiles.tsx - Cambiar linea 454
+window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+  detail: { 
+    fighterId, 
+    source: 'admin-update',
+    fields: Object.keys(profileData) 
+  }
+}));
 ```
 
 ---
 
-### Fase 3: FighterProfile.tsx - Detectar Propietario y Mostrar Edicion
+### Fase 2: Corregir Closure Stale
 
-1. Agregar logica para detectar si el visitante es el dueno:
-```tsx
-const [isOwner, setIsOwner] = useState(false);
+**Archivo:** `src/hooks/useAdminFighters.tsx`
 
+**Cambios:**
+```typescript
+// Usar useCallback para fetchFighters
+const fetchFighters = useCallback(async () => {
+  // ... codigo existente
+}, [toast]);
+
+// Incluir fetchFighters en dependencias
 useEffect(() => {
-  const checkOwnership = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user && fighter?.user_id) {
-      const { data: appUser } = await supabase
-        .from('app_user')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
-      setIsOwner(appUser?.id === fighter.user_id);
-    }
+  const onAdminUpdated = () => {
+    fetchFighters();
   };
-  checkOwnership();
-}, [fighter]);
-```
-
-2. Mostrar boton de edicion condicional:
-```tsx
-{isOwner && (
-  <Button asChild className="min-h-[44px] touch-manipulation">
-    <Link to="/license/dashboard">
-      <Edit /> Editar Mi Perfil
-    </Link>
-  </Button>
-)}
+  window.addEventListener('fighter-profile-updated', onAdminUpdated);
+  return () => window.removeEventListener('fighter-profile-updated', onAdminUpdated);
+}, [fetchFighters]); // <-- INCLUIR DEPENDENCIA
 ```
 
 ---
 
-### Fase 4: SocialProfile.tsx - Botones de Camara Visibles en Movil
+### Fase 3: Eliminar Hook Duplicado
 
-Reemplazar `group-hover:opacity-100` con visibilidad permanente en movil:
+**Cambio de arquitectura:**
 
-```tsx
-// ANTES: Invisible en movil
-<Button className="opacity-0 group-hover:opacity-100">
+Opcion A: Eliminar `useAdminFighters` y usar solo `useFighterProfiles` con React Query
+Opcion B: Migrar ambos a React Query con cache compartido
 
-// DESPUES: Visible en movil, hover en desktop
-<Button className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+**Recomendacion:** Opcion B - Usar React Query para ambos con claves compartidas
+
+```typescript
+// Nuevo patron con React Query
+const { data: fighters } = useQuery({
+  queryKey: ['admin-fighters'],
+  queryFn: fetchAdminFighters,
+});
 ```
 
-Alternativa: Usar un boton de edicion flotante (FAB) siempre visible en movil.
+---
+
+### Fase 4: Corregir Logica COALESCE en RPC
+
+**Archivo:** Nueva migracion SQL
+
+**Cambio critico:**
+```sql
+-- ANTES: Preserva valor si JSON tiene null
+height_cm = COALESCE((p_profile_data->>'height_cm')::INTEGER, height_cm),
+
+-- DESPUES: Respeta null explicito del JSON
+height_cm = CASE 
+  WHEN p_profile_data ? 'height_cm' THEN 
+    NULLIF((p_profile_data->>'height_cm')::INTEGER, 0)
+  ELSE height_cm 
+END,
+```
+
+---
+
+### Fase 5: Agregar Delay Antes de Cerrar Modal
+
+**Archivo:** `src/components/admin/FighterEditModal.tsx`
+
+```typescript
+const success = await adminUpdateFighterProfile(fighter.id, sanitizedData);
+if (success) {
+  toast({ title: "Actualizacion exitosa!" });
+  
+  // Esperar a que el refresh se complete antes de cerrar
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  // Forzar refresh manual para asegurar datos actualizados
+  window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+    detail: { fighterId: fighter.id }
+  }));
+  
+  onClose();
+}
+```
+
+---
+
+### Fase 6: Completar RPC de Usuario
+
+**Archivo:** Nueva migracion SQL para `user_update_fighter_profile`
+
+Agregar campos faltantes:
+```sql
+-- Agregar campos de identidad (con validacion de cambios menores)
+first_name = CASE 
+  WHEN p_profile_data ? 'first_name' THEN p_profile_data->>'first_name'
+  ELSE first_name 
+END,
+last_name = CASE 
+  WHEN p_profile_data ? 'last_name' THEN p_profile_data->>'last_name'
+  ELSE last_name 
+END,
+country = CASE 
+  WHEN p_profile_data ? 'country' THEN p_profile_data->>'country'
+  ELSE country 
+END,
+-- ... etc para todos los campos permitidos
+```
 
 ---
 
@@ -157,51 +233,58 @@ Alternativa: Usar un boton de edicion flotante (FAB) siempre visible en movil.
 
 | Archivo | Cambios |
 |---------|---------|
-| `src/pages/license/LicenseDashboard.tsx` | Boton de edicion siempre visible en header |
-| `src/pages/social/UserProfile.tsx` | Agregar boton de edicion cuando `isOwnProfile` |
-| `src/pages/FighterProfile.tsx` | Detectar propietario + boton de edicion |
-| `src/pages/social/SocialProfile.tsx` | Botones de camara visibles en movil |
+| `src/hooks/useAdminFighters.tsx` | useCallback + dependencias correctas + evento unificado |
+| `src/hooks/useFighterProfiles.tsx` | Evento unificado + verificacion post-update |
+| `src/components/admin/FighterEditModal.tsx` | Delay antes de cerrar + forzar refresh |
+| `src/components/UserFighterProfileEditForm.tsx` | Asegurar todos los campos se envian |
+| `src/pages/admin/FightersProfiles.tsx` | Escuchar evento unificado |
+| Nueva migracion SQL | Corregir COALESCE + completar user RPC |
 
 ---
 
-## Especificaciones de UX Movil
+## Orden de Implementacion
 
-Siguiendo los estandares del proyecto:
-
-1. **Altura minima de botones:** 44px (`min-h-[44px]`)
-2. **Touch optimization:** `touch-manipulation`
-3. **Responsive text:** Texto corto en movil, completo en desktop
-4. **Iconos:** Siempre visibles, texto opcional
-5. **Sticky footer:** Para botones de guardar en formularios largos
+1. **Migracion SQL** - Corregir logica COALESCE y completar user RPC
+2. **useAdminFighters.tsx** - Corregir closure stale y evento
+3. **useFighterProfiles.tsx** - Unificar evento
+4. **FighterEditModal.tsx** - Agregar delay y verificacion
+5. **UserFighterProfileEditForm.tsx** - Asegurar campos completos
+6. **FightersProfiles.tsx** - Limpiar listeners duplicados
 
 ---
 
-## Flujo de Usuario Post-Implementacion
+## Pruebas de Validacion
 
-### Peleador Licenciado
-1. Entra a `/license/dashboard`
-2. Ve boton "Editar Perfil" siempre visible en header
-3. Click abre formulario de edicion
+### Test 1: Admin Edita Perfil
+1. Abrir modal de Willis Yang
+2. Cambiar apodo a "Test Nickname"
+3. Guardar cambios
+4. Verificar que el apodo se muestra inmediatamente en la lista
+5. Refrescar pagina y verificar persistencia
 
-### Usuario en Perfil Social
-1. Entra a `/social/profile/:id` (su propio ID)
-2. Ve boton "Editar Perfil" en lugar de "Agregar Amigo"
-3. Click lo lleva a `/social/profile` para editar
+### Test 2: Usuario Edita Su Perfil
+1. Login como Willis Yang
+2. Ir a dashboard de licencia
+3. Editar biografia
+4. Guardar cambios
+5. Verificar actualizacion inmediata
 
-### Peleador en Perfil Publico
-1. Entra a `/fighter/:id` (su propio perfil)
-2. Ve boton "Editar Mi Perfil" cerca del nombre
-3. Click lo lleva a `/license/dashboard` para editar
+### Test 3: Sincronizacion de Rankings
+1. Admin cambia nivel de "Amateur" a "Semi-profesional"
+2. Verificar que el ranking se actualiza
+3. Verificar persistencia despues de refresh
 
 ---
 
 ## Resumen Tecnico
 
-| Vista | Problema Actual | Solucion |
-|-------|-----------------|----------|
-| LicenseDashboard | Boton solo si perfil incompleto | Boton siempre visible |
-| social/UserProfile | Sin boton para perfil propio | Agregar boton condicional |
-| FighterProfile | Sin deteccion de propietario | Hook de ownership + boton |
-| SocialProfile | Hover invisible en touch | Clases responsive |
+| Problema | Impacto | Solucion |
+|----------|---------|----------|
+| Desconexion de eventos | Datos no se refrescan | Evento unificado |
+| Closure stale | Refresh con datos antiguos | useCallback + deps |
+| Hooks duplicados | Estados desincronizados | React Query compartido |
+| COALESCE preserva null | Campos no se actualizan | Logica CASE explicita |
+| Modal cierra rapido | Usuario ve datos viejos | Delay + refresh forzado |
+| RPC usuario incompleto | Campos no se guardan | Completar funcion SQL |
 
-Todas las correcciones siguen los estandares de optimizacion movil del proyecto: botones tactiles de 44px, `touch-manipulation`, layouts responsivos flex-col en movil y flex-row en desktop.
+La implementacion de estas correcciones asegurara que tanto administradores como usuarios puedan editar perfiles con actualizacion inmediata y persistente.
