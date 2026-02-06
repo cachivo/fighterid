@@ -1,34 +1,52 @@
 
+# Plan: Corrección de Fórmula de Puntos en Base de Datos
 
-# Cambio de Color del Apodo en el Ranking
+## Diagnóstico
+
+El código frontend ya tiene la fórmula correcta implementada:
+
+| Resultado | Puntos |
+|-----------|--------|
+| Victoria | +3 |
+| Empate | +1 |
+| Derrota | -1 |
+
+**Problema identificado:** La migración anterior aplicó una fórmula diferente (`wins*10, draws*3, losses*-2`) en la base de datos.
+
+## Solución
+
+Crear una única migración SQL para recalcular los puntos de todos los peleadores usando la fórmula correcta.
 
 ## Cambio Requerido
 
-Cambiar el color del apodo/nickname de púrpura a blanco para que coincida con el nombre del peleador.
+### Migración SQL
 
-## Archivo a Modificar
-
-`src/components/sections/Ranking.tsx` - Línea 247
-
-## Detalle del Cambio
-
-**Antes:**
-```tsx
-<span className="text-[9px] xs:text-[10px] sm:text-xs text-purple-neon-primary/80 font-medium truncate block mb-0.5">
+```text
+UPDATE fighter_rankings
+SET points = (wins × 3) + (draws × 1) - (losses × 1)
 ```
 
-**Después:**
-```tsx
-<span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium truncate block mb-0.5">
+### Ejemplos de Cálculo
+
+```text
+Kevin Calona (6-3-0):
+  (6 × 3) + (0 × 1) - (3 × 1) = 18 - 3 = 15 pts
+
+Aaron Irias (3-1-0):
+  (3 × 3) + (0 × 1) - (1 × 1) = 9 - 1 = 8 pts
+
+Willis Yang (1-1-1):
+  (1 × 3) + (1 × 1) - (1 × 1) = 3 + 1 - 1 = 3 pts
 ```
 
-El color cambia de `text-purple-neon-primary/80` a `text-white/90` para mantener armonía cromática con el nombre del peleador, usando una ligera opacidad para diferenciarlo sutilmente del nombre principal.
+## Archivos Verificados (Sin cambios necesarios)
 
-## Resultado Visual
+| Archivo | Estado |
+|---------|--------|
+| `src/hooks/useFighterRanking.tsx` | Fórmula correcta (línea 71) |
+| `src/components/admin/PointAdjustmentModal.tsx` | Delta derrota = -1 (línea 37) |
+| `src/components/sections/Ranking.tsx` | Colores correctos (verde-rojo-gris) |
 
-```
-#1 Randy Tercero          18 pts
-   "El Torito"            ← Ahora en blanco
-   Peso Mosca (125 lbs)
-```
+## Acción
 
+Ejecutar migración SQL para sincronizar la base de datos con la lógica del frontend.
