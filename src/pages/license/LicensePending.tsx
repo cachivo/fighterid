@@ -15,13 +15,24 @@ export default function LicensePending() {
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Immediate redirect check for users with ACTIVE licenses
+  // Uses multiple sources of truth to ensure consistency
   useEffect(() => {
-    if (licenseData?.status === 'ACTIVE') {
-      console.log('User has ACTIVE license, redirecting to dashboard immediately');
+    const licenseStatus = licenseData?.status;
+    const profileLicenseStatus = licenseData?.fighter_profiles?.license_status;
+    const hasPrimaryLicenseId = !!licenseData?.fighter_profiles?.primary_license_id;
+    
+    // Redirect if any of these conditions indicate an active license
+    const shouldRedirect = 
+      licenseStatus === 'ACTIVE' || 
+      hasActiveLicense ||
+      (profileLicenseStatus === 'active' && hasPrimaryLicenseId);
+    
+    if (shouldRedirect) {
+      console.log('User has ACTIVE license (detected via multiple sources), redirecting to dashboard');
       navigate('/license/dashboard', { replace: true });
       return;
     }
-  }, [licenseData?.status, navigate]);
+  }, [licenseData?.status, licenseData?.fighter_profiles?.license_status, licenseData?.fighter_profiles?.primary_license_id, hasActiveLicense, navigate]);
 
   // LAYER 3: Polling fallback - Direct license verification every 5 seconds
   useEffect(() => {
