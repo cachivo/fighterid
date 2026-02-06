@@ -193,28 +193,30 @@ export default function LicensePending() {
           <p className="text-muted-foreground">
             Tu solicitud de licencia está siendo procesada
           </p>
-          <div className="mt-4 flex justify-center gap-3">
+          <div className="mt-4 flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-3 px-4">
             <Button
               variant="outline"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <Home className="h-4 w-4" />
-              Pantalla Principal
+              <Home className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Pantalla Principal</span>
+              <span className="sm:hidden">Inicio</span>
             </Button>
             <Button
               variant="outline"
               onClick={handleManualRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2 hover:bg-primary/10 hover:text-primary"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-primary/10 hover:text-primary"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Actualizando...' : 'Actualizar Estado'}
+              <RefreshCw className={`h-4 w-4 shrink-0 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{isRefreshing ? 'Actualizando...' : 'Actualizar Estado'}</span>
+              <span className="sm:hidden">{isRefreshing ? 'Cargando' : 'Actualizar'}</span>
             </Button>
             <Button
               variant="outline"
               onClick={signOut}
-              className="hover:bg-destructive/10 hover:text-destructive"
+              className="w-full sm:w-auto flex items-center justify-center min-h-[44px] touch-manipulation hover:bg-destructive/10 hover:text-destructive"
             >
               Cerrar Sesión
             </Button>
@@ -241,15 +243,21 @@ export default function LicensePending() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Nivel Solicitado:</span>
-                  <p className="font-medium">{licenseData.license_level}</p>
+                  <p className="font-medium text-sm sm:text-base">{licenseData.license_level}</p>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Fecha de Solicitud:</span>
-                  <p className="font-medium">
-                    {new Date(licenseData.created_at).toLocaleDateString()}
+                  <p className="font-medium text-sm sm:text-base">
+                    {licenseData.created_at 
+                      ? new Date(licenseData.created_at).toLocaleDateString('es-ES', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })
+                      : 'Pendiente'}
                   </p>
                 </div>
               </div>

@@ -367,7 +367,7 @@ export default function Fighters() {
           </div>
 
           {/* Filter dropdowns */}
-          <div className={`grid grid-cols-1 md:grid-cols-6 gap-4 ${showFilters || 'hidden md:grid'}`}>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 ${showFilters || 'hidden md:grid'}`}>
             {[
               { 
                 label: "División",
