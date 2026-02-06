@@ -514,4 +514,30 @@ img, video {
       touch-action: manipulation;
     }
   }
+  
+  /* Text wrapping utilities for mobile */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Safe mobile container */
+  .mobile-safe {
+    max-width: calc(100vw - 2rem);
+  }
+  
+  /* Ultra-small mobile optimizations (320px-379px) */
+  @media (max-width: 379px) {
+    .xs-stack {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    
+    .xs-full {
+      width: 100% !important;
+    }
+    
+    .xs-text-sm {
+      font-size: 0.875rem !important;
+    }
+  }
 }
