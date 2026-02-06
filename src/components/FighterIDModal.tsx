@@ -44,20 +44,20 @@ export function FighterIDModal({ open, onOpenChange }: FighterIDModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] sm:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30 [&>[data-dialog-close]]:text-white [&>[data-dialog-close]]:hover:text-white/80 [&>[data-dialog-close]]:hover:bg-white/10 [&>[data-dialog-close]]:opacity-100">
-        <DialogHeader className="relative pb-3 sm:pb-4">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
+      <DialogContent className="max-w-[95vw] sm:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 border-gold-500/30 will-change-transform [&>[data-dialog-close]]:text-white [&>[data-dialog-close]]:hover:text-white/80 [&>[data-dialog-close]]:hover:bg-white/10 [&>[data-dialog-close]]:opacity-100">
+        <DialogHeader className="relative pb-2 sm:pb-3 lg:pb-4">
+          <DialogTitle className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
             Global Fighter ID
           </DialogTitle>
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold-400/30 to-transparent" />
         </DialogHeader>
 
-        <div className="py-3 sm:py-4">
+        <div className="py-2 sm:py-3 lg:py-4">
           {loading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center space-y-4">
+            <div className="flex items-center justify-center py-8 sm:py-12">
+              <div className="text-center space-y-3 sm:space-y-4">
                 <LoadingSpinner />
-                <p className="text-gold-300">Cargando tu Fighter ID...</p>
+                <p className="text-gold-300 text-sm sm:text-base">Cargando tu Fighter ID...</p>
               </div>
             </div>
           )}
@@ -97,7 +97,7 @@ export function FighterIDModal({ open, onOpenChange }: FighterIDModalProps) {
           )}
 
           {!loading && !error && fighterProfile && (
-            <div className="flex justify-center py-3 sm:py-6">
+            <div className="flex justify-center py-2 sm:py-4 lg:py-6">
               <DigitalFighterToken 
                 profile={fighterProfile}
               />
