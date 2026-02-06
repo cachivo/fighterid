@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,7 +69,8 @@ export function useAdminFighters() {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const fetchFighters = async () => {
+  // Use useCallback to prevent stale closure issues
+  const fetchFighters = useCallback(async () => {
     try {
       setLoading(true);
       console.log('🔧 Admin fetching fighters...');
@@ -96,7 +97,7 @@ export function useAdminFighters() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const updateFighterProfile = async (fighterId: string, profileData: AdminFighterFormData) => {
     try {
@@ -121,8 +122,10 @@ export function useAdminFighters() {
         description: "Perfil de peleador actualizado correctamente",
       });
 
-      // Trigger custom event to refresh public fighters
-      window.dispatchEvent(new CustomEvent('admin-fighter-updated'));
+      // Trigger unified event for all listeners
+      window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
+        detail: { fighterId, source: 'admin-update', fields: Object.keys(profileData) }
+      }));
 
       // Refrescar la lista
       await fetchFighters();
@@ -166,18 +169,24 @@ export function useAdminFighters() {
     }
   };
 
+  // Initial fetch on mount
   useEffect(() => {
     fetchFighters();
-  }, []);
+  }, [fetchFighters]);
 
+  // Listen for unified fighter-profile-updated event with correct dependency
   useEffect(() => {
-    const onAdminUpdated = () => {
-      console.log('🔧 Admin update event received, refreshing fighters...');
+    const onFighterUpdated = (event: CustomEvent) => {
+      console.log('🔧 Fighter update event received:', event.detail);
       fetchFighters();
     };
-    window.addEventListener('admin-fighter-updated', onAdminUpdated);
-    return () => window.removeEventListener('admin-fighter-updated', onAdminUpdated);
-  }, []);
+    
+    window.addEventListener('fighter-profile-updated', onFighterUpdated as EventListener);
+    
+    return () => {
+      window.removeEventListener('fighter-profile-updated', onFighterUpdated as EventListener);
+    };
+  }, [fetchFighters]); // Include fetchFighters in dependencies to prevent stale closure
 
   return {
     fighters,
