@@ -1,30 +1,34 @@
  import { useQuery } from '@tanstack/react-query';
  import { supabase } from '@/integrations/supabase/client';
  
- export interface RankingEntry {
-   id: string;
-   fighter_id: string;
-   fighter: {
-     first_name: string;
-     last_name: string;
-     nickname: string | null;
-     avatar_url: string | null;
-     country: string | null;
+export interface RankingEntry {
+  id: string;
+  fighter_id: string;
+  fighter: {
+    first_name: string;
+    last_name: string;
+    nickname: string | null;
+    avatar_url: string | null;
+    country: string | null;
     mma_record_wins: number | null;
     mma_record_losses: number | null;
     mma_record_draws: number | null;
     boxeo_record_wins: number | null;
     boxeo_record_losses: number | null;
     boxeo_record_draws: number | null;
-   };
-   weight_class: string;
-   level: string;
-   ranking_position: number | null;
-   points: number;
-   is_champion: boolean;
-   is_active: boolean;
-   last_fight_date: string | null;
- }
+    // Legacy fallback fields
+    record_wins: number | null;
+    record_losses: number | null;
+    record_draws: number | null;
+  };
+  weight_class: string;
+  level: string;
+  ranking_position: number | null;
+  points: number;
+  is_champion: boolean;
+  is_active: boolean;
+  last_fight_date: string | null;
+}
  
  export interface OrganizationRankingResult {
    rankings: RankingEntry[];
@@ -68,19 +72,22 @@
            is_champion,
            is_active,
            last_fight_date,
-           fighter_profiles!inner (
-             first_name,
-             last_name,
-             nickname,
-             avatar_url,
-            country,
-            mma_record_wins,
-            mma_record_losses,
-            mma_record_draws,
-            boxeo_record_wins,
-            boxeo_record_losses,
-            boxeo_record_draws
-           )
+            fighter_profiles!inner (
+              first_name,
+              last_name,
+              nickname,
+              avatar_url,
+              country,
+              mma_record_wins,
+              mma_record_losses,
+              mma_record_draws,
+              boxeo_record_wins,
+              boxeo_record_losses,
+              boxeo_record_draws,
+              record_wins,
+              record_losses,
+              record_draws
+            )
          `, { count: 'exact' })
          .eq('organization_id', org.id)
          .eq('is_active', true)
@@ -117,31 +124,34 @@
           levelCounts[r.level] = (levelCounts[r.level] || 0) + 1;
         });
 
-       // Transform data to match interface
-       const rankings: RankingEntry[] = (rankingsData || []).map((r: any) => ({
-         id: r.id,
-         fighter_id: r.fighter_id,
-         fighter: {
-           first_name: r.fighter_profiles.first_name,
-           last_name: r.fighter_profiles.last_name,
-           nickname: r.fighter_profiles.nickname,
-           avatar_url: r.fighter_profiles.avatar_url,
-           country: r.fighter_profiles.country,
-          mma_record_wins: r.fighter_profiles.mma_record_wins,
-          mma_record_losses: r.fighter_profiles.mma_record_losses,
-          mma_record_draws: r.fighter_profiles.mma_record_draws,
-          boxeo_record_wins: r.fighter_profiles.boxeo_record_wins,
-          boxeo_record_losses: r.fighter_profiles.boxeo_record_losses,
-          boxeo_record_draws: r.fighter_profiles.boxeo_record_draws,
-         },
-         weight_class: r.weight_class,
-         level: r.level,
-         ranking_position: r.ranking_position,
-         points: r.points,
-         is_champion: r.is_champion,
-         is_active: r.is_active,
-         last_fight_date: r.last_fight_date,
-       }));
+        // Transform data to match interface
+        const rankings: RankingEntry[] = (rankingsData || []).map((r: any) => ({
+          id: r.id,
+          fighter_id: r.fighter_id,
+          fighter: {
+            first_name: r.fighter_profiles.first_name,
+            last_name: r.fighter_profiles.last_name,
+            nickname: r.fighter_profiles.nickname,
+            avatar_url: r.fighter_profiles.avatar_url,
+            country: r.fighter_profiles.country,
+            mma_record_wins: r.fighter_profiles.mma_record_wins,
+            mma_record_losses: r.fighter_profiles.mma_record_losses,
+            mma_record_draws: r.fighter_profiles.mma_record_draws,
+            boxeo_record_wins: r.fighter_profiles.boxeo_record_wins,
+            boxeo_record_losses: r.fighter_profiles.boxeo_record_losses,
+            boxeo_record_draws: r.fighter_profiles.boxeo_record_draws,
+            record_wins: r.fighter_profiles.record_wins,
+            record_losses: r.fighter_profiles.record_losses,
+            record_draws: r.fighter_profiles.record_draws,
+          },
+          weight_class: r.weight_class,
+          level: r.level,
+          ranking_position: r.ranking_position,
+          points: r.points,
+          is_champion: r.is_champion,
+          is_active: r.is_active,
+          last_fight_date: r.last_fight_date,
+        }));
  
        // Paginate
        const start = (page - 1) * pageSize;
