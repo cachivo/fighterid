@@ -1,7 +1,9 @@
 import { Navigate } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
 
 interface LicenseProtectedRouteProps {
   children: React.ReactNode;
@@ -12,35 +14,145 @@ export default function LicenseProtectedRoute({
   children, 
   requireActiveLicense = false 
 }: LicenseProtectedRouteProps) {
-  const { user, loading, hasActiveLicense, licenseData } = useLicenseAuth();
+  const { user, loading, loadingProgress, loadingMessage, hasActiveLicense, licenseData, refreshLicense } = useLicenseAuth();
+  const [showSlowConnection, setShowSlowConnection] = useState(false);
   const [showTimeout, setShowTimeout] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   useEffect(() => {
-    // Show timeout message after 10 seconds
-    const timer = setTimeout(() => {
+    // Show slow connection message after 8 seconds
+    const slowTimer = setTimeout(() => {
+      if (loading) {
+        setShowSlowConnection(true);
+      }
+    }, 8000);
+
+    // Show timeout options after 20 seconds
+    const timeoutTimer = setTimeout(() => {
       if (loading) {
         setShowTimeout(true);
       }
-    }, 10000);
+    }, 20000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+    };
   }, [loading]);
+
+  // Reset states when loading changes
+  useEffect(() => {
+    if (!loading) {
+      setShowSlowConnection(false);
+      setShowTimeout(false);
+      setIsRetrying(false);
+    }
+  }, [loading]);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    setShowSlowConnection(false);
+    setShowTimeout(false);
+    await refreshLicense();
+  };
+
+  const handleContinueWithoutWaiting = () => {
+    // Force navigate to onboarding
+    window.location.href = '/license/onboarding';
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-800" />
-          <p className="text-muted-foreground">
-            {showTimeout ? "Conexión lenta, redirigiendo..." : "Verificando licencia..."}
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center w-full max-w-xs">
+          {/* Loading icon with connection status */}
+          <div className="relative mb-6">
+            {isRetrying ? (
+              <RefreshCw className="h-10 w-10 animate-spin mx-auto text-primary" />
+            ) : (
+              <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+            )}
+            {showSlowConnection && !showTimeout && (
+              <div className="absolute -top-1 -right-1 flex items-center justify-center">
+                <WifiOff className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+
+          {/* Progress bar */}
+          <div className="mb-4 px-4">
+            <Progress 
+              value={loadingProgress} 
+              className="h-2" 
+            />
+          </div>
+
+          {/* Status message */}
+          <p className="text-sm text-muted-foreground mb-2">
+            {loadingMessage}
           </p>
+
+          {/* Slow connection warning */}
+          {showSlowConnection && !showTimeout && (
+            <div className="mt-4 p-3 bg-secondary/50 border border-border rounded-lg">
+              <div className="flex items-center justify-center gap-2 text-foreground mb-2">
+                <WifiOff className="h-4 w-4" />
+                <span className="text-sm font-medium">Conexión lenta</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                La verificación está tardando más de lo esperado. Por favor espera...
+              </p>
+            </div>
+          )}
+
+          {/* Timeout options */}
           {showTimeout && (
-            <button 
-              onClick={() => window.location.href = '/license/onboarding'}
-              className="mt-4 px-4 py-2 bg-gray-900 text-white rounded hover:bg-gray-800"
-            >
-              Continuar sin esperar
-            </button>
+            <div className="mt-4 space-y-3">
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-sm text-destructive font-medium mb-1">
+                  Tiempo de espera agotado
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  No se pudo verificar tu licencia. Esto puede deberse a una conexión lenta o problemas temporales del servidor.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  className="w-full min-h-[48px] touch-manipulation"
+                  variant="default"
+                >
+                  {isRetrying ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Reintentando...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Reintentar
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  onClick={handleContinueWithoutWaiting}
+                  className="w-full min-h-[48px] touch-manipulation"
+                  variant="outline"
+                >
+                  Continuar sin esperar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Connection hint for mobile users */}
+          {!showTimeout && (
+            <p className="text-[10px] text-muted-foreground/60 mt-6">
+              Si estás en datos móviles, intenta conectarte a WiFi
+            </p>
           )}
         </div>
       </div>

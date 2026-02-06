@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ interface LicenseAuthContextType {
   session: Session | null;
   loading: boolean;
   loadingMessage: string;
+  loadingProgress: number;
   hasActiveLicense: boolean;
   licenseData: any | null;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -28,87 +29,162 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Verificando sesión...');
+  const [loadingProgress, setLoadingProgress] = useState(0);
   const [hasActiveLicense, setHasActiveLicense] = useState(false);
   const [licenseData, setLicenseData] = useState<any>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const retryCountRef = useRef(0);
+  const maxRetries = 1;
 
-  const checkLicenseStatus = async (userId: string) => {
-    console.log('[LICENSE AUTH] Starting check for user:', userId);
+  // Type for RPC response
+  interface LicenseStatusResponse {
+    status: 'no_user' | 'no_profile' | 'active_license' | 'pending_license' | 'no_license';
+    user_id?: string;
+    email?: string;
+    message?: string;
+    profile?: Record<string, any>;
+    license?: Record<string, any>;
+  }
+
+  const checkLicenseStatusOptimized = async (userId: string) => {
+    console.log('[LICENSE AUTH] Starting optimized check for user:', userId);
     setLoadingMessage('Verificando tu cuenta...');
+    setLoadingProgress(20);
     
     try {
-      // 1) Get app_user to resolve internal user_id
-      setLoadingMessage('Buscando perfil de usuario...');
-      const { data: appUser, error: appUserErr } = await supabase
-        .from('app_user')
-        .select('id, email')
-        .eq('auth_user_id', userId)
-        .maybeSingle();
-
-      console.log('[LICENSE AUTH] App user result:', { 
-        found: !!appUser, 
-        email: appUser?.email,
-        error: appUserErr?.message 
+      // Use the optimized RPC that combines all queries into one
+      setLoadingProgress(40);
+      const { data: rawData, error } = await supabase.rpc('check_user_license_status', {
+        p_auth_user_id: userId
       });
 
-      if (appUserErr) {
-        console.error('[LICENSE AUTH] app_user fetch error:', appUserErr);
-        throw appUserErr;
+      setLoadingProgress(80);
+
+      if (error) {
+        console.error('[LICENSE AUTH] RPC error:', error);
+        // Fallback to legacy method if RPC fails (e.g., not deployed yet)
+        if (error.message?.includes('function') || error.code === '42883') {
+          console.log('[LICENSE AUTH] RPC not available, using legacy method');
+          return checkLicenseStatusLegacy(userId);
+        }
+        throw error;
       }
 
-      // If no app_user, allow onboarding
-      if (!appUser?.id) {
+      // Cast the raw data to our expected type
+      const data = rawData as unknown as LicenseStatusResponse | null;
+      console.log('[LICENSE AUTH] RPC result:', data);
+
+      if (!data || data.status === 'no_user') {
         console.log('[WARNING] [LICENSE AUTH] No app_user - allowing onboarding');
         setLicenseData(null);
         setHasActiveLicense(false);
         return;
       }
 
-      // 2) Get fighter profile for this user (including phone from app_user)
-      setLoadingMessage('Buscando perfil de peleador...');
-      const { data: profileData, error: profileErr } = await supabase
-        .from('fighter_profiles')
-        .select(`
-          *,
-          app_user!inner (
-            phone
-          )
-        `)
-        .eq('user_id', appUser.id)
-        .eq('active', true)
-        .maybeSingle();
-
-      // Flatten the app_user data into the profile
-      const profile = profileData ? {
-        ...profileData,
-        phone: (profileData as any).app_user?.phone
-      } : null;
-
-      console.log('[LICENSE AUTH] Fighter profile result:', { 
-        found: !!profile,
-        profileId: profile?.id,
-        name: profile ? `${profile.first_name} ${profile.last_name}` : 'N/A',
-        error: profileErr?.message 
-      });
-
-      if (profileErr) {
-        console.error('[LICENSE AUTH] fighter_profiles fetch error:', profileErr);
-        throw profileErr;
-      }
-
-      if (!profile?.id) {
+      if (data.status === 'no_profile') {
         console.log('[WARNING] [LICENSE AUTH] No fighter profile - allowing onboarding');
         setLicenseData(null);
         setHasActiveLicense(false);
         return;
       }
 
-      // 3) Resolve license with robust fallbacks (prefer ACTIVE primary)
-      setLoadingMessage('Verificando licencia...');
-      console.log('[LICENSE AUTH] Looking for license for fighter_id:', profile.id);
+      const profile = data.profile;
+      const license = data.license;
 
-      // Try ACTIVE primary first
+      if (data.status === 'active_license' && license) {
+        console.log('[SUCCESS] [LICENSE AUTH] Active license found');
+        const combinedLicenseData = { ...license, fighter_profiles: profile };
+        setLicenseData(combinedLicenseData);
+        setHasActiveLicense(true);
+        
+        if (window.location.pathname === '/license/pending') {
+          window.location.href = '/license/dashboard';
+        }
+      } else if (data.status === 'pending_license' && license) {
+        console.log('[LICENSE AUTH] Pending license found');
+        const combinedData = { ...license, fighter_profiles: profile };
+        setLicenseData(combinedData);
+        setHasActiveLicense(false);
+        
+        if (window.location.pathname === '/license/dashboard') {
+          window.location.href = '/license/pending';
+        }
+      } else {
+        // Has profile but no license
+        setLicenseData({ fighter_profiles: profile });
+        setHasActiveLicense(false);
+      }
+
+      setLoadingProgress(100);
+
+    } catch (error) {
+      console.error('[ERROR] [LICENSE AUTH] Fatal error:', error);
+      
+      // Retry logic for network errors
+      if (retryCountRef.current < maxRetries) {
+        retryCountRef.current++;
+        setLoadingMessage('Conexión lenta, reintentando...');
+        setLoadingProgress(30);
+        console.log(`[LICENSE AUTH] Retrying... (${retryCountRef.current}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return checkLicenseStatusOptimized(userId);
+      }
+      
+      setHasActiveLicense(false);
+      setLicenseData(null);
+    } finally {
+      console.log('[LICENSE AUTH] Check complete. Setting loading to false.');
+      setLoading(false);
+    }
+  };
+
+  // Legacy fallback method in case RPC is not available
+  const checkLicenseStatusLegacy = async (userId: string) => {
+    console.log('[LICENSE AUTH] Using legacy check for user:', userId);
+    setLoadingMessage('Verificando cuenta (modo compatibilidad)...');
+    
+    try {
+      // 1) Get app_user
+      setLoadingProgress(30);
+      const { data: appUser, error: appUserErr } = await supabase
+        .from('app_user')
+        .select('id, email')
+        .eq('auth_user_id', userId)
+        .maybeSingle();
+
+      if (appUserErr) throw appUserErr;
+
+      if (!appUser?.id) {
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        return;
+      }
+
+      // 2) Get fighter profile
+      setLoadingProgress(50);
+      const { data: profileData, error: profileErr } = await supabase
+        .from('fighter_profiles')
+        .select(`*, app_user!inner (phone)`)
+        .eq('user_id', appUser.id)
+        .eq('active', true)
+        .maybeSingle();
+
+      if (profileErr) throw profileErr;
+
+      const profile = profileData ? {
+        ...profileData,
+        phone: (profileData as any).app_user?.phone
+      } : null;
+
+      if (!profile?.id) {
+        setLicenseData(null);
+        setHasActiveLicense(false);
+        return;
+      }
+
+      // 3) Get license
+      setLoadingProgress(70);
       const { data: license, error: licenseErr } = await supabase
         .from('fighter_licenses')
         .select('id, license_number, status, license_level, issued_at, expires_at, is_primary, qr_code_url')
@@ -117,38 +193,22 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .eq('is_primary', true)
         .maybeSingle();
 
-      console.log('[LICENSE AUTH] License query result:', { 
-        found: !!license,
-        licenseNumber: license?.license_number,
-        status: license?.status,
-        isPrimary: license?.is_primary,
-        error: licenseErr?.message 
-      });
+      if (licenseErr) throw licenseErr;
 
-      if (licenseErr) {
-        console.error('[LICENSE AUTH] License fetch error:', licenseErr);
-        throw licenseErr;
-      }
+      setLoadingProgress(90);
 
       if (license) {
-        console.log('[SUCCESS] [LICENSE AUTH] License found:', license.status);
         const combinedLicenseData = { ...license, fighter_profiles: profile };
         setLicenseData(combinedLicenseData);
         
-        // Redirección inteligente basada en estado
         if (license.status === 'ACTIVE') {
           setHasActiveLicense(true);
           if (window.location.pathname === '/license/pending') {
             window.location.href = '/license/dashboard';
           }
-        } else if (['PENDING_REVIEW', 'APPLIED'].includes(license.status)) {
-          setHasActiveLicense(false);
-          if (window.location.pathname === '/license/dashboard') {
-            window.location.href = '/license/pending';
-          }
         }
       } else {
-        // Check for PENDING_REVIEW license
+        // Check for pending
         const { data: pendingLicense } = await supabase
           .from('fighter_licenses')
           .select('*')
@@ -166,12 +226,13 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
       }
 
+      setLoadingProgress(100);
+
     } catch (error) {
-      console.error('[ERROR] [LICENSE AUTH] Fatal error:', error);
+      console.error('[ERROR] [LICENSE AUTH] Legacy check error:', error);
       setHasActiveLicense(false);
       setLicenseData(null);
     } finally {
-      console.log('[LICENSE AUTH] Check complete. Setting loading to false.');
       setLoading(false);
     }
   };
@@ -180,14 +241,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (user) {
       console.log('Manually refreshing license status...');
       setLoading(true);
-      
-      // Clear all cache first
+      retryCountRef.current = 0;
       queryClient.clear();
-      
-      // Force fresh data fetch
-      await checkLicenseStatus(user.id);
-      
-      // Also invalidate all license-related queries
+      await checkLicenseStatusOptimized(user.id);
       queryClient.invalidateQueries({ queryKey: ['license'] });
       queryClient.invalidateQueries({ queryKey: ['admin_licenses'] });
       queryClient.invalidateQueries({ queryKey: ['pending-licenses'] });
@@ -197,7 +253,8 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const forceLicenseUpdate = async () => {
     if (user) {
       console.log('[FORCE UPDATE] Forcing license data refresh...');
-      await checkLicenseStatus(user.id);
+      retryCountRef.current = 0;
+      await checkLicenseStatusOptimized(user.id);
     }
   };
 
@@ -206,16 +263,23 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     let mounted = true;
     let realtimeChannel: any = null;
 
-    // Set a backup timeout to prevent infinite loading (12s for slow connections)
+    // Extended timeout for slow mobile connections (25s instead of 12s)
     const backupTimeout = setTimeout(() => {
-      if (mounted) {
-        console.warn('[TIMEOUT] [LICENSE AUTH] Backup timeout triggered after 12s, stopping loading');
-        setLoadingMessage('La carga está tardando más de lo esperado...');
+      if (mounted && loading) {
+        console.warn('[TIMEOUT] [LICENSE AUTH] Backup timeout triggered after 25s');
+        setLoadingMessage('Tiempo de espera agotado');
         setLoading(false);
       }
-    }, 12000);
+    }, 25000);
 
-    // Set up auth state listener
+    // Progress simulation for better UX
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev < 15) return prev + 1;
+        return prev;
+      });
+    }, 200);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('[LICENSE AUTH] Auth state changed:', event, session?.user?.id);
@@ -226,8 +290,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         
         if (session?.user) {
           console.log('[LICENSE AUTH] User found, calling checkLicenseStatus');
+          retryCountRef.current = 0;
           setTimeout(() => {
-            checkLicenseStatus(session.user.id);
+            checkLicenseStatusOptimized(session.user.id);
           }, 0);
         } else {
           console.log('[LICENSE AUTH] No user, setting defaults');
@@ -238,7 +303,6 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     );
 
-    // Check for existing session
     console.log('[LICENSE AUTH] Checking for existing session...');
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('[LICENSE AUTH] Existing session result:', session?.user?.id);
@@ -249,8 +313,9 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       
       if (session?.user) {
         console.log('[LICENSE AUTH] Existing user found, calling checkLicenseStatus');
+        retryCountRef.current = 0;
         setTimeout(() => {
-          checkLicenseStatus(session.user.id);
+          checkLicenseStatusOptimized(session.user.id);
         }, 0);
       } else {
         console.log('[LICENSE AUTH] No existing session');
@@ -263,7 +328,6 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     });
 
-    // Set up realtime subscription for fighter_profiles changes
     if (user) {
       realtimeChannel = supabase
         .channel('fighter-profile-changes')
@@ -277,7 +341,8 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
           (payload) => {
             console.log('Fighter profile updated, refreshing license data...');
             if (mounted) {
-              checkLicenseStatus(user.id);
+              retryCountRef.current = 0;
+              checkLicenseStatusOptimized(user.id);
             }
           }
         )
@@ -287,6 +352,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return () => {
       mounted = false;
       clearTimeout(backupTimeout);
+      clearInterval(progressInterval);
       subscription.unsubscribe();
       if (realtimeChannel) {
         supabase.removeChannel(realtimeChannel);
@@ -311,12 +377,10 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     });
 
     if (error) {
-      // Handle rate limiting
       if (error.message?.includes('For security purposes') || error.message?.includes('email_send_rate_limit')) {
         return { error: { message: 'Has intentado registrarte varias veces. Por favor espera 60 segundos antes de intentar nuevamente.' } };
       }
       
-      // Handle duplicate user
       const message = /registered|exists|already/i.test(error.message)
         ? 'Este correo ya está registrado. Intenta iniciar sesión o recupera tu contraseña.'
         : error.message;
@@ -371,7 +435,6 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       });
       
       if (error) {
-        // Handle rate limiting
         if (error.message?.includes('For security purposes') || error.message?.includes('email_send_rate_limit')) {
           return { 
             error: { 
@@ -393,6 +456,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     session,
     loading,
     loadingMessage,
+    loadingProgress,
     hasActiveLicense,
     licenseData,
     signIn,

@@ -1,8 +1,16 @@
 import React, { useRef, useState } from 'react';
-import { Upload, X, FileImage, Loader2, Info } from 'lucide-react';
+import { Upload, X, FileImage, Loader2, Info, CheckCircle } from 'lucide-react';
 import { Button } from './button';
+import { Progress } from './progress';
 import { cn } from '@/lib/utils';
-import { resizeImage, formatFileSize, ImageResizeOptions, ImageResizeResult } from '@/lib/imageUtils';
+import { 
+  resizeImageForMobile, 
+  resizeImageWithProgress,
+  formatFileSize, 
+  ImageResizeOptions, 
+  ImageResizeResult,
+  isMobileDevice 
+} from '@/lib/imageUtils';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
@@ -37,7 +45,10 @@ export function FileUpload({
   const [dragActive, setDragActive] = useState(false);
   const [resizeInfo, setResizeInfo] = useState<ImageResizeResult | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [processingStage, setProcessingStage] = useState('');
+  const [processingProgress, setProcessingProgress] = useState(0);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
+  const [uploadComplete, setUploadComplete] = useState(false);
 
   // Cleanup object URL when it changes or on unmount
   React.useEffect(() => {
@@ -70,9 +81,34 @@ export function FileUpload({
       // Auto-resize images if enabled and file is an image
       if (autoResize && file.type.startsWith('image/')) {
         setProcessing(true);
-        resizeResult = await resizeImage(file, resizeOptions);
+        setProcessingProgress(0);
+        setProcessingStage('Preparando...');
+        setUploadComplete(false);
+
+        // Use mobile-optimized resize with progress for better UX on mobile
+        if (isMobileDevice()) {
+          resizeResult = await resizeImageWithProgress(
+            file, 
+            resizeOptions,
+            (stage, percent) => {
+              setProcessingStage(stage);
+              setProcessingProgress(percent);
+            }
+          );
+        } else {
+          // Desktop can use the faster non-blocking version
+          setProcessingStage('Procesando imagen...');
+          setProcessingProgress(50);
+          resizeResult = await resizeImageForMobile(file, resizeOptions);
+          setProcessingProgress(100);
+        }
+        
         finalFile = resizeResult.file;
         setResizeInfo(resizeResult);
+        setUploadComplete(true);
+        
+        // Brief success state before completing
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Create local preview URL
@@ -86,6 +122,8 @@ export function FileUpload({
       alert('Error al procesar la imagen. Intenta con otro archivo.');
     } finally {
       setProcessing(false);
+      setProcessingProgress(0);
+      setProcessingStage('');
     }
   };
 
@@ -131,6 +169,7 @@ export function FileUpload({
     if (localPreview) URL.revokeObjectURL(localPreview);
     setLocalPreview(null);
     setResizeInfo(null);
+    setUploadComplete(false);
   };
 
   return (
@@ -144,6 +183,25 @@ export function FileUpload({
         disabled={disabled || loading || processing}
         required={required}
       />
+      
+      {/* Processing overlay for mobile */}
+      {processing && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/90 rounded-lg">
+          <div className="w-full max-w-[200px] px-4">
+            <div className="flex items-center justify-center mb-3">
+              {uploadComplete ? (
+                <CheckCircle className="h-8 w-8 text-primary" />
+              ) : (
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              )}
+            </div>
+            <Progress value={processingProgress} className="h-2 mb-2" />
+            <p className="text-sm text-center text-muted-foreground">
+              {processingStage}
+            </p>
+          </div>
+        </div>
+      )}
       
       {(preview || localPreview) ? (
         <div className="relative max-h-40">
@@ -159,7 +217,7 @@ export function FileUpload({
                 variant="ghost"
                 size="sm"
                 onClick={handleRemove}
-                className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-destructive"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-white hover:bg-destructive min-h-[44px] min-w-[44px]"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -168,12 +226,19 @@ export function FileUpload({
           {showResizeInfo && resizeInfo && (
             <div className="mt-2 p-2 bg-muted rounded-md">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Info className="h-3 w-3" />
-                <span>Imagen optimizada:</span>
+                <CheckCircle className="h-3 w-3 text-primary" />
+                <span>Imagen optimizada</span>
               </div>
               <div className="text-xs text-muted-foreground mt-1">
-                <div>Tamaño: {formatFileSize(resizeInfo.originalSize)} → {formatFileSize(resizeInfo.newSize)}</div>
-                <div>Dimensiones: {resizeInfo.originalDimensions.width}×{resizeInfo.originalDimensions.height} → {resizeInfo.newDimensions.width}×{resizeInfo.newDimensions.height}</div>
+              <div>
+                  {formatFileSize(resizeInfo.originalSize)} → {formatFileSize(resizeInfo.newSize)}
+                  <span className="text-primary ml-1">
+                    (-{Math.round((1 - resizeInfo.newSize / resizeInfo.originalSize) * 100)}%)
+                  </span>
+                </div>
+                <div className="text-[10px] opacity-70">
+                  {resizeInfo.originalDimensions.width}×{resizeInfo.originalDimensions.height} → {resizeInfo.newDimensions.width}×{resizeInfo.newDimensions.height}
+                </div>
               </div>
             </div>
           )}
@@ -187,9 +252,11 @@ export function FileUpload({
           onDrop={handleDrop}
           className={cn(
             "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors duration-200",
+            "min-h-[100px] flex items-center justify-center", // Better touch target
             dragActive ? "border-primary bg-primary/5" : "border-border hover:border-border/80",
             disabled || loading || processing ? "cursor-not-allowed opacity-50" : "",
-            "bg-muted/20 hover:bg-muted/40"
+            "bg-muted/20 hover:bg-muted/40 active:bg-muted/60", // Touch feedback
+            "touch-manipulation" // Optimize for touch
           )}
         >
           <div className="flex flex-col items-center gap-2">
@@ -202,12 +269,12 @@ export function FileUpload({
               {loading ? (
                 "Subiendo..."
               ) : processing ? (
-                "Procesando..."
+                <span>{processingStage || "Procesando..."}</span>
               ) : (
                 <>
-                  <p><strong>Subir foto</strong> o arrastrar aquí</p>
+                  <p className="font-medium">Toca para subir foto</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Máx {maxSize}MB
+                    Máx {maxSize}MB • Se optimizará automáticamente
                   </p>
                 </>
               )}

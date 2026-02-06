@@ -4616,6 +4616,10 @@ export type Database = {
         Args: { p_license_id: string }
         Returns: Json
       }
+      check_user_license_status: {
+        Args: { p_auth_user_id: string }
+        Returns: Json
+      }
       cleanup_expired_invitations: { Args: never; Returns: number }
       cleanup_old_ai_events: {
         Args: { days_to_keep?: number }
