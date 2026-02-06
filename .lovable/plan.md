@@ -1,160 +1,256 @@
 
-# Plan de Coherencia: Categorias de Peso con Libras
+# Plan de Coherencia de Datos - Formularios de Usuario y Administracion
 
-## Diagnostico
+## Problema Identificado (Imagen del Usuario)
 
-La plataforma ya tiene una funcion centralizada `getWeightClassLabel()` en `src/lib/constants/disciplines.ts` que convierte valores como "Peso Ligero" a "Peso Ligero (155 lbs)". Sin embargo, **7 archivos** no la utilizan.
+La imagen muestra claramente "Strawweight" en el formulario de edicion del usuario en lugar de "Peso Paja (115 lbs)" como deberia aparecer. Esto causa:
 
----
-
-## Estado Actual vs Esperado
-
-| Muestra actual | Deberia mostrar |
-|----------------|-----------------|
-| Peso Ligero | Peso Ligero (155 lbs) |
-| Peso Mosca | Peso Mosca (125 lbs) |
-| Peso Gallo | Peso Gallo (135 lbs) |
+1. **Inconsistencia visual**: Usuario ve valores en ingles mientras el resto de la plataforma usa espanol
+2. **Datos corruptos en BD**: Se guardan valores mixtos (ingles/espanol)
+3. **Rankings desincronizados**: Los rankings esperan valores en espanol
 
 ---
 
-## Archivos que YA Usan `getWeightClassLabel()` (correcto)
+## Archivos con Problemas Criticos
 
-| Archivo | Ubicacion |
-|---------|-----------|
-| FighterProfile.tsx | Linea 210 |
-| FighterLeaguesTab.tsx | Linea 135 |
-| FighterCard.tsx | Linea 109 |
-| FighterMiniature.tsx | Linea 89 |
+### 1. UserFighterProfileEditForm.tsx (FORMULARIO DE USUARIO)
 
----
+**Problema A - Categorias de Peso (lineas 744-753):**
+```tsx
+// ACTUAL (INCORRECTO - en ingles)
+<SelectItem value="Strawweight">Strawweight</SelectItem>
+<SelectItem value="Flyweight">Flyweight</SelectItem>
+<SelectItem value="Bantamweight">Bantamweight</SelectItem>
+...
+```
 
-## Archivos a Corregir
+**Problema B - Niveles (lineas 776-778):**
+```tsx
+// ACTUAL (INCORRECTO - mayusculas y formato incorrecto)
+<SelectItem value="AMATEUR">Amateur</SelectItem>
+<SelectItem value="SEMI_PRO">Semi-Profesional</SelectItem>
+<SelectItem value="PROFESSIONAL">Profesional</SelectItem>
+```
 
-### 1. LicenseDashboard.tsx (Dashboard del Usuario)
-
-**Ubicacion:** Linea 295
-
-**Cambio:**
-- Actual: `{fighterProfile.weight_class}`
-- Corregido: `{getWeightClassLabel(fighterProfile?.weight_class)}`
-
-Agregar import: `import { getWeightClassLabel } from '@/lib/constants/disciplines';`
-
----
-
-### 2. EnhancedFighterID.tsx (Tarjeta Fighter ID)
-
-**Ubicacion:** Linea 93
-
-**Cambio:**
-- Actual: `{profile.weight_class}`
-- Corregido: `{getWeightClassLabel(profile.weight_class)}`
-
-Agregar import al inicio del archivo.
+**Problema C - Pais (linea 557):**
+```tsx
+// ACTUAL (INCORRECTO - Input libre)
+<Input {...field} placeholder="HN" />
+```
 
 ---
 
-### 3. Ranking.tsx (Listado de Rankings)
+### 2. FightersProfilesInvite.tsx (ADMIN - INVITACIONES)
 
-**Ubicacion:** Linea 236
+**Problema - Constante local en ingles (lineas 12-23):**
+```tsx
+// ACTUAL (INCORRECTO)
+const WEIGHT_CLASSES = [
+  'Strawweight', 'Flyweight', 'Bantamweight'...
+];
+```
 
-**Cambio:**
-- Actual: `{ranking.weight_class}`
-- Corregido: `{getWeightClassLabel(ranking.weight_class)}`
-
-Agregar import al inicio del archivo.
-
----
-
-### 4. UserProfile.tsx (Perfil Social)
-
-**Ubicacion:** Linea 270
-
-**Cambio:**
-- Actual: `{fighterProfile.weight_class}`
-- Corregido: `{getWeightClassLabel(fighterProfile.weight_class)}`
-
-Agregar import al inicio del archivo.
+**Problema - Valor por defecto (lineas 36, 73):**
+```tsx
+weightClass: 'Lightweight',  // INCORRECTO
+```
 
 ---
 
-### 5. FighterDetailModal.tsx (Modal Admin)
+### 3. EventosPelea.tsx (ADMIN - EVENTOS)
 
-**Ubicacion:** Linea 151
-
-**Cambio:**
-- Actual: `{data.profile?.weight_class}`
-- Corregido: `{getWeightClassLabel(data.profile?.weight_class)}`
-
-Agregar import al inicio del archivo.
-
----
-
-### 6. EnrollFighterModal.tsx (Inscripcion a Ligas)
-
-**Ubicacion:** Linea 149
-
-**Cambio:**
-- Actual: `{selectedFighterData.weight_class}`
-- Corregido: `{getWeightClassLabel(selectedFighterData.weight_class)}`
-
-Agregar import (ya importa `WEIGHT_CLASSES`, agregar `getWeightClassLabel`).
+**Problema - Valores en ingles pero labels en espanol (lineas 1259-1266):**
+```tsx
+// ACTUAL (INCORRECTO - value en ingles)
+<SelectItem value="Flyweight">Peso Mosca (125 lbs)</SelectItem>
+<SelectItem value="Bantamweight">Peso Gallo (135 lbs)</SelectItem>
+```
+Esto guarda "Flyweight" en la BD pero muestra "Peso Mosca" al usuario.
 
 ---
 
-### 7. RefereeControlRoom.tsx (Sala de Arbitraje)
+### 4. Auth.tsx (REGISTRO)
 
-**Ubicaciones:** Lineas 238 y 257
+**Problema - Valores por defecto (lineas 251-252):**
+```tsx
+weight_class: invitation.weight_class || 'Lightweight',  // INCORRECTO
+country: 'HN',  // INCORRECTO - deberia ser 'Honduras'
+```
 
-**Cambio en ambas lineas:**
-- Actual: `{fight.weight_class}`
-- Corregido: `{getWeightClassLabel(fight.weight_class)}`
+---
 
-Agregar import al inicio del archivo.
+## Plan de Correccion
+
+### Fase 1: Corregir UserFighterProfileEditForm.tsx
+
+**1.1 Agregar imports de constantes centralizadas:**
+```tsx
+import { 
+  WEIGHT_CLASSES, 
+  FIGHTER_LEVELS, 
+  COUNTRIES 
+} from '@/lib/constants/disciplines';
+```
+
+**1.2 Reemplazar select de Categoria de Peso (lineas 742-754):**
+```tsx
+<SelectContent>
+  <SelectItem value="__none__" className="text-muted-foreground">
+    -- Seleccionar --
+  </SelectItem>
+  {WEIGHT_CLASSES.map((wc) => (
+    <SelectItem key={wc.value} value={wc.value}>
+      {wc.label}
+    </SelectItem>
+  ))}
+</SelectContent>
+```
+
+**1.3 Reemplazar select de Nivel (lineas 774-779):**
+```tsx
+<SelectContent>
+  <SelectItem value="__none__" className="text-muted-foreground">
+    -- Seleccionar --
+  </SelectItem>
+  {FIGHTER_LEVELS.map((level) => (
+    <SelectItem key={level.value} value={level.value}>
+      {level.label}
+    </SelectItem>
+  ))}
+</SelectContent>
+```
+
+**1.4 Reemplazar input de Pais por Select (lineas 550-561):**
+```tsx
+<FormField
+  control={form.control}
+  name="country"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Pais</FormLabel>
+      <Select 
+        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+        value={field.value || '__none__'}
+      >
+        <FormControl>
+          <SelectTrigger className="min-h-[44px] touch-manipulation">
+            <SelectValue placeholder="Seleccionar pais" />
+          </SelectTrigger>
+        </FormControl>
+        <SelectContent>
+          <SelectItem value="__none__" className="text-muted-foreground">
+            -- Seleccionar --
+          </SelectItem>
+          {COUNTRIES.map((c) => (
+            <SelectItem key={c.value} value={c.value}>
+              {c.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
+```
+
+**1.5 Actualizar valor por defecto de pais (linea 118):**
+```tsx
+country: profile.country || 'Honduras',  // en lugar de 'HN'
+```
+
+---
+
+### Fase 2: Corregir FightersProfilesInvite.tsx
+
+**2.1 Eliminar constante local y agregar import:**
+```tsx
+// ELIMINAR lineas 12-23 (const WEIGHT_CLASSES local)
+
+// AGREGAR import
+import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
+```
+
+**2.2 Actualizar valor por defecto (lineas 36 y 73):**
+```tsx
+weightClass: 'Peso Ligero',  // en lugar de 'Lightweight'
+```
+
+**2.3 Actualizar Select para usar labels (lineas 180-184):**
+```tsx
+{WEIGHT_CLASSES.map((wc) => (
+  <SelectItem key={wc.value} value={wc.value}>
+    {wc.label}
+  </SelectItem>
+))}
+```
+
+---
+
+### Fase 3: Corregir EventosPelea.tsx
+
+**3.1 Agregar import:**
+```tsx
+import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
+```
+
+**3.2 Reemplazar select de categorias (lineas 1258-1268):**
+```tsx
+<SelectContent>
+  {WEIGHT_CLASSES.map((wc) => (
+    <SelectItem key={wc.value} value={wc.value}>
+      {wc.label}
+    </SelectItem>
+  ))}
+</SelectContent>
+```
+
+---
+
+### Fase 4: Corregir Auth.tsx
+
+**4.1 Actualizar valores por defecto (lineas 251-252):**
+```tsx
+weight_class: invitation.weight_class || 'Peso Ligero',
+country: 'Honduras',
+```
 
 ---
 
 ## Resumen de Archivos a Modificar
 
-| Archivo | Cambio | Impacto Visual |
-|---------|--------|----------------|
-| `src/pages/license/LicenseDashboard.tsx` | Agregar import + usar funcion | Dashboard usuario |
-| `src/components/EnhancedFighterID.tsx` | Agregar import + usar funcion | Tarjeta ID |
-| `src/components/sections/Ranking.tsx` | Agregar import + usar funcion | Listado rankings |
-| `src/pages/social/UserProfile.tsx` | Agregar import + usar funcion | Perfil social |
-| `src/components/admin/FighterDetailModal.tsx` | Agregar import + usar funcion | Modal admin |
-| `src/components/admin/EnrollFighterModal.tsx` | Ampliar import + usar funcion | Modal inscripcion |
-| `src/pages/referee/RefereeControlRoom.tsx` | Agregar import + usar funcion (2 lugares) | Sala arbitraje |
+| Archivo | Cambios |
+|---------|---------|
+| `src/components/UserFighterProfileEditForm.tsx` | Import constantes + reemplazar 3 selects + valor por defecto |
+| `src/pages/admin/FightersProfilesInvite.tsx` | Eliminar constante local + import + valor por defecto |
+| `src/pages/admin/EventosPelea.tsx` | Import + reemplazar select |
+| `src/pages/Auth.tsx` | Corregir valores por defecto |
 
 ---
 
 ## Compatibilidad Movil
 
-Todos los cambios son puramente de texto. No se modifican:
-- Clases de Tailwind
-- Estructura de layout
-- Breakpoints responsivos
-- Tamanos de fuente
-
-El texto "Peso Ligero (155 lbs)" ocupa el mismo espacio visual que "Peso Ligero" gracias al uso de `truncate` y `min-w-0` ya implementados en los badges.
+Todos los nuevos `<Select>` mantendran:
+- `min-h-[44px]` para area de toque accesible
+- `touch-manipulation` para respuesta tactil rapida
+- Clases responsivas existentes (`xs:`, `sm:`, `md:`)
 
 ---
 
-## Resultado Final
+## Resultado Esperado
 
-Despues de implementar estos cambios, en TODA la plataforma se mostrara:
+Despues de implementar:
 
-```text
-Peso Paja (115 lbs)
-Peso Mosca (125 lbs)
-Peso Gallo (135 lbs)
-Peso Pluma (145 lbs)
-Peso Ligero (155 lbs)
-Peso Welter (170 lbs)
-Peso Medio (185 lbs)
-Peso Semipesado (205 lbs)
-Peso Pesado (265 lbs)
-Peso Superpesado (+265 lbs)
-```
+1. **Usuario edita perfil** → Ve "Peso Ligero (155 lbs)" en lugar de "Lightweight"
+2. **Admin crea invitacion** → Selecciona de lista en espanol con libras
+3. **Admin crea pelea** → Categorias consistentes con el resto de la plataforma
+4. **Nuevo registro** → Valores por defecto correctos en espanol
 
-Garantizando claridad total para todos los usuarios sobre el limite de peso de cada categoria.
+---
+
+## Sincronizacion Automatica
+
+Al usar las mismas constantes centralizadas en todos los formularios:
+- Los datos guardados en BD seran coherentes
+- Los triggers de sincronizacion a rankings funcionaran correctamente
+- Los eventos de actualizacion en tiempo real propagaran los cambios a todos los modulos
