@@ -47,71 +47,71 @@ import { Swords } from "lucide-react";
  
    const currentOrgs = selectedDiscipline === 'MMA' ? mmaOrgs : boxeoOrgs;
  
-   return (
-     <div className="space-y-4 mb-6">
-       {/* Discipline Tabs */}
-       <div className="flex justify-center">
-         <Tabs 
-           value={selectedDiscipline} 
-           onValueChange={(v) => setSelectedDiscipline(v as 'MMA' | 'Boxeo')}
-         >
-           <TabsList className="bg-black/60 border border-purple-neon-primary/30 h-12">
-             <TabsTrigger 
-               value="MMA"
-               className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black px-6 py-2 gap-2"
-             >
-               <Swords className="h-4 w-4" />
-               MMA
-             </TabsTrigger>
-             <TabsTrigger 
-               value="Boxeo"
-               className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black px-6 py-2 gap-2"
-             >
-                <Swords className="h-4 w-4" />
-               BOXEO
-             </TabsTrigger>
-           </TabsList>
-         </Tabs>
-       </div>
- 
-       {/* Organization Tabs */}
-       {currentOrgs.length > 1 && (
-         <div className="flex justify-center">
-           <Tabs value={value} onValueChange={onChange}>
-             <TabsList className="bg-black/40 border border-purple-neon-primary/20 flex-wrap h-auto gap-1 p-1">
-               {currentOrgs.map((org) => (
-                 <TabsTrigger
-                   key={org.code}
-                   value={org.code}
-                   className="data-[state=active]:bg-purple-neon-primary/80 data-[state=active]:text-black px-4 py-2 flex flex-col items-center gap-1"
-                 >
-                   <span className="font-bold text-sm">{org.short_name}</span>
-                   <div className="flex gap-1">
-                     {org.allowed_levels.map((level) => (
-                       <Badge 
-                         key={level} 
-                         variant="outline" 
-                         className="text-[10px] px-1 py-0 border-purple-neon-primary/40"
-                       >
-                         {level === 'Profesional' ? 'PRO' : level === 'Semi-profesional' ? 'SEMI' : 'AM'}
-                       </Badge>
-                     ))}
-                   </div>
-                 </TabsTrigger>
-               ))}
-             </TabsList>
-           </Tabs>
-         </div>
-       )}
- 
-       {/* Organization Description */}
-       {currentOrgs.length > 0 && (
-         <p className="text-center text-gray-400 text-sm">
-           {currentOrgs.find(org => org.code === value)?.description}
-         </p>
-       )}
-     </div>
-   );
- }
- 
- export default LeagueSelector;
+    return (
+      <div className="space-y-3 xs:space-y-4 mb-4 xs:mb-6 px-2 xs:px-4">
+        {/* Discipline Tabs - Mobile optimized */}
+        <div className="flex justify-center">
+          <Tabs 
+            value={selectedDiscipline} 
+            onValueChange={(v) => setSelectedDiscipline(v as 'MMA' | 'Boxeo')}
+          >
+            <TabsList className="bg-black/60 border border-purple-neon-primary/30 h-11 xs:h-12">
+              <TabsTrigger 
+                value="MMA"
+                className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black px-4 xs:px-6 py-2 gap-1.5 xs:gap-2 min-h-[44px] touch-manipulation text-sm xs:text-base"
+              >
+                <Swords className="h-3.5 w-3.5 xs:h-4 xs:w-4" />
+                MMA
+              </TabsTrigger>
+              <TabsTrigger 
+                value="Boxeo"
+                className="data-[state=active]:bg-purple-neon-primary data-[state=active]:text-black px-4 xs:px-6 py-2 gap-1.5 xs:gap-2 min-h-[44px] touch-manipulation text-sm xs:text-base"
+              >
+                <Swords className="h-3.5 w-3.5 xs:h-4 xs:w-4" />
+                BOXEO
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+  
+        {/* Organization Tabs */}
+        {currentOrgs.length > 1 && (
+          <div className="flex justify-center overflow-x-auto no-scrollbar">
+            <Tabs value={value} onValueChange={onChange}>
+              <TabsList className="bg-black/40 border border-purple-neon-primary/20 flex-wrap h-auto gap-1 p-1">
+                {currentOrgs.map((org) => (
+                  <TabsTrigger
+                    key={org.code}
+                    value={org.code}
+                    className="data-[state=active]:bg-purple-neon-primary/80 data-[state=active]:text-black px-3 xs:px-4 py-1.5 xs:py-2 flex flex-col items-center gap-0.5 xs:gap-1 min-h-[44px] touch-manipulation"
+                  >
+                    <span className="font-bold text-xs xs:text-sm">{org.short_name}</span>
+                    <div className="flex gap-0.5 xs:gap-1">
+                      {org.allowed_levels.map((level) => (
+                        <Badge 
+                          key={level} 
+                          variant="outline" 
+                          className="text-[8px] xs:text-[10px] px-1 py-0 border-purple-neon-primary/40"
+                        >
+                          {level === 'Profesional' ? 'PRO' : level === 'Semi-profesional' ? 'SEMI' : 'AM'}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+  
+        {/* Organization Description */}
+        {currentOrgs.length > 0 && (
+          <p className="text-center text-gray-400 text-xs xs:text-sm px-2">
+            {currentOrgs.find(org => org.code === value)?.description}
+          </p>
+        )}
+      </div>
+    );
+  }
+  
+  export default LeagueSelector;

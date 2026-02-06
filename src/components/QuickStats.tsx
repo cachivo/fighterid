@@ -29,25 +29,25 @@ export function QuickStats() {
   ];
 
   return (
-    <div className="sticky top-12 sm:top-14 z-40 bg-black/90 backdrop-blur-md border-b border-purple-neon-primary/20 px-3 py-2.5 sm:px-4 sm:py-3 overflow-hidden">
-      <div className="flex gap-3 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+    <div className="sticky top-14 z-40 bg-black/95 backdrop-blur-sm border-b border-purple-neon-primary/20 px-2 xs:px-3 sm:px-4 py-2 xs:py-2.5 sm:py-3">
+      <div className="flex gap-2 xs:gap-3 overflow-x-auto no-scrollbar pb-1">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex-shrink-0 snap-start">
-              <Skeleton className="h-14 sm:h-16 w-28 sm:w-32 bg-purple-500/10" />
+            <div key={i} className="flex-shrink-0">
+              <Skeleton className="h-12 xs:h-14 w-20 xs:w-24 sm:w-28 bg-purple-500/10 rounded-lg" />
             </div>
           ))
         ) : (
           statsConfig.map((stat) => (
             <div 
               key={stat.title}
-              className="flex-shrink-0 snap-start min-w-[120px] sm:min-w-[140px]"
+              className="flex-shrink-0 min-w-[72px] xs:min-w-[88px] sm:min-w-[110px]"
             >
-              <div className="flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-4 bg-purple-neon-primary/10 rounded-lg border border-purple-neon-primary/20 hover:bg-purple-neon-primary/15 transition-colors">
-                <stat.icon className="h-4 w-4 sm:h-5 sm:w-5 text-purple-neon-primary flex-shrink-0" />
-                <div>
-                  <p className="text-base sm:text-lg md:text-xl font-bold text-white leading-none">{stat.value}</p>
-                  <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">{stat.title}</p>
+              <div className="flex items-center gap-1.5 xs:gap-2 px-2 xs:px-3 py-1.5 xs:py-2 bg-purple-neon-primary/10 rounded-lg border border-purple-neon-primary/20">
+                <stat.icon className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-purple-neon-primary flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm xs:text-base sm:text-lg font-bold text-white leading-none truncate">{stat.value}</p>
+                  <p className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">{stat.title}</p>
                 </div>
               </div>
             </div>
