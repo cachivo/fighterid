@@ -479,13 +479,17 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Sangre</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar tipo" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                           <SelectItem value="A+">A+</SelectItem>
                           <SelectItem value="A-">A-</SelectItem>
                           <SelectItem value="B+">B+</SelectItem>
@@ -506,13 +510,17 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Género</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar género" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                           <SelectItem value="M">Masculino</SelectItem>
                           <SelectItem value="F">Femenino</SelectItem>
                         </SelectContent>
@@ -641,13 +649,17 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Postura</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar postura" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                           <SelectItem value="Ortodoxo">Ortodoxo</SelectItem>
                           <SelectItem value="Zurdo">Zurdo</SelectItem>
                           <SelectItem value="Switch">Switch</SelectItem>
@@ -700,13 +712,17 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoría de Peso</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar categoría" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                           <SelectItem value="Strawweight">Strawweight</SelectItem>
                           <SelectItem value="Flyweight">Flyweight</SelectItem>
                           <SelectItem value="Bantamweight">Bantamweight</SelectItem>
@@ -728,13 +744,17 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nivel</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                        value={field.value || '__none__'}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar nivel" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                           <SelectItem value="AMATEUR">Amateur</SelectItem>
                           <SelectItem value="SEMI_PRO">Semi-Profesional</SelectItem>
                           <SelectItem value="PROFESSIONAL">Profesional</SelectItem>

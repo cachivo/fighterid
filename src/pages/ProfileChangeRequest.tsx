@@ -259,11 +259,15 @@ export default function ProfileChangeRequest() {
               </div>
               <div>
                 <Label htmlFor="gender">Género</Label>
-                <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                <Select 
+                  value={formData.gender || '__none__'} 
+                  onValueChange={(value) => handleInputChange('gender', value === '__none__' ? '' : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Seleccionar género" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                     <SelectItem value="M">Masculino</SelectItem>
                     <SelectItem value="F">Femenino</SelectItem>
                   </SelectContent>
@@ -274,11 +278,15 @@ export default function ProfileChangeRequest() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="document_type">Tipo de Documento</Label>
-                <Select value={formData.document_type} onValueChange={(value) => handleInputChange('document_type', value)}>
+                <Select 
+                  value={formData.document_type || '__none__'} 
+                  onValueChange={(value) => handleInputChange('document_type', value === '__none__' ? '' : value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Tipo" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                     <SelectItem value="DNI">DNI</SelectItem>
                     <SelectItem value="RTN">RTN</SelectItem>
                     <SelectItem value="Pasaporte">Pasaporte</SelectItem>
@@ -319,11 +327,15 @@ export default function ProfileChangeRequest() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="blood_type">Tipo de Sangre *</Label>
-              <Select value={formData.blood_type} onValueChange={(value) => handleInputChange('blood_type', value)}>
+              <Select 
+                value={formData.blood_type || '__none__'} 
+                onValueChange={(value) => handleInputChange('blood_type', value === '__none__' ? '' : value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar tipo de sangre" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                   <SelectItem value="A+">A+</SelectItem>
                   <SelectItem value="A-">A-</SelectItem>
                   <SelectItem value="B+">B+</SelectItem>
@@ -398,11 +410,15 @@ export default function ProfileChangeRequest() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="weight_class">Categoría de Peso *</Label>
-                <Select value={formData.weight_class} onValueChange={(value) => handleInputChange('weight_class', value)}>
+                <Select 
+                  value={formData.weight_class || '__none__'} 
+                  onValueChange={(value) => handleInputChange('weight_class', value === '__none__' ? '' : value)}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Seleccionar categoría" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                     {WEIGHT_CLASSES.map((weightClass) => (
                       <SelectItem key={weightClass.value} value={weightClass.value}>
                         {weightClass.label}
@@ -413,11 +429,15 @@ export default function ProfileChangeRequest() {
               </div>
               <div>
                 <Label htmlFor="fighting_style">Estilo de Pelea</Label>
-                <Select value={formData.fighting_style} onValueChange={(value) => handleInputChange('fighting_style', value)}>
+                <Select 
+                  value={formData.fighting_style || '__none__'} 
+                  onValueChange={(value) => handleInputChange('fighting_style', value === '__none__' ? '' : value)}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Seleccionar estilo" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                     {FIGHTING_STYLES.map((style) => (
                       <SelectItem key={style} value={style}>
                         {style}
@@ -459,11 +479,15 @@ export default function ProfileChangeRequest() {
               </div>
               <div>
                 <Label htmlFor="stance">Guardia</Label>
-                <Select value={formData.stance} onValueChange={(value) => handleInputChange('stance', value)}>
+                <Select 
+                  value={formData.stance || '__none__'} 
+                  onValueChange={(value) => handleInputChange('stance', value === '__none__' ? '' : value)}
+                >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Seleccionar guardia" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                     <SelectItem value="Ortodoxo">Ortodoxo</SelectItem>
                     <SelectItem value="Zurdo">Zurdo</SelectItem>
                     <SelectItem value="Switch">Switch</SelectItem>
@@ -474,11 +498,15 @@ export default function ProfileChangeRequest() {
 
             <div>
               <Label htmlFor="discipline">Disciplina</Label>
-              <Select value={formData.discipline} onValueChange={(value) => handleInputChange('discipline', value)}>
+              <Select 
+                value={formData.discipline || '__none__'} 
+                onValueChange={(value) => handleInputChange('discipline', value === '__none__' ? '' : value)}
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Seleccionar disciplina" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
                   {DISCIPLINES.map((discipline) => (
                     <SelectItem key={discipline} value={discipline}>
                       {discipline}
