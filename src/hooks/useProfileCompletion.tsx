@@ -162,17 +162,20 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
       missingFields.push({ field: 'martial_arts', ...FIELD_CONFIG.martial_arts });
     }
 
+    // Cap score at 100 to prevent >100% display
+    const cappedScore = Math.min(score, 100);
+
     // Determine level
     let level: CompletionLevel = 'BRONZE';
     let nextLevel = 41;
 
-    if (score >= LEVEL_THRESHOLDS.DIAMOND) {
+    if (cappedScore >= LEVEL_THRESHOLDS.DIAMOND) {
       level = 'DIAMOND';
       nextLevel = 100;
-    } else if (score >= LEVEL_THRESHOLDS.GOLD) {
+    } else if (cappedScore >= LEVEL_THRESHOLDS.GOLD) {
       level = 'GOLD';
       nextLevel = LEVEL_THRESHOLDS.DIAMOND;
-    } else if (score >= LEVEL_THRESHOLDS.SILVER) {
+    } else if (cappedScore >= LEVEL_THRESHOLDS.SILVER) {
       level = 'SILVER';
       nextLevel = LEVEL_THRESHOLDS.GOLD;
     } else {
@@ -180,14 +183,14 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
       nextLevel = LEVEL_THRESHOLDS.SILVER;
     }
 
-    const percentToNext = Math.min(100, Math.round((score / nextLevel) * 100));
+    const percentToNext = Math.min(100, Math.round((cappedScore / nextLevel) * 100));
 
     // Generate badges
     const badges: CompletionBadge[] = [];
     if (profile.avatar_url) {
       badges.push({ label: 'Verificado', icon: CheckCircle, variant: 'default' });
     }
-    if (score >= 70) {
+    if (cappedScore >= 70) {
       badges.push({ label: 'Elite', icon: Star, variant: 'default' });
     }
     if (level === 'DIAMOND') {
@@ -204,7 +207,7 @@ export function useProfileCompletion(profile: FighterProfile | null): Completion
     });
 
     return {
-      score,
+      score: cappedScore,
       level,
       nextLevel,
       percentToNext,
