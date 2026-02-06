@@ -55,6 +55,7 @@ import LicenseOnboarding from './pages/license/LicenseOnboarding';
 import Index from "./pages/Index";
 import SocialFeed from "./pages/SocialFeed";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Predicciones from "./pages/Predicciones";
@@ -141,8 +142,11 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/social/feed" element={<SocialFeed />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
+              {/* License auth callback - handles confirmation redirects */}
+              <Route path="/license/callback" element={<AuthCallback />} />
               <Route path="/eventos" element={<Events />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />

@@ -30,6 +30,54 @@ export default function LicenseAuth() {
   const [avatar, setAvatar] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState('');
 
+  // Handle email confirmation from URL params
+  useEffect(() => {
+    const confirmed = searchParams.get('confirmed');
+    if (confirmed === 'true') {
+      toast.success('¡Email confirmado! Ahora puedes iniciar sesión.');
+    }
+  }, [searchParams]);
+
+  // Handle auth callback with tokens in hash (for email confirmation)
+  useEffect(() => {
+    const handleHashCallback = async () => {
+      const hash = window.location.hash;
+      if (!hash || !hash.includes('access_token')) return;
+
+      console.log('[LicenseAuth] Detected auth tokens in hash, processing...');
+      
+      try {
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+        const type = hashParams.get('type');
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            console.error('[LicenseAuth] Session error:', error);
+            toast.error('Error al verificar cuenta. Intenta de nuevo.');
+          } else {
+            // Clean hash from URL
+            window.history.replaceState({}, '', window.location.pathname);
+            
+            if (type === 'signup' || type === 'email') {
+              toast.success('¡Cuenta confirmada exitosamente!');
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[LicenseAuth] Hash callback error:', err);
+      }
+    };
+
+    handleHashCallback();
+  }, []);
+
   useEffect(() => {
     // Si el usuario ya está autenticado, redirigir
     if (user && !loading) {
