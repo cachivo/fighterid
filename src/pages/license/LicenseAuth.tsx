@@ -79,10 +79,68 @@ export default function LicenseAuth() {
   }, []);
 
   useEffect(() => {
-    // Si el usuario ya está autenticado, redirigir
-    if (user && !loading) {
-      navigate('/');
-    }
+    // Si el usuario ya está autenticado, usar smart routing
+    const routeAuthenticatedUser = async () => {
+      if (!user || loading) return;
+
+      try {
+        // Check user's profile status to determine destination
+        const { data: appUser } = await supabase
+          .from('app_user')
+          .select('id')
+          .eq('auth_user_id', user.id)
+          .maybeSingle();
+
+        if (!appUser) {
+          navigate('/license/onboarding');
+          return;
+        }
+
+        const { data: fighterProfile } = await supabase
+          .from('fighter_profiles')
+          .select('id')
+          .eq('user_id', appUser.id)
+          .maybeSingle();
+
+        if (!fighterProfile) {
+          navigate('/license/onboarding');
+          return;
+        }
+
+        const { data: license } = await supabase
+          .from('fighter_licenses')
+          .select('status')
+          .eq('fighter_id', fighterProfile.id)
+          .maybeSingle();
+
+        if (!license) {
+          navigate('/license/onboarding');
+          return;
+        }
+
+        // Route based on license status
+        switch (license.status) {
+          case 'ACTIVE':
+            navigate('/license/dashboard');
+            break;
+          case 'PENDING_REVIEW':
+          case 'APPLIED':
+            navigate('/license/pending');
+            break;
+          case 'SUSPENDED':
+          case 'REVOKED':
+            navigate('/license/suspended');
+            break;
+          default:
+            navigate('/license/onboarding');
+        }
+      } catch (error) {
+        console.error('[LicenseAuth] Error routing user:', error);
+        navigate('/license/onboarding');
+      }
+    };
+
+    routeAuthenticatedUser();
   }, [user, loading, navigate]);
 
   useEffect(() => {
@@ -183,7 +241,7 @@ export default function LicenseAuth() {
       toast.error(error.message || 'Credenciales inválidas');
     } else {
       toast.success('Sesión iniciada correctamente');
-      navigate('/');
+      // Smart routing will be handled by the useEffect above when user state updates
     }
   };
 

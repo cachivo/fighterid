@@ -116,8 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Use current origin for redirect, works for both web and PWA
-      const redirectUrl = `${window.location.origin}/license/auth`;
+      // Direct users to onboarding after email confirmation for streamlined UX
+      const redirectUrl = `${window.location.origin}/license/onboarding`;
       
       console.log('[AUTH] Signing up with redirect:', redirectUrl);
       

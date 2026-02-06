@@ -205,7 +205,8 @@ serve(async (req) => {
     if (!redirectTo) {
       // Try to use SITE_URL, fallback to the Lovable app URL
       const siteBase = Deno.env.get("SITE_URL") || "https://fighterid.lovable.app";
-      redirectTo = `${siteBase.replace(/\/$/, "")}/license/auth`;
+      // Direct to onboarding after email confirmation for better UX
+      redirectTo = `${siteBase.replace(/\/$/, "")}/license/onboarding`;
     }
 
     const confirmationLink = `${supabaseUrl}/auth/v1/verify?token=${tokenHash}&type=${emailActionType}&redirect_to=${encodeURIComponent(redirectTo)}`;
