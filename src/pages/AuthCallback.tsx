@@ -12,7 +12,10 @@ import { Button } from '@/components/ui/button';
  * - Magic links
  * - OAuth callbacks
  * 
- * Supabase redirects to this page with tokens in the URL hash or query params.
+ * Smart routing after confirmation:
+ * - New users → /license/onboarding
+ * - Users with active license → /license/dashboard
+ * - Users with pending license → /license/pending
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -25,8 +28,6 @@ export default function AuthCallback() {
       try {
         console.log('[AuthCallback] Processing auth callback...');
         console.log('[AuthCallback] URL:', window.location.href);
-        console.log('[AuthCallback] Hash:', window.location.hash);
-        console.log('[AuthCallback] Search:', window.location.search);
 
         // Check for error in URL params first
         const urlParams = new URLSearchParams(window.location.search);
@@ -75,17 +76,13 @@ export default function AuthCallback() {
         }
 
         if (!session) {
-          // Try to exchange the token if we don't have a session yet
-          console.log('[AuthCallback] No session, checking for verification flow...');
-          
-          // For email confirmation, Supabase may have already verified
-          // Just show success and redirect to login
+          // For email confirmation without session, redirect to onboarding
           if (type === 'signup' || type === 'email') {
             setStatus('success');
             setMessage('¡Email confirmado exitosamente!');
             
             setTimeout(() => {
-              navigate('/license/auth?confirmed=true', { replace: true });
+              navigate('/license/onboarding', { replace: true });
             }, 2000);
             return;
           }
@@ -93,28 +90,34 @@ export default function AuthCallback() {
           throw new Error('No se pudo establecer la sesión');
         }
 
-        // Session is valid
+        // Session is valid - determine where to redirect
         console.log('[AuthCallback] Session verified:', session.user.id);
         
-        // Handle different auth types
+        // Handle password recovery
         if (type === 'recovery') {
           setStatus('success');
           setMessage('Verificación exitosa. Redirigiendo...');
           setTimeout(() => {
             navigate('/license/reset-password', { replace: true });
           }, 1500);
-        } else {
-          // Signup confirmation or other
-          setStatus('success');
-          setMessage('¡Cuenta verificada exitosamente!');
-          
-          // Clean up URL
-          window.history.replaceState({}, '', '/auth/callback');
-          
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 2000);
+          return;
         }
+
+        // For signup/email confirmation, use smart routing
+        setStatus('success');
+        setMessage('¡Cuenta verificada! Determinando tu destino...');
+        
+        // Clean up URL
+        window.history.replaceState({}, '', '/auth/callback');
+        
+        // Smart routing: check user's profile status
+        const destination = await determineUserDestination(session.user.id);
+        
+        console.log('[AuthCallback] Routing to:', destination);
+        
+        setTimeout(() => {
+          navigate(destination, { replace: true });
+        }, 1500);
 
       } catch (err: any) {
         console.error('[AuthCallback] Error:', err);
@@ -176,4 +179,87 @@ export default function AuthCallback() {
       </div>
     </div>
   );
+}
+
+/**
+ * Determines where to route a user based on their profile status
+ * - No app_user record → onboarding (new user)
+ * - Has fighter profile with active license → dashboard
+ * - Has fighter profile with pending license → pending page
+ * - Has app_user but no fighter profile → onboarding
+ */
+async function determineUserDestination(authUserId: string): Promise<string> {
+  try {
+    // Check if user has an app_user record
+    const { data: appUser, error: appUserError } = await supabase
+      .from('app_user')
+      .select('id')
+      .eq('auth_user_id', authUserId)
+      .maybeSingle();
+
+    if (appUserError) {
+      console.error('[AuthCallback] Error checking app_user:', appUserError);
+      return '/license/onboarding';
+    }
+
+    if (!appUser) {
+      console.log('[AuthCallback] No app_user found, routing to onboarding');
+      return '/license/onboarding';
+    }
+
+    // Check if user has a fighter profile
+    const { data: fighterProfile, error: profileError } = await supabase
+      .from('fighter_profiles')
+      .select('id, active')
+      .eq('user_id', appUser.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.error('[AuthCallback] Error checking fighter_profiles:', profileError);
+      return '/license/onboarding';
+    }
+
+    if (!fighterProfile) {
+      console.log('[AuthCallback] No fighter profile found, routing to onboarding');
+      return '/license/onboarding';
+    }
+
+    // Check license status
+    const { data: license, error: licenseError } = await supabase
+      .from('fighter_licenses')
+      .select('status')
+      .eq('fighter_id', fighterProfile.id)
+      .maybeSingle();
+
+    if (licenseError) {
+      console.error('[AuthCallback] Error checking license:', licenseError);
+      return '/license/onboarding';
+    }
+
+    if (!license) {
+      console.log('[AuthCallback] No license found, routing to onboarding');
+      return '/license/onboarding';
+    }
+
+    // Route based on license status
+    switch (license.status) {
+      case 'ACTIVE':
+        console.log('[AuthCallback] Active license, routing to dashboard');
+        return '/license/dashboard';
+      case 'PENDING_REVIEW':
+      case 'APPLIED':
+        console.log('[AuthCallback] Pending license, routing to pending page');
+        return '/license/pending';
+      case 'SUSPENDED':
+      case 'REVOKED':
+        console.log('[AuthCallback] Suspended license, routing to suspended page');
+        return '/license/suspended';
+      default:
+        console.log('[AuthCallback] Unknown status, routing to onboarding');
+        return '/license/onboarding';
+    }
+  } catch (error) {
+    console.error('[AuthCallback] Error in determineUserDestination:', error);
+    return '/license/onboarding';
+  }
 }
