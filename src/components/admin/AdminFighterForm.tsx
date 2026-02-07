@@ -1,20 +1,22 @@
- import { useState, useEffect } from 'react';
-import { Loader2, CalendarIcon, Trophy, Info } from 'lucide-react';
- import { Button } from '@/components/ui/button';
- import { Input } from '@/components/ui/input';
- import { Label } from '@/components/ui/label';
- import { Textarea } from '@/components/ui/textarea';
- import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
- import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
- import { Checkbox } from '@/components/ui/checkbox';
- import { Badge } from '@/components/ui/badge';
- import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
- import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
- import { Calendar } from '@/components/ui/calendar';
- import { toast } from '@/hooks/use-toast';
- import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
- import { format } from 'date-fns';
- import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { Loader2, CalendarIcon, Trophy, Info, ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { FileUpload } from '@/components/ui/file-upload';
+import { toast } from '@/hooks/use-toast';
+import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
+import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { ENABLED_DISCIPLINES, MARTIAL_ARTS_TRAINING, WEIGHT_CLASSES, FIGHTER_LEVELS, STANCES, COUNTRIES } from '@/lib/constants/disciplines';
 import { useRankingOrganizations } from '@/hooks/useRankingOrganizations';
 import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership';
@@ -41,6 +43,8 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
   // Initial league enrollment (only for create mode)
   const [initialOrg, setInitialOrg] = useState('');
   const [initialLevel, setInitialLevel] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
    const [formData, setFormData] = useState<Partial<AdminFighterFormData>>({
      first_name: '',
@@ -187,6 +191,30 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
        if (mode === 'create') {
         const newFighterId = await adminCreateFighterProfile(formData);
         
+        // Upload avatar if selected
+        if (newFighterId && avatarFile) {
+          try {
+            const { uploadFighterAvatar } = await import('@/lib/photoUtils');
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            
+            if (currentUser) {
+              await uploadFighterAvatar(
+                avatarFile,
+                currentUser.id,
+                newFighterId,
+                undefined // No existing avatar
+              );
+            }
+          } catch (avatarError) {
+            console.error('Avatar upload error:', avatarError);
+            toast({
+              title: "Advertencia",
+              description: "Perfil creado pero hubo un error al subir la foto. Puedes agregarla después.",
+              variant: "destructive",
+            });
+          }
+        }
+        
         // Enroll in initial league
         if (newFighterId && initialOrg && initialLevel) {
           await enrollFighter({
@@ -199,7 +227,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
         
          toast({
            title: "¡Perfil creado!",
-          description: "Perfil creado e inscrito en el ranking correctamente.",
+          description: avatarFile 
+            ? "Perfil creado con foto e inscrito en el ranking correctamente."
+            : "Perfil creado e inscrito en el ranking correctamente.",
          });
        } else if (mode === 'edit' && existingFighter) {
          const success = await adminUpdateFighterProfile(existingFighter.id, formData as AdminFighterFormData);
@@ -209,6 +239,11 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
              description: "El perfil del peleador ha sido actualizado correctamente.",
            });
          }
+       }
+       
+       // Cleanup preview URL
+       if (avatarPreview) {
+         URL.revokeObjectURL(avatarPreview);
        }
        
        onSuccess?.();
@@ -332,18 +367,53 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                  </Popover>
                </div>
  
-               <div>
-                 <Label htmlFor="birthplace">Lugar de Nacimiento</Label>
-                 <Input
-                   id="birthplace"
-                   value={formData.birthplace}
-                   onChange={(e) => handleChange('birthplace', e.target.value)}
-                   placeholder="Ciudad, País"
-                 />
-               </div>
-             </CardContent>
-           </Card>
-         </TabsContent>
+                <div>
+                  <Label htmlFor="birthplace">Lugar de Nacimiento</Label>
+                  <Input
+                    id="birthplace"
+                    value={formData.birthplace}
+                    onChange={(e) => handleChange('birthplace', e.target.value)}
+                    placeholder="Ciudad, País"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Photo Upload Card - Create mode only */}
+            {mode === 'create' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" />
+                    Foto de Perfil
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FileUpload
+                    accept="image/*"
+                    onFileSelect={(file) => {
+                      setAvatarFile(file);
+                      const previewUrl = URL.createObjectURL(file);
+                      setAvatarPreview(previewUrl);
+                    }}
+                    onRemoveFile={() => {
+                      setAvatarFile(null);
+                      if (avatarPreview) {
+                        URL.revokeObjectURL(avatarPreview);
+                        setAvatarPreview(null);
+                      }
+                    }}
+                    preview={avatarPreview || undefined}
+                    maxSize={5}
+                    className="mt-2"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Sube una foto del peleador. Se optimizará automáticamente.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
  
          {/* Physical Tab */}
          <TabsContent value="physical" className="space-y-6">
@@ -442,7 +512,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                         <SelectValue placeholder="Seleccionar liga" />
                       </SelectTrigger>
                       <SelectContent>
-                        {organizations?.map((org) => (
+                        {organizations
+                          ?.filter(org => !formData.discipline || org.discipline === formData.discipline)
+                          .map((org) => (
                           <SelectItem key={org.code} value={org.code}>
                             {org.short_name} ({org.discipline})
                           </SelectItem>
