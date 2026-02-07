@@ -874,7 +874,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     )}
 
                     {/* Mensaje si no hay disciplina seleccionada */}
-                    {(!formData.martial_arts || formData.martial_arts.length === 0) && (
+                    {!formData.discipline && (
                       <div className="text-center p-6 text-muted-foreground border rounded-lg border-dashed">
                         Selecciona una disciplina en la sección "Disciplinas y Estilo" para editar récords
                       </div>
