@@ -25,6 +25,7 @@ import {
   ArrowLeft
 } from "lucide-react";
 import EmailRecipientSelector from "@/components/admin/EmailRecipientSelector";
+import FighterSegmentSelector from "@/components/admin/FighterSegmentSelector";
 
 interface Recipient {
   email: string;
@@ -51,6 +52,11 @@ export default function EmailCampaignEditor() {
     url: string;
     size: number;
   }>>([]);
+
+  // Segment state
+  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [segmentCount, setSegmentCount] = useState<number>(0);
 
   const applyFormat = (command: string) => {
     document.execCommand(command, false);
@@ -153,12 +159,29 @@ export default function EmailCampaignEditor() {
       return;
     }
 
+    if (recipientFilter === "fighters_segment" && !testMode) {
+      if (selectedDisciplines.length === 0) {
+        toast.error("Selecciona al menos una disciplina");
+        return;
+      }
+      if (selectedLevels.length === 0) {
+        toast.error("Selecciona al menos un nivel");
+        return;
+      }
+      if (segmentCount === 0) {
+        toast.error("No hay peleadores que coincidan con el segmento seleccionado");
+        return;
+      }
+    }
+
     const getRecipientDescription = () => {
       switch (recipientFilter) {
         case "all": return "todos los usuarios";
         case "fighters_only": return "solo peleadores";
         case "admins_only": return "solo administradores";
         case "custom": return `${customRecipients.length} destinatario(s) seleccionado(s)`;
+        case "fighters_segment": 
+          return `${segmentCount} peleador(es) de ${selectedDisciplines.join(" y ")} - ${selectedLevels.join(", ")}`;
         default: return "destinatarios";
       }
     };
@@ -212,6 +235,12 @@ export default function EmailCampaignEditor() {
           recipient_filter: testMode ? null : recipientFilter,
           custom_emails: recipientFilter === "custom" && !testMode
             ? customRecipients.map((r) => r.email)
+            : undefined,
+          segment_disciplines: recipientFilter === "fighters_segment" && !testMode
+            ? selectedDisciplines
+            : undefined,
+          segment_levels: recipientFilter === "fighters_segment" && !testMode
+            ? selectedLevels
             : undefined,
           test_mode: testMode,
           test_email: testMode ? testEmail : null,
@@ -282,10 +311,24 @@ export default function EmailCampaignEditor() {
                     <SelectItem value="all">Todos los usuarios</SelectItem>
                     <SelectItem value="fighters_only">Solo peleadores</SelectItem>
                     <SelectItem value="admins_only">Solo administradores</SelectItem>
+                    <SelectItem value="fighters_segment">Peleadores por Segmento</SelectItem>
                     <SelectItem value="custom">Selección Manual</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Segment selector */}
+              {recipientFilter === "fighters_segment" && (
+                <div className="pl-16">
+                  <FighterSegmentSelector
+                    selectedDisciplines={selectedDisciplines}
+                    onDisciplinesChange={setSelectedDisciplines}
+                    selectedLevels={selectedLevels}
+                    onLevelsChange={setSelectedLevels}
+                    onCountUpdate={setSegmentCount}
+                  />
+                </div>
+              )}
 
               {/* Custom recipient selector */}
               {recipientFilter === "custom" && (

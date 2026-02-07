@@ -16,8 +16,10 @@ const corsHeaders = {
 interface MassEmailRequest {
   subject: string;
   html_content: string;
-  recipient_filter?: 'all' | 'fighters_only' | 'admins_only' | 'custom';
+  recipient_filter?: 'all' | 'fighters_only' | 'admins_only' | 'custom' | 'fighters_segment';
   custom_emails?: string[];
+  segment_disciplines?: string[];  // ['MMA', 'Boxeo']
+  segment_levels?: string[];       // ['Profesional', 'Semi-profesional', 'Amateur']
   test_mode?: boolean;
   test_email?: string;
   priority?: number; // 1-10, lower = higher priority
@@ -135,6 +137,47 @@ const handler = async (req: Request): Promise<Response> => {
     if (requestData.recipient_filter === 'custom' && requestData.custom_emails) {
       recipients = requestData.custom_emails;
       console.log("[MASS EMAIL] Custom recipients:", recipients.length);
+    } else if (requestData.recipient_filter === 'fighters_segment') {
+      // Segment-based filtering by discipline and level
+      console.log("[MASS EMAIL] Segment filter - disciplines:", requestData.segment_disciplines, "levels:", requestData.segment_levels);
+      
+      let fighterQuery = supabase
+        .from('fighter_profiles')
+        .select('user_id')
+        .eq('active', true)
+        .not('user_id', 'is', null);
+
+      if (requestData.segment_disciplines && requestData.segment_disciplines.length > 0) {
+        fighterQuery = fighterQuery.in('discipline', requestData.segment_disciplines);
+      }
+
+      if (requestData.segment_levels && requestData.segment_levels.length > 0) {
+        fighterQuery = fighterQuery.in('level', requestData.segment_levels);
+      }
+
+      const { data: fighters, error: fightersError } = await fighterQuery;
+
+      if (fightersError) {
+        throw new Error(`Error fetching fighter profiles: ${fightersError.message}`);
+      }
+
+      const userIds = fighters?.map(f => f.user_id).filter((id): id is string => !!id) || [];
+      console.log("[MASS EMAIL] Found", userIds.length, "fighters matching segment");
+
+      if (userIds.length > 0) {
+        const { data: users, error: usersError } = await supabase
+          .from('app_user')
+          .select('email')
+          .in('id', userIds);
+
+        if (usersError) {
+          throw new Error(`Error fetching user emails: ${usersError.message}`);
+        }
+
+        recipients = users?.map(u => u.email).filter((email): email is string => !!email) || [];
+      }
+
+      console.log("[MASS EMAIL] Segment recipients:", recipients.length);
     } else {
       let query = supabase.from('app_user').select('email');
 
@@ -312,6 +355,18 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Build segment description for metadata
+    let segmentMetadata = null;
+    if (requestData.recipient_filter === 'fighters_segment') {
+      const disciplines = requestData.segment_disciplines || [];
+      const levels = requestData.segment_levels || [];
+      segmentMetadata = {
+        disciplines,
+        levels,
+        description: `${disciplines.join(', ')} - ${levels.join(', ')}`
+      };
+    }
+
     // Update campaign totals
     await supabase
       .from('email_campaign_log')
@@ -322,7 +377,8 @@ const handler = async (req: Request): Promise<Response> => {
           total_recipients: recipients.length,
           queued_count: queueItems.length,
           distribution: distribution,
-          errors_sample: results.errors.slice(0, 10)
+          errors_sample: results.errors.slice(0, 10),
+          segment: segmentMetadata
         }
       })
       .eq('id', campaignId);

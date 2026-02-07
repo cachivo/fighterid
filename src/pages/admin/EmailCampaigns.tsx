@@ -10,6 +10,17 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
+interface SegmentMetadata {
+  disciplines?: string[];
+  levels?: string[];
+  description?: string;
+}
+
+interface CampaignMetadata {
+  segment?: SegmentMetadata;
+  [key: string]: unknown;
+}
+
 interface EmailCampaign {
   id: string;
   sent_by: string;
@@ -19,6 +30,7 @@ interface EmailCampaign {
   total_failed: number;
   test_mode: boolean;
   created_at: string;
+  metadata?: CampaignMetadata | null;
 }
 
 export default function EmailCampaigns() {
@@ -36,13 +48,19 @@ export default function EmailCampaigns() {
     try {
       const { data, error } = await supabase
         .from('email_campaign_log')
-        .select('*')
+        .select('id, sent_by, subject, recipient_filter, total_sent, total_failed, test_mode, created_at, metadata')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (error) throw error;
       
-      setCampaigns(data || []);
+      // Cast metadata to our type
+      const typedCampaigns: EmailCampaign[] = (data || []).map(campaign => ({
+        ...campaign,
+        metadata: campaign.metadata as CampaignMetadata | null
+      }));
+      
+      setCampaigns(typedCampaigns);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       toast.error('Error al cargar campañas');
@@ -91,11 +109,23 @@ export default function EmailCampaigns() {
     }
   };
 
-  const getFilterLabel = (filter: string) => {
+  const getFilterLabel = (campaign: EmailCampaign) => {
+    const filter = campaign.recipient_filter;
+    
+    if (filter === 'fighters_segment') {
+      // Try to get segment description from metadata
+      const metadata = (campaign as any).metadata;
+      if (metadata?.segment?.description) {
+        return metadata.segment.description;
+      }
+      return 'Peleadores por Segmento';
+    }
+    
     switch (filter) {
       case 'all': return 'Todos los usuarios';
       case 'fighters_only': return 'Solo peleadores';
       case 'admins_only': return 'Solo administradores';
+      case 'custom': return 'Selección manual';
       default: return filter;
     }
   };
@@ -210,7 +240,7 @@ export default function EmailCampaigns() {
                             })}
                           </span>
                           <span>•</span>
-                          <span>{getFilterLabel(campaign.recipient_filter)}</span>
+                          <span>{getFilterLabel(campaign)}</span>
                         </div>
                       </div>
                       <div className="flex gap-3 items-center">
