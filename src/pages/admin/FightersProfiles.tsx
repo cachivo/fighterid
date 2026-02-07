@@ -235,12 +235,12 @@ export default function FightersProfiles() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
            {paginatedFighters.map((fighter) => (
-            <Card key={fighter.id} className="hover:shadow-md transition-shadow">
+            <Card key={fighter.id} className="hover:shadow-md transition-shadow h-full flex flex-col">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <OptimizedImage
                       src={fighter.avatar_url || ''}
                       alt={`${fighter.first_name} ${fighter.last_name}`}
@@ -252,8 +252,8 @@ export default function FightersProfiles() {
                       }
                       priority={false}
                     />
-                    <div className="h-14 flex flex-col justify-center">
-                      <CardTitle className="text-base font-semibold leading-tight line-clamp-1">
+                    <div className="min-w-0 flex-1 h-14 flex flex-col justify-center">
+                      <CardTitle className="text-base font-semibold leading-tight truncate">
                         {fighter.first_name} {fighter.last_name}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground truncate mt-0.5">
@@ -296,7 +296,7 @@ export default function FightersProfiles() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 flex-1">
                 <div className="space-y-3">
                   {/* Completion Progress */}
                   <div className="space-y-1">
