@@ -15,6 +15,7 @@ import { PointAdjustmentModal } from '@/components/admin/PointAdjustmentModal';
 import { EnrollFighterModal } from '@/components/admin/EnrollFighterModal';
 import { getWeightClassLabel } from '@/lib/constants/disciplines';
 import { useQueryClient } from '@tanstack/react-query';
+import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/useRealtimeFighterUpdates';
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
@@ -32,14 +33,18 @@ export default function RankingsManagement() {
   } | null>(null);
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
 
-  // Listen for fighter profile updates to refresh rankings
+  // Realtime subscriptions for database changes  
+  useRealtimeFighterUpdates();
+  useRealtimeRankingUpdates();
+
+  // Listen for fighter profile updates to refresh rankings (unified event)
   useEffect(() => {
     const handleFighterUpdate = () => {
       queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
     };
     
-    window.addEventListener('admin-fighter-updated', handleFighterUpdate);
-    return () => window.removeEventListener('admin-fighter-updated', handleFighterUpdate);
+    window.addEventListener('fighter-profile-updated', handleFighterUpdate);
+    return () => window.removeEventListener('fighter-profile-updated', handleFighterUpdate);
   }, [queryClient]);
 
   const { data: rankingData, isLoading: loadingRanking } = useOrganizationRanking(
