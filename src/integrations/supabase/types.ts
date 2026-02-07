@@ -4575,10 +4575,44 @@ export type Database = {
         Args: { p_fighter_id: string }
         Returns: undefined
       }
-      admin_update_fighter_profile: {
-        Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: Json
-      }
+      admin_update_fighter_profile:
+        | {
+            Args: {
+              p_avatar_url?: string
+              p_bio?: string
+              p_blood_type?: string
+              p_boxrec_url?: string
+              p_city?: string
+              p_coach_id?: string
+              p_country?: string
+              p_discipline?: string
+              p_emergency_contact_name?: string
+              p_emergency_contact_phone?: string
+              p_facebook?: string
+              p_fighter_id: string
+              p_first_name?: string
+              p_gender?: string
+              p_gym_id?: string
+              p_height_cm?: number
+              p_instagram?: string
+              p_last_name?: string
+              p_level?: string
+              p_medical_notes?: string
+              p_nickname?: string
+              p_reach_cm?: number
+              p_stance?: string
+              p_tapology_url?: string
+              p_tiktok?: string
+              p_twitter?: string
+              p_weight_class?: string
+              p_youtube?: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: { p_fighter_id: string; p_profile_data: Json }
+            Returns: Json
+          }
       admin_update_fighter_profile_v10: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
