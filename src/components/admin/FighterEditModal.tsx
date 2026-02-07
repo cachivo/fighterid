@@ -322,26 +322,26 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
 
   return (
     <Dialog open={open} onOpenChange={() => !isSubmitting && onClose()}>
-      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-[95vw] md:max-w-4xl lg:max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
+          <DialogTitle className="text-xl md:text-2xl truncate">
             Editar Perfil: {fighter.first_name} {fighter.last_name}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="personal">Personal</TabsTrigger>
-              <TabsTrigger value="physical">Físico</TabsTrigger>
-              <TabsTrigger value="combat">Combate</TabsTrigger>
-              <TabsTrigger value="medical">Médico</TabsTrigger>
-              <TabsTrigger value="admin">Admin</TabsTrigger>
+            <TabsList className="flex w-full overflow-x-auto md:grid md:grid-cols-5 gap-1">
+              <TabsTrigger value="personal" className="flex-shrink-0 text-xs md:text-sm">Personal</TabsTrigger>
+              <TabsTrigger value="physical" className="flex-shrink-0 text-xs md:text-sm">Físico</TabsTrigger>
+              <TabsTrigger value="combat" className="flex-shrink-0 text-xs md:text-sm">Combate</TabsTrigger>
+              <TabsTrigger value="medical" className="flex-shrink-0 text-xs md:text-sm">Médico</TabsTrigger>
+              <TabsTrigger value="admin" className="flex-shrink-0 text-xs md:text-sm">Admin</TabsTrigger>
             </TabsList>
 
             {/* Personal Information Tab */}
-            <TabsContent value="personal" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <TabsContent value="personal" className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>Información Personal</CardTitle>
