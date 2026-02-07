@@ -1,116 +1,226 @@
 
+# Plan: Mejoras al Sistema de Rankings - Filtros Avanzados y Nivel Predeterminado Pro
 
-# Plan de Corrección: Error de Tipo ENUM en `discipline`
+## Resumen Ejecutivo
 
-## Diagnóstico Confirmado
+Se implementarán mejoras en la página principal de rankings para:
+1. Establecer "Profesional" como nivel predeterminado
+2. Agregar filtro por categoría de peso
+3. Agregar filtro por género (Masculino/Femenino)
+4. Garantizar separación absoluta entre récords de MMA y Boxeo
 
-### Error Exacto
+---
+
+## Estado Actual
+
+### Distribución de Datos en la Base de Datos
+
+| Campo | Valores | Cantidad |
+|-------|---------|----------|
+| **Disciplina** | MMA: 55, Boxeo: 9 | 64 total |
+| **Nivel** | Amateur: 44, Pro: 11, Semi: 9 | 64 total |
+| **Género** | Masculino: 53, Femenino: 7, Sin definir: 4 | 64 total |
+| **Categorías de peso** | 8 categorías activas | Peso Mosca lidera con 17 |
+
+### Organizaciones de Ranking
+
+| Código | Disciplina | Niveles Permitidos |
+|--------|------------|-------------------|
+| UCC_MMA | MMA | Pro, Semi, Amateur |
+| BDG_PRO | Boxeo | Pro, Semi |
+| HHF_AMATEUR | Boxeo | Amateur |
+
+### Comportamiento Actual vs Deseado
+
+| Aspecto | Actual | Deseado |
+|---------|--------|---------|
+| Nivel por defecto | El que tenga más peleadores | **Profesional** (si existe) |
+| Filtro de peso | No visible | **Selector activo** |
+| Filtro de género | No existe | **Selector activo** |
+| Récords por disciplina | Separados correctamente | Mantener separación |
+
+---
+
+## Cambios Técnicos
+
+### Archivo 1: `src/hooks/useOrganizationRanking.tsx`
+
+**Objetivo**: Agregar `gender` a la consulta y exponer filtros adicionales
+
+```tsx
+// Cambios en la interfaz RankingEntry
+export interface RankingEntry {
+  // ... campos existentes ...
+  fighter: {
+    // ... campos existentes ...
+    gender: string | null; // NUEVO
+  };
+}
+
+// Cambios en la consulta SELECT
+fighter_profiles!inner (
+  // ... campos existentes ...
+  gender  // NUEVO
+)
+
+// Nuevos parámetros en la función
+export function useOrganizationRanking(
+  organizationCode: string,
+  level?: string,
+  weightClass?: string,
+  gender?: string,  // NUEVO
+  page: number = 1,
+  pageSize: number = 10
+)
+
+// Nuevo filtro en la consulta
+if (gender) {
+  query = query.eq('fighter_profiles.gender', gender);
+}
+
+// Nuevo campo en el resultado
+export interface OrganizationRankingResult {
+  // ... campos existentes ...
+  genders: string[];  // NUEVO: ['M', 'F']
+}
 ```
-CASE types discipline and text cannot be matched
+
+### Archivo 2: `src/components/sections/Ranking.tsx`
+
+**Objetivo**: UI de filtros y cambio de nivel predeterminado
+
+```tsx
+// 1. NUEVOS ESTADOS
+const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
+const [selectedGender, setSelectedGender] = useState<string>('');
+
+// 2. NUEVO HOOK CALL CON FILTROS
+const { data: rankingData, isLoading } = useOrganizationRanking(
+  organizationCode,
+  selectedLevel || undefined,
+  selectedWeightClass || undefined,
+  selectedGender || undefined,  // NUEVO
+  page,
+  PAGE_SIZE
+);
+
+// 3. CAMBIAR LÓGICA DE NIVEL PREDETERMINADO
+useEffect(() => {
+  if (availableLevels.length > 0 && !selectedLevel) {
+    // NUEVO: Priorizar "Profesional" si existe
+    if (availableLevels.includes('Profesional')) {
+      setSelectedLevel('Profesional');
+    } else if (availableLevels.includes('Semi-profesional')) {
+      setSelectedLevel('Semi-profesional');
+    } else {
+      setSelectedLevel(availableLevels[0]);
+    }
+  }
+}, [availableLevels, selectedLevel]);
+
+// 4. NUEVA UI DE FILTROS (debajo de tabs de nivel)
+<div className="flex flex-wrap justify-center gap-2 mb-4">
+  {/* Filtro de Peso */}
+  <Select value={selectedWeightClass} onValueChange={setSelectedWeightClass}>
+    <SelectTrigger className="w-[140px] xs:w-[160px] bg-black/60 border-purple-neon-primary/30 h-9 text-xs">
+      <SelectValue placeholder="División: Todas" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="">Todas las divisiones</SelectItem>
+      {weightClasses.map(wc => (
+        <SelectItem key={wc} value={wc}>{getWeightClassLabel(wc)}</SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+
+  {/* Filtro de Género */}
+  <Select value={selectedGender} onValueChange={setSelectedGender}>
+    <SelectTrigger className="w-[120px] xs:w-[140px] bg-black/60 border-purple-neon-primary/30 h-9 text-xs">
+      <SelectValue placeholder="Género: Todos" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="">Todos</SelectItem>
+      <SelectItem value="M">Masculino</SelectItem>
+      <SelectItem value="F">Femenino</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
 ```
 
-**Causa**: La función `admin_update_fighter_profile` intenta asignar un valor `text` (`p_profile_data->>'discipline'`) a una columna de tipo `discipline` (ENUM).
+### Archivo 3: `src/lib/constants/disciplines.ts`
 
-### Análisis de Tipos de Columna
+**Objetivo**: Centralizar constantes de género para consistencia
 
-| Campo | Tipo en BD | Requiere Cast |
-|-------|-----------|---------------|
-| `discipline` | **USER-DEFINED (ENUM)** | **SÍ** → `::discipline` |
-| `gender` | text | No |
-| `level` | text | No |
-| `stance` | text | No |
-| `weight_class` | text | No |
-| `record_type` | text | No |
+```tsx
+// Agregar al final del archivo
+export const GENDERS = [
+  { value: 'M', label: 'Masculino' },
+  { value: 'F', label: 'Femenino' },
+] as const;
 
-### Valores Válidos del ENUM `discipline`
-```
-MMA, Boxeo, Judo, JiuJitsu, Kickboxing, MuayThai, Grappling, Otro
+export type Gender = typeof GENDERS[number]['value'];
 ```
 
 ---
 
-## Solución Propuesta
+## Arquitectura de Separación de Récords (Ya Implementada)
 
-### Migración SQL: Corregir Cast de `discipline`
+La función `getRecordWithFallback` en `Ranking.tsx` ya garantiza la separación correcta:
 
-La única línea que necesita cambiar es agregar el cast explícito y manejar valores vacíos/nulos:
-
-```sql
--- ANTES (causa el error):
-discipline = CASE WHEN p_profile_data ? 'discipline' 
-  THEN p_profile_data->>'discipline' ELSE discipline END,
-
--- DESPUÉS (correcto):
-discipline = CASE 
-  WHEN p_profile_data ? 'discipline' 
-       AND p_profile_data->>'discipline' IS NOT NULL 
-       AND p_profile_data->>'discipline' != '' 
-  THEN (p_profile_data->>'discipline')::discipline 
-  ELSE discipline 
-END,
+```text
++------------------+     +----------------------+
+|   Organización   |     |   Récord Mostrado    |
++------------------+     +----------------------+
+| UCC_MMA          | --> | mma_record_*         |
+| BDG_PRO (Boxeo)  | --> | boxeo_record_*       |
+| HHF_AMATEUR      | --> | boxeo_record_*       |
++------------------+     +----------------------+
 ```
 
-### Validación Adicional
-
-También se debe verificar que el valor enviado sea uno de los ENUMs válidos. Si se envía un valor inválido (ej: "Boxing" en lugar de "Boxeo"), la base de datos rechazará la operación con un error claro.
+**Regla**: El récord mostrado siempre corresponde a la disciplina de la organización seleccionada. Un peleador con MMA 5-2-0 y Boxeo 3-1-0 mostrará el récord apropiado según el ranking que esté viendo.
 
 ---
 
-## Implementación Técnica
+## Optimización Móvil
 
-### Archivo: Nueva Migración SQL
+Todos los nuevos elementos seguirán los estándares establecidos:
 
-```sql
--- Drop y recrear la función con el cast correcto
-DROP FUNCTION IF EXISTS public.admin_update_fighter_profile(uuid, jsonb);
-
-CREATE OR REPLACE FUNCTION public.admin_update_fighter_profile(...)
-RETURNS jsonb
-AS $$
-BEGIN
-  UPDATE fighter_profiles
-  SET
-    -- ... otros campos ...
-    
-    -- CORREGIDO: Cast explícito a ::discipline para tipo ENUM
-    discipline = CASE 
-      WHEN p_profile_data ? 'discipline' 
-           AND p_profile_data->>'discipline' IS NOT NULL 
-           AND p_profile_data->>'discipline' != '' 
-      THEN (p_profile_data->>'discipline')::discipline 
-      ELSE discipline 
-    END,
-    
-    -- ... resto de campos sin cambios ...
-  WHERE id = p_fighter_id;
-END;
-$$;
-```
-
----
-
-## Verificación Post-Implementación
-
-Una vez aplicada la migración, el guardado debería funcionar correctamente. Para validar:
-
-1. Abrir el modal de edición de un peleador
-2. Cambiar cualquier campo (ej: BoxRec URL)
-3. Guardar cambios → Sin error
-4. Verificar en la base de datos que el campo se guardó
+- Selectores con `min-h-[44px]` para touch targets
+- Clases responsive `xs:`, `sm:`, `md:`
+- `touch-manipulation` en elementos interactivos
+- `truncate` y `line-clamp-1` para textos largos
+- Diseño que fluye verticalmente en pantallas pequeñas
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio |
-|---------|--------|
-| Nueva migración SQL | Corregir cast `::discipline` en la función RPC |
+| Archivo | Cambios |
+|---------|---------|
+| `src/hooks/useOrganizationRanking.tsx` | Agregar gender a consulta y filtros |
+| `src/components/sections/Ranking.tsx` | UI de filtros + lógica nivel Pro |
+| `src/lib/constants/disciplines.ts` | Centralizar constantes GENDERS |
 
 ---
 
-## Resumen
+## Flujo de Usuario Final
 
-- **Problema**: `text` no es compatible con `discipline` (ENUM) en expresión CASE
-- **Solución**: Agregar cast explícito `::discipline` con validación de null/vacío
-- **Impacto**: Todos los campos se guardarán correctamente tras la corrección
+1. Usuario abre la página principal
+2. Selecciona disciplina (MMA o Boxeo)
+3. Ve automáticamente el ranking **Profesional** (si existe)
+4. Puede filtrar por:
+   - Nivel (Pro/Semi/Amateur)
+   - División de peso (Mosca, Ligero, etc.)
+   - Género (Masculino/Femenino)
+5. Los récords mostrados corresponden **únicamente** a la disciplina seleccionada
 
+---
+
+## Verificación Post-Implementación
+
+1. Abrir página principal como usuario autenticado
+2. Verificar que MMA muestra nivel "Pro" por defecto
+3. Cambiar a Boxeo y verificar nivel por defecto
+4. Usar filtro de peso y confirmar que filtra correctamente
+5. Usar filtro de género y confirmar que filtra correctamente
+6. Verificar que un peleador con récords en ambas disciplinas muestra el correcto
