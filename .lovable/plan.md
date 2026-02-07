@@ -1,159 +1,138 @@
 
-# Diagnóstico y Corrección: Error de Mateo Starozze en Ranking Equivocado
 
-## Diagnóstico del Error
+# Plan: Mostrar Enlaces Externos (BoxRec/Tapology) en Perfiles Públicos de Peleadores
 
-### Datos Encontrados
+## Problema Identificado
 
-| Campo | Valor |
-|-------|-------|
-| **Peleador** | Mateo Starozze |
-| **Perfil** | Disciplina: Boxeo, Nivel: Amateur |
-| **Inscripción actual** | BDG_PRO (Boxeo Profesional) |
-| **Inscripción correcta** | HHF_AMATEUR (Boxeo Amateur) |
+Cuando un usuario busca peleadores y accede a un perfil público en `/fighter/:id`, **no se muestran** los enlaces profesionales externos (BoxRec para boxeadores, Tapology para MMA), aunque:
 
-### Causa Raíz
+1. Los campos `boxrec_url` y `tapology_url` están definidos en la interfaz `FighterProfile`
+2. La función `getFighterById` trae correctamente estos datos con `select('*')`
+3. Los enlaces **SÍ aparecen** en otros lugares:
+   - Dashboard de licencia del peleador (`LicenseDashboard.tsx`)
+   - Tarjeta de identificación digital (`EnhancedFighterID.tsx`)
+   - Modal de detalle en admin (`FighterDetailModal.tsx`)
 
-La función `admin_update_fighter_profile` tiene un **defecto de diseño**:
+## Solución
 
-```sql
--- PROBLEMA: Actualiza nivel en TODAS las inscripciones sin validar compatibilidad
-UPDATE fighter_rankings
-SET level = COALESCE(v_level, level)
-WHERE fighter_id = p_fighter_id AND is_active = true;
-```
-
-**Flujo que causó el error:**
-1. Mateo fue creado inicialmente como Profesional/Semi de Boxeo
-2. Se inscribió automáticamente en BDG_PRO (correcto para ese momento)
-3. Alguien cambió su nivel a "Amateur" desde el panel de admin
-4. La función actualizó su ranking en BDG_PRO con nivel "Amateur"
-5. BDG_PRO **no permite Amateur** (solo Profesional y Semi-profesional)
-6. Mateo **debería haberse movido** a HHF_AMATEUR
-
-### Configuración de Organizaciones de Boxeo
-
-| Organización | Niveles Permitidos |
-|--------------|-------------------|
-| BDG_PRO | Profesional, Semi-profesional |
-| HHF_AMATEUR | Amateur |
+Agregar una sección de "Enlaces Profesionales" en la página pública del perfil del peleador (`FighterProfile.tsx`), siguiendo el patrón ya implementado en otros componentes.
 
 ---
 
-## Solución en Dos Fases
+## Cambios Técnicos
 
-### Fase 1: Corrección Inmediata de Datos
+### Archivo: `src/pages/FighterProfile.tsx`
 
-Migración SQL para mover a Mateo a la organización correcta:
+**Ubicación**: Dentro de la sección "Perfil del Peleador" (CardContent), después del gimnasio y entrenador.
 
-```sql
--- 1. Desactivar inscripción incorrecta en BDG_PRO
-UPDATE fighter_rankings
-SET is_active = false, updated_at = now()
-WHERE fighter_id = '55a30550-b731-4248-99f5-50c3d874dfd2'
-  AND organization_id = (SELECT id FROM ranking_organizations WHERE code = 'BDG_PRO');
+```tsx
+// Importar icono de enlace externo
+import { ExternalLink } from 'lucide-react';
 
--- 2. Inscribir en HHF_AMATEUR (organización correcta para Amateur de Boxeo)
-INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
-SELECT 
-  '55a30550-b731-4248-99f5-50c3d874dfd2',
-  ro.id,
-  'Amateur',
-  'Peso Ligero',
-  4, -- Mantener sus puntos actuales
-  true
-FROM ranking_organizations ro
-WHERE ro.code = 'HHF_AMATEUR'
-ON CONFLICT (fighter_id, organization_id) 
-DO UPDATE SET is_active = true, level = 'Amateur', points = 4;
-```
-
-### Fase 2: Mejora del Sistema
-
-Actualizar `admin_update_fighter_profile` para incluir **migración automática** cuando un peleador de Boxeo cambia de nivel:
-
-```sql
--- Nueva lógica: Migrar peleadores de Boxeo entre organizaciones
-IF v_discipline = 'Boxeo' AND v_level IS NOT NULL THEN
-  -- Si cambia a Amateur, mover a HHF_AMATEUR
-  IF v_level = 'Amateur' THEN
-    -- Desactivar de BDG_PRO
-    UPDATE fighter_rankings fr
-    SET is_active = false
-    FROM ranking_organizations ro
-    WHERE fr.fighter_id = p_fighter_id
-      AND fr.organization_id = ro.id
-      AND ro.code = 'BDG_PRO';
-      
-    -- Activar/crear en HHF_AMATEUR
-    INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
-    SELECT p_fighter_id, ro.id, 'Amateur', COALESCE(v_weight_class, 'Peso Ligero'), 0, true
-    FROM ranking_organizations ro WHERE ro.code = 'HHF_AMATEUR'
-    ON CONFLICT (fighter_id, organization_id) 
-    DO UPDATE SET is_active = true, level = 'Amateur';
-  
-  -- Si cambia a Pro/Semi, mover a BDG_PRO  
-  ELSIF v_level IN ('Profesional', 'Semi-profesional') THEN
-    -- Desactivar de HHF_AMATEUR
-    UPDATE fighter_rankings fr
-    SET is_active = false
-    FROM ranking_organizations ro
-    WHERE fr.fighter_id = p_fighter_id
-      AND fr.organization_id = ro.id
-      AND ro.code = 'HHF_AMATEUR';
-      
-    -- Activar/crear en BDG_PRO
-    INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
-    SELECT p_fighter_id, ro.id, v_level, COALESCE(v_weight_class, 'Peso Ligero'), 0, true
-    FROM ranking_organizations ro WHERE ro.code = 'BDG_PRO'
-    ON CONFLICT (fighter_id, organization_id) 
-    DO UPDATE SET is_active = true, level = v_level;
-  END IF;
-END IF;
+// Nueva sección después del entrenador (línea ~478)
+{/* External Profile Links */}
+{(fighter.boxrec_url || fighter.tapology_url) && (
+  <>
+    <Separator />
+    <div>
+      <h4 className="font-semibold mb-3 flex items-center gap-2">
+        <ExternalLink className="h-4 w-4" />
+        Perfiles Externos
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {fighter.boxrec_url && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            asChild 
+            className="min-h-[44px] touch-manipulation"
+          >
+            <a 
+              href={fighter.boxrec_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              BoxRec
+            </a>
+          </Button>
+        )}
+        {fighter.tapology_url && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            asChild
+            className="min-h-[44px] touch-manipulation"
+          >
+            <a 
+              href={fighter.tapology_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              Tapology
+            </a>
+          </Button>
+        )}
+      </div>
+    </div>
+  </>
+)}
 ```
 
 ---
 
-## Flujo Corregido
+## Comportamiento por Disciplina
+
+| Disciplina | Enlace Principal | Enlace Secundario |
+|------------|------------------|-------------------|
+| **Boxeo** | BoxRec | Tapology (opcional) |
+| **MMA** | Tapology | BoxRec (opcional) |
+
+Ambos enlaces se muestran si están disponibles, ya que algunos peleadores compiten en ambas disciplinas o tienen perfiles en ambas plataformas.
+
+---
+
+## Flujo Visual
 
 ```text
-ANTES (defectuoso):
-+------------------+     +------------------+     +------------------+
-| Admin cambia     |     | Actualiza nivel  |     | Peleador queda   |
-| nivel a Amateur  | --> | en BDG_PRO       | --> | en organización  |
-|                  |     | (sin validar)    |     | INCORRECTA       |
-+------------------+     +------------------+     +------------------+
-
-DESPUÉS (correcto):
-+------------------+     +------------------+     +------------------+
-| Admin cambia     |     | Detecta cambio   |     | Migra a          |
-| nivel a Amateur  | --> | de nivel Boxeo   | --> | HHF_AMATEUR      |
-|                  |     |                  |     | automáticamente  |
-+------------------+     +------------------+     +------------------+
++--------------------------------+
+|     Perfil del Peleador        |
++--------------------------------+
+| Biografía                      |
+| -------------------------      |
+| Artes Marciales                |
+| -------------------------      |
+| Ligas Activas                  |
+| -------------------------      |
+| Estilo de Pelea                |
+| -------------------------      |
+| Gimnasio                       |
+| -------------------------      |
+| Entrenador                     |
+| -------------------------      |
+| 🔗 Perfiles Externos  (NUEVO)  |
+| [BoxRec] [Tapology]            |
++--------------------------------+
 ```
 
 ---
 
-## Archivos a Modificar
+## Optimización Móvil
 
-| Archivo | Cambio |
-|---------|--------|
-| Nueva migración SQL | Corrección de datos de Mateo + mejora de RPC |
+- Botones con `min-h-[44px]` para touch targets accesibles
+- `touch-manipulation` para mejor respuesta táctil
+- `flex-wrap` para que los botones fluyan en pantallas pequeñas
+- Atributos `rel="noopener noreferrer"` para seguridad
 
 ---
 
 ## Verificación Post-Implementación
 
-1. Verificar que Mateo ya no aparece en BDG_PRO
-2. Verificar que Mateo aparece en HHF_AMATEUR con sus 4 puntos
-3. Probar cambiar nivel de otro peleador Amateur → Pro y viceversa
-4. Confirmar que la migración automática funciona
+1. Ir a `/fighters` y buscar un peleador de **Boxeo** con BoxRec configurado
+2. Abrir su perfil y verificar que aparece el botón "BoxRec"
+3. Buscar un peleador de **MMA** con Tapology configurado
+4. Abrir su perfil y verificar que aparece el botón "Tapology"
+5. Verificar que los enlaces abren en nueva pestaña correctamente
+6. Probar en dispositivo móvil que los botones son fáciles de tocar
 
----
-
-## Resumen Técnico
-
-- **Error**: La función RPC actualiza niveles sin validar compatibilidad con la organización
-- **Afectado**: 1 peleador (Mateo Starozze)
-- **Solución**: Corrección de datos + lógica de migración automática para Boxeo
-- **Impacto**: Evita futuros errores de inscripción incorrecta
