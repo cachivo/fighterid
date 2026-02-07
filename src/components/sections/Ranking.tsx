@@ -71,6 +71,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   // Reset page and filters when org changes
   useEffect(() => {
     setPage(1);
+    setSelectedLevel('');  // Reset level so smart selection can run for the new org
     setSelectedWeightClass('');
     setSelectedGender('');
   }, [organizationCode]);
