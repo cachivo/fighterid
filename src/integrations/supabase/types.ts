@@ -4577,7 +4577,7 @@ export type Database = {
       }
       admin_update_fighter_profile: {
         Args: { p_fighter_id: string; p_profile_data: Json }
-        Returns: boolean
+        Returns: undefined
       }
       admin_update_fighter_profile_v10: {
         Args: { p_fighter_id: string; p_profile_data: Json }
