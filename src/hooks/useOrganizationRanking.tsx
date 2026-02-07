@@ -10,6 +10,7 @@ export interface RankingEntry {
     nickname: string | null;
     avatar_url: string | null;
     country: string | null;
+    gender: string | null;
     mma_record_wins: number | null;
     mma_record_losses: number | null;
     mma_record_draws: number | null;
@@ -30,25 +31,26 @@ export interface RankingEntry {
   last_fight_date: string | null;
 }
  
- export interface OrganizationRankingResult {
-   rankings: RankingEntry[];
-   totalCount: number;
-   hasMore: boolean;
-   weightClasses: string[];
-   levels: string[];
+export interface OrganizationRankingResult {
+  rankings: RankingEntry[];
+  totalCount: number;
+  hasMore: boolean;
+  weightClasses: string[];
+  levels: string[];
   levelCounts: Record<string, number>;
   discipline: 'MMA' | 'Boxeo';
- }
- 
- export function useOrganizationRanking(
-   organizationCode: string,
-   level?: string,
-   weightClass?: string,
-   page: number = 1,
-   pageSize: number = 10
- ) {
-   return useQuery({
-     queryKey: ['organization-ranking', organizationCode, level, weightClass, page, pageSize],
+}
+
+export function useOrganizationRanking(
+  organizationCode: string,
+  level?: string,
+  weightClass?: string,
+  gender?: string,
+  page: number = 1,
+  pageSize: number = 10
+) {
+  return useQuery({
+    queryKey: ['organization-ranking', organizationCode, level, weightClass, gender, page, pageSize],
      queryFn: async (): Promise<OrganizationRankingResult> => {
        // First get the organization ID
        const { data: org, error: orgError } = await supabase
@@ -78,6 +80,7 @@ export interface RankingEntry {
               nickname,
               avatar_url,
               country,
+              gender,
               mma_record_wins,
               mma_record_losses,
               mma_record_draws,
@@ -100,6 +103,9 @@ export interface RankingEntry {
        }
        if (weightClass) {
          query = query.eq('weight_class', weightClass);
+       }
+       if (gender) {
+         query = query.eq('fighter_profiles.gender', gender);
        }
  
        const { data: rankingsData, error: rankingsError, count } = await query;
@@ -134,6 +140,7 @@ export interface RankingEntry {
             nickname: r.fighter_profiles.nickname,
             avatar_url: r.fighter_profiles.avatar_url,
             country: r.fighter_profiles.country,
+            gender: r.fighter_profiles.gender,
             mma_record_wins: r.fighter_profiles.mma_record_wins,
             mma_record_losses: r.fighter_profiles.mma_record_losses,
             mma_record_draws: r.fighter_profiles.mma_record_draws,

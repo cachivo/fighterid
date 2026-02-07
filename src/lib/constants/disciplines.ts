@@ -114,3 +114,11 @@ export const MARTIAL_ARTS_TRAINING = [
 ] as const;
 
 export type MartialArt = typeof MARTIAL_ARTS_TRAINING[number]['value'];
+
+// Géneros para filtros de ranking
+export const GENDERS = [
+  { value: 'M', label: 'Masculino' },
+  { value: 'F', label: 'Femenino' },
+] as const;
+
+export type Gender = typeof GENDERS[number]['value'];

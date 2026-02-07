@@ -51,6 +51,7 @@ export default function RankingsManagement() {
     selectedOrg,
     selectedLevel !== 'all' ? selectedLevel : undefined,
     selectedWeightClass !== 'all' ? selectedWeightClass : undefined,
+    undefined, // gender filter not used in admin
     1,
     100
   );
