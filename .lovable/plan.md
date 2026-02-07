@@ -1,102 +1,159 @@
 
+# Diagnóstico y Corrección: Error de Mateo Starozze en Ranking Equivocado
 
-# Plan: Sincronización Completa de Cambios de Nivel
+## Diagnóstico del Error
 
-## Problema Identificado
+### Datos Encontrados
 
-La sincronización de cambios de nivel funciona correctamente a nivel de base de datos (bidireccional entre `fighter_profiles` y `fighter_rankings`), pero **faltan suscripciones realtime** en:
+| Campo | Valor |
+|-------|-------|
+| **Peleador** | Mateo Starozze |
+| **Perfil** | Disciplina: Boxeo, Nivel: Amateur |
+| **Inscripción actual** | BDG_PRO (Boxeo Profesional) |
+| **Inscripción correcta** | HHF_AMATEUR (Boxeo Amateur) |
 
-1. **Componente de Ranking en Homepage** (`src/components/sections/Ranking.tsx`)
-2. **Página pública de Peleadores** (`src/pages/Fighters.tsx`)
+### Causa Raíz
 
-## Solución Propuesta
+La función `admin_update_fighter_profile` tiene un **defecto de diseño**:
 
-### Archivo 1: `src/components/sections/Ranking.tsx`
-
-Agregar hooks de realtime para sincronización automática:
-
-```tsx
-// Importar al inicio
-import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/useRealtimeFighterUpdates';
-
-// Dentro del componente, después de los estados existentes
-const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
-  // ... estados existentes ...
-  
-  // NUEVO: Suscripción realtime para cambios en perfiles y rankings
-  useRealtimeFighterUpdates();
-  useRealtimeRankingUpdates();
-  
-  // ... resto del componente ...
-};
+```sql
+-- PROBLEMA: Actualiza nivel en TODAS las inscripciones sin validar compatibilidad
+UPDATE fighter_rankings
+SET level = COALESCE(v_level, level)
+WHERE fighter_id = p_fighter_id AND is_active = true;
 ```
 
-### Archivo 2: `src/pages/Fighters.tsx`
+**Flujo que causó el error:**
+1. Mateo fue creado inicialmente como Profesional/Semi de Boxeo
+2. Se inscribió automáticamente en BDG_PRO (correcto para ese momento)
+3. Alguien cambió su nivel a "Amateur" desde el panel de admin
+4. La función actualizó su ranking en BDG_PRO con nivel "Amateur"
+5. BDG_PRO **no permite Amateur** (solo Profesional y Semi-profesional)
+6. Mateo **debería haberse movido** a HHF_AMATEUR
 
-Agregar hook de realtime para actualización automática de la lista:
+### Configuración de Organizaciones de Boxeo
 
-```tsx
-// Importar al inicio
-import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
+| Organización | Niveles Permitidos |
+|--------------|-------------------|
+| BDG_PRO | Profesional, Semi-profesional |
+| HHF_AMATEUR | Amateur |
 
-// Dentro del componente
-export default function Fighters() {
-  // ... estados existentes ...
-  const { fighters, loading, ... } = useFighterProfiles();
-  
-  // NUEVO: Suscripción realtime para cambios en perfiles
-  useRealtimeFighterUpdates();
-  
-  // ... resto del componente ...
-};
+---
+
+## Solución en Dos Fases
+
+### Fase 1: Corrección Inmediata de Datos
+
+Migración SQL para mover a Mateo a la organización correcta:
+
+```sql
+-- 1. Desactivar inscripción incorrecta en BDG_PRO
+UPDATE fighter_rankings
+SET is_active = false, updated_at = now()
+WHERE fighter_id = '55a30550-b731-4248-99f5-50c3d874dfd2'
+  AND organization_id = (SELECT id FROM ranking_organizations WHERE code = 'BDG_PRO');
+
+-- 2. Inscribir en HHF_AMATEUR (organización correcta para Amateur de Boxeo)
+INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
+SELECT 
+  '55a30550-b731-4248-99f5-50c3d874dfd2',
+  ro.id,
+  'Amateur',
+  'Peso Ligero',
+  4, -- Mantener sus puntos actuales
+  true
+FROM ranking_organizations ro
+WHERE ro.code = 'HHF_AMATEUR'
+ON CONFLICT (fighter_id, organization_id) 
+DO UPDATE SET is_active = true, level = 'Amateur', points = 4;
 ```
 
-## Flujo de Sincronización Resultante
+### Fase 2: Mejora del Sistema
+
+Actualizar `admin_update_fighter_profile` para incluir **migración automática** cuando un peleador de Boxeo cambia de nivel:
+
+```sql
+-- Nueva lógica: Migrar peleadores de Boxeo entre organizaciones
+IF v_discipline = 'Boxeo' AND v_level IS NOT NULL THEN
+  -- Si cambia a Amateur, mover a HHF_AMATEUR
+  IF v_level = 'Amateur' THEN
+    -- Desactivar de BDG_PRO
+    UPDATE fighter_rankings fr
+    SET is_active = false
+    FROM ranking_organizations ro
+    WHERE fr.fighter_id = p_fighter_id
+      AND fr.organization_id = ro.id
+      AND ro.code = 'BDG_PRO';
+      
+    -- Activar/crear en HHF_AMATEUR
+    INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
+    SELECT p_fighter_id, ro.id, 'Amateur', COALESCE(v_weight_class, 'Peso Ligero'), 0, true
+    FROM ranking_organizations ro WHERE ro.code = 'HHF_AMATEUR'
+    ON CONFLICT (fighter_id, organization_id) 
+    DO UPDATE SET is_active = true, level = 'Amateur';
+  
+  -- Si cambia a Pro/Semi, mover a BDG_PRO  
+  ELSIF v_level IN ('Profesional', 'Semi-profesional') THEN
+    -- Desactivar de HHF_AMATEUR
+    UPDATE fighter_rankings fr
+    SET is_active = false
+    FROM ranking_organizations ro
+    WHERE fr.fighter_id = p_fighter_id
+      AND fr.organization_id = ro.id
+      AND ro.code = 'HHF_AMATEUR';
+      
+    -- Activar/crear en BDG_PRO
+    INSERT INTO fighter_rankings (fighter_id, organization_id, level, weight_class, points, is_active)
+    SELECT p_fighter_id, ro.id, v_level, COALESCE(v_weight_class, 'Peso Ligero'), 0, true
+    FROM ranking_organizations ro WHERE ro.code = 'BDG_PRO'
+    ON CONFLICT (fighter_id, organization_id) 
+    DO UPDATE SET is_active = true, level = v_level;
+  END IF;
+END IF;
+```
+
+---
+
+## Flujo Corregido
 
 ```text
-+----------------------+      +---------------------+      +------------------+
-|   Admin cambia       |      |     Base de Datos   |      |   Frontend       |
-|   nivel peleador     | ---> |  (RPC actualiza     | ---> |  (Realtime       |
-|   (Rankings Admin)   |      |   profiles+rankings)|      |   invalida cache)|
-+----------------------+      +---------------------+      +------------------+
-                                       |
-                                       v
-              +------------------------+------------------------+
-              |                        |                        |
-              v                        v                        v
-     +----------------+      +------------------+      +-----------------+
-     | Homepage       |      | Admin Rankings   |      | Fighters Page   |
-     | Ranking        |      | Management       |      | (lista pública) |
-     | (actualiza)    |      | (actualiza)      |      | (actualiza)     |
-     +----------------+      +------------------+      +-----------------+
+ANTES (defectuoso):
++------------------+     +------------------+     +------------------+
+| Admin cambia     |     | Actualiza nivel  |     | Peleador queda   |
+| nivel a Amateur  | --> | en BDG_PRO       | --> | en organización  |
+|                  |     | (sin validar)    |     | INCORRECTA       |
++------------------+     +------------------+     +------------------+
+
+DESPUÉS (correcto):
++------------------+     +------------------+     +------------------+
+| Admin cambia     |     | Detecta cambio   |     | Migra a          |
+| nivel a Amateur  | --> | de nivel Boxeo   | --> | HHF_AMATEUR      |
+|                  |     |                  |     | automáticamente  |
++------------------+     +------------------+     +------------------+
 ```
 
-## Optimización para Móviles de Gama Baja
-
-Las suscripciones realtime de Supabase son ligeras y no impactan el rendimiento:
-- Usan WebSockets (conexión persistente, bajo overhead)
-- Solo invalidan queries cuando hay cambios reales
-- No re-renderizan si los datos no cambian
+---
 
 ## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/sections/Ranking.tsx` | Agregar `useRealtimeFighterUpdates()` y `useRealtimeRankingUpdates()` |
-| `src/pages/Fighters.tsx` | Agregar `useRealtimeFighterUpdates()` |
+| Nueva migración SQL | Corrección de datos de Mateo + mejora de RPC |
+
+---
 
 ## Verificación Post-Implementación
 
-1. Abrir página principal en una pestaña
-2. Abrir admin panel en otra pestaña
-3. En admin: cambiar nivel de un peleador (ej: Amateur → Profesional)
-4. Verificar que la página principal muestra el cambio sin refrescar
-5. Ir a /fighters y verificar que el nivel actualizado aparece correctamente
+1. Verificar que Mateo ya no aparece en BDG_PRO
+2. Verificar que Mateo aparece en HHF_AMATEUR con sus 4 puntos
+3. Probar cambiar nivel de otro peleador Amateur → Pro y viceversa
+4. Confirmar que la migración automática funciona
+
+---
 
 ## Resumen Técnico
 
-- **Problema**: Falta de suscripciones realtime en componentes públicos
-- **Solución**: Agregar hooks `useRealtimeFighterUpdates` y `useRealtimeRankingUpdates`
-- **Impacto**: Sincronización instantánea en toda la plataforma
-- **Costo**: Mínimo (2 líneas de código por archivo)
-
+- **Error**: La función RPC actualiza niveles sin validar compatibilidad con la organización
+- **Afectado**: 1 peleador (Mateo Starozze)
+- **Solución**: Corrección de datos + lógica de migración automática para Boxeo
+- **Impacto**: Evita futuros errores de inscripción incorrecta
