@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Professional signup confirmation email template
+// Mobile-first signup confirmation email - CTA visible without scroll
 function getSignupEmailHTML(confirmationLink: string, email: string): string {
   return `
 <!DOCTYPE html>
@@ -18,87 +18,66 @@ function getSignupEmailHTML(confirmationLink: string, email: string): string {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confirma tu cuenta en Fighter ID</title>
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .email-container { background-color: #1a1a1a !important; }
+      .email-footer { background-color: #2d2d2d !important; }
+      .email-footer p { color: #9ca3af !important; }
+    }
+  </style>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; background-color: #f5f5f5;">
+  <!-- Preheader text for inbox preview -->
+  <span style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">
+    Toca el botón para activar tu Fighter ID - Solo toma 1 segundo
+  </span>
+  
   <table role="presentation" style="width: 100%; border-collapse: collapse;">
     <tr>
-      <td align="center" style="padding: 40px 0;">
-        <table role="presentation" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <!-- Header -->
+      <td align="center" style="padding: 20px 10px;">
+        <table role="presentation" class="email-container" style="width: 100%; max-width: 400px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          
+          <!-- Compact Header -->
           <tr>
-            <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">
+            <td style="padding: 20px 20px 16px; text-align: center; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); border-radius: 12px 12px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 700;">
                 🥊 Fighter ID
               </h1>
-              <p style="margin: 10px 0 0; color: #e0e0e0; font-size: 14px;">
-                Sistema de Licencias Deportivas
+            </td>
+          </tr>
+          
+          <!-- CTA FIRST - Primary Action -->
+          <tr>
+            <td style="padding: 28px 20px 20px; text-align: center;">
+              <p style="margin: 0 0 20px; font-size: 20px; font-weight: 700; color: #1a1a1a;">
+                ¡Activa tu cuenta!
+              </p>
+              
+              <!-- BIG BUTTON - First visible element -->
+              <a href="${confirmationLink}" style="display: block; width: 100%; max-width: 280px; margin: 0 auto 16px; padding: 20px 24px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; text-align: center; border: 3px solid #dc2626; box-sizing: border-box;">
+                CONFIRMAR MI CUENTA
+              </a>
+              
+              <!-- Immediate fallback link -->
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                ¿No funciona? <a href="${confirmationLink}" style="color: #dc2626; font-weight: 600; text-decoration: underline;">Toca aquí</a>
               </p>
             </td>
           </tr>
           
-          <!-- Content -->
+          <!-- Secondary Info - Minimal -->
           <tr>
-            <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 20px; font-weight: 600;">
-                ¡Bienvenido a Fighter ID!
-              </h2>
-              
-              <p style="margin: 0 0 20px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-                Gracias por registrarte en Fighter ID. Estás a un paso de acceder a tu cuenta.
+            <td class="email-footer" style="padding: 16px 20px; background-color: #f9fafb; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: #6b7280; text-align: center;">
+                ⏱️ Este enlace expira en <strong>24 horas</strong>
               </p>
-              
-              <p style="margin: 0 0 30px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
-                Para activar tu cuenta, confirma tu correo electrónico haciendo clic en el botón de abajo:
-              </p>
-              
-              <!-- CTA Button -->
-              <table role="presentation" style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td align="center" style="padding: 0 0 30px;">
-                    <a href="${confirmationLink}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(220, 38, 38, 0.3);">
-                      Confirmar mi cuenta
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              
-              <!-- Alternative link -->
-              <p style="margin: 0 0 20px; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                O copia y pega este enlace en tu navegador:
-              </p>
-              <p style="margin: 0 0 30px; padding: 12px; background-color: #f9fafb; border-radius: 4px; word-break: break-all; font-size: 13px; color: #4b5563;">
-                ${confirmationLink}
-              </p>
-              
-              <!-- Info box -->
-              <div style="padding: 20px; background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; margin-bottom: 20px;">
-                <p style="margin: 0; color: #92400e; font-size: 14px; line-height: 1.5;">
-                  <strong>⏱️ Este enlace es válido por 24 horas.</strong><br>
-                  Después de ese tiempo, tendrás que solicitar un nuevo correo de confirmación.
-                </p>
-              </div>
-              
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                Si no creaste esta cuenta, puedes ignorar este correo de forma segura.
-              </p>
-              
-              <p style="margin: 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
-                <strong>Tu correo:</strong> ${email}
+              <p style="margin: 0; font-size: 12px; color: #9ca3af; text-align: center;">
+                Si no creaste esta cuenta, ignora este correo.<br>
+                Tu email: ${email}
               </p>
             </td>
           </tr>
           
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 30px 40px; background-color: #f9fafb; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
-              <p style="margin: 0 0 10px; color: #6b7280; font-size: 13px; text-align: center;">
-                ¿Necesitas ayuda? Contáctanos en <a href="mailto:soporte@fighter-id.org" style="color: #dc2626; text-decoration: none;">soporte@fighter-id.org</a>
-              </p>
-              <p style="margin: 0; color: #9ca3af; font-size: 12px; text-align: center;">
-                © 2025 Fighter ID. Todos los derechos reservados.
-              </p>
-            </td>
-          </tr>
         </table>
       </td>
     </tr>
@@ -108,33 +87,70 @@ function getSignupEmailHTML(confirmationLink: string, email: string): string {
   `;
 }
 
-// Recovery email template (simplified)
+// Mobile-first recovery email - CTA visible without scroll
 function getRecoveryEmailHTML(resetLink: string, email: string): string {
   return `
-  <!DOCTYPE html>
-  <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Restablece tu contraseña</title></head>
-  <body style="margin:0;padding:0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;background-color:#f5f5f5;">
-    <table role="presentation" style="width:100%;border-collapse:collapse;">
-      <tr><td align="center" style="padding:40px 0;">
-        <table role="presentation" style="width:600px;max-width:100%;background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
-          <tr><td style="padding:32px 40px;background:linear-gradient(135deg,#1a1a1a,#2d2d2d);border-radius:8px 8px 0 0;color:#fff;">
-            <h1 style="margin:0;font-size:22px;font-weight:700;">Fighter ID</h1>
-            <p style="margin:6px 0 0;color:#e0e0e0;font-size:14px;">Recuperación de contraseña</p>
-          </td></tr>
-          <tr><td style="padding:32px 40px;">
-            <p style="margin:0 0 16px;color:#4a4a4a;font-size:16px;">Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.</p>
-            <p style="margin:0 0 24px;color:#4a4a4a;font-size:16px;">Haz clic en el botón para crear una nueva contraseña:</p>
-            <div style="text-align:center;margin:0 0 24px;">
-              <a href="${resetLink}" style="display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;text-decoration:none;border-radius:6px;font-weight:600;">Restablecer contraseña</a>
-            </div>
-            <p style="margin:0 0 10px;color:#6b7280;font-size:14px;">Si no solicitaste este cambio, puedes ignorar este correo.</p>
-            <p style="margin:0;color:#6b7280;font-size:13px;">Tu correo: ${email}</p>
-          </td></tr>
-          <tr><td style="padding:24px 40px;background:#f9fafb;border-radius:0 0 8px 8px;border-top:1px solid #e5e7eb;color:#9ca3af;font-size:12px;text-align:center;">© 2025 Fighter ID</td></tr>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restablece tu contraseña</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif; background-color: #f5f5f5;">
+  <!-- Preheader -->
+  <span style="display: none; max-height: 0; overflow: hidden;">
+    Toca el botón para crear tu nueva contraseña
+  </span>
+  
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 20px 10px;">
+        <table role="presentation" style="width: 100%; max-width: 400px; background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="padding: 20px; text-align: center; background: linear-gradient(135deg, #1a1a1a, #2d2d2d); border-radius: 12px 12px 0 0;">
+              <h1 style="margin: 0; color: #fff; font-size: 22px; font-weight: 700;">Fighter ID</h1>
+            </td>
+          </tr>
+          
+          <!-- CTA FIRST -->
+          <tr>
+            <td style="padding: 28px 20px 20px; text-align: center;">
+              <p style="margin: 0 0 20px; font-size: 20px; font-weight: 700; color: #1a1a1a;">
+                Nueva contraseña
+              </p>
+              
+              <a href="${resetLink}" style="display: block; width: 100%; max-width: 280px; margin: 0 auto 16px; padding: 20px 24px; background: #2563eb; color: #ffffff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 18px; text-align: center; border: 3px solid #2563eb;">
+                RESTABLECER CONTRASEÑA
+              </a>
+              
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">
+                ¿No funciona? <a href="${resetLink}" style="color: #2563eb; font-weight: 600; text-decoration: underline;">Toca aquí</a>
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 16px 20px; background: #f9fafb; border-radius: 0 0 12px 12px; border-top: 1px solid #e5e7eb; text-align: center;">
+              <p style="margin: 0 0 8px; font-size: 13px; color: #6b7280;">
+                ⏱️ Válido por <strong>1 hora</strong>
+              </p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">
+                Si no solicitaste esto, ignora el correo.<br>
+                ${email}
+              </p>
+            </td>
+          </tr>
+          
         </table>
-      </td></tr>
-    </table>
-  </body></html>`;
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 serve(async (req) => {
