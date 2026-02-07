@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit, ExternalLink, CreditCard, ChevronDown } from 'lucide-react';
 import { Crown, Award, Swords } from 'lucide-react';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 import Header from '@/components/Header';
@@ -17,6 +17,8 @@ import { getWeightClassLabel } from '@/lib/constants/disciplines';
 import { useFighterActiveLeagues } from '@/hooks/useFighterActiveLeagues';
 import { MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
 import { supabase } from '@/integrations/supabase/client';
+import { DigitalFighterToken } from '@/components/DigitalFighterToken';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function FighterProfile() {
   const { id } = useParams<{ id: string }>();
@@ -549,19 +551,51 @@ export default function FighterProfile() {
               </CardContent>
             </Card>
 
-            {/* Additional Stats */}
+            {/* Digital License Card */}
             <Card>
-              <CardHeader>
-                <CardTitle>Estado</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">Estado de Licencia</p>
-                  <Badge className={getStatusColor(fighter.license_status)}>
-                    {fighter.license_status === 'active' ? 'Activo' : fighter.license_status}
-                  </Badge>
-                </div>
-              </CardContent>
+              <Collapsible defaultOpen={false}>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="h-5 w-5" />
+                        Licencia Digital
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 [&[data-state=open]]:rotate-180" />
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0">
+                    <DigitalFighterToken 
+                      profile={{
+                        id: fighter.id,
+                        first_name: fighter.first_name,
+                        last_name: fighter.last_name,
+                        nickname: fighter.nickname,
+                        country: fighter.country,
+                        avatar_url: fighter.avatar_url,
+                        weight_class: fighter.weight_class,
+                        discipline: fighter.discipline,
+                        level: fighter.level,
+                        record_wins: fighter.record_wins || 0,
+                        record_losses: fighter.record_losses || 0,
+                        record_draws: fighter.record_draws || 0,
+                        license_number: fighter.license_number,
+                        license_issue_date: fighter.license_issued_date,
+                        license_expiry_date: fighter.license_expires_date,
+                        license_state: fighter.license_status,
+                        active: fighter.active
+                      }}
+                    />
+                    <div className="mt-3 text-center">
+                      <Badge className={getStatusColor(fighter.license_status)}>
+                        {fighter.license_status === 'active' ? 'Licencia Activa' : fighter.license_status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Collapsible>
             </Card>
           </div>
         </div>

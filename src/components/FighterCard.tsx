@@ -163,31 +163,6 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             Debutante
           </Badge>
         )}
-
-        {/* License Info */}
-        <div className="flex items-center justify-between pt-3 mt-3 border-t">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-professional-accent" />
-            <span className="text-sm font-medium">{fighter.license_number}</span>
-          </div>
-          <Badge className={`${getLicenseStatusColor(fighter.license_status)} text-white text-xs`}>
-            {fighter.license_status?.toUpperCase() || 'ACTIVA'}
-          </Badge>
-        </div>
-
-        {/* License Button */}
-        <Button 
-          variant="professional-outline" 
-          size="sm" 
-          className="w-full mt-3 min-h-[44px] touch-manipulation"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/fighters/license/${fighter.id}`);
-          }}
-        >
-          <CreditCard className="h-5 w-5 mr-2 text-professional-accent" />
-          <span className="text-sm">Ver Licencia</span>
-        </Button>
       </CardContent>
     </Card>
   );
