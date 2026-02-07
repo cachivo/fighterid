@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit } from 'lucide-react';
+import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit, ExternalLink } from 'lucide-react';
 import { Crown, Award, Swords } from 'lucide-react';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 import Header from '@/components/Header';
@@ -475,6 +475,55 @@ export default function FighterProfile() {
                       </div>
                     </Link>
                   </div>
+                )}
+
+                {/* External Profile Links */}
+                {(fighter.boxrec_url || fighter.tapology_url) && (
+                  <>
+                    <Separator />
+                    <div>
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <ExternalLink className="h-4 w-4" />
+                        Perfiles Externos
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {fighter.boxrec_url && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            asChild 
+                            className="min-h-[44px] touch-manipulation"
+                          >
+                            <a 
+                              href={fighter.boxrec_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              BoxRec
+                            </a>
+                          </Button>
+                        )}
+                        {fighter.tapology_url && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            asChild
+                            className="min-h-[44px] touch-manipulation"
+                          >
+                            <a 
+                              href={fighter.tapology_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Tapology
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
