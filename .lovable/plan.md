@@ -1,138 +1,99 @@
 
 
-# Plan: Mostrar Enlaces Externos (BoxRec/Tapology) en Perfiles Públicos de Peleadores
+# Plan: Eliminar Redundancia Entre Licencia y Perfil de Peleadores
 
 ## Problema Identificado
 
-Cuando un usuario busca peleadores y accede a un perfil público en `/fighter/:id`, **no se muestran** los enlaces profesionales externos (BoxRec para boxeadores, Tapology para MMA), aunque:
+En el listado de peleadores (`/fighters`), cada tarjeta tiene:
+1. **Click en la tarjeta** → Navega al Perfil (`/fighter/:id`)
+2. **Botón "Ver Licencia"** → Navega a la Licencia (`/fighters/license/:id`)
 
-1. Los campos `boxrec_url` y `tapology_url` están definidos en la interfaz `FighterProfile`
-2. La función `getFighterById` trae correctamente estos datos con `select('*')`
-3. Los enlaces **SÍ aparecen** en otros lugares:
-   - Dashboard de licencia del peleador (`LicenseDashboard.tsx`)
-   - Tarjeta de identificación digital (`EnhancedFighterID.tsx`)
-   - Modal de detalle en admin (`FighterDetailModal.tsx`)
-
-## Solución
-
-Agregar una sección de "Enlaces Profesionales" en la página pública del perfil del peleador (`FighterProfile.tsx`), siguiendo el patrón ya implementado en otros componentes.
+Ambas páginas muestran información casi idéntica (nombre, récord, disciplina, nivel, etc.). La única diferencia es que la licencia muestra una "tarjeta digital" sin información adicional del perfil.
 
 ---
 
-## Cambios Técnicos
+## Solución Propuesta
 
-### Archivo: `src/pages/FighterProfile.tsx`
+Integrar la tarjeta de licencia digital **dentro** del perfil del peleador y eliminar el botón redundante del listado.
 
-**Ubicación**: Dentro de la sección "Perfil del Peleador" (CardContent), después del gimnasio y entrenador.
+### Cambios en `FighterCard.tsx`
 
-```tsx
-// Importar icono de enlace externo
-import { ExternalLink } from 'lucide-react';
+**Eliminar**:
+- El botón "Ver Licencia" que navega a `/fighters/license/:id`
 
-// Nueva sección después del entrenador (línea ~478)
-{/* External Profile Links */}
-{(fighter.boxrec_url || fighter.tapology_url) && (
-  <>
-    <Separator />
-    <div>
-      <h4 className="font-semibold mb-3 flex items-center gap-2">
-        <ExternalLink className="h-4 w-4" />
-        Perfiles Externos
-      </h4>
-      <div className="flex flex-wrap gap-2">
-        {fighter.boxrec_url && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            asChild 
-            className="min-h-[44px] touch-manipulation"
-          >
-            <a 
-              href={fighter.boxrec_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              BoxRec
-            </a>
-          </Button>
-        )}
-        {fighter.tapology_url && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            asChild
-            className="min-h-[44px] touch-manipulation"
-          >
-            <a 
-              href={fighter.tapology_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Tapology
-            </a>
-          </Button>
-        )}
-      </div>
-    </div>
-  </>
-)}
-```
+**Resultado**: Al hacer click en cualquier parte de la tarjeta, el usuario va directamente al perfil completo.
+
+### Cambios en `FighterProfile.tsx` (Perfil Público)
+
+**Agregar**:
+- Una sección de "Licencia Digital" que muestre el componente `DigitalFighterToken` de forma colapsable o en un modal
+- Esto permite ver la tarjeta de identificación oficial desde el perfil sin navegar a otra página
 
 ---
 
-## Comportamiento por Disciplina
-
-| Disciplina | Enlace Principal | Enlace Secundario |
-|------------|------------------|-------------------|
-| **Boxeo** | BoxRec | Tapology (opcional) |
-| **MMA** | Tapology | BoxRec (opcional) |
-
-Ambos enlaces se muestran si están disponibles, ya que algunos peleadores compiten en ambas disciplinas o tienen perfiles en ambas plataformas.
-
----
-
-## Flujo Visual
+## Flujo Mejorado
 
 ```text
-+--------------------------------+
-|     Perfil del Peleador        |
-+--------------------------------+
-| Biografía                      |
-| -------------------------      |
-| Artes Marciales                |
-| -------------------------      |
-| Ligas Activas                  |
-| -------------------------      |
-| Estilo de Pelea                |
-| -------------------------      |
-| Gimnasio                       |
-| -------------------------      |
-| Entrenador                     |
-| -------------------------      |
-| 🔗 Perfiles Externos  (NUEVO)  |
-| [BoxRec] [Tapology]            |
-+--------------------------------+
+ANTES (redundante):
++------------------+     +------------------+
+|  FighterCard     | --> | Ver Licencia     |  (info repetida)
+|  (click tarjeta) | --> | Ver Perfil       |  (info completa)
++------------------+     +------------------+
+
+DESPUÉS (simplificado):
++------------------+     +------------------+
+|  FighterCard     | --> | Perfil Completo  |
+|  (click tarjeta) |     | + Licencia       |
++------------------+     +------------------+
 ```
 
 ---
 
-## Optimización Móvil
+## Archivos a Modificar
 
-- Botones con `min-h-[44px]` para touch targets accesibles
-- `touch-manipulation` para mejor respuesta táctil
-- `flex-wrap` para que los botones fluyan en pantallas pequeñas
-- Atributos `rel="noopener noreferrer"` para seguridad
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/FighterCard.tsx` | Eliminar botón "Ver Licencia" y sección de licencia redundante |
+| `src/pages/FighterProfile.tsx` | Agregar sección/modal de "Licencia Digital" con `DigitalFighterToken` |
+
+---
+
+## Detalle Técnico
+
+### FighterCard.tsx - Eliminar Sección Redundante
+
+Eliminar líneas 167-190:
+- La sección "License Info" con número de licencia y estado
+- El botón "Ver Licencia"
+
+La tarjeta quedará más limpia mostrando solo:
+- Avatar y nombre
+- Record
+- Disciplina y artes marciales
+- Estilo de pelea (si aplica)
+
+### FighterProfile.tsx - Agregar Licencia Digital
+
+Agregar después de la sección de perfil existente:
+- Un acordeón o botón que muestre la tarjeta de licencia digital
+- Utiliza el componente `DigitalFighterToken` existente
+- Opcionalmente mostrar en modal para mejor presentación
+
+---
+
+## Beneficios
+
+1. **Menos confusión** - Un solo destino al hacer click
+2. **Menos código** - Eliminar redundancia de UI
+3. **Mejor UX** - Toda la información en un solo lugar
+4. **Mantiene funcionalidad** - La tarjeta digital sigue disponible desde el perfil
 
 ---
 
 ## Verificación Post-Implementación
 
-1. Ir a `/fighters` y buscar un peleador de **Boxeo** con BoxRec configurado
-2. Abrir su perfil y verificar que aparece el botón "BoxRec"
-3. Buscar un peleador de **MMA** con Tapology configurado
-4. Abrir su perfil y verificar que aparece el botón "Tapology"
-5. Verificar que los enlaces abren en nueva pestaña correctamente
-6. Probar en dispositivo móvil que los botones son fáciles de tocar
+1. Ir a `/fighters` y hacer click en cualquier tarjeta
+2. Verificar que navega directamente al perfil
+3. En el perfil, verificar que existe una forma de ver la licencia digital
+4. Confirmar que no hay botón "Ver Licencia" separado en las tarjetas
 
