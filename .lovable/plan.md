@@ -1,99 +1,178 @@
 
 
-# Plan: Eliminar Redundancia Entre Licencia y Perfil de Peleadores
+# Plan: Rediseñar Email de Confirmación y Flujo de Onboarding
 
-## Problema Identificado
+## Problema Actual
 
-En el listado de peleadores (`/fighters`), cada tarjeta tiene:
-1. **Click en la tarjeta** → Navega al Perfil (`/fighter/:id`)
-2. **Botón "Ver Licencia"** → Navega a la Licencia (`/fighters/license/:id`)
+Los usuarios reportan confusión durante el registro porque:
 
-Ambas páginas muestran información casi idéntica (nombre, récord, disciplina, nivel, etc.). La única diferencia es que la licencia muestra una "tarjeta digital" sin información adicional del perfil.
-
----
-
-## Solución Propuesta
-
-Integrar la tarjeta de licencia digital **dentro** del perfil del peleador y eliminar el botón redundante del listado.
-
-### Cambios en `FighterCard.tsx`
-
-**Eliminar**:
-- El botón "Ver Licencia" que navega a `/fighters/license/:id`
-
-**Resultado**: Al hacer click en cualquier parte de la tarjeta, el usuario va directamente al perfil completo.
-
-### Cambios en `FighterProfile.tsx` (Perfil Público)
-
-**Agregar**:
-- Una sección de "Licencia Digital" que muestre el componente `DigitalFighterToken` de forma colapsable o en un modal
-- Esto permite ver la tarjeta de identificación oficial desde el perfil sin navegar a otra página
+1. **Email de confirmación**: El botón "Confirmar mi cuenta" está muy abajo en el correo (después del encabezado + texto de bienvenida + instrucciones)
+2. **Dispositivos de gama baja**: Usuarios con pantallas pequeñas o emails que no cargan imágenes pierden el botón
+3. **Mucho texto antes de la acción**: El usuario tiene que leer párrafos antes de encontrar qué hacer
 
 ---
 
-## Flujo Mejorado
+## Solución: Email "Mobile-First" con CTA Prominente
+
+### Principios de Diseño
+
+1. **Botón primero**: El CTA debe ser lo PRIMERO que ve el usuario después del logo mínimo
+2. **Sin scroll necesario**: Todo el contenido crítico debe caber en una pantalla móvil (320px)
+3. **Redundancia del enlace**: Mostrar el enlace como texto clickeable inmediatamente debajo del botón
+4. **Diseño simple**: Menos decoración, más acción
+
+---
+
+## Estructura del Nuevo Email
 
 ```text
-ANTES (redundante):
-+------------------+     +------------------+
-|  FighterCard     | --> | Ver Licencia     |  (info repetida)
-|  (click tarjeta) | --> | Ver Perfil       |  (info completa)
-+------------------+     +------------------+
-
-DESPUÉS (simplificado):
-+------------------+     +------------------+
-|  FighterCard     | --> | Perfil Completo  |
-|  (click tarjeta) |     | + Licencia       |
-+------------------+     +------------------+
+┌─────────────────────────────────────┐
+│           FIGHTER ID                │  ← Logo mínimo (40px)
+│      Confirma tu cuenta             │  ← Título directo
+├─────────────────────────────────────┤
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │    CONFIRMAR MI CUENTA      │   │  ← BOTÓN GRANDE (primera cosa visible)
+│  └─────────────────────────────┘   │
+│                                     │
+│  ¿No funciona el botón?            │
+│  Copia este enlace: [link]         │  ← Backup inmediato
+│                                     │
+├─────────────────────────────────────┤
+│  ⏱ Válido por 24 horas             │  ← Info breve
+│  ¿No fuiste tú? Ignora este correo │
+└─────────────────────────────────────┘
 ```
 
 ---
 
-## Archivos a Modificar
+## Cambios Técnicos
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/components/FighterCard.tsx` | Eliminar botón "Ver Licencia" y sección de licencia redundante |
-| `src/pages/FighterProfile.tsx` | Agregar sección/modal de "Licencia Digital" con `DigitalFighterToken` |
+### Archivo: `supabase/functions/send-signup-confirmation/index.ts`
+
+**Cambios en la función `getSignupEmailHTML`:**
+
+1. **Reducir padding superior** del header de 40px a 20px
+2. **Mover el botón CTA** inmediatamente después del encabezado (sin texto introductorio largo)
+3. **Aumentar tamaño del botón** de `padding: 16px 40px` a `padding: 20px 48px`
+4. **Agregar enlace de texto** justo debajo del botón (no al final del email)
+5. **Reducir el texto** de bienvenida a una sola línea
+6. **Usar colores de alto contraste** para el botón (fondo rojo sólido, texto blanco grande)
+
+### Nueva Estructura HTML
+
+```html
+<!-- Header compacto -->
+<tr>
+  <td style="padding: 20px; text-align: center; background: #1a1a1a;">
+    <h1 style="margin: 0; color: #fff; font-size: 22px;">Fighter ID</h1>
+  </td>
+</tr>
+
+<!-- BOTÓN PRIMERO - Sin texto previo -->
+<tr>
+  <td style="padding: 30px 20px; text-align: center;">
+    <p style="margin: 0 0 20px; font-size: 18px; font-weight: 600; color: #1a1a1a;">
+      ¡Activa tu cuenta ahora!
+    </p>
+    
+    <a href="${confirmationLink}" style="
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto 16px;
+      padding: 20px 24px;
+      background: #dc2626;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 18px;
+      text-align: center;
+    ">
+      CONFIRMAR MI CUENTA
+    </a>
+    
+    <!-- Enlace alternativo INMEDIATO -->
+    <p style="margin: 0; font-size: 13px; color: #6b7280;">
+      ¿No funciona? <a href="${confirmationLink}" style="color: #dc2626;">Toca aquí</a>
+    </p>
+  </td>
+</tr>
+
+<!-- Info secundaria -->
+<tr>
+  <td style="padding: 20px; background: #f9fafb; text-align: center;">
+    <p style="margin: 0; font-size: 13px; color: #6b7280;">
+      Este enlace expira en 24 horas.<br>
+      Si no creaste esta cuenta, ignora este correo.
+    </p>
+  </td>
+</tr>
+```
 
 ---
 
-## Detalle Técnico
+## Mejoras Adicionales
 
-### FighterCard.tsx - Eliminar Sección Redundante
+### 1. Soporte para Modo Oscuro
 
-Eliminar líneas 167-190:
-- La sección "License Info" con número de licencia y estado
-- El botón "Ver Licencia"
+Agregar CSS inline para clientes que soportan `@media (prefers-color-scheme: dark)`:
 
-La tarjeta quedará más limpia mostrando solo:
-- Avatar y nombre
-- Record
-- Disciplina y artes marciales
-- Estilo de pelea (si aplica)
+```html
+<style>
+@media (prefers-color-scheme: dark) {
+  .email-body { background-color: #1a1a1a !important; }
+  .email-text { color: #e5e5e5 !important; }
+}
+</style>
+```
 
-### FighterProfile.tsx - Agregar Licencia Digital
+### 2. Fallback sin Imágenes
 
-Agregar después de la sección de perfil existente:
-- Un acordeón o botón que muestre la tarjeta de licencia digital
-- Utiliza el componente `DigitalFighterToken` existente
-- Opcionalmente mostrar en modal para mejor presentación
+El botón actual usa `box-shadow` que algunos clientes ignoran. Agregar borde sólido como fallback:
+
+```css
+border: 3px solid #dc2626;
+```
+
+### 3. Preheader Text
+
+Agregar texto de previsualización que aparece en la bandeja de entrada:
+
+```html
+<span style="display: none; max-height: 0; overflow: hidden;">
+  Toca el botón para activar tu Fighter ID
+</span>
+```
 
 ---
 
-## Beneficios
+## Comparación Visual
 
-1. **Menos confusión** - Un solo destino al hacer click
-2. **Menos código** - Eliminar redundancia de UI
-3. **Mejor UX** - Toda la información en un solo lugar
-4. **Mantiene funcionalidad** - La tarjeta digital sigue disponible desde el perfil
+| Aspecto | ANTES | DESPUÉS |
+|---------|-------|---------|
+| **Líneas antes del botón** | 8+ líneas | 1 línea |
+| **Tamaño del botón** | 16px padding | 20px padding |
+| **Enlace alternativo** | Al final del email | Justo debajo del botón |
+| **Texto total** | ~120 palabras | ~40 palabras |
+| **Scroll necesario (móvil)** | Sí | No |
+
+---
+
+## Email de Recuperación de Contraseña
+
+Aplicar los mismos principios a `getRecoveryEmailHTML`:
+- Botón "RESTABLECER CONTRASEÑA" como primera acción visible
+- Enlace alternativo inmediato
+- Reducir texto innecesario
 
 ---
 
 ## Verificación Post-Implementación
 
-1. Ir a `/fighters` y hacer click en cualquier tarjeta
-2. Verificar que navega directamente al perfil
-3. En el perfil, verificar que existe una forma de ver la licencia digital
-4. Confirmar que no hay botón "Ver Licencia" separado en las tarjetas
+1. **Probar en Gmail móvil** - Verificar que el botón es visible sin scroll
+2. **Probar en Outlook** - Verificar que los estilos inline funcionan
+3. **Probar sin imágenes** - Verificar que el email sigue siendo usable
+4. **Probar el flujo completo** - Registrarse → Confirmar email → Ver redirección a onboarding
 
