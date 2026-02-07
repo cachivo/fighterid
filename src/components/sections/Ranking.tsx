@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { getWeightClassLabel } from "@/lib/constants/disciplines";
+import { getWeightClassLabel, GENDERS, WEIGHT_CLASSES } from "@/lib/constants/disciplines";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, Users, Target, Award, TrendingUp, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOrganizationRanking } from "@/hooks/useOrganizationRanking";
 import { useRankingOrganizations } from "@/hooks/useRankingOrganizations";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
@@ -18,6 +19,8 @@ interface RankingProps {
 
 const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
+  const [selectedGender, setSelectedGender] = useState<string>('');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 10;
   
@@ -25,7 +28,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const { data: rankingData, isLoading } = useOrganizationRanking(
     organizationCode,
     selectedLevel || undefined,
-    undefined,
+    selectedWeightClass || undefined,
+    selectedGender || undefined,
     page,
     PAGE_SIZE
   );
@@ -34,25 +38,32 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
 
   const currentOrg = organizations?.find(org => org.code === organizationCode);
   const availableLevels = currentOrg?.allowed_levels || [];
+  const availableWeightClasses = rankingData?.weightClasses || [];
 
-  // Smart auto-select: choose level with most active fighters
+  // Default to "Profesional" level if available, otherwise first level
   useEffect(() => {
-    if (rankingData && availableLevels.length > 0 && !selectedLevel) {
-      const levelCounts = rankingData.levelCounts;
-      
-      // Sort levels by fighter count (descending) and pick the one with most data
-      const sortedLevels = [...availableLevels].sort((a, b) => 
-        (levelCounts[b] || 0) - (levelCounts[a] || 0)
-      );
-      
-      setSelectedLevel(sortedLevels[0] || availableLevels[0]);
+    if (availableLevels.length > 0 && !selectedLevel) {
+      if (availableLevels.includes('Profesional')) {
+        setSelectedLevel('Profesional');
+      } else if (availableLevels.includes('Semi-profesional')) {
+        setSelectedLevel('Semi-profesional');
+      } else {
+        setSelectedLevel(availableLevels[0]);
+      }
     }
-  }, [availableLevels, selectedLevel, rankingData]);
+  }, [availableLevels, selectedLevel]);
 
-  // Reset page when org or level changes
+  // Reset page and filters when org changes
   useEffect(() => {
     setPage(1);
-  }, [organizationCode, selectedLevel]);
+    setSelectedWeightClass('');
+    setSelectedGender('');
+  }, [organizationCode]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedLevel, selectedWeightClass, selectedGender]);
 
   const rankings = rankingData?.rankings || [];
   const hasMore = rankingData?.hasMore || false;
@@ -158,7 +169,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
           
           {/* Tabs de nivel - Mobile optimized */}
           {availableLevels.length > 0 && (
-            <div className="flex justify-center mb-4 xs:mb-6 px-2">
+            <div className="flex justify-center mb-3 xs:mb-4 px-2">
               <Tabs value={selectedLevel} onValueChange={setSelectedLevel}>
                 <TabsList className="bg-black/60 border border-purple-neon-primary/30 h-10 xs:h-11">
                   {availableLevels.map(level => (
@@ -174,6 +185,45 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
               </Tabs>
             </div>
           )}
+
+          {/* Filtros de peso y género - Mobile optimized */}
+          <div className="flex flex-wrap justify-center gap-2 mb-4 xs:mb-6 px-2">
+            {/* Filtro de Peso */}
+            <Select 
+              value={selectedWeightClass || '__all__'} 
+              onValueChange={(val) => setSelectedWeightClass(val === '__all__' ? '' : val)}
+            >
+              <SelectTrigger className="w-[130px] xs:w-[150px] sm:w-[170px] bg-black/60 border-purple-neon-primary/30 h-10 xs:h-11 text-xs xs:text-sm min-h-[44px] touch-manipulation">
+                <SelectValue placeholder="División" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/95 border-purple-neon-primary/30">
+                <SelectItem value="__all__">Todas las divisiones</SelectItem>
+                {availableWeightClasses.map(wc => (
+                  <SelectItem key={wc} value={wc} className="text-xs xs:text-sm">
+                    {getWeightClassLabel(wc)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Filtro de Género */}
+            <Select 
+              value={selectedGender || '__all__'} 
+              onValueChange={(val) => setSelectedGender(val === '__all__' ? '' : val)}
+            >
+              <SelectTrigger className="w-[110px] xs:w-[130px] sm:w-[140px] bg-black/60 border-purple-neon-primary/30 h-10 xs:h-11 text-xs xs:text-sm min-h-[44px] touch-manipulation">
+                <SelectValue placeholder="Género" />
+              </SelectTrigger>
+              <SelectContent className="bg-black/95 border-purple-neon-primary/30">
+                <SelectItem value="__all__">Todos</SelectItem>
+                {GENDERS.map(g => (
+                  <SelectItem key={g.value} value={g.value} className="text-xs xs:text-sm">
+                    {g.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
           {isLoading && page === 1 ? (
             <div className="space-y-3 sm:space-y-4">
