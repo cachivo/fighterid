@@ -1,70 +1,40 @@
 
 
-# Plan: Lista de Peleas Existentes + Edición + Remoción de Fondo
+# Plan: Buscador y Mejoras en Gestion de Roles
 
-## Problema Identificado
+## Problemas Actuales
 
-En la página **EventosPelea.tsx**, el hook `useFights` está importado pero **nunca se usa**. Esto causa:
-
-1. **No se ven las peleas creadas** - El modal de "Peleas" solo muestra el formulario para crear, pero no hay lista de peleas existentes
-2. **No se pueden editar** - La función `handleEditFight` existe pero nunca se llama porque no hay lista visible
-3. **La remoción de fondo ya funciona automáticamente** - Cuando subes imagen, se procesa con IA, pero esto solo aplica al crear nuevas peleas, no al editar
+1. **Sin buscador** - Si hay muchos usuarios, no hay forma de filtrar por nombre o email
+2. **Carga todos los usuarios de golpe** - Sin paginacion, lo cual no escala bien
+3. **Sin filtro por rol** - No se puede ver rapidamente solo los admins o moderadores
+4. **Sin contador por rol** - No hay estadisticas rapidas de cuantos usuarios tienen cada rol
 
 ---
 
 ## Cambios a Implementar
 
-### 1. Agregar hook `useFights` cuando se selecciona un evento
+### 1. Buscador de texto (nombre/email)
 
-Cuando el usuario abre el modal "Peleas" de un evento, se deben cargar las peleas existentes:
+Agregar un campo de busqueda arriba de la lista que filtre usuarios en tiempo real (client-side, ya que los datos estan cargados):
 
-```typescript
-// Al inicio del componente, después de useEvents:
-const [fightsEventId, setFightsEventId] = useState<string | null>(null);
-const { fights, loading: fightsLoading, refreshFights } = useFights(fightsEventId || undefined);
-```
+- Filtrar por `first_name`, `last_name`, o `email`
+- Busqueda instantanea sin necesidad de llamar a la API
+- Icono de lupa y boton para limpiar busqueda
 
-Y cuando se abre el diálogo:
-```typescript
-onClick={() => {
-  setSelectedEvent(event);
-  setFightsEventId(event.id); // <-- Esto dispara useFights
-  resetFightForm();
-  setShowFightsDialog(true);
-}}
-```
+### 2. Filtro por rol
 
-### 2. Mostrar lista de peleas existentes en el modal
+Agregar botones/tabs para filtrar por rol:
+- **Todos** | **Admin** | **Moderador** | **Usuario** | **Sin rol**
 
-Agregar una sección **arriba del formulario** que muestre las peleas ya creadas:
+### 3. Contadores rapidos (stats)
 
-```
-┌────────────────────────────────────────────────────────────────┐
-│ Peleas - Evento X                                              │
-├────────────────────────────────────────────────────────────────┤
-│ ┌─────────────────────────────────────────────────────────────┐│
-│ │ 📋 PELEAS EXISTENTES (3)                                    ││
-│ ├─────────────────────────────────────────────────────────────┤│
-│ │ #1 │ Juan vs Pedro │ Peso Ligero │ [Editar] [Eliminar]     ││
-│ │ #2 │ Carlos vs Andres │ Peso Medio │ [Editar] [Eliminar]   ││
-│ │ #3 │ Luis vs Mario │ Peso Pesado │ [Editar] [Eliminar]     ││
-│ └─────────────────────────────────────────────────────────────┘│
-│                                                                │
-│ ───────────────── Nueva Pelea / Editar ────────────────────── │
-│                                                                │
-│ [Formulario actual de crear/editar pelea]                      │
-│                                                                │
-└────────────────────────────────────────────────────────────────┘
-```
+Mostrar arriba de la lista un resumen:
+- Total de usuarios
+- Cuantos son admin, moderador, usuario, sin rol
 
-### 3. Botones de Editar y Eliminar por cada pelea
+### 4. Contador de resultados filtrados
 
-- **Editar**: Llama a `handleEditFight(fight)` que ya existe y carga los datos en el formulario
-- **Eliminar**: Confirmar y borrar de la base de datos
-
-### 4. Actualizar `handleSaveFight` para refrescar la lista
-
-Después de guardar una pelea (crear o actualizar), llamar a `refreshFights()` para que la lista se actualice.
+Actualizar el subtitulo de la card para mostrar "Mostrando X de Y usuarios" cuando hay filtro activo.
 
 ---
 
@@ -72,60 +42,64 @@ Después de guardar una pelea (crear o actualizar), llamar a `refreshFights()` p
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Agregar estado para `fightsEventId`, usar `useFights`, mostrar lista de peleas, botones editar/eliminar, refrescar después de guardar |
+| `src/pages/admin/UserRoles.tsx` | Agregar estado de busqueda, filtro por rol, logica de filtrado client-side, stats, y UI del buscador |
+
+No se requieren cambios en el hook `useUserRoles.tsx` ya que el filtrado sera client-side sobre los datos ya cargados.
 
 ---
 
-## Detalles de Implementación
+## Detalles Tecnicos
 
-### A. Estado nuevo para controlar el eventId de peleas
-
-```typescript
-const [fightsEventId, setFightsEventId] = useState<string | null>(null);
-const { fights, loading: fightsLoading, refreshFights } = useFights(fightsEventId || undefined);
-```
-
-### B. Lista de peleas existentes (dentro del Dialog de Peleas)
-
-Se mostrará arriba del formulario con:
-- Número de pelea
-- Nombre de peleadores (registrados o externos)
-- Categoría de peso
-- Estado (scheduled, live, finished)
-- Botones de acción
-
-### C. Función para eliminar pelea
+### Estado nuevo en UserRoles
 
 ```typescript
-const handleDeleteFight = async (fightId: string) => {
-  const { error } = await supabase
-    .from('fights')
-    .delete()
-    .eq('id', fightId);
-  
-  if (!error) {
-    toast({ description: 'Pelea eliminada' });
-    refreshFights();
-  }
-};
+const [searchQuery, setSearchQuery] = useState('');
+const [roleFilter, setRoleFilter] = useState<AppRole | 'all' | 'none'>('all');
 ```
 
-### D. Refrescar después de guardar
+### Logica de filtrado
 
-Al final de `handleSaveFight`:
 ```typescript
-refreshFights(); // Actualizar lista
-resetFightForm();
-// NO cerrar el diálogo para poder seguir agregando peleas
+const filteredUsers = useMemo(() => {
+  return users.filter(user => {
+    // Filtro de texto
+    const matchesSearch = !searchQuery || 
+      user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Filtro de rol
+    const matchesRole = roleFilter === 'all' ||
+      (roleFilter === 'none' ? user.roles.length === 0 : user.roles.includes(roleFilter));
+    
+    return matchesSearch && matchesRole;
+  });
+}, [users, searchQuery, roleFilter]);
 ```
 
----
+### UI del buscador
 
-## Resultado Esperado
+Se agrega entre el header y la card:
+- Input con icono de Search y boton X para limpiar
+- Fila de badges/botones clickeables para filtrar por rol
+- Stats con conteo por rol
 
-1. **Abrir modal "Peleas"** → Ver lista de peleas existentes del evento
-2. **Click en "Editar"** → Carga datos en el formulario, incluyendo imágenes procesadas previamente
-3. **Subir nueva imagen** → Se procesa automáticamente con IA (ya funciona)
-4. **Guardar** → Se actualiza la lista inmediatamente
-5. **Click en "Eliminar"** → Confirmar y eliminar la pelea
+### Resultado visual esperado
+
+```text
++--------------------------------------------------+
+| Gestion de Roles                                  |
+| Administra los roles y permisos de usuarios       |
++--------------------------------------------------+
+| [🔍 Buscar por nombre o email...            [X]] |
+|                                                    |
+| [Todos(25)] [Admin(2)] [Moderador(3)] [Usuario(18)] [Sin rol(2)] |
++--------------------------------------------------+
+| Usuarios del Sistema                               |
+| Mostrando 25 de 25 usuarios                        |
+|                                                    |
+| Usuario 1 ... [Editar Roles] [Eliminar]            |
+| Usuario 2 ... [Editar Roles] [Eliminar]            |
++--------------------------------------------------+
+```
 
