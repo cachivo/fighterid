@@ -15,7 +15,7 @@ import Footer from '@/components/Footer';
 // Helper function to get country ISO code
 const getCountryCode = (countryCode: string): string => {
   if (!countryCode) return '';
-  
+
   // Map of country names/codes to ISO codes
   const countryMap: Record<string, string> = {
     'Honduras': 'HN',
@@ -44,21 +44,30 @@ const getCountryCode = (countryCode: string): string => {
     'USA': 'US',
     'US': 'US',
     'us': 'US',
-    'United States': 'US',
+    'United States': 'US'
   };
-  
+
   // Get ISO code
   const isoCode = countryMap[countryCode] || countryCode.toUpperCase();
-  
+
   // Return 2-letter code
   return isoCode.length === 2 ? isoCode : '';
 };
-
 const EventDetail = () => {
-  const { eventId } = useParams<{ eventId: string }>();
-  const { events, loading: eventsLoading } = useEvents();
-  const { fights, loading: fightsLoading, error: fightsError } = useFights(eventId);
-  
+  const {
+    eventId
+  } = useParams<{
+    eventId: string;
+  }>();
+  const {
+    events,
+    loading: eventsLoading
+  } = useEvents();
+  const {
+    fights,
+    loading: fightsLoading,
+    error: fightsError
+  } = useFights(eventId);
   const [event, setEvent] = useState(null);
 
   // Debug logging
@@ -73,7 +82,6 @@ const EventDetail = () => {
       fights: fights
     });
   }, [eventId, events, fights, eventsLoading, fightsLoading, fightsError]);
-
   useEffect(() => {
     if (eventId && events.length > 0) {
       const foundEvent = events.find(e => e.id === eventId);
@@ -81,7 +89,6 @@ const EventDetail = () => {
       setEvent(foundEvent || null);
     }
   }, [eventId, events]);
-
   const getStateColor = (state: string) => {
     switch (state) {
       case 'draft':
@@ -94,7 +101,6 @@ const EventDetail = () => {
         return 'bg-secondary text-secondary-foreground';
     }
   };
-
   const getStateText = (state: string) => {
     switch (state) {
       case 'draft':
@@ -107,14 +113,11 @@ const EventDetail = () => {
         return state.toUpperCase();
     }
   };
-
   const getFightTypeColor = (type: string) => {
     return type === 'PROFESSIONAL' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground';
   };
-
   if (eventsLoading || fightsLoading) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-20">
           <div className="animate-pulse space-y-4 sm:space-y-6">
@@ -124,19 +127,14 @@ const EventDetail = () => {
             </div>
             <div className="w-full h-32 bg-muted rounded"></div>
             <div className="grid gap-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="w-full h-24 bg-muted rounded"></div>
-              ))}
+              {[...Array(8)].map((_, i) => <div key={i} className="w-full h-24 bg-muted rounded"></div>)}
             </div>
           </div>
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (!event) {
-    return (
-      <div className="min-h-screen bg-background">
+    return <div className="min-h-screen bg-background">
         <Header />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
@@ -160,12 +158,9 @@ const EventDetail = () => {
           </div>
         </div>
         <Footer />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-black relative">
+  return <div className="min-h-screen bg-black relative">
       {/* Dark spatial background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         {/* Deep space effect */}
@@ -173,15 +168,19 @@ const EventDetail = () => {
         
         {/* Nebula effects */}
         <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-900/8 rounded-full blur-[150px] animate-pulse"></div>
-        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-blue-900/6 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-indigo-900/5 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-blue-900/6 rounded-full blur-[150px] animate-pulse" style={{
+        animationDelay: '2s'
+      }}></div>
+        <div className="absolute bottom-0 left-1/3 w-[700px] h-[700px] bg-indigo-900/5 rounded-full blur-[150px] animate-pulse" style={{
+        animationDelay: '4s'
+      }}></div>
         
         {/* Subtle stars effect */}
         <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: 'radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent), radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.6), transparent), radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4), transparent), radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.7), transparent), radial-gradient(1.5px 1.5px at 90% 60%, rgba(255,255,255,0.5), transparent)',
-          backgroundSize: '200px 200px, 300px 300px, 250px 250px, 280px 280px, 220px 220px',
-          backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px'
-        }}></div>
+        backgroundImage: 'radial-gradient(1.5px 1.5px at 20% 30%, rgba(255,255,255,0.8), transparent), radial-gradient(1.5px 1.5px at 60% 70%, rgba(255,255,255,0.6), transparent), radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.4), transparent), radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.7), transparent), radial-gradient(1.5px 1.5px at 90% 60%, rgba(255,255,255,0.5), transparent)',
+        backgroundSize: '200px 200px, 300px 300px, 250px 250px, 280px 280px, 220px 220px',
+        backgroundPosition: '0 0, 40px 60px, 130px 270px, 70px 100px, 150px 50px'
+      }}></div>
         
         {/* Subtle vignette for depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
@@ -222,37 +221,31 @@ const EventDetail = () => {
                 {event.name}
               </h1>
               
-              {event.description && (
-                <p className="text-lg text-gray-200 mb-4">
+              {event.description && <p className="text-lg text-gray-200 mb-4">
                   {event.description}
-                </p>
-              )}
+                </p>}
               
               <div className="flex flex-wrap gap-4 text-sm text-gray-300">
-                {event.venue && (
-                  <div className="flex items-center gap-2">
+                {event.venue && <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4" />
                     <span>{event.venue}</span>
-                  </div>
-                )}
+                  </div>}
                 
-                {event.start_time && (
-                  <div className="flex items-center gap-2">
+                {event.start_time && <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
                     <span>
-                      {format(new Date(event.start_time), 'PPP', { locale: es })}
+                      {format(new Date(event.start_time), 'PPP', {
+                    locale: es
+                  })}
                     </span>
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
             
-            {event.state === 'live' && (
-              <Button size="lg" className="animate-pulse">
+            {event.state === 'live' && <Button size="lg" className="animate-pulse">
                 <Trophy className="w-5 h-5 mr-2" />
                 Ver EN VIVO
-              </Button>
-            )}
+              </Button>}
           </div>
         </div>
         </section>
@@ -266,11 +259,7 @@ const EventDetail = () => {
         <div className="container mx-auto px-4 relative z-10">
           {/* UCC Logo Header */}
           <div className="flex flex-col items-center mb-12">
-            <img 
-              src="/lovable-uploads/ucc-logo-transparent.png" 
-              alt="UCC Logo"
-              className="w-48 md:w-64 mb-6 animate-fade-in opacity-90"
-            />
+            <img src="/lovable-uploads/ucc-logo-transparent.png" alt="UCC Logo" className="w-48 md:w-64 mb-6 animate-fade-in opacity-90" />
             <div className="text-center space-y-2">
               <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-2xl animate-fade-in">
                 FIGHT CARD
@@ -285,22 +274,16 @@ const EventDetail = () => {
             </div>
           </div>
 
-          {fights.length === 0 ? (
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          {fights.length === 0 ? <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
               <CardContent className="py-12 text-center">
                 <Trophy className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-white">No hay peleas programadas</h3>
                 <p className="text-gray-300">Las peleas se añadirán próximamente.</p>
               </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-8">
-              {fights.map((fight, index) => (
-                <div 
-                  key={fight.id}
-                  className="relative group animate-fade-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
+            </Card> : <div className="space-y-8">
+              {fights.map((fight, index) => <div key={fight.id} className="relative group animate-fade-in" style={{
+            animationDelay: `${index * 0.1}s`
+          }}>
                   {/* Fight Card Container */}
                   <Card className="relative border-2 border-primary/20 bg-gradient-to-br from-gray-950/80 to-black/70 backdrop-blur-md hover:border-primary/40 transition-all duration-300 overflow-visible shadow-xl hover:shadow-2xl hover:shadow-primary/20">
                     {/* Glow Effect */}
@@ -308,11 +291,7 @@ const EventDetail = () => {
                     
                     {/* UCC Logo Watermark in Card */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-                      <img 
-                        src="/lovable-uploads/ucc-logo-transparent.png" 
-                        alt="UCC"
-                        className="w-64 h-64 object-contain"
-                      />
+                      <img src="/lovable-uploads/ucc-logo-transparent.png" alt="UCC" className="w-64 h-64 object-contain" />
                     </div>
                     
                     <CardHeader className="relative p-3 sm:p-4 md:pb-4 border-b border-primary/10">
@@ -321,16 +300,12 @@ const EventDetail = () => {
                           <Badge variant="outline" className="text-xl sm:text-2xl font-black px-3 sm:px-4 py-1.5 sm:py-2 border-2 border-primary/30 bg-primary/10 text-white">
                             #{fight.fight_number}
                           </Badge>
-                          {fight.card_position === 'main_event' && (
-                            <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0 shadow-lg shadow-yellow-500/50 animate-pulse flex items-center gap-1">
+                          {fight.card_position === 'main_event' && <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white border-0 shadow-lg shadow-yellow-500/50 animate-pulse flex items-center gap-1">
                               PELEA ESTELAR
-                            </Badge>
-                          )}
-                          {fight.card_position === 'co_main_event' && (
-                            <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/50 flex items-center gap-1">
+                            </Badge>}
+                          {fight.card_position === 'co_main_event' && <Badge className="text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white border-0 shadow-lg shadow-purple-500/50 flex items-center gap-1">
                               CO-ESTELAR
-                            </Badge>
-                          )}
+                            </Badge>}
                           <Badge className={`${getFightTypeColor(fight.fight_type)} px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-xs sm:text-sm`}>
                             {fight.fight_type}
                           </Badge>
@@ -340,14 +315,12 @@ const EventDetail = () => {
                           </Badge>
                         </div>
                         
-                        {fight.scheduled_time && (
-                          <div className="flex items-center gap-2 text-sm text-gray-200 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                        {fight.scheduled_time && <div className="flex items-center gap-2 text-sm text-gray-200 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
                             <Clock className="w-4 h-4" />
                             <span className="font-semibold">
                               {format(new Date(fight.scheduled_time), 'HH:mm')}
                             </span>
-                          </div>
-                        )}
+                          </div>}
                       </div>
                     </CardHeader>
                   
@@ -362,27 +335,19 @@ const EventDetail = () => {
                             </Badge>
                             <div className="relative w-full max-w-[120px] h-[140px] flex items-end justify-center">
                               {/* Country Code Background */}
-                              {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
+                              {(fight.fighter_a?.country || fight.fighter_a_external?.country) && <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
                                   <span className="text-[3.5rem] sm:text-[4rem] font-black text-white">
                                     {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
                                   </span>
-                                </div>
-                              )}
-                              {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
-                                <img 
-                                  src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
-                                  alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
-                                  className="relative h-full w-auto object-contain mix-blend-lighten"
-                                  style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))', backgroundColor: 'transparent' }}
-                                />
-                              ) : (
-                                <div className="h-full w-full bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border border-red-500/30">
+                                </div>}
+                              {fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url ? <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative h-full w-auto object-contain mix-blend-lighten" style={{
+                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))',
+                          backgroundColor: 'transparent'
+                        }} /> : <div className="h-full w-full bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border border-red-500/30">
                                   <span className="text-4xl font-bold text-white">
                                     {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
                                   </span>
-                                </div>
-                              )}
+                                </div>}
                             </div>
                             <div className="mt-2 text-center max-w-[140px]">
                               <p className="text-xs font-bold text-white truncate">
@@ -397,11 +362,7 @@ const EventDetail = () => {
 
                           {/* VS - Mobile */}
                           <div className="flex flex-col items-center px-2">
-                            <img 
-                              src="/lovable-uploads/ucc-logo-transparent.png" 
-                              alt="VS"
-                              className="w-10 h-10 opacity-70"
-                            />
+                            <img src="/lovable-uploads/ucc-logo-transparent.png" alt="VS" className="w-10 h-10 opacity-70" />
                             <div className="text-2xl font-black bg-gradient-to-r from-red-500 via-primary to-blue-500 bg-clip-text text-transparent">
                               VS
                             </div>
@@ -414,27 +375,19 @@ const EventDetail = () => {
                             </Badge>
                             <div className="relative w-full max-w-[120px] h-[140px] flex items-end justify-center">
                               {/* Country Code Background */}
-                              {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
+                              {(fight.fighter_b?.country || fight.fighter_b_external?.country) && <div className="absolute inset-0 flex items-center justify-center opacity-15 select-none pointer-events-none">
                                   <span className="text-[3.5rem] sm:text-[4rem] font-black text-white">
                                     {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
                                   </span>
-                                </div>
-                              )}
-                              {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
-                              <img 
-                                src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
-                                alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
-                                className="relative h-full w-auto object-contain mix-blend-lighten"
-                                style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))', backgroundColor: 'transparent' }}
-                              />
-                              ) : (
-                                <div className="h-full w-full bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border border-blue-500/30">
+                                </div>}
+                              {fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url ? <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative h-full w-auto object-contain mix-blend-lighten" style={{
+                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))',
+                          backgroundColor: 'transparent'
+                        }} /> : <div className="h-full w-full bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border border-blue-500/30">
                                   <span className="text-4xl font-bold text-white">
                                     {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
                                   </span>
-                                </div>
-                              )}
+                                </div>}
                             </div>
                             <div className="mt-2 text-center max-w-[140px]">
                               <p className="text-xs font-bold text-white truncate">
@@ -464,13 +417,11 @@ const EventDetail = () => {
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-2/3 bg-gradient-to-t from-red-500/20 via-transparent to-transparent blur-2xl"></div>
                             
                             {/* Country Code Background */}
-                            {(fight.fighter_a?.country || fight.fighter_a_external?.country) && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                            {(fight.fighter_a?.country || fight.fighter_a_external?.country) && <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
                                 <span className="text-[12rem] md:text-[18rem] font-black text-white leading-none filter drop-shadow-2xl">
                                   {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
                                 </span>
-                              </div>
-                            )}
+                              </div>}
                             
                             {/* Stage/Platform Effect */}
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-8 bg-gradient-to-t from-border/30 to-transparent rounded-full blur-xl"></div>
@@ -478,44 +429,27 @@ const EventDetail = () => {
                             <HoverCard>
                               <HoverCardTrigger asChild>
                                 <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20 transition-transform duration-500 hover:scale-110 group-hover/fighter:brightness-110">
-                                  {(fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url) ? (
-                                    <div className="relative">
+                                  {fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url ? <div className="relative">
                                       {/* Red corner glow */}
                                       <div className="absolute -inset-4 bg-red-500/20 blur-2xl rounded-full animate-pulse"></div>
-                                       <img 
-                                         src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
-                                         alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
-                                         className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten"
-                                         style={{ 
-                                           filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(239,68,68,0.3))',
-                                           backgroundColor: 'transparent'
-                                         }}
-                                       />
-                                    </div>
-                                   ) : (
-                                     <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-red-500/30 shadow-2xl backdrop-blur-sm">
+                                       <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten" style={{
+                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(239,68,68,0.3))',
+                                backgroundColor: 'transparent'
+                              }} />
+                                    </div> : <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-red-500/30 shadow-2xl backdrop-blur-sm">
                                        <span className="text-7xl font-bold text-white drop-shadow-lg">
                                          {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
                                        </span>
-                                     </div>
-                                   )}
+                                     </div>}
                                 </div>
                               </HoverCardTrigger>
                             <HoverCardContent className="w-80">
-                              {fight.fighter_a ? (
-                                <FighterMiniature fighter={fight.fighter_a} />
-                              ) : fight.fighter_a_external && (
-                                <div className="space-y-2">
+                              {fight.fighter_a ? <FighterMiniature fighter={fight.fighter_a} /> : fight.fighter_a_external && <div className="space-y-2">
                                   <h4 className="font-semibold">{fight.fighter_a_external.name}</h4>
-                                  {fight.fighter_a_external.nickname && (
-                                    <p className="text-sm text-muted-foreground">"{fight.fighter_a_external.nickname}"</p>
-                                  )}
-                                  {fight.fighter_a_external.gym && (
-                                    <p className="text-xs text-muted-foreground">{fight.fighter_a_external.gym}</p>
-                                  )}
+                                  {fight.fighter_a_external.nickname && <p className="text-sm text-muted-foreground">"{fight.fighter_a_external.nickname}"</p>}
+                                  {fight.fighter_a_external.gym && <p className="text-xs text-muted-foreground">{fight.fighter_a_external.gym}</p>}
                                   <Badge variant="secondary">Peleador Invitado</Badge>
-                                </div>
-                              )}
+                                </div>}
                             </HoverCardContent>
                           </HoverCard>
                         </div>
@@ -531,23 +465,17 @@ const EventDetail = () => {
                                 {fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name}
                               </h3>
                               
-                              {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && (
-                                <p className="text-sm font-semibold text-gray-300 truncate italic">
+                              {(fight.fighter_a?.nickname || fight.fighter_a_external?.nickname) && <p className="text-sm font-semibold text-gray-300 truncate italic">
                                   "{fight.fighter_a?.nickname || fight.fighter_a_external?.nickname}"
-                                </p>
-                              )}
+                                </p>}
                               
                               <div className="flex items-center justify-center gap-2 pt-2">
-                                {fight.fighter_a ? (
-                                  <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
+                                {fight.fighter_a ? <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
                                     <Shield className="w-3 h-3 mr-1" />
                                     VERIFICADO
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
+                                  </Badge> : <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
                                     INVITADO
-                                  </Badge>
-                                )}
+                                  </Badge>}
                               </div>
                               
                               <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-white/10">
@@ -560,15 +488,13 @@ const EventDetail = () => {
                                   <span className="text-xs">D:</span>
                                   {fight.fighter_a?.record_losses || fight.fighter_a_external?.record?.losses || 0}
                                 </span>
-                                {((fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws || 0) > 0) && (
-                                  <>
+                                {(fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws || 0) > 0 && <>
                                     <span className="text-gray-300">•</span>
                                     <span className="text-yellow-400 flex items-center gap-1">
                                       <span className="text-xs">E:</span>
                                       {fight.fighter_a?.record_draws || fight.fighter_a_external?.record?.draws}
                                     </span>
-                                  </>
-                                )}
+                                  </>}
                               </div>
                             </div>
                           </div>
@@ -582,11 +508,7 @@ const EventDetail = () => {
                             
                             {/* UCC Logo in VS */}
                             <div className="relative flex flex-col items-center gap-4">
-                              <img 
-                                src="/lovable-uploads/ucc-logo-transparent.png" 
-                                alt="VS"
-                                className="w-16 h-16 md:w-24 md:h-24 opacity-80 animate-pulse"
-                              />
+                              <img alt="VS" className="w-16 h-16 md:w-24 md:h-24 opacity-80 animate-pulse" src="/lovable-uploads/8d2ed2c0-f2be-4577-9514-8e96c6c99034.png" />
                               <div className="text-5xl md:text-6xl font-black bg-gradient-to-r from-red-500 via-primary to-blue-500 bg-clip-text text-transparent tracking-wider drop-shadow-2xl">
                                 VS
                               </div>
@@ -594,14 +516,14 @@ const EventDetail = () => {
                             
                             {/* Lightning bolts */}
                             <div className="absolute -left-8 top-1/2 -translate-y-1/2 text-4xl opacity-50 animate-pulse text-yellow-400">|</div>
-                            <div className="absolute -right-8 top-1/2 -translate-y-1/2 text-4xl opacity-50 animate-pulse text-yellow-400" style={{ animationDelay: '0.5s' }}>|</div>
+                            <div className="absolute -right-8 top-1/2 -translate-y-1/2 text-4xl opacity-50 animate-pulse text-yellow-400" style={{
+                        animationDelay: '0.5s'
+                      }}>|</div>
                           </div>
                           
-                          {fight.status !== 'scheduled' && (
-                            <Badge variant="outline" className="mt-4 font-bold px-4 py-2">
+                          {fight.status !== 'scheduled' && <Badge variant="outline" className="mt-4 font-bold px-4 py-2">
                               {fight.status.toUpperCase()}
-                            </Badge>
-                          )}
+                            </Badge>}
                         </div>
 
                         {/* Fighter B - Desktop Only */}
@@ -619,13 +541,11 @@ const EventDetail = () => {
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-2/3 bg-gradient-to-t from-blue-500/20 via-transparent to-transparent blur-2xl"></div>
                             
                             {/* Country Code Background */}
-                            {(fight.fighter_b?.country || fight.fighter_b_external?.country) && (
-                              <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
+                            {(fight.fighter_b?.country || fight.fighter_b_external?.country) && <div className="absolute inset-0 flex items-center justify-center opacity-20 select-none pointer-events-none z-0">
                                 <span className="text-[12rem] md:text-[18rem] font-black text-white leading-none filter drop-shadow-2xl">
                                   {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
                                 </span>
-                              </div>
-                            )}
+                              </div>}
                             
                             {/* Stage/Platform Effect */}
                             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-8 bg-gradient-to-t from-border/30 to-transparent rounded-full blur-xl"></div>
@@ -633,44 +553,27 @@ const EventDetail = () => {
                             <HoverCard>
                               <HoverCardTrigger asChild>
                                 <div className="cursor-pointer absolute bottom-0 left-1/2 -translate-x-1/2 z-20 transition-transform duration-500 hover:scale-110 group-hover/fighter:brightness-110">
-                                  {(fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url) ? (
-                                    <div className="relative">
+                                  {fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url ? <div className="relative">
                                       {/* Blue corner glow */}
                                       <div className="absolute -inset-4 bg-blue-500/20 blur-2xl rounded-full animate-pulse"></div>
-                                       <img 
-                                         src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`}
-                                         alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
-                                         className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten"
-                                         style={{ 
-                                           filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(59,130,246,0.3))',
-                                           backgroundColor: 'transparent'
-                                         }}
-                                       />
-                                    </div>
-                                   ) : (
-                                     <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-blue-500/30 shadow-2xl backdrop-blur-sm">
+                                       <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten" style={{
+                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(59,130,246,0.3))',
+                                backgroundColor: 'transparent'
+                              }} />
+                                    </div> : <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-blue-500/30 shadow-2xl backdrop-blur-sm">
                                        <span className="text-7xl font-bold text-white drop-shadow-lg">
                                          {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
                                        </span>
-                                     </div>
-                                   )}
+                                     </div>}
                                 </div>
                               </HoverCardTrigger>
                             <HoverCardContent className="w-80">
-                              {fight.fighter_b ? (
-                                <FighterMiniature fighter={fight.fighter_b} />
-                              ) : fight.fighter_b_external && (
-                                <div className="space-y-2">
+                              {fight.fighter_b ? <FighterMiniature fighter={fight.fighter_b} /> : fight.fighter_b_external && <div className="space-y-2">
                                   <h4 className="font-semibold">{fight.fighter_b_external.name}</h4>
-                                  {fight.fighter_b_external.nickname && (
-                                    <p className="text-sm text-muted-foreground">"{fight.fighter_b_external.nickname}"</p>
-                                  )}
-                                  {fight.fighter_b_external.gym && (
-                                    <p className="text-xs text-muted-foreground">{fight.fighter_b_external.gym}</p>
-                                  )}
+                                  {fight.fighter_b_external.nickname && <p className="text-sm text-muted-foreground">"{fight.fighter_b_external.nickname}"</p>}
+                                  {fight.fighter_b_external.gym && <p className="text-xs text-muted-foreground">{fight.fighter_b_external.gym}</p>}
                                   <Badge variant="secondary">Peleador Invitado</Badge>
-                                </div>
-                              )}
+                                </div>}
                             </HoverCardContent>
                             </HoverCard>
                           </div>
@@ -686,23 +589,17 @@ const EventDetail = () => {
                                 {fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
                               </h3>
                               
-                              {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && (
-                                <p className="text-sm font-semibold text-gray-300 truncate italic">
+                              {(fight.fighter_b?.nickname || fight.fighter_b_external?.nickname) && <p className="text-sm font-semibold text-gray-300 truncate italic">
                                   "{fight.fighter_b?.nickname || fight.fighter_b_external?.nickname}"
-                                </p>
-                              )}
+                                </p>}
                               
                               <div className="flex items-center justify-center gap-2 pt-2">
-                                {fight.fighter_b ? (
-                                  <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
+                                {fight.fighter_b ? <Badge className="bg-green-600/20 text-green-400 border-green-600/40 font-bold px-3 py-1">
                                     <Shield className="w-3 h-3 mr-1" />
                                     VERIFICADO
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
+                                  </Badge> : <Badge variant="outline" className="font-bold px-3 py-1 text-white border-white/30">
                                     INVITADO
-                                  </Badge>
-                                )}
+                                  </Badge>}
                               </div>
                               
                               <div className="flex justify-center items-center gap-3 text-base font-bold pt-2 border-t border-white/10">
@@ -715,15 +612,13 @@ const EventDetail = () => {
                                   <span className="text-xs">D:</span>
                                   {fight.fighter_b?.record_losses || fight.fighter_b_external?.record?.losses || 0}
                                 </span>
-                                {((fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws || 0) > 0) && (
-                                  <>
+                                {(fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws || 0) > 0 && <>
                                     <span className="text-gray-300">•</span>
                                     <span className="text-yellow-400 flex items-center gap-1">
                                       <span className="text-xs">E:</span>
                                       {fight.fighter_b?.record_draws || fight.fighter_b_external?.record?.draws}
                                     </span>
-                                  </>
-                                 )}
+                                  </>}
                               </div>
                             </div>
                           </div>
@@ -731,43 +626,32 @@ const EventDetail = () => {
                       </div>
 
                     {/* Winner & Finish */}
-                    {fight.winner_id && (
-                      <div className="mt-8 pt-6 border-t border-white/10 bg-gradient-to-br from-gray-950/50 to-gray-900/40 rounded-lg p-4">
+                    {fight.winner_id && <div className="mt-8 pt-6 border-t border-white/10 bg-gradient-to-br from-gray-950/50 to-gray-900/40 rounded-lg p-4">
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                           <div>
                             <p className="text-sm text-gray-300 mb-1">Ganador</p>
                             <p className="font-bold text-lg text-yellow-400 drop-shadow-lg">
-                              {fight.winner_id === (fight.fighter_a_id || fight.fighter_a_external_id) 
-                                ? (fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name)
-                                : (fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name)
-                              }
+                              {fight.winner_id === (fight.fighter_a_id || fight.fighter_a_external_id) ? fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name : fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name}
                             </p>
                           </div>
                           
-                          {fight.finish_method && (
-                            <div>
+                          {fight.finish_method && <div>
                               <p className="text-sm text-gray-300 mb-1">Método</p>
                               <Badge variant="outline" className="text-sm text-white border-white/30 bg-white/10">
                                 {fight.finish_method}
                                 {fight.finish_round && ` - Round ${fight.finish_round}`}
                                 {fight.finish_time && ` (${fight.finish_time})`}
                               </Badge>
-                            </div>
-                          )}
+                            </div>}
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </CardContent>
                 </Card>
-                </div>
-              ))}
-            </div>
-          )}
+                </div>)}
+            </div>}
         </div>
       </section>
       <Footer />
-    </div>
-  );
+    </div>;
 };
-
 export default EventDetail;
