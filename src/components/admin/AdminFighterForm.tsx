@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CalendarIcon, Trophy, Info, ImageIcon } from 'lucide-react';
+import { Loader2, CalendarIcon, Trophy, Info, ImageIcon, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { FileUpload } from '@/components/ui/file-upload';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,8 +46,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
   const [initialLevel, setInitialLevel] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [removeBackground, setRemoveBackground] = useState(false);
 
-   const [formData, setFormData] = useState<Partial<AdminFighterFormData>>({
+  const [formData, setFormData] = useState<Partial<AdminFighterFormData>>({
      first_name: '',
      last_name: '',
      nickname: '',
@@ -202,7 +204,8 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                 avatarFile,
                 currentUser.id,
                 newFighterId,
-                undefined // No existing avatar
+                undefined, // No existing avatar
+                removeBackground // Pass the background removal option
               );
             }
           } catch (avatarError) {
@@ -407,8 +410,22 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                     maxSize={5}
                     className="mt-2"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Sube una foto del peleador. Se optimizará automáticamente.
+                  
+                  {/* Toggle for AI background removal */}
+                  <div className="flex items-center space-x-2 mt-3 p-3 rounded-lg bg-muted/50 border">
+                    <Switch
+                      id="remove-bg-create"
+                      checked={removeBackground}
+                      onCheckedChange={setRemoveBackground}
+                    />
+                    <Label htmlFor="remove-bg-create" className="flex items-center gap-2 cursor-pointer">
+                      <Wand2 className="w-4 h-4 text-primary" />
+                      <span className="text-sm">Remover fondo automáticamente (IA)</span>
+                    </Label>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Sube una foto del peleador. Activa la opción de IA para fotos sin fondo.
                   </p>
                 </CardContent>
               </Card>

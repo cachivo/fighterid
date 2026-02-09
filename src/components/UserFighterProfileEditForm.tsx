@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
-import { Upload, Save, X, Lock, AlertCircle, ImageIcon } from 'lucide-react';
+import { Upload, Save, X, Lock, AlertCircle, ImageIcon, Wand2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { uploadFighterAvatar } from '@/lib/photoUtils';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +68,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
   const [isLoading, setIsLoading] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [removeBackground, setRemoveBackground] = useState(false);
   const [documentImageFile, setDocumentImageFile] = useState<File | null>(null);
   const [documentImagePreview, setDocumentImagePreview] = useState<string | null>(null);
   const [licenseStatus, setLicenseStatus] = useState<string | null>(null);
@@ -239,7 +241,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
 
         // Incluir avatar si existe
         if (avatarFile) {
-          const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profileId, profile.avatar_url);
+          const newAvatarUrl = await uploadFighterAvatar(avatarFile, user.id, profileId, profile.avatar_url, removeBackground);
           updates.avatar_url = newAvatarUrl;
         }
 
@@ -402,6 +404,19 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   <p className="text-sm text-muted-foreground mt-1">
                     Máximo 5MB. Formatos: JPG, PNG, WebP
                   </p>
+                  
+                  {/* Toggle for AI background removal */}
+                  <div className="flex items-center space-x-2 mt-3 p-3 rounded-lg bg-muted/50 border">
+                    <Switch
+                      id="remove-bg-user"
+                      checked={removeBackground}
+                      onCheckedChange={setRemoveBackground}
+                    />
+                    <Label htmlFor="remove-bg-user" className="flex items-center gap-2 cursor-pointer">
+                      <Wand2 className="w-4 h-4 text-primary" />
+                      <span className="text-sm">Remover fondo con IA</span>
+                    </Label>
+                  </div>
                 </div>
               </div>
             </CardContent>

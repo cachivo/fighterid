@@ -6,12 +6,18 @@ import { toast } from 'sonner';
  * - Uses fighterId for folder path (works for both admin and user uploads)
  * - Admins can upload to any fighter's folder via storage policies
  * - Users can upload to their own folder (auth.uid() match)
+ * @param file - The image file to upload
+ * @param userId - For backwards compatibility - can be the uploading user's ID or fighter's user_id
+ * @param fighterProfileId - The fighter profile ID
+ * @param currentAvatarUrl - Optional current avatar URL for cleanup
+ * @param removeBackground - If true, removes background using AI before upload
  */
 export async function uploadFighterAvatar(
   file: File, 
-  userId: string, // For backwards compatibility - can be the uploading user's ID or fighter's user_id
+  userId: string,
   fighterProfileId: string,
-  currentAvatarUrl?: string
+  currentAvatarUrl?: string,
+  removeBackground: boolean = false
 ): Promise<string | null> {
   console.log('uploadFighterAvatar called with:', {
     fileName: file.name,
@@ -50,13 +56,30 @@ export async function uploadFighterAvatar(
 
     let processedFile = file;
 
-    // Optimize image directly without background removal
-    if (file.type.startsWith('image/')) {
+    // Remove background if requested (using AI)
+    if (removeBackground && file.type.startsWith('image/')) {
+      try {
+        toast.info('Removiendo fondo con IA...');
+        
+        const { removeBackgroundAI } = await import('./backgroundRemovalAI');
+        const noBgBlob = await removeBackgroundAI(file);
+        processedFile = new File([noBgBlob], 'avatar.png', { type: 'image/png' });
+        
+        toast.success('Fondo removido correctamente');
+      } catch (error) {
+        console.warn('Background removal failed, continuing with original:', error);
+        toast.warning('No se pudo remover el fondo, usando imagen original');
+        // Continue with original file if background removal fails
+      }
+    }
+
+    // Optimize image (skip if already processed as PNG with transparent background)
+    if (processedFile.type.startsWith('image/') && processedFile.type !== 'image/png') {
       try {
         toast.info('Optimizando imagen...');
         
         const { resizeImage } = await import('./imageUtils');
-        const optimized = await resizeImage(file, {
+        const optimized = await resizeImage(processedFile, {
           maxWidth: 1024,      // 1024x1024 para peleadores
           maxHeight: 1024,
           quality: 0.95,       // Muy alta calidad para profesionales
@@ -68,9 +91,25 @@ export async function uploadFighterAvatar(
         
         toast.success('Imagen optimizada correctamente');
       } catch (error) {
-        console.warn('Image optimization failed, using original image:', error);
-        toast.warning('No se pudo optimizar la imagen, usando imagen original');
-        // Continue with original file if optimization fails
+        console.warn('Image optimization failed, using processed image:', error);
+        toast.warning('No se pudo optimizar la imagen');
+        // Continue with current file if optimization fails
+      }
+    } else if (removeBackground && processedFile.type === 'image/png') {
+      // For PNG with removed background, just resize without changing format
+      try {
+        const { resizeImage } = await import('./imageUtils');
+        const optimized = await resizeImage(processedFile, {
+          maxWidth: 1024,
+          maxHeight: 1024,
+          quality: 1.0,        // Preserve PNG quality
+          format: 'png',       // Keep as PNG for transparency
+          maintainAspectRatio: true
+        });
+
+        processedFile = optimized.file;
+      } catch (error) {
+        console.warn('PNG resize failed, using as-is:', error);
       }
     }
 

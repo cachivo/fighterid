@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.process-email-queue]
 verify_jwt = false
+
+[functions.remove-image-background]
+verify_jwt = false

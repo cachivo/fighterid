@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CalendarIcon } from 'lucide-react';
+import { Loader2, CalendarIcon, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { useFighterProfiles, FighterProfile, AdminFighterFormData } from '@/hooks/useFighterProfiles';
 import { useFighterActiveLeagues } from '@/hooks/useFighterActiveLeagues';
@@ -60,6 +61,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
   const { data: activeLeagues = [] } = useFighterActiveLeagues(fighter?.id || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [removeBackground, setRemoveBackground] = useState(false);
   const [formData, setFormData] = useState<AdminFighterFormData>({
     first_name: '',
     last_name: '',
@@ -234,7 +236,8 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
             (formData as any)._avatarFile, 
             currentUser.id, // Pass current user's ID - photoUtils will determine folder based on admin status
             fighter.id,
-            fighter.avatar_url
+            fighter.avatar_url,
+            removeBackground // Pass the background removal option
           );
           
           if (avatarUrl) {
@@ -491,6 +494,23 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                         maxSize={5 * 1024 * 1024}
                         className="mt-2"
                       />
+                      
+                      {/* Toggle for AI background removal */}
+                      <div className="flex items-center space-x-2 mt-3 p-3 rounded-lg bg-muted/50 border">
+                        <Switch
+                          id="remove-bg"
+                          checked={removeBackground}
+                          onCheckedChange={setRemoveBackground}
+                        />
+                        <Label htmlFor="remove-bg" className="flex items-center gap-2 cursor-pointer">
+                          <Wand2 className="w-4 h-4 text-primary" />
+                          <span className="text-sm">Remover fondo automáticamente (IA)</span>
+                        </Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Activa esta opción para fotos de cartelera sin fondo
+                      </p>
+                      
                       {formData.avatar_url && (
                         <div className="mt-2">
                           <img 
