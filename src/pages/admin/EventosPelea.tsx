@@ -1545,7 +1545,7 @@ export default function EventosPelea() {
                           id="event-image-a"
                           type="file"
                           accept="image/png,image/jpeg,image/webp"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               const error = validateEventImage(file, true);
@@ -1556,6 +1556,26 @@ export default function EventosPelea() {
                                 setEventImageFileA(file);
                                 setProcessedImageA(null);
                                 setProcessedHashA(null);
+                                // Auto-process with AI
+                                try {
+                                  setProcessingA(true);
+                                  toast({ description: 'Removiendo fondo automáticamente con IA...' });
+                                  const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
+                                  const processedBlob = await removeBackgroundAI(file);
+                                  const { trimTransparentBorders } = await import('@/lib/imageUtils');
+                                  const trimmedFile = await trimTransparentBorders(
+                                    new File([processedBlob], `processed-A.png`, { type: 'image/png' })
+                                  );
+                                  const fileHash = await hashFile(file);
+                                  setProcessedImageA(trimmedFile);
+                                  setProcessedHashA(fileHash);
+                                  toast({ description: '✅ ¡Fondo removido automáticamente!' });
+                                } catch (err) {
+                                  console.error('Auto AI processing error:', err);
+                                  toast({ description: 'Error al procesar. Puedes intentar manualmente.', variant: 'destructive' });
+                                } finally {
+                                  setProcessingA(false);
+                                }
                               }
                             }
                           }}
@@ -1586,17 +1606,25 @@ export default function EventosPelea() {
                           </div>
                         )}
                         
-                        {/* Process with AI button */}
-                        {eventImageFileA && !processedImageA && (
+                        {/* Processing indicator or retry button */}
+                        {processingA && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 bg-muted rounded animate-pulse">
+                            <Wand2 className="w-4 h-4 animate-spin" />
+                            Removiendo fondo con IA...
+                          </div>
+                        )}
+                        
+                        {eventImageFileA && !processedImageA && !processingA && (
                           <Button
                             type="button"
                             size="sm"
                             onClick={() => handleProcessImageWithAI('A')}
                             disabled={processingA}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                            className="w-full"
+                            variant="outline"
                           >
                             <Wand2 className="w-4 h-4 mr-2" />
-                            {processingA ? 'Procesando...' : 'Procesar con IA (1 crédito)'}
+                            Reintentar IA
                           </Button>
                         )}
                       </>
@@ -1641,7 +1669,7 @@ export default function EventosPelea() {
                           id="event-image-b"
                           type="file"
                           accept="image/png,image/jpeg,image/webp"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
                               const error = validateEventImage(file, true);
@@ -1652,6 +1680,26 @@ export default function EventosPelea() {
                                 setEventImageFileB(file);
                                 setProcessedImageB(null);
                                 setProcessedHashB(null);
+                                // Auto-process with AI
+                                try {
+                                  setProcessingB(true);
+                                  toast({ description: 'Removiendo fondo automáticamente con IA...' });
+                                  const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
+                                  const processedBlob = await removeBackgroundAI(file);
+                                  const { trimTransparentBorders } = await import('@/lib/imageUtils');
+                                  const trimmedFile = await trimTransparentBorders(
+                                    new File([processedBlob], `processed-B.png`, { type: 'image/png' })
+                                  );
+                                  const fileHash = await hashFile(file);
+                                  setProcessedImageB(trimmedFile);
+                                  setProcessedHashB(fileHash);
+                                  toast({ description: '✅ ¡Fondo removido automáticamente!' });
+                                } catch (err) {
+                                  console.error('Auto AI processing error:', err);
+                                  toast({ description: 'Error al procesar. Puedes intentar manualmente.', variant: 'destructive' });
+                                } finally {
+                                  setProcessingB(false);
+                                }
                               }
                             }
                           }}
@@ -1682,17 +1730,25 @@ export default function EventosPelea() {
                           </div>
                         )}
                         
-                        {/* Process with AI button */}
-                        {eventImageFileB && !processedImageB && (
+                        {/* Processing indicator or retry button */}
+                        {processingB && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 bg-muted rounded animate-pulse">
+                            <Wand2 className="w-4 h-4 animate-spin" />
+                            Removiendo fondo con IA...
+                          </div>
+                        )}
+                        
+                        {eventImageFileB && !processedImageB && !processingB && (
                           <Button
                             type="button"
                             size="sm"
                             onClick={() => handleProcessImageWithAI('B')}
                             disabled={processingB}
-                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                            className="w-full"
+                            variant="outline"
                           >
                             <Wand2 className="w-4 h-4 mr-2" />
-                            {processingB ? 'Procesando...' : 'Procesar con IA (1 crédito)'}
+                            Reintentar IA
                           </Button>
                         )}
                       </>
