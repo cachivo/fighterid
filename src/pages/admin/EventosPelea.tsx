@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search, Wand2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -108,11 +108,19 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
    const [imageFileB, setImageFileB] = useState<File | undefined>();
     const [eventImageFileA, setEventImageFileA] = useState<File | undefined>();
     const [eventImageFileB, setEventImageFileB] = useState<File | undefined>();
-    
-    // Validation for event images (PNG only)
-    const validateEventImage = (file: File): string | null => {
-      if (file.type !== 'image/png') {
-        return 'Solo se permiten imágenes PNG (sin fondo/transparentes)';
+    const [removeBackgroundA, setRemoveBackgroundA] = useState(false);
+    const [removeBackgroundB, setRemoveBackgroundB] = useState(false);
+     
+    // Validation for event images (accept more formats when using AI removal)
+    const validateEventImage = (file: File, useAIRemoval: boolean): string | null => {
+      const allowedTypes = useAIRemoval 
+        ? ['image/png', 'image/jpeg', 'image/webp', 'image/jpg']
+        : ['image/png'];
+      
+      if (!allowedTypes.includes(file.type)) {
+        return useAIRemoval 
+          ? 'Solo se permiten imágenes PNG, JPG o WebP'
+          : 'Solo se permiten imágenes PNG (sin fondo/transparentes)';
       }
       if (file.size > 5 * 1024 * 1024) { // 5MB max
         return 'La imagen no puede superar 5MB';
@@ -314,11 +322,27 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
        let fighterAEventImageUrl: string | null = editingFight?.fighter_a_event_image_url || null;
        let fighterBEventImageUrl: string | null = editingFight?.fighter_b_event_image_url || null;
  
-        if (eventImageFileA) {
-          // Validate PNG format for event images
-          const validationError = validateEventImage(eventImageFileA);
+         if (eventImageFileA) {
+          // Validate format for event images
+          const validationError = validateEventImage(eventImageFileA, removeBackgroundA);
           if (validationError) {
             throw new Error(validationError);
+          }
+
+          let processedFileA = eventImageFileA;
+          
+          // Remove background with AI if enabled
+          if (removeBackgroundA) {
+            try {
+              toast({ description: 'Removiendo fondo de imagen A con IA...' });
+              const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
+              const processedBlob = await removeBackgroundAI(eventImageFileA);
+              processedFileA = new File([processedBlob], 'fighter-a.png', { type: 'image/png' });
+              toast({ description: '¡Fondo removido correctamente!' });
+            } catch (error) {
+              console.error('Background removal failed for A:', error);
+              toast({ description: 'Error al remover fondo, usando imagen original', variant: 'destructive' });
+            }
           }
 
           const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.png`;
@@ -326,7 +350,7 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
   
           const { error: uploadErrorA } = await supabase.storage
             .from('event-fighter-images')
-            .upload(filePath, eventImageFileA);
+            .upload(filePath, processedFileA);
   
           if (uploadErrorA) throw uploadErrorA;
   
@@ -337,11 +361,27 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
           fighterAEventImageUrl = publicUrlA;
         }
   
-        if (eventImageFileB) {
-          // Validate PNG format for event images
-          const validationError = validateEventImage(eventImageFileB);
+         if (eventImageFileB) {
+          // Validate format for event images
+          const validationError = validateEventImage(eventImageFileB, removeBackgroundB);
           if (validationError) {
             throw new Error(validationError);
+          }
+
+          let processedFileB = eventImageFileB;
+          
+          // Remove background with AI if enabled
+          if (removeBackgroundB) {
+            try {
+              toast({ description: 'Removiendo fondo de imagen B con IA...' });
+              const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
+              const processedBlob = await removeBackgroundAI(eventImageFileB);
+              processedFileB = new File([processedBlob], 'fighter-b.png', { type: 'image/png' });
+              toast({ description: '¡Fondo removido correctamente!' });
+            } catch (error) {
+              console.error('Background removal failed for B:', error);
+              toast({ description: 'Error al remover fondo, usando imagen original', variant: 'destructive' });
+            }
           }
 
           const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.png`;
@@ -349,7 +389,7 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
   
           const { error: uploadErrorB } = await supabase.storage
             .from('event-fighter-images')
-            .upload(filePath, eventImageFileB);
+            .upload(filePath, processedFileB);
   
           if (uploadErrorB) throw uploadErrorB;
   
@@ -528,6 +568,8 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
      setImageFileB(undefined);
      setEventImageFileA(undefined);
      setEventImageFileB(undefined);
+     setRemoveBackgroundA(false);
+     setRemoveBackgroundB(false);
      setEditingFight(null);
    };
  
@@ -1308,15 +1350,15 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="event-image-a">Imagen Peleador A (PNG)</Label>
+                    <Label htmlFor="event-image-a">Imagen Peleador A</Label>
                     <input
                       id="event-image-a"
                       type="file"
-                      accept=".png,image/png"
+                      accept="image/png,image/jpeg,image/webp"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const error = validateEventImage(file);
+                          const error = validateEventImage(file, removeBackgroundA);
                           if (error) {
                             toast({ description: error, variant: 'destructive' });
                             e.target.value = '';
@@ -1327,20 +1369,31 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                       }}
                       className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
+                    <div className="flex items-center space-x-2 mt-2 p-2 rounded bg-muted/50 border">
+                      <Switch
+                        id="remove-bg-a"
+                        checked={removeBackgroundA}
+                        onCheckedChange={setRemoveBackgroundA}
+                      />
+                      <Label htmlFor="remove-bg-a" className="flex items-center gap-1.5 cursor-pointer text-xs">
+                        <Wand2 className="w-3 h-3 text-primary" />
+                        Remover fondo (IA)
+                      </Label>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      PNG transparente, máx. 5MB
+                      {removeBackgroundA ? 'PNG, JPG o WebP - máx. 5MB' : 'Solo PNG sin fondo - máx. 5MB'}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="event-image-b">Imagen Peleador B (PNG)</Label>
+                    <Label htmlFor="event-image-b">Imagen Peleador B</Label>
                     <input
                       id="event-image-b"
                       type="file"
-                      accept=".png,image/png"
+                      accept="image/png,image/jpeg,image/webp"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const error = validateEventImage(file);
+                          const error = validateEventImage(file, removeBackgroundB);
                           if (error) {
                             toast({ description: error, variant: 'destructive' });
                             e.target.value = '';
@@ -1351,8 +1404,19 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                       }}
                       className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                     />
+                    <div className="flex items-center space-x-2 mt-2 p-2 rounded bg-muted/50 border">
+                      <Switch
+                        id="remove-bg-b"
+                        checked={removeBackgroundB}
+                        onCheckedChange={setRemoveBackgroundB}
+                      />
+                      <Label htmlFor="remove-bg-b" className="flex items-center gap-1.5 cursor-pointer text-xs">
+                        <Wand2 className="w-3 h-3 text-primary" />
+                        Remover fondo (IA)
+                      </Label>
+                    </div>
                     <p className="text-xs text-muted-foreground">
-                      PNG transparente, máx. 5MB
+                      {removeBackgroundB ? 'PNG, JPG o WebP - máx. 5MB' : 'Solo PNG sin fondo - máx. 5MB'}
                     </p>
                   </div>
                 </div>

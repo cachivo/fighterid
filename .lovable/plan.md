@@ -1,236 +1,67 @@
-
-
 # Plan: Remoción Automática de Fondo para Fotos de Peleadores
 
-## Problema Identificado
+## ✅ IMPLEMENTADO
 
-Las fotos de perfil de los peleadores tienen fondos negros/oscuros que aparecen en la cartelera del evento, afectando la presentación visual. Esto ocurre porque:
-- Las fotos de perfil (`avatar_url`) se suben sin procesamiento de fondo
-- Cuando no hay imagen específica del evento (`fighter_a_event_image_url`), se usa la foto de perfil
-- El CSS `mix-blend-lighten` no funciona bien con fondos oscuros
-
-## Solución Propuesta
-
-Implementar un servicio de remoción de fondo usando la **API de Lovable (Nano banana)** que puede editar imágenes mediante IA. Este proceso se aplicará automáticamente al subir fotos de peleadores.
+La funcionalidad de remoción automática de fondo con IA ha sido implementada exitosamente.
 
 ---
 
-## Arquitectura de la Solución
+## Resumen de Cambios
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│ FLUJO DE SUBIDA DE IMAGEN DE PELEADOR                               │
-├─────────────────────────────────────────────────────────────────────┤
-│                                                                     │
-│  1. Usuario sube foto ──► 2. Mostrar preview ──► 3. Click "Guardar"│
-│                                                                     │
-│  4. ¿Remover fondo?                                                 │
-│     ├── Checkbox activado ──► 5. Llamar Edge Function               │
-│     │                              │                                │
-│     │                              ▼                                │
-│     │                         Lovable AI API                        │
-│     │                    (google/gemini-2.5-flash-image)            │
-│     │                              │                                │
-│     │                              ▼                                │
-│     │                    6. Imagen sin fondo (PNG)                  │
-│     │                              │                                │
-│     └── Checkbox desactivado ──────┼────────────────────────────────│
-│                                    │                                │
-│                                    ▼                                │
-│                         7. Subir a Supabase Storage                 │
-│                         8. Actualizar avatar_url                    │
-│                                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
+### 1. Edge Function: `remove-image-background`
+**Archivo:** `supabase/functions/remove-image-background/index.ts`
 
----
+- Usa la API de Lovable (google/gemini-2.5-flash-image) para remover fondos
+- Acepta imagen en base64 y devuelve imagen procesada con fondo transparente
+- Maneja errores de rate limit (429) y payment required (402)
 
-## Cambios Técnicos
+### 2. Utilitario: `src/lib/backgroundRemovalAI.ts`
 
-### 1. Nueva Edge Function: `remove-image-background`
+- `removeBackgroundAI(file)`: Función principal que llama la edge function
+- `removeBackgroundWithFeedback(file)`: Versión con toasts de feedback para el usuario
+- Convierte archivos a base64 y viceversa
 
-Crear función que use la API de Lovable para remover fondos:
+### 3. Modificación: `src/lib/photoUtils.ts`
 
-```typescript
-// supabase/functions/remove-image-background/index.ts
+- `uploadFighterAvatar()` ahora acepta parámetro `removeBackground: boolean = false`
+- Si está activado, procesa la imagen con IA antes de subirla
+- Mantiene formato PNG para preservar transparencia
 
-Deno.serve(async (req) => {
-  const { imageBase64 } = await req.json();
-  
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash-image",
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Remove the background from this image completely. Keep only the person/subject. Make the background fully transparent. Output as PNG."
-          },
-          {
-            type: "image_url",
-            image_url: { url: imageBase64 }
-          }
-        ]
-      }],
-      modalities: ["image", "text"]
-    })
-  });
-  
-  const data = await response.json();
-  const processedImage = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  
-  return new Response(JSON.stringify({ processedImage }));
-});
-```
+### 4. UI - Formularios Actualizados
 
-### 2. Nuevo Utilitario: `src/lib/backgroundRemovalAI.ts`
+**FighterEditModal.tsx:**
+- Toggle "Remover fondo automáticamente (IA)" con icono Wand2
+- Se activa al subir nueva foto de perfil
 
-Función para llamar a la Edge Function:
-
-```typescript
-export async function removeBackgroundAI(file: File): Promise<Blob> {
-  // Convertir archivo a base64
-  const base64 = await fileToBase64(file);
-  
-  // Llamar edge function
-  const { data, error } = await supabase.functions.invoke('remove-image-background', {
-    body: { imageBase64: base64 }
-  });
-  
-  if (error) throw error;
-  
-  // Convertir respuesta a Blob
-  return base64ToBlob(data.processedImage);
-}
-```
-
-### 3. Modificar: `src/lib/photoUtils.ts`
-
-Agregar opción de remover fondo antes de subir:
-
-```typescript
-export async function uploadFighterAvatar(
-  file: File, 
-  userId: string,
-  fighterProfileId: string,
-  currentAvatarUrl?: string,
-  removeBackground: boolean = false  // ← Nuevo parámetro
-): Promise<string | null> {
-  
-  let processedFile = file;
-  
-  // Remover fondo si se solicita
-  if (removeBackground && file.type.startsWith('image/')) {
-    toast.info('Removiendo fondo con IA...');
-    const { removeBackgroundAI } = await import('./backgroundRemovalAI');
-    const noBgBlob = await removeBackgroundAI(file);
-    processedFile = new File([noBgBlob], 'avatar.png', { type: 'image/png' });
-    toast.success('Fondo removido correctamente');
-  }
-  
-  // Continuar con el flujo normal...
-}
-```
-
-### 4. Actualizar UI de Subida de Fotos
-
-Agregar checkbox/toggle en los formularios de edición:
-
-**Archivo:** `src/components/admin/FighterEditModal.tsx`
-
-```tsx
-<div className="flex items-center space-x-2">
-  <Switch
-    id="remove-bg"
-    checked={removeBackground}
-    onCheckedChange={setRemoveBackground}
-  />
-  <Label htmlFor="remove-bg" className="flex items-center gap-2">
-    <Wand2 className="w-4 h-4" />
-    Remover fondo automáticamente (IA)
-  </Label>
-</div>
-```
-
-**Archivo:** `src/components/UserFighterProfileEditForm.tsx`
-- Mismo toggle para usuarios normales
-
-**Archivo:** `src/components/admin/AdminFighterForm.tsx`
+**AdminFighterForm.tsx:**
 - Toggle al crear nuevo peleador
+- Permite subir foto y remover fondo en un solo paso
 
-### 5. Actualizar Formulario de Peleas (EventosPelea.tsx)
+**UserFighterProfileEditForm.tsx:**
+- Toggle para que peleadores puedan procesar sus propias fotos
 
-Para imágenes específicas del evento:
-
-```tsx
-<div className="space-y-2">
-  <Label>Imagen Cartelera (Esquina Roja)</Label>
-  <Input
-    type="file"
-    accept="image/png,image/jpeg,image/webp"
-    onChange={handleImageA}
-  />
-  <div className="flex items-center gap-2 text-sm">
-    <Switch checked={removeBackgroundA} onCheckedChange={setRemoveBackgroundA} />
-    <span>Remover fondo automáticamente</span>
-  </div>
-</div>
-```
+**EventosPelea.tsx:**
+- Toggles individuales para imágenes de cartelera (Peleador A y B)
+- Acepta PNG, JPG, WebP cuando la IA está activada
+- Solo PNG cuando no se usa IA
 
 ---
 
-## Archivos a Crear/Modificar
+## Flujo de Uso
 
-| Archivo | Acción | Descripción |
-|---------|--------|-------------|
-| `supabase/functions/remove-image-background/index.ts` | Crear | Edge Function para IA de remoción de fondo |
-| `src/lib/backgroundRemovalAI.ts` | Crear | Utilitario para llamar la edge function |
-| `src/lib/photoUtils.ts` | Modificar | Agregar parámetro `removeBackground` |
-| `src/components/admin/FighterEditModal.tsx` | Modificar | Agregar toggle de remover fondo |
-| `src/components/admin/AdminFighterForm.tsx` | Modificar | Agregar toggle de remover fondo |
-| `src/components/UserFighterProfileEditForm.tsx` | Modificar | Agregar toggle de remover fondo |
-| `src/pages/admin/EventosPelea.tsx` | Modificar | Agregar toggle para imágenes de cartelera |
+1. Usuario sube foto en cualquiera de los formularios
+2. Activa toggle "Remover fondo con IA" si desea fondo transparente
+3. Al guardar:
+   - Se envía imagen a la edge function
+   - Lovable AI procesa y devuelve imagen sin fondo
+   - Se sube a Supabase Storage como PNG
+   - Se actualiza el avatar_url
 
 ---
 
-## Experiencia de Usuario
+## Consideraciones
 
-1. **Admin edita peleador:**
-   - Sube nueva foto
-   - Ve toggle "Remover fondo automáticamente (IA)"
-   - Si activa el toggle, la foto se procesa antes de guardar
-   - Mensaje: "Removiendo fondo..." → "¡Listo! Fondo removido"
-
-2. **Peleador edita su perfil:**
-   - Mismo flujo con toggle opcional
-
-3. **Creación de pelea:**
-   - Al subir imagen de cartelera
-   - Toggle para remover fondo
-   - Útil si el administrador recibe fotos con fondo
-
----
-
-## Consideraciones Técnicas
-
-1. **Límite de tamaño:** Máximo 5MB por imagen para procesar
-2. **Tiempo de procesamiento:** 3-8 segundos dependiendo del tamaño
-3. **Formato de salida:** Siempre PNG para preservar transparencia
-4. **Fallback:** Si falla la IA, usar imagen original y notificar al usuario
-5. **Costo:** La API de Lovable tiene límites, pero es gratuita para uso moderado
-
----
-
-## Validaciones
-
-1. Solo procesar imágenes (no otros tipos de archivo)
-2. Validar tamaño antes de enviar a la IA
-3. Mostrar preview del resultado antes de confirmar (opcional futuro)
-4. Timeout de 30 segundos para la llamada a la IA
-
+- **Límite de tamaño:** 5MB por imagen
+- **Tiempo de procesamiento:** 3-8 segundos
+- **Formato de salida:** PNG con transparencia
+- **Fallback:** Si falla la IA, se usa imagen original con notificación
