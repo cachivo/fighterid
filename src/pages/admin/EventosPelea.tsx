@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search, Wand2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search, Wand2, Palette, Check, X, ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +14,7 @@ import { ExternalFighterForm } from '@/components/admin/ExternalFighterForm';
 import { FileUpload } from '@/components/ui/file-upload';
 import { Switch } from '@/components/ui/switch';
 import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
+import { EventBrandingModal } from '@/components/admin/EventBrandingModal';
  
  import {
    Table,
@@ -66,10 +67,15 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
    avatar_url?: string;
  }
  
- export default function EventosPelea() {
-   const { toast } = useToast();
-   const { user } = useAuth();
-   const { events, loading, createEvent, updateEventState, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+export default function EventosPelea() {
+    const { toast } = useToast();
+    const { user } = useAuth();
+    const { events, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+    console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
+    
+    // Branding modal state
+    const [showBrandingModal, setShowBrandingModal] = useState(false);
+    const [brandingEvent, setBrandingEvent] = useState<BdgEvent | null>(null);
    console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
    
    const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -104,12 +110,80 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
      country: 'Honduras',
      record: { wins: 0, losses: 0, draws: 0 }
    });
-   const [imageFileA, setImageFileA] = useState<File | undefined>();
-   const [imageFileB, setImageFileB] = useState<File | undefined>();
+    const [imageFileA, setImageFileA] = useState<File | undefined>();
+    const [imageFileB, setImageFileB] = useState<File | undefined>();
     const [eventImageFileA, setEventImageFileA] = useState<File | undefined>();
     const [eventImageFileB, setEventImageFileB] = useState<File | undefined>();
     const [removeBackgroundA, setRemoveBackgroundA] = useState(false);
     const [removeBackgroundB, setRemoveBackgroundB] = useState(false);
+    
+    // New states for explicit IA processing
+    const [processedImageA, setProcessedImageA] = useState<File | null>(null);
+    const [processedImageB, setProcessedImageB] = useState<File | null>(null);
+    const [processingA, setProcessingA] = useState(false);
+    const [processingB, setProcessingB] = useState(false);
+    const [processedHashA, setProcessedHashA] = useState<string | null>(null);
+    const [processedHashB, setProcessedHashB] = useState<string | null>(null);
+    
+    // Image source selection: 'upload' | 'profile'
+    const [imageSourceA, setImageSourceA] = useState<'upload' | 'profile'>('upload');
+    const [imageSourceB, setImageSourceB] = useState<'upload' | 'profile'>('upload');
+    
+    // Hash a file for deduplication
+    const hashFile = async (file: File): Promise<string> => {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+    
+    // Process image with AI (explicit button click)
+    const handleProcessImageWithAI = async (corner: 'A' | 'B') => {
+      const file = corner === 'A' ? eventImageFileA : eventImageFileB;
+      if (!file) {
+        toast({ description: 'Primero selecciona una imagen', variant: 'destructive' });
+        return;
+      }
+      
+      const setProcessing = corner === 'A' ? setProcessingA : setProcessingB;
+      const setProcessedImage = corner === 'A' ? setProcessedImageA : setProcessedImageB;
+      const setProcessedHash = corner === 'A' ? setProcessedHashA : setProcessedHashB;
+      const currentHash = corner === 'A' ? processedHashA : processedHashB;
+      
+      try {
+        // Check if already processed (same file)
+        const fileHash = await hashFile(file);
+        if (fileHash === currentHash) {
+          toast({ description: '⚠️ Esta imagen ya fue procesada. No se consumirán créditos adicionales.' });
+          return;
+        }
+        
+        setProcessing(true);
+        toast({ description: `Removiendo fondo con IA (1 crédito)...` });
+        
+        const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
+        const processedBlob = await removeBackgroundAI(file);
+        
+        // Optional: trim transparent borders
+        const { trimTransparentBorders } = await import('@/lib/imageUtils');
+        const trimmedFile = await trimTransparentBorders(
+          new File([processedBlob], `processed-${corner}.png`, { type: 'image/png' })
+        );
+        
+        setProcessedImage(trimmedFile);
+        setProcessedHash(fileHash);
+        
+        toast({ description: '✅ ¡Fondo removido y recortado correctamente!' });
+      } catch (error) {
+        console.error('AI processing error:', error);
+        toast({ 
+          description: 'Error al procesar la imagen. Intenta de nuevo.', 
+          variant: 'destructive' 
+        });
+      } finally {
+        setProcessing(false);
+      }
+    };
      
     // Validation for event images (accept more formats when using AI removal)
     const validateEventImage = (file: File, useAIRemoval: boolean): string | null => {
@@ -319,85 +393,62 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
          }
        }
  
-       let fighterAEventImageUrl: string | null = editingFight?.fighter_a_event_image_url || null;
-       let fighterBEventImageUrl: string | null = editingFight?.fighter_b_event_image_url || null;
- 
-         if (eventImageFileA) {
-          // Validate format for event images
-          const validationError = validateEventImage(eventImageFileA, removeBackgroundA);
-          if (validationError) {
-            throw new Error(validationError);
-          }
+        let fighterAEventImageUrl: string | null = editingFight?.fighter_a_event_image_url || null;
+        let fighterBEventImageUrl: string | null = editingFight?.fighter_b_event_image_url || null;
 
-          let processedFileA = eventImageFileA;
-          
-          // Remove background with AI if enabled
-          if (removeBackgroundA) {
-            try {
-              toast({ description: 'Removiendo fondo de imagen A con IA...' });
-              const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
-              const processedBlob = await removeBackgroundAI(eventImageFileA);
-              processedFileA = new File([processedBlob], 'fighter-a.png', { type: 'image/png' });
-              toast({ description: '¡Fondo removido correctamente!' });
-            } catch (error) {
-              console.error('Background removal failed for A:', error);
-              toast({ description: 'Error al remover fondo, usando imagen original', variant: 'destructive' });
-            }
+        // IMPROVED: Use pre-processed images or fallback to profile
+        if (imageSourceA === 'upload') {
+          const fileToUpload = processedImageA || eventImageFileA;
+          if (fileToUpload) {
+            const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.png`;
+            
+            const { error: uploadErrorA } = await supabase.storage
+              .from('event-fighter-images')
+              .upload(fileName, fileToUpload);
+    
+            if (uploadErrorA) throw uploadErrorA;
+    
+            const { data: { publicUrl: publicUrlA } } = supabase.storage
+              .from('event-fighter-images')
+              .getPublicUrl(fileName);
+    
+            fighterAEventImageUrl = publicUrlA;
           }
-
-          const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.png`;
-          const filePath = `${fileName}`;
-  
-          const { error: uploadErrorA } = await supabase.storage
-            .from('event-fighter-images')
-            .upload(filePath, processedFileA);
-  
-          if (uploadErrorA) throw uploadErrorA;
-  
-          const { data: { publicUrl: publicUrlA } } = supabase.storage
-            .from('event-fighter-images')
-            .getPublicUrl(filePath);
-  
-          fighterAEventImageUrl = publicUrlA;
+        } else if (imageSourceA === 'profile') {
+          // Use profile image - explicitly set to avatar_url so it's stored in the fight record
+          const fighterA = fighterAIsRegistered 
+            ? availableFighters.find(f => f.id === fightData.fighter_a_id)
+            : null;
+          if (fighterA?.avatar_url) {
+            fighterAEventImageUrl = fighterA.avatar_url;
+          }
         }
-  
-         if (eventImageFileB) {
-          // Validate format for event images
-          const validationError = validateEventImage(eventImageFileB, removeBackgroundB);
-          if (validationError) {
-            throw new Error(validationError);
-          }
 
-          let processedFileB = eventImageFileB;
-          
-          // Remove background with AI if enabled
-          if (removeBackgroundB) {
-            try {
-              toast({ description: 'Removiendo fondo de imagen B con IA...' });
-              const { removeBackgroundAI } = await import('@/lib/backgroundRemovalAI');
-              const processedBlob = await removeBackgroundAI(eventImageFileB);
-              processedFileB = new File([processedBlob], 'fighter-b.png', { type: 'image/png' });
-              toast({ description: '¡Fondo removido correctamente!' });
-            } catch (error) {
-              console.error('Background removal failed for B:', error);
-              toast({ description: 'Error al remover fondo, usando imagen original', variant: 'destructive' });
-            }
+        if (imageSourceB === 'upload') {
+          const fileToUpload = processedImageB || eventImageFileB;
+          if (fileToUpload) {
+            const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.png`;
+            
+            const { error: uploadErrorB } = await supabase.storage
+              .from('event-fighter-images')
+              .upload(fileName, fileToUpload);
+    
+            if (uploadErrorB) throw uploadErrorB;
+    
+            const { data: { publicUrl: publicUrlB } } = supabase.storage
+              .from('event-fighter-images')
+              .getPublicUrl(fileName);
+    
+            fighterBEventImageUrl = publicUrlB;
           }
-
-          const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.png`;
-          const filePath = `${fileName}`;
-  
-          const { error: uploadErrorB } = await supabase.storage
-            .from('event-fighter-images')
-            .upload(filePath, processedFileB);
-  
-          if (uploadErrorB) throw uploadErrorB;
-  
-          const { data: { publicUrl: publicUrlB } } = supabase.storage
-            .from('event-fighter-images')
-            .getPublicUrl(filePath);
-  
-          fighterBEventImageUrl = publicUrlB;
+        } else if (imageSourceB === 'profile') {
+          // Use profile image
+          const fighterB = fighterBIsRegistered 
+            ? availableFighters.find(f => f.id === fightData.fighter_b_id)
+            : null;
+          if (fighterB?.avatar_url) {
+            fighterBEventImageUrl = fighterB.avatar_url;
+          }
         }
  
        if (editingFight) {
@@ -564,14 +615,20 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
        country: 'Honduras',
        record: { wins: 0, losses: 0, draws: 0 }
      });
-     setImageFileA(undefined);
-     setImageFileB(undefined);
-     setEventImageFileA(undefined);
-     setEventImageFileB(undefined);
-     setRemoveBackgroundA(false);
-     setRemoveBackgroundB(false);
-     setEditingFight(null);
-   };
+      setImageFileA(undefined);
+      setImageFileB(undefined);
+      setEventImageFileA(undefined);
+      setEventImageFileB(undefined);
+      setRemoveBackgroundA(false);
+      setRemoveBackgroundB(false);
+      setProcessedImageA(null);
+      setProcessedImageB(null);
+      setProcessedHashA(null);
+      setProcessedHashB(null);
+      setImageSourceA('upload');
+      setImageSourceB('upload');
+      setEditingFight(null);
+    };
  
    const handleEditFight = async (fight: any) => {
      const { count } = await supabase
@@ -1016,32 +1073,44 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                        <span className="text-muted-foreground">Sin sede</span>
                      )}
                    </TableCell>
-                   <TableCell>
-                     <div className="flex items-center gap-2">
-                       <Button 
-                         variant="outline" 
-                         size="sm"
-                         onClick={() => {
-                           setSelectedEvent(event);
-                           setEventFighters([]);
-                           setShowFightersDialog(true);
-                         }}
-                       >
-                         <Users className="w-4 h-4 mr-1" />
-                         Peleadores
-                       </Button>
-                       <Button 
-                         variant="outline" 
-                         size="sm"
-                         onClick={() => {
-                           setSelectedEvent(event);
-                           resetFightForm();
-                           setShowFightsDialog(true);
-                         }}
-                       >
-                         <Edit className="w-4 h-4 mr-1" />
-                         Peleas
-                       </Button>
+                    <TableCell>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setBrandingEvent(event);
+                            setShowBrandingModal(true);
+                          }}
+                          className="text-primary border-primary/30"
+                        >
+                          <Palette className="w-4 h-4 mr-1" />
+                          Branding
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEvent(event);
+                            setEventFighters([]);
+                            setShowFightersDialog(true);
+                          }}
+                        >
+                          <Users className="w-4 h-4 mr-1" />
+                          Peleadores
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEvent(event);
+                            resetFightForm();
+                            setShowFightsDialog(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Peleas
+                        </Button>
                        <AlertDialog>
                          <AlertDialogTrigger asChild>
                            <Button variant="outline" size="sm">
@@ -1343,81 +1412,207 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                </div>
               </div>
 
-              {/* Event Images Section */}
+              {/* Event Images Section - IMPROVED */}
               <div className="border-t pt-4 mt-4">
-                <h4 className="font-medium mb-3 text-sm text-muted-foreground">
-                  Imágenes de Cartelera (Opcional - Solo PNG sin fondo)
+                <h4 className="font-medium mb-3 text-sm flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4" />
+                  Imágenes de Cartelera
+                  {selectedEvent?.meta && (selectedEvent.meta as any)?.branding?.require_billboard_images && (
+                    <Badge variant="destructive" className="text-xs">Requeridas</Badge>
+                  )}
                 </h4>
+                
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="event-image-a">Imagen Peleador A</Label>
-                    <input
-                      id="event-image-a"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const error = validateEventImage(file, removeBackgroundA);
-                          if (error) {
-                            toast({ description: error, variant: 'destructive' });
-                            e.target.value = '';
-                          } else {
-                            setEventImageFileA(file);
-                          }
-                        }
-                      }}
-                      className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                    />
-                    <div className="flex items-center space-x-2 mt-2 p-2 rounded bg-muted/50 border">
-                      <Switch
-                        id="remove-bg-a"
-                        checked={removeBackgroundA}
-                        onCheckedChange={setRemoveBackgroundA}
-                      />
-                      <Label htmlFor="remove-bg-a" className="flex items-center gap-1.5 cursor-pointer text-xs">
-                        <Wand2 className="w-3 h-3 text-primary" />
-                        Remover fondo (IA)
-                      </Label>
+                  {/* FIGHTER A IMAGE */}
+                  <div className="space-y-3 p-3 border rounded-lg bg-red-500/5">
+                    <Label className="flex items-center gap-2 text-red-400">
+                      Esquina Roja (Peleador A)
+                    </Label>
+                    
+                    {/* Source selector */}
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={imageSourceA === 'upload' ? 'default' : 'outline'}
+                        onClick={() => setImageSourceA('upload')}
+                        className="flex-1 text-xs"
+                      >
+                        Subir imagen
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={imageSourceA === 'profile' ? 'default' : 'outline'}
+                        onClick={() => setImageSourceA('profile')}
+                        className="flex-1 text-xs"
+                      >
+                        Usar perfil
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {removeBackgroundA ? 'PNG, JPG o WebP - máx. 5MB' : 'Solo PNG sin fondo - máx. 5MB'}
-                    </p>
+                    
+                    {imageSourceA === 'upload' ? (
+                      <>
+                        <input
+                          id="event-image-a"
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const error = validateEventImage(file, true);
+                              if (error) {
+                                toast({ description: error, variant: 'destructive' });
+                                e.target.value = '';
+                              } else {
+                                setEventImageFileA(file);
+                                setProcessedImageA(null);
+                                setProcessedHashA(null);
+                              }
+                            }
+                          }}
+                          className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        />
+                        
+                        {/* Preview with checkerboard for transparency */}
+                        {(processedImageA || eventImageFileA) && (
+                          <div 
+                            className="relative h-24 rounded-lg overflow-hidden"
+                            style={{
+                              backgroundImage: 'linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%)',
+                              backgroundSize: '10px 10px',
+                              backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0px'
+                            }}
+                          >
+                            <img 
+                              src={URL.createObjectURL(processedImageA || eventImageFileA!)} 
+                              alt="Preview A"
+                              className="h-full w-auto mx-auto object-contain"
+                            />
+                            {processedImageA && (
+                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
+                                <Check className="w-3 h-3 mr-1" />
+                                Procesado
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Process with AI button */}
+                        {eventImageFileA && !processedImageA && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => handleProcessImageWithAI('A')}
+                            disabled={processingA}
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                          >
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            {processingA ? 'Procesando...' : 'Procesar con IA (1 crédito)'}
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground p-2 bg-muted rounded">
+                        ⚠️ Se usará la foto de perfil del peleador. Si tiene fondo oscuro, se verá el cuadro negro.
+                      </p>
+                    )}
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="event-image-b">Imagen Peleador B</Label>
-                    <input
-                      id="event-image-b"
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const error = validateEventImage(file, removeBackgroundB);
-                          if (error) {
-                            toast({ description: error, variant: 'destructive' });
-                            e.target.value = '';
-                          } else {
-                            setEventImageFileB(file);
-                          }
-                        }
-                      }}
-                      className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                    />
-                    <div className="flex items-center space-x-2 mt-2 p-2 rounded bg-muted/50 border">
-                      <Switch
-                        id="remove-bg-b"
-                        checked={removeBackgroundB}
-                        onCheckedChange={setRemoveBackgroundB}
-                      />
-                      <Label htmlFor="remove-bg-b" className="flex items-center gap-1.5 cursor-pointer text-xs">
-                        <Wand2 className="w-3 h-3 text-primary" />
-                        Remover fondo (IA)
-                      </Label>
+                  
+                  {/* FIGHTER B IMAGE */}
+                  <div className="space-y-3 p-3 border rounded-lg bg-blue-500/5">
+                    <Label className="flex items-center gap-2 text-blue-400">
+                      Esquina Azul (Peleador B)
+                    </Label>
+                    
+                    {/* Source selector */}
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={imageSourceB === 'upload' ? 'default' : 'outline'}
+                        onClick={() => setImageSourceB('upload')}
+                        className="flex-1 text-xs"
+                      >
+                        Subir imagen
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant={imageSourceB === 'profile' ? 'default' : 'outline'}
+                        onClick={() => setImageSourceB('profile')}
+                        className="flex-1 text-xs"
+                      >
+                        Usar perfil
+                      </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {removeBackgroundB ? 'PNG, JPG o WebP - máx. 5MB' : 'Solo PNG sin fondo - máx. 5MB'}
-                    </p>
+                    
+                    {imageSourceB === 'upload' ? (
+                      <>
+                        <input
+                          id="event-image-b"
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const error = validateEventImage(file, true);
+                              if (error) {
+                                toast({ description: error, variant: 'destructive' });
+                                e.target.value = '';
+                              } else {
+                                setEventImageFileB(file);
+                                setProcessedImageB(null);
+                                setProcessedHashB(null);
+                              }
+                            }
+                          }}
+                          className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        />
+                        
+                        {/* Preview with checkerboard for transparency */}
+                        {(processedImageB || eventImageFileB) && (
+                          <div 
+                            className="relative h-24 rounded-lg overflow-hidden"
+                            style={{
+                              backgroundImage: 'linear-gradient(45deg, #333 25%, transparent 25%), linear-gradient(-45deg, #333 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #333 75%), linear-gradient(-45deg, transparent 75%, #333 75%)',
+                              backgroundSize: '10px 10px',
+                              backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0px'
+                            }}
+                          >
+                            <img 
+                              src={URL.createObjectURL(processedImageB || eventImageFileB!)} 
+                              alt="Preview B"
+                              className="h-full w-auto mx-auto object-contain"
+                            />
+                            {processedImageB && (
+                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
+                                <Check className="w-3 h-3 mr-1" />
+                                Procesado
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Process with AI button */}
+                        {eventImageFileB && !processedImageB && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => handleProcessImageWithAI('B')}
+                            disabled={processingB}
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                          >
+                            <Wand2 className="w-4 h-4 mr-2" />
+                            {processingB ? 'Procesando...' : 'Procesar con IA (1 crédito)'}
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground p-2 bg-muted rounded">
+                        ⚠️ Se usará la foto de perfil del peleador. Si tiene fondo oscuro, se verá el cuadro negro.
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1439,8 +1634,16 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                {editingFight ? 'Actualizar Pelea' : 'Crear Pelea'}
              </Button>
            </DialogFooter>
-         </DialogContent>
-       </Dialog>
-     </div>
-   );
- }
+          </DialogContent>
+        </Dialog>
+        
+        {/* Branding Modal */}
+        <EventBrandingModal
+          open={showBrandingModal}
+          onOpenChange={setShowBrandingModal}
+          event={brandingEvent}
+          onSave={updateEventMeta}
+        />
+      </div>
+    );
+  }

@@ -207,12 +207,42 @@ export function useEvents() {
     }
   };
 
+  const updateEventMeta = async (eventId: string, meta: any) => {
+    try {
+      const { error } = await supabase
+        .from('bdg_event')
+        .update({ meta })
+        .eq('id', eventId);
+
+      if (error) throw error;
+      await fetchEvents();
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Error desconocido');
+    }
+  };
+
+  const updateEvent = async (eventId: string, updates: Partial<BdgEvent>) => {
+    try {
+      const { error } = await supabase
+        .from('bdg_event')
+        .update(updates)
+        .eq('id', eventId);
+
+      if (error) throw error;
+      await fetchEvents();
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Error desconocido');
+    }
+  };
+
   return {
     events,
     loading,
     error,
     createEvent,
+    updateEvent,
     updateEventState,
+    updateEventMeta,
     togglePublishEvent,
     deleteEvent,
     refreshEvents: fetchEvents
