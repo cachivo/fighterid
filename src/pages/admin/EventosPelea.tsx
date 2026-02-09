@@ -106,8 +106,19 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
    });
    const [imageFileA, setImageFileA] = useState<File | undefined>();
    const [imageFileB, setImageFileB] = useState<File | undefined>();
-   const [eventImageFileA, setEventImageFileA] = useState<File | undefined>();
-   const [eventImageFileB, setEventImageFileB] = useState<File | undefined>();
+    const [eventImageFileA, setEventImageFileA] = useState<File | undefined>();
+    const [eventImageFileB, setEventImageFileB] = useState<File | undefined>();
+    
+    // Validation for event images (PNG only)
+    const validateEventImage = (file: File): string | null => {
+      if (file.type !== 'image/png') {
+        return 'Solo se permiten imágenes PNG (sin fondo/transparentes)';
+      }
+      if (file.size > 5 * 1024 * 1024) { // 5MB max
+        return 'La imagen no puede superar 5MB';
+      }
+      return null;
+    };
    
    // Form states
    const [formData, setFormData] = useState({
@@ -303,41 +314,51 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
        let fighterAEventImageUrl: string | null = editingFight?.fighter_a_event_image_url || null;
        let fighterBEventImageUrl: string | null = editingFight?.fighter_b_event_image_url || null;
  
-       if (eventImageFileA) {
-         const fileExt = eventImageFileA.name.split('.').pop();
-         const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.${fileExt}`;
-         const filePath = `${fileName}`;
- 
-         const { error: uploadErrorA } = await supabase.storage
-           .from('event-fighter-images')
-           .upload(filePath, eventImageFileA);
- 
-         if (uploadErrorA) throw uploadErrorA;
- 
-         const { data: { publicUrl: publicUrlA } } = supabase.storage
-           .from('event-fighter-images')
-           .getPublicUrl(filePath);
- 
-         fighterAEventImageUrl = publicUrlA;
-       }
- 
-       if (eventImageFileB) {
-         const fileExt = eventImageFileB.name.split('.').pop();
-         const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.${fileExt}`;
-         const filePath = `${fileName}`;
- 
-         const { error: uploadErrorB } = await supabase.storage
-           .from('event-fighter-images')
-           .upload(filePath, eventImageFileB);
- 
-         if (uploadErrorB) throw uploadErrorB;
- 
-         const { data: { publicUrl: publicUrlB } } = supabase.storage
-           .from('event-fighter-images')
-           .getPublicUrl(filePath);
- 
-         fighterBEventImageUrl = publicUrlB;
-       }
+        if (eventImageFileA) {
+          // Validate PNG format for event images
+          const validationError = validateEventImage(eventImageFileA);
+          if (validationError) {
+            throw new Error(validationError);
+          }
+
+          const fileName = `${Date.now()}-fighter-a-${Math.random().toString(36).substring(7)}.png`;
+          const filePath = `${fileName}`;
+  
+          const { error: uploadErrorA } = await supabase.storage
+            .from('event-fighter-images')
+            .upload(filePath, eventImageFileA);
+  
+          if (uploadErrorA) throw uploadErrorA;
+  
+          const { data: { publicUrl: publicUrlA } } = supabase.storage
+            .from('event-fighter-images')
+            .getPublicUrl(filePath);
+  
+          fighterAEventImageUrl = publicUrlA;
+        }
+  
+        if (eventImageFileB) {
+          // Validate PNG format for event images
+          const validationError = validateEventImage(eventImageFileB);
+          if (validationError) {
+            throw new Error(validationError);
+          }
+
+          const fileName = `${Date.now()}-fighter-b-${Math.random().toString(36).substring(7)}.png`;
+          const filePath = `${fileName}`;
+  
+          const { error: uploadErrorB } = await supabase.storage
+            .from('event-fighter-images')
+            .upload(filePath, eventImageFileB);
+  
+          if (uploadErrorB) throw uploadErrorB;
+  
+          const { data: { publicUrl: publicUrlB } } = supabase.storage
+            .from('event-fighter-images')
+            .getPublicUrl(filePath);
+  
+          fighterBEventImageUrl = publicUrlB;
+        }
  
        if (editingFight) {
          const { error } = await supabase
@@ -1278,8 +1299,65 @@ import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
                    </SelectContent>
                  </Select>
                </div>
-             </div>
-           </div>
+              </div>
+
+              {/* Event Images Section */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-medium mb-3 text-sm text-muted-foreground">
+                  Imágenes de Cartelera (Opcional - Solo PNG sin fondo)
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event-image-a">Imagen Peleador A (PNG)</Label>
+                    <input
+                      id="event-image-a"
+                      type="file"
+                      accept=".png,image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const error = validateEventImage(file);
+                          if (error) {
+                            toast({ description: error, variant: 'destructive' });
+                            e.target.value = '';
+                          } else {
+                            setEventImageFileA(file);
+                          }
+                        }
+                      }}
+                      className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      PNG transparente, máx. 5MB
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="event-image-b">Imagen Peleador B (PNG)</Label>
+                    <input
+                      id="event-image-b"
+                      type="file"
+                      accept=".png,image/png"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const error = validateEventImage(file);
+                          if (error) {
+                            toast({ description: error, variant: 'destructive' });
+                            e.target.value = '';
+                          } else {
+                            setEventImageFileB(file);
+                          }
+                        }
+                      }}
+                      className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      PNG transparente, máx. 5MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
            
            <DialogFooter>
              <Button variant="outline" onClick={() => {
