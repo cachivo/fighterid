@@ -371,9 +371,8 @@ const EventDetail = () => {
                                     {getCountryCode(fight.fighter_a?.country || fight.fighter_a_external?.country)}
                                   </span>
                                 </div>}
-                              {fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url ? <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative h-full w-auto object-contain mix-blend-lighten" style={{
-                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))',
-                          backgroundColor: 'transparent'
+                              {fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url ? <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative h-full w-auto object-contain" style={{
+                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))'
                         }} /> : <div className="h-full w-full bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border border-red-500/30">
                                   <span className="text-4xl font-bold text-white">
                                     {fight.fighter_a ? `${fight.fighter_a.first_name?.[0]}${fight.fighter_a.last_name?.[0]}` : fight.fighter_a_external?.name?.[0]}
@@ -411,9 +410,8 @@ const EventDetail = () => {
                                     {getCountryCode(fight.fighter_b?.country || fight.fighter_b_external?.country)}
                                   </span>
                                 </div>}
-                              {fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url ? <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative h-full w-auto object-contain mix-blend-lighten" style={{
-                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))',
-                          backgroundColor: 'transparent'
+                              {fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url ? <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative h-full w-auto object-contain" style={{
+                          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.5))'
                         }} /> : <div className="h-full w-full bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border border-blue-500/30">
                                   <span className="text-4xl font-bold text-white">
                                     {fight.fighter_b ? `${fight.fighter_b.first_name?.[0]}${fight.fighter_b.last_name?.[0]}` : fight.fighter_b_external?.name?.[0]}
@@ -463,9 +461,8 @@ const EventDetail = () => {
                                   {fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url ? <div className="relative">
                                       {/* Red corner glow */}
                                       <div className="absolute -inset-4 bg-red-500/20 blur-2xl rounded-full animate-pulse"></div>
-                                       <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten" style={{
-                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(239,68,68,0.3))',
-                                backgroundColor: 'transparent'
+                                       <img src={`${fight.fighter_a_event_image_url || fight.fighter_a?.avatar_url || fight.fighter_a_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_a ? `${fight.fighter_a.first_name} ${fight.fighter_a.last_name}` : fight.fighter_a_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain" style={{
+                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(239,68,68,0.3))'
                               }} />
                                     </div> : <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-red-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-red-500/30 shadow-2xl backdrop-blur-sm">
                                        <span className="text-7xl font-bold text-white drop-shadow-lg">
@@ -587,9 +584,8 @@ const EventDetail = () => {
                                   {fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url ? <div className="relative">
                                       {/* Blue corner glow */}
                                       <div className="absolute -inset-4 bg-blue-500/20 blur-2xl rounded-full animate-pulse"></div>
-                                       <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain mix-blend-lighten" style={{
-                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(59,130,246,0.3))',
-                                backgroundColor: 'transparent'
+                                       <img src={`${fight.fighter_b_event_image_url || fight.fighter_b?.avatar_url || fight.fighter_b_external?.image_url}?t=${new Date(fight.updated_at).getTime()}`} alt={fight.fighter_b ? `${fight.fighter_b.first_name} ${fight.fighter_b.last_name}` : fight.fighter_b_external?.name} className="relative max-h-64 md:max-h-80 w-auto max-w-[220px] md:max-w-[320px] object-contain" style={{
+                                filter: 'drop-shadow(0 25px 50px rgba(0,0,0,0.5)) drop-shadow(0 0 30px rgba(59,130,246,0.3))'
                               }} />
                                     </div> : <div className="h-64 md:h-80 w-56 bg-gradient-to-br from-blue-500/20 to-black/50 rounded-lg flex items-center justify-center border-2 border-blue-500/30 shadow-2xl backdrop-blur-sm">
                                        <span className="text-7xl font-bold text-white drop-shadow-lg">
