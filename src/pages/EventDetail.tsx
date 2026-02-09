@@ -53,6 +53,28 @@ const getCountryCode = (countryCode: string): string => {
   // Return 2-letter code
   return isoCode.length === 2 ? isoCode : '';
 };
+// Helper to get branding from event meta
+interface EventBranding {
+  key: 'ucc' | 'hoodfights' | 'custom';
+  logo_url?: string;
+  watermark_url?: string;
+  require_billboard_images?: boolean;
+}
+
+const getEventBranding = (event: any): EventBranding => {
+  const meta = event?.meta as { branding?: EventBranding } | null;
+  if (meta?.branding) {
+    return meta.branding;
+  }
+  // Default to UCC
+  return {
+    key: 'ucc',
+    logo_url: '/lovable-uploads/ucc-logo-transparent.png',
+    watermark_url: '/lovable-uploads/ucc-logo-transparent.png',
+    require_billboard_images: false
+  };
+};
+
 const EventDetail = () => {
   const {
     eventId
@@ -257,22 +279,31 @@ const EventDetail = () => {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.03),transparent_70%)]"></div>
         
         <div className="container mx-auto px-4 relative z-10">
-          {/* UCC Logo Header */}
-          <div className="flex flex-col items-center mb-12">
-            <img src="/lovable-uploads/ucc-logo-transparent.png" alt="UCC Logo" className="w-48 md:w-64 mb-6 animate-fade-in opacity-90" />
-            <div className="text-center space-y-2">
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-2xl animate-fade-in">
-                FIGHT CARD
-              </h2>
-              <div className="flex items-center justify-center gap-4">
-                <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
-                <p className="text-lg text-gray-200 font-semibold">
-                  {fights.length} COMBATES PROGRAMADOS
-                </p>
-                <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+          {/* Dynamic Event Logo Header */}
+          {(() => {
+            const branding = getEventBranding(event);
+            return (
+              <div className="flex flex-col items-center mb-12">
+                <img 
+                  src={branding.logo_url || '/lovable-uploads/ucc-logo-transparent.png'} 
+                  alt={`${branding.key?.toUpperCase() || 'Event'} Logo`} 
+                  className="w-48 md:w-64 mb-6 animate-fade-in opacity-90" 
+                />
+                <div className="text-center space-y-2">
+                  <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-2xl animate-fade-in">
+                    FIGHT CARD
+                  </h2>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+                    <p className="text-lg text-gray-200 font-semibold">
+                      {fights.length} COMBATES PROGRAMADOS
+                    </p>
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {fights.length === 0 ? <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
               <CardContent className="py-12 text-center">
@@ -289,9 +320,9 @@ const EventDetail = () => {
                     {/* Glow Effect */}
                     <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     
-                    {/* UCC Logo Watermark in Card */}
+                    {/* Dynamic Watermark in Card */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-                      <img src="/lovable-uploads/ucc-logo-transparent.png" alt="UCC" className="w-64 h-64 object-contain" />
+                      <img src={getEventBranding(event).watermark_url || '/lovable-uploads/ucc-logo-transparent.png'} alt="Watermark" className="w-64 h-64 object-contain" />
                     </div>
                     
                     <CardHeader className="relative p-3 sm:p-4 md:pb-4 border-b border-primary/10">
@@ -362,7 +393,7 @@ const EventDetail = () => {
 
                           {/* VS - Mobile */}
                           <div className="flex flex-col items-center px-2">
-                            <img src="/lovable-uploads/ucc-logo-transparent.png" alt="VS" className="w-10 h-10 opacity-70" />
+                            <img src={getEventBranding(event).watermark_url || '/lovable-uploads/ucc-logo-transparent.png'} alt="VS" className="w-10 h-10 opacity-70" />
                             <div className="text-2xl font-black bg-gradient-to-r from-red-500 via-primary to-blue-500 bg-clip-text text-transparent">
                               VS
                             </div>
