@@ -1,113 +1,167 @@
 
 
-# Correccion: Vinculacion de Records con Rankings en Onboarding
+# Cuenta Maestra + Gestor de Imagenes del Sistema
 
-## Problema Raiz
+## Resumen
 
-Hay un error de nombre de campo entre la base de datos y el codigo:
-
-- La funcion RPC `create_fighter_profile_with_license` devuelve `profile_id`
-- El hook `useOptimizedOnboarding.ts` espera `fighter_id`
-- Como `result.fighter_id` es siempre `undefined`, la actualizacion de records por disciplina (MMA/Boxeo) **nunca se ejecuta**
-- Los puntos del ranking se calculan usando los campos de disciplina (`mma_record_wins`, `boxeo_record_wins`), que quedan en 0
-- Resultado: todos los peleadores nuevos aparecen con **0 puntos** en el ranking
-
-Esto explica por que Jonathan Mejia tiene `record_wins=16` pero `boxeo_record_wins=0` y 0 puntos en el ranking.
+Crear un rol "super_admin" exclusivo para cachivo@gmail.com que permita editar imagenes y configuraciones visuales del sistema (logos, fondos, wallpapers) desde el panel de administracion. Los demas admins solo podran gestionar peleas y contenido operativo.
 
 ---
 
-## Solucion (2 cambios)
+## Parte 1: Rol Super Admin
 
-### 1. Actualizar la funcion RPC en la base de datos
+### Base de datos
+- Agregar `super_admin` al enum `app_role` existente
+- Insertar el rol `super_admin` para el usuario `cachivo@gmail.com` (user_id: `d9204e92-eb8c-4ed4-95b0-3b9dd8423bd7`)
+- Crear funcion RPC `is_super_admin()` similar a `has_role()` pero especifica para super_admin
 
-Modificar `create_fighter_profile_with_license` para:
+### Frontend
+- Crear hook `useSuperAdmin()` que verifica si el usuario actual tiene rol `super_admin`
+- Modificar `AdminSidebar.tsx` para mostrar "Configuracion" y "Gestion de Roles" solo si es super_admin
+- Los admins regulares veran solo las secciones de peleas, eventos, peleadores, etc.
 
-- **Escribir los records de disciplina directamente** en el INSERT (no depender de una actualizacion posterior)
-- **Devolver `fighter_id`** en lugar de `profile_id` para compatibilidad con el frontend
+---
 
-Esto hace que todo sea atomico: perfil + licencia + records de disciplina + auto-inscripcion en ranking, todo en una sola transaccion.
+## Parte 2: Gestor Visual de Assets del Sistema
 
-### 2. Corregir el hook del frontend
+### Imagenes que se podran cambiar desde el panel
 
-En `useOptimizedOnboarding.ts`:
+| Asset | Donde se usa | Clave en configuracion_sitio |
+|-------|-------------|------------------------------|
+| Logo principal (Fighter ID) | Header, Footer, Mobile menu | `system_logo_url` |
+| Fondo del ranking | Seccion Ranking | `system_ranking_bg_url` |
+| Logo UCC | Eventos, Branding | `system_ucc_logo_url` |
+| Logo Hoodfights | Eventos, Branding | `system_hoodfights_logo_url` |
+| Fondo octagon | Perfil social | `system_octagon_bg_url` |
+| Background Hero | Seccion Hero (gradientes) | `system_hero_bg_url` |
 
-- Actualizar la interfaz `CreateProfileResult` para aceptar tanto `fighter_id` como `profile_id`
-- Usar `result.fighter_id || result.profile_id` como fallback
-- Eliminar la actualizacion separada de records por disciplina (ya no es necesaria porque el RPC lo hace)
+### Nueva pagina: `/admin/system-assets`
+- Interfaz visual con preview de cada imagen actual
+- Boton de upload para cada una (sube a Supabase Storage bucket `system-assets`)
+- Al subir, actualiza la clave correspondiente en `configuracion_sitio`
+- Solo accesible si el usuario es `super_admin`
 
-### 3. Reparar datos existentes (migracion one-time)
+### Hook `useSystemAssets()`
+- Lee las claves `system_*` de `configuracion_sitio`
+- Cachea con React Query (staleTime largo)
+- Devuelve URLs o fallback a las imagenes hardcodeadas actuales
+- Se usa en Header, Footer, Ranking, EventDetail, etc.
 
-Ejecutar una migracion SQL que copie los records legacy a los campos de disciplina para todos los perfiles que ya estan afectados, y recalcule los puntos del ranking.
+---
+
+## Parte 3: Proteccion de Secciones
+
+### Secciones solo para super_admin
+- Configuracion del Sitio (`/admin/configuracion`)
+- Gestion de Roles (`/admin/user-roles`)
+- Gestion de Assets (`/admin/system-assets`) - NUEVA
+
+### Secciones para todos los admins
+- Dashboard, Eventos, Peleadores, Gimnasios, Entrenadores
+- Control de Peleas, Jueces, Estaciones, Resultados
+- Monitor de IA, Betting, Comunidad
 
 ---
 
 ## Detalles Tecnicos
 
-### Cambio en RPC (SQL Migration)
+### Migracion SQL
 
 ```sql
--- Dentro del INSERT de fighter_profiles, agregar:
-mma_record_wins = CASE WHEN p_discipline = 'MMA' THEN p_record_wins ELSE 0 END,
-mma_record_losses = CASE WHEN p_discipline = 'MMA' THEN p_record_losses ELSE 0 END,
-boxeo_record_wins = CASE WHEN p_discipline = 'Boxeo' THEN p_record_wins ELSE 0 END,
--- etc.
+-- 1. Agregar super_admin al enum
+ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'super_admin';
 
--- Cambiar el RETURN:
-RETURN jsonb_build_object(
-  'success', true,
-  'user_id', v_user_id,
-  'fighter_id', v_profile_id,  -- Renombrar de profile_id a fighter_id
-  'license_id', v_license_id,
-  'license_number', v_license_number
+-- 2. Asignar rol a cachivo@gmail.com
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('d9204e92-eb8c-4ed4-95b0-3b9dd8423bd7', 'super_admin')
+ON CONFLICT (user_id, role) DO NOTHING;
+
+-- 3. Crear bucket para assets del sistema
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('system-assets', 'system-assets', true)
+ON CONFLICT DO NOTHING;
+
+-- 4. RLS para el bucket (solo super_admin puede subir)
+CREATE POLICY "Super admins can upload system assets"
+ON storage.objects FOR INSERT TO authenticated
+WITH CHECK (
+  bucket_id = 'system-assets' 
+  AND public.has_role(auth.uid(), 'super_admin')
 );
+
+CREATE POLICY "Anyone can view system assets"
+ON storage.objects FOR SELECT TO public
+USING (bucket_id = 'system-assets');
+
+-- 5. Insertar configuraciones iniciales con valores actuales
+INSERT INTO configuracion_sitio (clave, valor, descripcion) VALUES
+('system_logo_url', '/lovable-uploads/7570ef51-ab69-44ed-8ffd-ce52f760de49.png', 'Logo principal del sistema'),
+('system_ranking_bg_url', '/lovable-uploads/17f6dde8-5a0e-4986-a833-30fc435b156c.png', 'Fondo de la seccion de ranking'),
+('system_ucc_logo_url', '/lovable-uploads/ucc-logo-transparent.png', 'Logo de UCC'),
+('system_hoodfights_logo_url', '/lovable-uploads/honduras-hoodfights-logo.png', 'Logo de Hoodfights'),
+('system_octagon_bg_url', '/lovable-uploads/octagon-background.png', 'Fondo octagon para perfiles')
+ON CONFLICT DO NOTHING;
 ```
 
-### Reparacion de datos existentes (SQL Migration)
-
-```sql
--- Copiar records legacy a campos de disciplina donde esten vacios
-UPDATE fighter_profiles
-SET 
-  mma_record_wins = record_wins,
-  mma_record_losses = record_losses,
-  mma_record_draws = record_draws
-WHERE discipline = 'MMA' 
-  AND COALESCE(mma_record_wins, 0) = 0 
-  AND record_wins > 0;
-
--- Similar para Boxeo...
--- Luego recalcular puntos en fighter_rankings
-```
-
-### Cambio en useOptimizedOnboarding.ts
+### Hook useSuperAdmin
 
 ```typescript
-// Antes:
-interface CreateProfileResult {
-  fighter_id: string; // Nunca llegaba porque RPC devuelve profile_id
+// Verifica si el usuario actual tiene rol super_admin
+export function useSuperAdmin() {
+  // Consulta user_roles buscando role = 'super_admin'
+  // Retorna { isSuperAdmin, loading }
 }
-
-// Despues:
-interface CreateProfileResult {
-  fighter_id: string; // Ahora el RPC devuelve este campo
-}
-// Y eliminar las lineas 107-121 (actualizacion manual de records)
 ```
+
+### Hook useSystemAssets
+
+```typescript
+// Lee las claves system_* de configuracion_sitio
+// Retorna { logoUrl, rankingBgUrl, uccLogoUrl, ... }
+// Con fallbacks a las URLs hardcodeadas actuales
+```
+
+### Componentes a modificar para usar assets dinamicos
+
+| Componente | Cambio |
+|-----------|--------|
+| `Header.tsx` | Logo de `useSystemAssets().logoUrl` |
+| `Footer.tsx` | Logo de `useSystemAssets().logoUrl` |
+| `Ranking.tsx` | Background de `useSystemAssets().rankingBgUrl` |
+| `EventDetail.tsx` | Logos de marca de `useSystemAssets()` |
+| `EventBrandingModal.tsx` | Logos predefinidos de `useSystemAssets()` |
+| `AdminSidebar.tsx` | Ocultar secciones de sistema si no es super_admin |
+| `AdminLayout.tsx` | Logo dinamico |
+
+### Nueva pagina SystemAssets
+
+Interfaz con tarjetas para cada imagen del sistema, cada una con:
+- Preview de la imagen actual
+- Boton "Cambiar" que abre file picker
+- Sube al bucket `system-assets`
+- Actualiza `configuracion_sitio` con la nueva URL
+- Preview en tiempo real del cambio
 
 ---
 
-## Archivos a Modificar
+## Archivos a crear
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `src/hooks/useSuperAdmin.tsx` | Hook para verificar rol super_admin |
+| `src/hooks/useSystemAssets.tsx` | Hook para leer assets del sistema |
+| `src/pages/admin/SystemAssets.tsx` | Pagina de gestion de imagenes |
+| `src/components/SuperAdminRoute.tsx` | Proteccion de rutas super_admin |
+
+## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| Nueva migracion SQL | Actualizar RPC + reparar datos existentes |
-| `src/hooks/useOptimizedOnboarding.ts` | Simplificar: eliminar actualizacion manual de records |
-
----
-
-## Impacto
-
-- Los nuevos peleadores apareceran inmediatamente en el ranking con sus puntos correctos
-- Los peleadores existentes con 0 puntos seran reparados automaticamente
-- Se elimina una race condition donde la actualizacion del record podia fallar silenciosamente
+| `src/App.tsx` | Agregar ruta `/admin/system-assets` |
+| `src/components/AdminSidebar.tsx` | Filtrar menu segun rol |
+| `src/components/Header.tsx` | Usar logo dinamico |
+| `src/components/Footer.tsx` | Usar logo dinamico |
+| `src/components/sections/Ranking.tsx` | Usar fondo dinamico |
+| `src/components/admin/EventBrandingModal.tsx` | Usar logos dinamicos |
+| Migracion SQL | Enum + rol + bucket + datos iniciales |
 
