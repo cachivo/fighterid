@@ -9,12 +9,27 @@ export interface Discipline {
   active: boolean;
 }
 
+export function useAllDisciplines() {
+  return useQuery({
+    queryKey: ['disciplines'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('disciplines')
+        .select('id, name, slug')
+        .eq('active', true)
+        .order('name');
+      if (error) throw error;
+      return data as Discipline[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useGymDisciplines(gymId?: string) {
   return useQuery({
     queryKey: ['gym-disciplines', gymId],
     queryFn: async () => {
       if (!gymId) {
-        // Return all active disciplines
         const { data, error } = await supabase
           .from('disciplines')
           .select('*')
@@ -24,7 +39,6 @@ export function useGymDisciplines(gymId?: string) {
         return data as Discipline[];
       }
 
-      // Return disciplines for a specific gym
       const { data, error } = await supabase
         .from('gym_disciplines')
         .select('discipline_id, disciplines(id, name, slug, active)')

@@ -82,6 +82,31 @@ export function useAddGymStaff(gymId: string) {
   });
 }
 
+export function useAllGymStaff() {
+  return useQuery({
+    queryKey: ['all-gym-staff'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gym_staff')
+        .select('*, gyms(id, nombre, slug)')
+        .eq('active', true)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const userIds = (data || []).map((s: any) => s.user_id);
+      if (userIds.length === 0) return [];
+      const { data: users } = await supabase
+        .from('app_user')
+        .select('id, first_name, last_name, avatar_url, handle, email')
+        .in('id', userIds);
+      return (data || []).map((s: any) => ({
+        ...s,
+        user: (users || []).find((u: any) => u.id === s.user_id),
+      }));
+    },
+    staleTime: 60_000,
+  });
+}
+
 export function useRemoveGymStaff(gymId: string) {
   const queryClient = useQueryClient();
 

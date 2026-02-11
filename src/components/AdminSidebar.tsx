@@ -46,7 +46,7 @@ const adminItems = [
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },
   { title: 'Gestión de Rankings', url: '/admin/rankings', icon: Medal },
   { title: 'Gimnasios / Escuelas', url: '/admin/gimnasios', icon: Briefcase },
-  { title: 'Entrenadores', url: '/admin/entrenadores', icon: Users },
+  { title: 'Staff de Gimnasios', url: '/admin/entrenadores', icon: Users },
   { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
   { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
   { title: 'Monitor de Emails', url: '/admin/email-monitoring', icon: Mail },
