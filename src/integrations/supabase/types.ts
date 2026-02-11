@@ -1638,6 +1638,71 @@ export type Database = {
           },
         ]
       }
+      fighter_gym_memberships: {
+        Row: {
+          coach_user_id: string | null
+          created_at: string
+          fighter_id: string
+          gym_id: string
+          id: string
+          joined_at: string
+          left_at: string | null
+          status: Database["public"]["Enums"]["membership_status"]
+          updated_at: string
+        }
+        Insert: {
+          coach_user_id?: string | null
+          created_at?: string
+          fighter_id: string
+          gym_id: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+        }
+        Update: {
+          coach_user_id?: string | null
+          created_at?: string
+          fighter_id?: string
+          gym_id?: string
+          id?: string
+          joined_at?: string
+          left_at?: string | null
+          status?: Database["public"]["Enums"]["membership_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fighter_gym_memberships_coach_user_id_fkey"
+            columns: ["coach_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fighter_invitations: {
         Row: {
           accepted_at: string | null
@@ -2484,6 +2549,90 @@ export type Database = {
           },
           {
             foreignKeyName: "friendships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_disciplines: {
+        Row: {
+          created_at: string
+          discipline_id: string
+          gym_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          discipline_id: string
+          gym_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          discipline_id?: string
+          gym_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_disciplines_discipline_id_fkey"
+            columns: ["discipline_id"]
+            isOneToOne: false
+            referencedRelation: "disciplines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_disciplines_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_staff: {
+        Row: {
+          active: boolean
+          created_at: string
+          gym_id: string
+          id: string
+          is_primary: boolean
+          role: Database["public"]["Enums"]["gym_staff_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          gym_id: string
+          id?: string
+          is_primary?: boolean
+          role: Database["public"]["Enums"]["gym_staff_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          gym_id?: string
+          id?: string
+          is_primary?: boolean
+          role?: Database["public"]["Enums"]["gym_staff_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_staff_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_staff_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "app_user"
@@ -4892,9 +5041,18 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: never; Returns: boolean }
+      is_app_admin: { Args: { _user_id: string }; Returns: boolean }
       is_assigned_judge: { Args: { p_fight_id: string }; Returns: boolean }
       is_assigned_referee: { Args: { p_fight_id: string }; Returns: boolean }
       is_fighter_owner: { Args: { p_fighter_id: string }; Returns: boolean }
+      is_gym_owner: {
+        Args: { _gym_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_gym_staff: {
+        Args: { _gym_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_judge: { Args: { _user_id: string }; Returns: boolean }
       moderate_fighter_update: {
         Args: {
@@ -5038,6 +5196,7 @@ export type Database = {
       doping_result_status: "PENDING" | "CLEAN" | "POSITIVE" | "INCONCLUSIVE"
       doping_test_type: "PRE_FIGHT" | "RANDOM" | "POST_FIGHT" | "ANNUAL"
       fight_result: "red_win" | "blue_win" | "draw" | "no_contest" | "scheduled"
+      gym_staff_role: "OWNER" | "HEAD_COACH" | "ASSISTANT_COACH"
       license_level:
         | "AMATEUR"
         | "SEMI_PRO"
@@ -5052,6 +5211,7 @@ export type Database = {
         | "SUSPENDED"
         | "REVOKED"
         | "EXPIRED"
+      membership_status: "ACTIVE" | "INACTIVE" | "TRANSFERRED" | "SUSPENDED"
       request_status:
         | "pending"
         | "accepted"
@@ -5220,6 +5380,7 @@ export const Constants = {
       doping_result_status: ["PENDING", "CLEAN", "POSITIVE", "INCONCLUSIVE"],
       doping_test_type: ["PRE_FIGHT", "RANDOM", "POST_FIGHT", "ANNUAL"],
       fight_result: ["red_win", "blue_win", "draw", "no_contest", "scheduled"],
+      gym_staff_role: ["OWNER", "HEAD_COACH", "ASSISTANT_COACH"],
       license_level: [
         "AMATEUR",
         "SEMI_PRO",
@@ -5236,6 +5397,7 @@ export const Constants = {
         "REVOKED",
         "EXPIRED",
       ],
+      membership_status: ["ACTIVE", "INACTIVE", "TRANSFERRED", "SUSPENDED"],
       request_status: [
         "pending",
         "accepted",
