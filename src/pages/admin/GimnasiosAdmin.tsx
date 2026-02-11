@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGyms, useCreateGym } from '@/hooks/useGyms';
 import { useAllDisciplines } from '@/hooks/gyms';
 import { AdminGymCard } from '@/components/admin/AdminGymCard';
+import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,7 @@ export default function GimnasiosAdmin() {
   const { data: gyms, isLoading } = useGyms();
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
+  const { isSuperAdmin } = useSuperAdmin();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
@@ -67,6 +69,7 @@ export default function GimnasiosAdmin() {
           <p className="text-muted-foreground">Gestiona los gimnasios de la plataforma</p>
         </div>
 
+        {isSuperAdmin && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -148,6 +151,7 @@ export default function GimnasiosAdmin() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
 
       {isLoading ? (
@@ -155,7 +159,7 @@ export default function GimnasiosAdmin() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {gyms?.map(gym => (
-            <AdminGymCard key={gym.id} gym={gym} />
+            <AdminGymCard key={gym.id} gym={gym} readOnly={!isSuperAdmin} />
           ))}
         </div>
       )}
@@ -164,10 +168,12 @@ export default function GimnasiosAdmin() {
         <div className="text-center py-12">
           <Building2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <p className="text-muted-foreground mb-4">No hay gimnasios registrados</p>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Crear Primer Gimnasio
-          </Button>
+          {isSuperAdmin && (
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Crear Primer Gimnasio
+            </Button>
+          )}
         </div>
       )}
     </div>
