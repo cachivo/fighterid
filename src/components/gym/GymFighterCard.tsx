@@ -22,7 +22,7 @@ export function GymFighterCard({ fighter }: GymFighterCardProps) {
   return (
     <button
       onClick={() => navigate(`/fighter/${f.id}`)}
-      className="w-full flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-accent/50 transition-colors touch-manipulation text-left"
+      className="w-full flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-accent/50 active:scale-[0.98] transition-all touch-manipulation text-left"
     >
       <Avatar className="h-12 w-12 flex-shrink-0">
         <AvatarImage src={f.avatar_url || undefined} alt={name} />
@@ -38,7 +38,7 @@ export function GymFighterCard({ fighter }: GymFighterCardProps) {
             <span className="text-xs text-muted-foreground truncate">"{f.nickname}"</span>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-sm font-mono font-bold">{record}</span>
           {f.weight_class && (
             <span className="text-xs text-muted-foreground">• {f.weight_class}</span>

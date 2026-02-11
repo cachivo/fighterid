@@ -46,6 +46,7 @@ export function useAddMembership() {
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['gym-membership', vars.fighterId] });
       queryClient.invalidateQueries({ queryKey: ['gym-fighters', vars.gymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-fighter-count', vars.gymId] });
       queryClient.invalidateQueries({ queryKey: ['gym-dashboard', vars.gymId] });
       toast.success('Peleador vinculado al gimnasio');
     },
@@ -91,8 +92,12 @@ export function useTransferFighter() {
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['gym-membership', vars.fighterId] });
-      queryClient.invalidateQueries({ queryKey: ['gym-fighters'] });
-      queryClient.invalidateQueries({ queryKey: ['gym-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['gym-fighters', vars.toGymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-fighters', vars.fromGymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-fighter-count', vars.toGymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-fighter-count', vars.fromGymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-dashboard', vars.toGymId] });
+      queryClient.invalidateQueries({ queryKey: ['gym-dashboard', vars.fromGymId] });
       toast.success('Peleador transferido exitosamente');
     },
     onError: (error: any) => {

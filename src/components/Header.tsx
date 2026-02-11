@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useFighterProfiles } from "@/hooks/useFighterProfiles";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useMyGymStaff } from "@/hooks/gyms/useMyGymStaff";
 import { ProfileIncompleteNotification } from "@/components/ProfileIncompleteNotification";
 import {
   NavigationMenu,
@@ -17,7 +18,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell, Dumbbell } from "lucide-react";
 import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 const Header = () => {
@@ -27,6 +28,7 @@ const Header = () => {
   const { getUserFighterProfile } = useFighterProfiles();
   const { unreadCount } = useNotifications();
   const { logoUrl } = useSystemAssets();
+  const { data: myGymStaff } = useMyGymStaff();
 
   const handleLogout = async () => {
     await signOut();
@@ -234,6 +236,26 @@ const Header = () => {
                       })}
                     </nav>
                   </div>
+
+                  {/* Mi Gimnasio - Solo visible si el usuario es staff activo */}
+                  {myGymStaff && (
+                    <div className="border-t border-border pt-4 px-3 sm:px-4">
+                      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                        Mi Gimnasio
+                      </h3>
+                      <Link
+                        to={`/gym/${myGymStaff.gymId}/dashboard`}
+                        className="flex items-center gap-3 rounded-lg px-3 py-3 text-foreground hover:bg-muted hover:text-primary transition-colors min-h-[48px] touch-manipulation"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Dumbbell className="h-5 w-5 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <span className="font-medium text-base truncate block">{myGymStaff.gymName}</span>
+                          <span className="text-xs text-muted-foreground">Dashboard</span>
+                        </div>
+                      </Link>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Call to Actions */}
@@ -341,6 +363,18 @@ const Header = () => {
                       {hasFighterProfile ? "Fighter ID" : "Obtén tu Fighter ID"}
                     </Link>
                   </DropdownMenuItem>
+                  {myGymStaff && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Mi Gimnasio</DropdownMenuLabel>
+                      <DropdownMenuItem asChild>
+                        <Link to={`/gym/${myGymStaff.gymId}/dashboard`} className="cursor-pointer min-h-[44px] touch-manipulation">
+                          <Dumbbell className="mr-2 h-4 w-4" />
+                          {myGymStaff.gymName}
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to="/" className="cursor-pointer min-h-[44px] touch-manipulation">
