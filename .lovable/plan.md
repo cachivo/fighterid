@@ -1,55 +1,51 @@
 
 
-# Coherencia en Busqueda de Peleadores + Sincronizacion de Datos
+# Optimizacion del Panel Admin para Tablets
 
-## Problema Principal
+## Problema
 
-La funcion `search_fighters_for_gym` devuelve TODOS los peleadores, incluyendo los que ya estan vinculados a otro gimnasio. Esto permite que un gimnasio vea peleadores que no estan disponibles, rompiendo la logica de negocio.
+En tablets (768px-1024px), el sidebar ocupa 256px (16rem) de una pantalla de ~768-834px, dejando solo ~500px para el contenido principal. Esto causa que las tarjetas, tablas y formularios se compriman excesivamente. El sidebar no se colapsa automaticamente en tablets, y las grillas saltan de 1 columna (movil) a 2-4 columnas (md/lg) sin un paso intermedio optimizado.
 
 ## Cambios
 
-### 1. Modificar RPC: Excluir peleadores con gimnasio activo
+### 1. Sidebar colapsado por defecto en tablets
 
-Actualizar la funcion `search_fighters_for_gym` agregando un parametro `p_gym_id` (el gimnasio que esta buscando) y un filtro que excluya peleadores que ya tengan membresía activa en OTRO gimnasio.
+**Archivo: `src/components/AdminLayout.tsx`**
 
-Logica:
-- Peleadores SIN gimnasio: aparecen (disponibles)
-- Peleadores en ESTE gimnasio: aparecen con etiqueta "Ya vinculado" (boton deshabilitado, como ya funciona)
-- Peleadores en OTRO gimnasio: NO aparecen en la lista
+Usar `useBreakpoints()` para detectar si el dispositivo es tablet (768-1024px). Si lo es, iniciar el sidebar en estado colapsado (icon mode) para maximizar el espacio de contenido. El usuario puede expandirlo manualmente con el SidebarTrigger.
 
-El filtro SQL adicional seria:
+- Pasar `defaultOpen={false}` al `SidebarProvider` cuando es tablet
+- El sidebar en modo colapsado ocupa solo 3rem (48px) en vez de 16rem (256px)
+- En desktop (1024px+) sigue abierto por defecto como ahora
 
-```text
-AND (m.gym_id IS NULL OR m.gym_id = p_gym_id)
-```
+### 2. Padding y espaciado reducido en tablets
 
-Esto elimina del resultado a cualquier peleador cuya membresía activa sea de un gimnasio diferente.
+**Archivo: `src/components/AdminLayout.tsx`**
 
-### 2. Actualizar el hook useFighterSearch
+Ajustar el padding del contenido principal:
+- Actual: `p-4 lg:p-5`
+- Nuevo: `p-3 md:p-4 lg:p-5`
 
-Agregar parametro `gymId` al hook para pasarlo como `p_gym_id` a la funcion RPC.
+### 3. Grillas adaptadas para tablets en paginas clave
 
-### 3. Actualizar GymAddFighter.tsx
+**Archivo: `src/pages/admin/Dashboard.tsx`**
 
-Pasar `gymId` al hook `useFighterSearch` para que la consulta filtre correctamente.
+- Stats cards: cambiar `md:grid-cols-2 lg:grid-cols-4` a `grid-cols-2 lg:grid-cols-4` (2 columnas desde movil grande)
+- Cards de contenido: mantener `md:grid-cols-2` (ya funciona bien)
 
-### 4. Actualizar AssignFighterToGymModal.tsx
+**Archivo: `src/pages/admin/GimnasiosAdmin.tsx`**
 
-Pasar `gymId` al hook `useFighterSearch` para mantener la misma logica en el modal del panel admin.
+- Grilla de gimnasios: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` ya es correcta, no requiere cambios
 
-### 5. Trigger de sincronizacion (del plan anterior)
+**Archivo: `src/pages/admin/FightersProfiles.tsx`**
 
-Crear trigger `sync_fighter_gym_from_membership` para mantener `fighter_profiles.gym_id` y `gym_name` actualizados automaticamente cuando se crean o transfieren membresías.
+- Revisar que los filtros (search + selects) se apilen correctamente en tablet con `flex-wrap`
 
-### 6. Corregir useGymFighters y GymFighterCard (del plan anterior)
+### 4. Touch targets mejorados en sidebar
 
-- Agregar `discipline` y `boxeo_record_*` al query de `useGymFighters`
-- Mostrar record correcto segun disciplina en `GymFighterCard`
-- Corregir labels de nivel para coincidir con los valores de la BD
+**Archivo: `src/components/AdminSidebar.tsx`**
 
-### 7. FighterProfile: mostrar gimnasio real (del plan anterior)
-
-Usar datos de `fighter_gym_memberships` en vez del campo de texto libre `gym_name`.
+Agregar `min-h-[44px]` a los items del menu para cumplir con el estandar tactil de 44px minimo, facilitando el uso en tablets con pantalla tactil.
 
 ---
 
@@ -57,15 +53,12 @@ Usar datos de `fighter_gym_memberships` en vez del campo de texto libre `gym_nam
 
 | Archivo | Cambio |
 |---------|--------|
-| Migracion SQL | Modificar RPC `search_fighters_for_gym` (agregar `p_gym_id` y filtro) + trigger de sincronizacion + migracion de datos |
-| `src/hooks/gyms/useFighterSearch.ts` | Agregar parametro `gymId` |
-| `src/pages/gym/GymAddFighter.tsx` | Pasar `gymId` al hook |
-| `src/components/admin/AssignFighterToGymModal.tsx` | Pasar `gymId` al hook |
-| `src/hooks/gyms/useGymFighters.ts` | Agregar `discipline` y `boxeo_record_*` |
-| `src/components/gym/GymFighterCard.tsx` | Record por disciplina + labels corregidos |
-| `src/pages/FighterProfile.tsx` | Mostrar gimnasio real desde memberships |
+| `src/components/AdminLayout.tsx` | Sidebar colapsado por defecto en tablets + padding ajustado |
+| `src/components/AdminSidebar.tsx` | Touch targets de 44px en items del menu |
+| `src/pages/admin/Dashboard.tsx` | Grilla de stats optimizada para tablets |
 
-## Resultado esperado
+## Lo que NO se modifica
 
-Un administrador de gimnasio solo vera peleadores DISPONIBLES (sin gimnasio) o los que ya estan en su propio gimnasio. No vera peleadores de otros gimnasios, eliminando confusion y errores de asignacion.
-
+- El sidebar component base (`sidebar.tsx`) ya soporta colapso/expansion correctamente
+- Las paginas con tablas (`RankingsManagement`, `EventosPelea`) ya usan `overflow-x-auto`
+- Los modales ya tienen `max-w-[95vw]` para tablets (implementado previamente)
