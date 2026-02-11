@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { Search, User, Loader2, Check, AlertTriangle, ArrowRightLeft, X } from 'lucide-react';
-import { useAdminFighters } from '@/hooks/useAdminFighters';
+import { useFighterSearch, type FighterSearchResult } from '@/hooks/gyms/useFighterSearch';
 import { useAddMembership, useTransferFighter, useGymStaff } from '@/hooks/gyms';
 import { supabase } from '@/integrations/supabase/client';
-import { ENABLED_DISCIPLINES, FIGHTER_LEVELS, WEIGHT_CLASSES, getWeightClassLabel } from '@/lib/constants/disciplines';
+import { ENABLED_DISCIPLINES, FIGHTER_LEVELS, WEIGHT_CLASSES } from '@/lib/constants/disciplines';
 
 interface AssignFighterToGymModalProps {
   open: boolean;
@@ -22,78 +22,53 @@ interface AssignFighterToGymModalProps {
 }
 
 export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: AssignFighterToGymModalProps) {
-  const { fighters, loading: loadingFighters } = useAdminFighters();
   const addMembership = useAddMembership();
   const transferFighter = useTransferFighter();
   const { data: staff } = useGymStaff(gymId);
 
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedFighter, setSelectedFighter] = useState<string | null>(null);
   const [selectedCoach, setSelectedCoach] = useState<string>('none');
   const [filterDiscipline, setFilterDiscipline] = useState('__none__');
   const [filterLevel, setFilterLevel] = useState('__none__');
   const [filterWeight, setFilterWeight] = useState('__none__');
 
-  // Check if selected fighter already has an active gym
-  const { data: existingMembership, isLoading: checkingMembership } = useQuery({
-    queryKey: ['gym-membership', selectedFighter],
-    queryFn: async () => {
-      if (!selectedFighter) return null;
-      const { data, error } = await supabase
-        .from('fighter_gym_memberships')
-        .select('id, gym_id, gyms(id, nombre)')
-        .eq('fighter_id', selectedFighter)
-        .eq('status', 'ACTIVE')
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!selectedFighter,
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Server-side search via RPC
+  const { data: fighters = [], isLoading: loadingFighters } = useFighterSearch({
+    search: debouncedSearch,
+    discipline: filterDiscipline,
+    level: filterLevel,
+    weightClass: filterWeight,
+    limit: 30,
+    enabled: open,
   });
 
-  const coaches = useMemo(() => {
-    if (!staff) return [];
-    return staff.filter(s => s.role === 'HEAD_COACH' || s.role === 'ASSISTANT_COACH' || s.role === 'OWNER');
-  }, [staff]);
+  // Selected fighter data from results
+  const selectedFighterData = fighters.find(f => f.id === selectedFighter);
+
+  // Use active_gym info from the RPC result instead of a separate query
+  const alreadyInThisGym = selectedFighterData?.active_gym_id === gymId;
+  const hasOtherGym = selectedFighterData?.active_gym_id != null && selectedFighterData.active_gym_id !== gymId;
+
+  const coaches = (staff || []).filter(s => s.role === 'HEAD_COACH' || s.role === 'ASSISTANT_COACH' || s.role === 'OWNER');
 
   const hasActiveFilters = filterDiscipline !== '__none__' || filterLevel !== '__none__' || filterWeight !== '__none__';
 
-  const filteredFighters = useMemo(() => {
-    let result = fighters;
-
-    if (filterDiscipline !== '__none__') {
-      result = result.filter(f => f.discipline === filterDiscipline);
-    }
-    if (filterLevel !== '__none__') {
-      result = result.filter(f => f.level === filterLevel);
-    }
-    if (filterWeight !== '__none__') {
-      result = result.filter(f => f.weight_class === filterWeight);
-    }
-
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(f =>
-        `${f.first_name} ${f.last_name} ${f.nickname || ''}`.toLowerCase().includes(q)
-      );
-    }
-
-    return result.slice(0, 30);
-  }, [fighters, search, filterDiscipline, filterLevel, filterWeight]);
-
-  const selectedFighterData = fighters.find(f => f.id === selectedFighter);
-
-  const alreadyInThisGym = existingMembership?.gym_id === gymId;
-  const hasOtherGym = existingMembership && existingMembership.gym_id !== gymId;
-
   const handleAssign = async () => {
-    if (!selectedFighter) return;
+    if (!selectedFighter || !selectedFighterData) return;
     const coachUserId = selectedCoach !== 'none' ? selectedCoach : undefined;
 
     if (hasOtherGym) {
       await transferFighter.mutateAsync({
         fighterId: selectedFighter,
-        fromGymId: existingMembership.gym_id,
+        fromGymId: selectedFighterData.active_gym_id!,
         toGymId: gymId,
         coachUserId,
       });
@@ -111,6 +86,7 @@ export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: Assig
   const handleClose = () => {
     setSelectedFighter(null);
     setSearch('');
+    setDebouncedSearch('');
     setSelectedCoach('none');
     setFilterDiscipline('__none__');
     setFilterLevel('__none__');
@@ -203,13 +179,13 @@ export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: Assig
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : filteredFighters.length === 0 ? (
+            ) : fighters.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground text-sm">
                 No se encontraron peleadores
               </div>
             ) : (
               <div className="p-2 space-y-1">
-                {filteredFighters.map((fighter) => (
+                {fighters.map((fighter) => (
                   <div
                     key={fighter.id}
                     className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
@@ -268,11 +244,7 @@ export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: Assig
           {/* Selected fighter info + warnings */}
           {selectedFighterData && (
             <div className="space-y-3">
-              {checkingMembership ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Verificando membresía...
-                </div>
-              ) : alreadyInThisGym ? (
+              {alreadyInThisGym ? (
                 <div className="p-3 bg-muted/50 rounded-lg flex items-center gap-2 text-sm">
                   <Check className="h-4 w-4 text-primary" />
                   Este peleador ya pertenece a {gymName}.
@@ -281,7 +253,7 @@ export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: Assig
                 <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex items-start gap-2 text-sm">
                   <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                   <div>
-                    <p className="font-medium">Este peleador pertenece a {(existingMembership.gyms as any)?.nombre || 'otro gimnasio'}.</p>
+                    <p className="font-medium">Este peleador pertenece a {selectedFighterData.active_gym_name || 'otro gimnasio'}.</p>
                     <p className="text-muted-foreground">Se realizará una transferencia.</p>
                   </div>
                 </div>
@@ -314,7 +286,7 @@ export function AssignFighterToGymModal({ open, onClose, gymId, gymName }: Assig
           <Button variant="outline" onClick={handleClose}>Cancelar</Button>
           <Button
             onClick={handleAssign}
-            disabled={!selectedFighter || alreadyInThisGym || checkingMembership || isMutating}
+            disabled={!selectedFighter || alreadyInThisGym || isMutating}
           >
             {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             {hasOtherGym ? (

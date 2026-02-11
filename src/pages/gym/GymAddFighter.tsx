@@ -1,18 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, ArrowLeft, Plus, Loader2, ArrowRightLeft, AlertTriangle } from 'lucide-react';
-import { useAdminFighters } from '@/hooks/useAdminFighters';
+import { useFighterSearch, type FighterSearchResult } from '@/hooks/gyms/useFighterSearch';
 import { useAddMembership, useTransferFighter } from '@/hooks/gyms';
 import { useGymStaffRole } from '@/hooks/gyms/useMyGymStaff';
 import { useGymDashboard } from '@/hooks/gyms/useGymDashboard';
-import { supabase } from '@/integrations/supabase/client';
-import { ENABLED_DISCIPLINES, FIGHTER_LEVELS, WEIGHT_CLASSES, getWeightClassLabel } from '@/lib/constants/disciplines';
-import { toast } from 'sonner';
+import { ENABLED_DISCIPLINES, FIGHTER_LEVELS, WEIGHT_CLASSES } from '@/lib/constants/disciplines';
 import Header from '@/components/Header';
 
 export default function GymAddFighter() {
@@ -20,70 +17,50 @@ export default function GymAddFighter() {
   const navigate = useNavigate();
   const { data: staffRole, isLoading: loadingRole } = useGymStaffRole(gymId || '');
   const { data: gymData } = useGymDashboard(gymId || '');
-  const { fighters, loading: loadingFighters } = useAdminFighters();
   const addMembership = useAddMembership();
   const transferFighter = useTransferFighter();
 
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterDiscipline, setFilterDiscipline] = useState('__none__');
   const [filterLevel, setFilterLevel] = useState('__none__');
   const [filterWeight, setFilterWeight] = useState('__none__');
   const [addingFighterId, setAddingFighterId] = useState<string | null>(null);
 
-  // Check membership for fighter being added
-  const { data: existingMembership, isLoading: checkingMembership } = useQuery({
-    queryKey: ['gym-membership', addingFighterId],
-    queryFn: async () => {
-      if (!addingFighterId) return null;
-      const { data, error } = await supabase
-        .from('fighter_gym_memberships')
-        .select('id, gym_id, gyms(id, nombre)')
-        .eq('fighter_id', addingFighterId)
-        .eq('status', 'ACTIVE')
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!addingFighterId,
-  });
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const filteredFighters = useMemo(() => {
-    if (!fighters) return [];
-    const searchLower = search.toLowerCase();
-    return fighters
-      .filter(f => {
-        if (filterDiscipline !== '__none__' && f.discipline !== filterDiscipline) return false;
-        if (filterLevel !== '__none__' && f.level !== filterLevel) return false;
-        if (filterWeight !== '__none__' && f.weight_class !== filterWeight) return false;
-        if (search) {
-          const fullName = `${f.first_name || ''} ${f.last_name || ''} ${f.nickname || ''}`.toLowerCase();
-          if (!fullName.includes(searchLower)) return false;
-        }
-        return true;
-      })
-      .slice(0, 30);
-  }, [fighters, search, filterDiscipline, filterLevel, filterWeight]);
+  // Server-side search via RPC
+  const { data: fighters = [], isLoading: loadingFighters } = useFighterSearch({
+    search: debouncedSearch,
+    discipline: filterDiscipline,
+    level: filterLevel,
+    weightClass: filterWeight,
+    limit: 30,
+    enabled: !!gymId,
+  });
 
   const activeFilters = [filterDiscipline, filterLevel, filterWeight].filter(f => f !== '__none__').length;
 
-  const handleAdd = async (fighterId: string) => {
-    if (!gymId) return;
-    setAddingFighterId(fighterId);
-  };
+  const selectedFighterData = addingFighterId ? fighters.find(f => f.id === addingFighterId) : null;
+  const hasOtherGym = selectedFighterData?.active_gym_id != null && selectedFighterData.active_gym_id !== gymId;
+  const alreadyInThisGym = selectedFighterData?.active_gym_id === gymId;
 
   const confirmAdd = async () => {
-    if (!gymId || !addingFighterId) return;
+    if (!gymId || !addingFighterId || !selectedFighterData) return;
 
-    if (existingMembership && existingMembership.gym_id !== gymId) {
-      // Transfer
+    if (hasOtherGym) {
       transferFighter.mutate({
         fighterId: addingFighterId,
-        fromGymId: existingMembership.gym_id,
+        fromGymId: selectedFighterData.active_gym_id!,
         toGymId: gymId,
       }, {
         onSuccess: () => setAddingFighterId(null),
       });
-    } else if (!existingMembership) {
+    } else if (!alreadyInThisGym) {
       addMembership.mutate({
         fighterId: addingFighterId,
         gymId,
@@ -118,7 +95,6 @@ export default function GymAddFighter() {
   }
 
   const isMutating = addMembership.isPending || transferFighter.isPending;
-  const selectedFighterData = addingFighterId ? fighters?.find(f => f.id === addingFighterId) : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -196,12 +172,12 @@ export default function GymAddFighter() {
             <div className="flex justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-          ) : filteredFighters.length === 0 ? (
+          ) : fighters.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <p>No se encontraron peleadores</p>
             </div>
           ) : (
-            filteredFighters.map(f => {
+            fighters.map(f => {
               const name = [f.first_name, f.last_name].filter(Boolean).join(' ') || 'Sin nombre';
               const record = `${f.mma_record_wins || 0}-${f.mma_record_losses || 0}-${f.mma_record_draws || 0}`;
 
@@ -230,11 +206,14 @@ export default function GymAddFighter() {
                   <Button
                     size="sm"
                     className="flex-shrink-0 h-10 min-w-[80px] touch-manipulation"
-                    onClick={() => handleAdd(f.id)}
-                    disabled={isMutating}
+                    onClick={() => setAddingFighterId(f.id)}
+                    disabled={isMutating || f.active_gym_id === gymId}
                   >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Agregar
+                    {f.active_gym_id === gymId ? (
+                      'Ya vinculado'
+                    ) : (
+                      <><Plus className="h-4 w-4 mr-1" /> Agregar</>
+                    )}
                   </Button>
                 </div>
               );
@@ -243,23 +222,18 @@ export default function GymAddFighter() {
         </div>
 
         {/* Confirmation overlay */}
-        {addingFighterId && selectedFighterData && (
+        {addingFighterId && selectedFighterData && !alreadyInThisGym && (
           <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
             <div className="bg-card rounded-xl p-6 w-full max-w-md shadow-xl">
               <h3 className="text-lg font-bold mb-2">Confirmar</h3>
-              {checkingMembership ? (
-                <div className="flex items-center gap-2 py-4">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm text-muted-foreground">Verificando...</span>
-                </div>
-              ) : existingMembership && existingMembership.gym_id !== gymId ? (
+              {hasOtherGym ? (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-amber-500">
+                  <div className="flex items-center gap-2 text-destructive">
                     <ArrowRightLeft className="h-4 w-4" />
                     <span className="text-sm font-medium">Este peleador ya está en otro gimnasio</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Actualmente en: <strong>{(existingMembership.gyms as any)?.nombre}</strong>. 
+                    Actualmente en: <strong>{selectedFighterData.active_gym_name}</strong>. 
                     ¿Deseas transferirlo?
                   </p>
                 </div>
@@ -275,10 +249,10 @@ export default function GymAddFighter() {
                 <Button
                   className="flex-1 h-12"
                   onClick={confirmAdd}
-                  disabled={checkingMembership || isMutating}
+                  disabled={isMutating}
                 >
                   {isMutating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  {existingMembership && existingMembership.gym_id !== gymId ? 'Transferir' : 'Agregar'}
+                  {hasOtherGym ? 'Transferir' : 'Agregar'}
                 </Button>
               </div>
             </div>
