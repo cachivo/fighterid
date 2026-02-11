@@ -303,11 +303,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
         queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
         queryClient.invalidateQueries({ queryKey: ['license'] });
-        
-        // Dispatch global event for non-query-based components
-        window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
-          detail: { fighterId: profileId, fields: Object.keys(updates) }
-        }));
+        // React Query cache invalidation handles UI sync (no custom events needed)
       }
 
       // 2. CREAR SOLICITUD para récord (solo si está bloqueado Y hay cambios)

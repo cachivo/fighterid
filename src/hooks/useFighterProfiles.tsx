@@ -1,8 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * @deprecated Use hooks from `@/hooks/fighters` directly instead.
+ * This wrapper maintains backward compatibility with existing components.
+ */
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+import { useFightersQuery } from '@/hooks/fighters/useFightersQuery';
 
 export interface FighterProfile {
   id: string;
@@ -30,7 +35,6 @@ export interface FighterProfile {
   record_wins: number;
   record_losses: number;
   record_draws: number;
-  // Discipline-specific records
   mma_record_wins?: number;
   mma_record_losses?: number;
   mma_record_draws?: number;
@@ -51,13 +55,12 @@ export interface FighterProfile {
   martial_arts?: string[];
   organization_id?: string | null;
   gender?: string;
-  phone?: string; // From app_user table
+  phone?: string;
   boxrec_url?: string;
   tapology_url?: string;
   record_type?: string;
   stance?: string;
   level?: string;
-  // Phase 1: Critical Safety Information
   document_type?: string;
   document_image_url?: string;
   birthdate?: string;
@@ -96,7 +99,6 @@ export interface FighterProfileData {
   record_type?: string;
   stance?: string;
   level?: string;
-  // Phase 1: Critical Safety Information
   document_type?: string;
   document_number?: string;
   birthdate?: string;
@@ -120,215 +122,103 @@ export interface AdminFighterFormData {
   avatar_url?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
   martial_arts?: string[];
-  // Legacy combined record (deprecated - use discipline-specific records)
   record_wins?: number;
   record_losses?: number;
   record_draws?: number;
-  // Discipline-specific records
   mma_record_wins?: number;
   mma_record_losses?: number;
   mma_record_draws?: number;
   boxeo_record_wins?: number;
   boxeo_record_losses?: number;
   boxeo_record_draws?: number;
-  
   gender?: string;
   boxrec_url?: string;
   tapology_url?: string;
   record_type?: string;
   stance?: string;
   level?: string;
-  // Physical attributes
   height_cm?: number;
   weight_kg?: number;
   reach_cm?: number;
-  // Bio and background
   bio?: string;
   fighting_style?: string;
   gym_name?: string;
   birthdate?: string;
   birthplace?: string;
-  // Medical and emergency
   blood_type?: string;
   medical_allergies?: string;
   medical_conditions?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   emergency_contact_relation?: string;
-  // Insurance
   insurance_company?: string;
   insurance_policy?: string;
-  // Documents
   document_type?: string;
   document_number?: string;
 }
 
 export function useFighterProfiles() {
-  const [fighters, setFighters] = useState<FighterProfile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [loadingUserProfile, setLoadingUserProfile] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const fetchFighters = useCallback(async (includeInactive = false) => {
-    try {
-      setLoading(true);
-      console.log('[FIGHTERS] Fetching public fighters...');
-      
-      // RLS policies ensure only authorized users see sensitive data
-      // Public users: see basic fields only (RLS enforced)
-      // Owners/Admins: see complete profile (RLS enforced)
-      let query = supabase
-        .from('fighter_profiles')
-        .select('*');
-      
-      if (!includeInactive) {
-        query = query.eq('active', true);
-      }
-      
-      const { data: fightersData, error: fightersError } = await query.order('created_at', { ascending: false });
+  // Delegate list fetching to React Query hook
+  const { data: queryData, isLoading, error: queryError, refetch } = useFightersQuery({ active: true });
 
-      if (fightersError) {
-        console.error('[FIGHTERS] Fighters query error:', fightersError);
-        throw fightersError;
-      }
-      
-      console.log('[FIGHTERS] Raw fighters fetched:', fightersData?.length, 'fighters');
-      
-      if (!fightersData || fightersData.length === 0) {
-        console.log('[FIGHTERS] No fighters found in database');
-        setFighters([]);
-        return;
-      }
+  const fighters = (queryData?.fighters || []) as FighterProfile[];
+  const loading = isLoading;
+  const error = queryError?.message || null;
 
-      // Optional: Get licenses separately if needed (for now just use the data we have)
-      const fightersWithLicenses = fightersData.map(fighter => ({
-        ...fighter,
-        // Use existing license fields from fighter_profiles table
-        martial_arts: fighter.martial_arts || [],
-      }));
-      
-      console.log('[FIGHTERS] Processed fighters:', fightersWithLicenses.length, 'fighters');
-      const moises = fightersWithLicenses.find(f => f.first_name === 'Moises' && f.last_name === 'Cardenas');
-      if (moises) {
-        console.log('[FIGHTERS] Moises record:', { wins: moises.record_wins, losses: moises.record_losses, draws: moises.record_draws });
-      }
-      
-      setFighters(fightersWithLicenses);
-    } catch (err) {
-      console.error('[FIGHTERS] Public fighters fetch error:', err);
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-      // Set empty array on error so UI shows "no fighters" instead of loading forever
-      setFighters([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setFighters, setError]);
+  const fetchFighters = useCallback(async (_includeInactive?: boolean) => {
+    await refetch();
+  }, [refetch]);
 
-  const fetchFightersWithReadyStatus = useCallback(async (includeInactive = false) => {
-    try {
-      setLoading(true);
-      // RLS policies ensure only authorized users see sensitive data
-      let query = supabase
-        .from('fighter_profiles')
-        .select(`
-          *,
-          martial_arts,
-          license_number,
-          license_issued_date,
-          license_expires_date,
-          license_status,
-          fighter_status_updates!inner(
-            ready_to_fight,
-            created_at
-          )
-        `);
-      
-      if (!includeInactive) {
-        query = query.eq('active', true);
-      }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Process data to get latest ready_to_fight status
-      const processedData = data?.map(fighter => {
-        const latestStatus = fighter.fighter_status_updates?.[0];
-        return {
-          ...fighter,
-          ready_to_fight: latestStatus?.ready_to_fight || false
-        };
-      }) || [];
-      
-      setFighters(processedData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
-    } finally {
-      setLoading(false);
-    }
-  }, [setLoading, setFighters, setError]);
+  const fetchFightersWithReadyStatus = useCallback(async (_includeInactive?: boolean) => {
+    await refetch();
+  }, [refetch]);
 
   const createFighterProfile = async (profileData: FighterProfileData) => {
     if (!user) throw new Error('Usuario no autenticado');
 
-    try {
-      // Get user_id from app_user table
-      const { data: appUser, error: userError } = await supabase
-        .from('app_user')
-        .select('id')
-        .eq('auth_user_id', user.id)
-        .single();
+    const { data: appUser, error: userError } = await supabase
+      .from('app_user')
+      .select('id')
+      .eq('auth_user_id', user.id)
+      .single();
 
-      if (userError) throw userError;
-      if (!appUser) throw new Error('Perfil de usuario no encontrado');
+    if (userError) throw userError;
+    if (!appUser) throw new Error('Perfil de usuario no encontrado');
 
-      const { data, error } = await supabase
-        .from('fighter_profiles')
-        .insert({
-          user_id: appUser.id,
-          ...profileData
-        })
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .insert({ user_id: appUser.id, ...profileData })
+      .select()
+      .single();
 
-      if (error) throw error;
-      
-      // Refresh fighters list
-      await fetchFighters();
-      return data;
-    } catch (err) {
-      throw err instanceof Error ? err : new Error('Error desconocido');
-    }
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['fighters'] });
+    return data;
   };
 
   const updateFighterProfile = async (id: string, profileData: Partial<FighterProfileData>) => {
-    try {
-      const { data, error } = await supabase
-        .from('fighter_profiles')
-        .update(profileData)
-        .eq('id', id)
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .update(profileData)
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) throw error;
-      
-      // Refresh fighters list
-      await fetchFighters();
-      return data;
-    } catch (err) {
-      throw err instanceof Error ? err : new Error('Error desconocido');
-    }
+    if (error) throw error;
+    queryClient.invalidateQueries({ queryKey: ['fighters'] });
+    queryClient.invalidateQueries({ queryKey: ['fighter', id] });
+    return data;
   };
 
   const getUserFighterProfile = useCallback(async () => {
     if (!user) return null;
-
     try {
       setLoadingUserProfile(true);
-      // Get user_id from app_user table
       const { data: appUser, error: userError } = await supabase
         .from('app_user')
         .select('id')
@@ -339,10 +229,7 @@ export function useFighterProfiles() {
 
       const { data, error } = await supabase
         .from('fighter_profiles')
-        .select(`
-          *,
-          primary_license:fighter_licenses!primary_license_id(*)
-        `)
+        .select(`*, primary_license:fighter_licenses!primary_license_id(*)`)
         .eq('user_id', appUser.id)
         .eq('active', true)
         .single();
@@ -357,258 +244,114 @@ export function useFighterProfiles() {
     }
   }, [user]);
 
-  // Add function to refresh current user profile
-  const refreshUserProfile = async () => {
-    return await getUserFighterProfile();
-  };
+  const refreshUserProfile = async () => getUserFighterProfile();
 
   const getFighterById = async (id: string) => {
-    try {
-      // RLS policies ensure only authorized users see sensitive data
-      const { data, error } = await supabase
-        .from('fighter_profiles')
-        .select(`
-          *,
-          coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug)
-        `)
-        .eq('id', id)
-        .single();
+    const { data, error } = await supabase
+      .from('fighter_profiles')
+      .select(`*, coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug)`)
+      .eq('id', id)
+      .single();
 
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      throw err instanceof Error ? err : new Error('Error desconocido');
+    if (error) throw error;
+    return data;
+  };
+
+  const invalidateAll = (fighterId?: string) => {
+    queryClient.invalidateQueries({ queryKey: ['fighters'] });
+    queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
+    queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
+    queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
+    queryClient.invalidateQueries({ queryKey: ['userFighterProfile'] });
+    queryClient.invalidateQueries({ queryKey: ['license'] });
+    if (fighterId) {
+      queryClient.invalidateQueries({ queryKey: ['fighter', fighterId] });
+      queryClient.invalidateQueries({ queryKey: ['fighter-profile', fighterId] });
     }
   };
 
   const adminUpdateFighterProfile = async (fighterId: string, profileData: AdminFighterFormData) => {
     try {
-      console.log('Actualizando peleador:', fighterId, profileData);
-      
-      // Verificar autenticación antes de proceder
       const { data: { session } } = await supabase.auth.getSession();
-      console.log('Estado de sesión:', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        email: session?.user?.email,
-        accessToken: session?.access_token ? 'presente' : 'ausente'
-      });
-      
-      if (!session) {
-        throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
-      }
+      if (!session) throw new Error('No hay sesión activa.');
 
-      // Verificar si el usuario es admin consultando directamente
       const { data: adminCheck, error: adminError } = await supabase
         .from('app_user')
         .select('is_admin, id')
         .eq('auth_user_id', session.user.id)
         .single();
 
-      if (adminError) {
-        console.error('Error verificando permisos de admin:', adminError);
-        throw new Error('Error verificando permisos de administrador');
-      }
+      if (adminError) throw new Error('Error verificando permisos de administrador');
+      if (!adminCheck?.is_admin) throw new Error('No tienes permisos de administrador');
 
-      if (!adminCheck?.is_admin) {
-        throw new Error('No tienes permisos de administrador para realizar esta acción');
-      }
-
-      // Validate discipline before sending if present
       if (profileData.discipline && !['MMA', 'Boxeo', 'Judo', 'JiuJitsu', 'Kickboxing', 'MuayThai', 'Grappling', 'Otro'].includes(profileData.discipline)) {
         throw new Error(`Disciplina inválida: ${profileData.discipline}`);
       }
 
-      console.log('Usuario verificado como admin:', adminCheck);
-      
-      // Usar la función administrativa de base de datos con valores en español
       const { error } = await supabase.rpc('admin_update_fighter_profile', {
         p_fighter_id: fighterId,
-        p_profile_data: profileData as any
+        p_profile_data: profileData as any,
       });
+      if (error) throw error;
 
-      if (error) {
-        console.error('Error en RPC admin_update_fighter_profile:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Éxito",
-        description: "Perfil de peleador actualizado correctamente.",
-      });
-
-      // Complete cache invalidation for all fighter-related queries
-      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-      queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
-      queryClient.invalidateQueries({ queryKey: ['fighters'] });
-      queryClient.invalidateQueries({ queryKey: ['fighter', fighterId] });
-      queryClient.invalidateQueries({ queryKey: ['fighter-profile', fighterId] });
-      queryClient.invalidateQueries({ queryKey: ['userFighterProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['license'] });
-
-      // Refrescar la lista para mostrar los cambios
-      await fetchFighters();
-
-      // Notificar a otras vistas para refrescar con evento unificado
-      window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
-        detail: { fighterId, source: 'admin-update', fields: Object.keys(profileData) }
-      }));
+      toast({ title: 'Éxito', description: 'Perfil de peleador actualizado correctamente.' });
+      invalidateAll(fighterId);
       return true;
     } catch (err) {
-      console.error('Error completo:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al actualizar peleador';
-      toast({
-        title: "Error",
-        description: `Error al actualizar: ${errorMessage}`,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: `Error al actualizar: ${errorMessage}`, variant: 'destructive' });
       return false;
     }
   };
 
   const deleteLicense = async (licenseId: string) => {
     try {
-      // Usar la función de eliminación segura de base de datos
-      const { error } = await supabase.rpc('delete_fighter_license', {
-        p_license_id: licenseId
-      });
-
+      const { error } = await supabase.rpc('delete_fighter_license', { p_license_id: licenseId });
       if (error) throw error;
-
-      toast({
-        title: "Éxito",
-        description: "Licencia eliminada correctamente",
-      });
-
+      toast({ title: 'Éxito', description: 'Licencia eliminada correctamente' });
       return true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar licencia';
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error al eliminar licencia', variant: 'destructive' });
       return false;
     }
   };
 
   const deleteFighterProfile = async (fighterId: string) => {
     try {
-      // Usar la función administrativa de base de datos
-      const { error } = await supabase.rpc('admin_delete_fighter_profile', {
-        p_fighter_id: fighterId
-      });
-
+      const { error } = await supabase.rpc('admin_delete_fighter_profile', { p_fighter_id: fighterId });
       if (error) throw error;
-
-      toast({
-        title: "Éxito",
-        description: "Perfil de peleador eliminado correctamente",
-      });
-
-      // Refrescar la lista
-      await fetchFighters();
+      toast({ title: 'Éxito', description: 'Perfil de peleador eliminado correctamente' });
+      invalidateAll();
       return true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al eliminar peleador';
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error al eliminar peleador', variant: 'destructive' });
       return false;
     }
   };
 
-  useEffect(() => {
-    fetchFighters();
-  }, []);
-
-  // Add a window listener to refresh public fighters when admin makes changes
-  useEffect(() => {
-    const handleAdminUpdate = () => {
-      console.log('[FIGHTERS] Admin update detected, refreshing public fighters...');
-      setTimeout(() => fetchFighters(), 1000); // Delay to ensure DB update is complete
-    };
-    
-    window.addEventListener('admin-fighter-updated', handleAdminUpdate);
-    
-    return () => {
-      window.removeEventListener('admin-fighter-updated', handleAdminUpdate);
-    };
-  }, [fetchFighters]);
-
-  /**
-   * User updates their own fighter profile with ranking sync
-   */
   const userUpdateFighterProfile = async (fighterId: string, profileData: Partial<FighterProfileData>) => {
     try {
       const { error } = await supabase.rpc('user_update_fighter_profile', {
         p_fighter_id: fighterId,
-        p_profile_data: profileData as any
+        p_profile_data: profileData as any,
       });
-
       if (error) throw error;
-
-      toast({
-        title: "Éxito",
-        description: "Perfil actualizado correctamente.",
-      });
-
-      // Complete cache invalidation
-      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-      queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
-      queryClient.invalidateQueries({ queryKey: ['fighters'] });
-      queryClient.invalidateQueries({ queryKey: ['fighter', fighterId] });
-      queryClient.invalidateQueries({ queryKey: ['fighter-profile', fighterId] });
-      queryClient.invalidateQueries({ queryKey: ['userFighterProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['license'] });
-
-      // Notify other components
-      window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
-        detail: { fighterId, fields: Object.keys(profileData) }
-      }));
-
+      toast({ title: 'Éxito', description: 'Perfil actualizado correctamente.' });
+      invalidateAll(fighterId);
       return true;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error al actualizar perfil';
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error al actualizar perfil', variant: 'destructive' });
       return false;
     }
   };
 
-  /**
-   * Admin creates a new fighter profile (no user_id required)
-   */
   const adminCreateFighterProfile = async (profileData: Partial<FighterProfileData>): Promise<string | null> => {
-    try {
-      console.log('Admin creating fighter profile:', profileData);
-      
-      const { data, error } = await supabase.rpc('admin_create_fighter_profile', {
-        p_profile_data: profileData as any
-      });
-
-      if (error) {
-        console.error('Error creating fighter profile:', error);
-        throw error;
-      }
-
-      console.log('Fighter profile created successfully:', data);
-      
-      // Refresh fighters list
-      await fetchFighters();
-      
-      return data;
-    } catch (error) {
-      console.error('Exception in adminCreateFighterProfile:', error);
-      throw error;
-    }
+    const { data, error } = await supabase.rpc('admin_create_fighter_profile', {
+      p_profile_data: profileData as any,
+    });
+    if (error) throw error;
+    invalidateAll();
+    return data;
   };
 
   return {
@@ -627,6 +370,6 @@ export function useFighterProfiles() {
     userUpdateFighterProfile,
     deleteLicense,
     deleteFighterProfile,
-    refreshUserProfile
+    refreshUserProfile,
   };
 }

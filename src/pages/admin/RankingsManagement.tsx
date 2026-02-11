@@ -14,12 +14,11 @@ import { useOrganizationRanking } from '@/hooks/useOrganizationRanking';
 import { PointAdjustmentModal } from '@/components/admin/PointAdjustmentModal';
 import { EnrollFighterModal } from '@/components/admin/EnrollFighterModal';
 import { getWeightClassLabel } from '@/lib/constants/disciplines';
-import { useQueryClient } from '@tanstack/react-query';
 import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/useRealtimeFighterUpdates';
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
-  const queryClient = useQueryClient();
+  // queryClient removed — no longer needed for manual invalidation
   const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
   const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
@@ -37,15 +36,7 @@ export default function RankingsManagement() {
   useRealtimeFighterUpdates();
   useRealtimeRankingUpdates();
 
-  // Listen for fighter profile updates to refresh rankings (unified event)
-  useEffect(() => {
-    const handleFighterUpdate = () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-ranking'] });
-    };
-    
-    window.addEventListener('fighter-profile-updated', handleFighterUpdate);
-    return () => window.removeEventListener('fighter-profile-updated', handleFighterUpdate);
-  }, [queryClient]);
+  // Custom window events removed — React Query + Supabase Realtime handle sync
 
   const { data: rankingData, isLoading: loadingRanking } = useOrganizationRanking(
     selectedOrg,

@@ -75,20 +75,7 @@ export default function FighterProfile() {
     fetchFighter();
   }, [fetchFighter]);
 
-  // Listen for profile updates and refresh
-  useEffect(() => {
-    const handleProfileUpdate = (event: CustomEvent) => {
-      if (event.detail?.fighterId === id) {
-        console.log('[FighterProfile] Received update event, refreshing...');
-        fetchFighter();
-      }
-    };
-    
-    window.addEventListener('fighter-profile-updated', handleProfileUpdate as EventListener);
-    return () => {
-      window.removeEventListener('fighter-profile-updated', handleProfileUpdate as EventListener);
-    };
-  }, [id, fetchFighter]);
+  // Custom window events removed — useRealtimeFighterUpdates handles sync via React Query
 
   if (loading) {
     return (
