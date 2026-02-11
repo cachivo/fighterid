@@ -21,11 +21,11 @@ export function GymStatsCards({ stats, disciplines }: GymStatsCardsProps) {
   return (
     <div className="space-y-4">
       {/* Stats horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x snap-mandatory">
         {cards.map(card => (
           <div
             key={card.label}
-            className="min-w-[120px] flex-shrink-0 rounded-xl border bg-card p-3 text-center"
+            className="min-w-[100px] flex-shrink-0 rounded-xl border bg-card p-3 text-center snap-start"
           >
             <card.icon className={`h-5 w-5 mx-auto mb-1 ${card.color}`} />
             <p className="text-2xl font-bold">{card.value}</p>

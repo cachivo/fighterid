@@ -100,6 +100,7 @@ import EntrenadoresAdmin from "./pages/admin/EntrenadoresAdmin";
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
 const GymFightersPage = lazy(() => import("./pages/gym/GymFighters"));
 const GymStaffManagement = lazy(() => import("./pages/gym/GymStaffManagement"));
+const GymAddFighter = lazy(() => import("./pages/gym/GymAddFighter"));
 
 // Lazy load RankingsManagement
 const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
@@ -198,6 +199,13 @@ const App = () => {
                 <ProtectedRoute>
                   <Suspense fallback={<LoadingSpinner />}>
                     <GymStaffManagement />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/gym/:gymId/add-fighter" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <GymAddFighter />
                   </Suspense>
                 </ProtectedRoute>
               } />

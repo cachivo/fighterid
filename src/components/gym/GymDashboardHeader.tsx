@@ -39,7 +39,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
 
       {/* Shield + Info */}
       <div className="px-4 -mt-10 flex items-end gap-4">
-        <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
+        <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-lg">
           <AvatarImage src={gym.logo_url || undefined} alt={gym.nombre} />
           <AvatarFallback className="bg-primary/10 text-primary">
             <Shield className="h-8 w-8" />
@@ -47,7 +47,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
         </Avatar>
 
         <div className="pb-1 min-w-0">
-          <h1 className="text-xl font-bold truncate">{gym.nombre}</h1>
+          <h1 className="text-xl font-bold truncate text-balance">{gym.nombre}</h1>
           {(gym.ciudad || gym.pais) && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -57,7 +57,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
             </div>
           )}
           {owner && (
-            <Badge variant="secondary" className="mt-1 text-xs">
+            <Badge variant="secondary" className="mt-1 text-xs max-w-full truncate">
               {roleLabels[owner.role]}: {owner.user.first_name} {owner.user.last_name}
             </Badge>
           )}

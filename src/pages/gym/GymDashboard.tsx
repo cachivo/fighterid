@@ -5,9 +5,10 @@ import { GymDashboardHeader } from '@/components/gym/GymDashboardHeader';
 import { GymStatsCards } from '@/components/gym/GymStatsCards';
 import { GymFighterCard } from '@/components/gym/GymFighterCard';
 import { useGymFighters } from '@/hooks/gyms/useGymFighters';
+import { useGymStaffRole } from '@/hooks/gyms/useMyGymStaff';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Users, Settings, ChevronRight } from 'lucide-react';
+import { Users, Settings, ChevronRight, Plus } from 'lucide-react';
 import Header from '@/components/Header';
 
 export default function GymDashboard() {
@@ -15,6 +16,7 @@ export default function GymDashboard() {
   const navigate = useNavigate();
   const { data, isLoading } = useGymDashboard(gymId || '');
   const { data: fightersData } = useGymFighters(gymId || '', { limit: 5 });
+  const { data: staffRole } = useGymStaffRole(gymId || '');
 
   if (isLoading) {
     return (
@@ -33,10 +35,12 @@ export default function GymDashboard() {
 
   if (!data) return <div className="min-h-screen bg-background pt-20 p-4 text-center text-muted-foreground">Gimnasio no encontrado</div>;
 
+  const canManageFighters = staffRole?.canManageFighters ?? false;
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="pt-20 pb-8">
+      <div className="pt-20 pb-20">
         <GymDashboardHeader gym={data.gym} staff={data.staff} />
 
         <div className="px-4 mt-6">
@@ -58,6 +62,16 @@ export default function GymDashboard() {
             <div className="text-center py-8 text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No hay peleadores vinculados</p>
+              {canManageFighters && (
+                <Button
+                  variant="outline"
+                  className="mt-3"
+                  onClick={() => navigate(`/gym/${gymId}/add-fighter`)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar primer peleador
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -70,6 +84,15 @@ export default function GymDashboard() {
 
         {/* Quick Actions */}
         <div className="px-4 mt-6 flex gap-3">
+          {canManageFighters && (
+            <Button
+              className="flex-1 h-12 touch-manipulation bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => navigate(`/gym/${gymId}/add-fighter`)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Peleador
+            </Button>
+          )}
           <Button
             variant="outline"
             className="flex-1 h-12 touch-manipulation"
