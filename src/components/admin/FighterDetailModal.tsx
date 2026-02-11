@@ -19,6 +19,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { FighterLeaguesTab } from './FighterLeaguesTab';
+import { FighterGymTab } from './FighterGymTab';
 
 // Helper function to get correct record based on discipline
 const getRecordDisplay = (profile: any) => {
@@ -167,9 +168,10 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
 
                 {/* Tabs con información detallada */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
-                  <TabsList className="grid grid-cols-7 w-full">
+                  <TabsList className="grid grid-cols-8 w-full">
                     <TabsTrigger value="personal">Personal</TabsTrigger>
                     <TabsTrigger value="deportivo">Deportivo</TabsTrigger>
+                    <TabsTrigger value="gimnasio">Gimnasio</TabsTrigger>
                     <TabsTrigger value="ligas">Ligas</TabsTrigger>
                     <TabsTrigger value="licencias">Licencias</TabsTrigger>
                     <TabsTrigger value="documentos">Documentos</TabsTrigger>
@@ -280,6 +282,10 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
                         </CardContent>
                       </Card>
                     )}
+                  </TabsContent>
+
+                  <TabsContent value="gimnasio" className="space-y-4">
+                    <FighterGymTab fighterId={fighterId} />
                   </TabsContent>
 
                   <TabsContent value="ligas" className="space-y-4">
