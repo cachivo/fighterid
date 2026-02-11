@@ -1,40 +1,98 @@
 
 
-# Plan: Buscador y Mejoras en Gestion de Roles
+# Correccion: Vinculacion de Records con Rankings en Onboarding
 
-## Problemas Actuales
+## Problema Raiz
 
-1. **Sin buscador** - Si hay muchos usuarios, no hay forma de filtrar por nombre o email
-2. **Carga todos los usuarios de golpe** - Sin paginacion, lo cual no escala bien
-3. **Sin filtro por rol** - No se puede ver rapidamente solo los admins o moderadores
-4. **Sin contador por rol** - No hay estadisticas rapidas de cuantos usuarios tienen cada rol
+Hay un error de nombre de campo entre la base de datos y el codigo:
+
+- La funcion RPC `create_fighter_profile_with_license` devuelve `profile_id`
+- El hook `useOptimizedOnboarding.ts` espera `fighter_id`
+- Como `result.fighter_id` es siempre `undefined`, la actualizacion de records por disciplina (MMA/Boxeo) **nunca se ejecuta**
+- Los puntos del ranking se calculan usando los campos de disciplina (`mma_record_wins`, `boxeo_record_wins`), que quedan en 0
+- Resultado: todos los peleadores nuevos aparecen con **0 puntos** en el ranking
+
+Esto explica por que Jonathan Mejia tiene `record_wins=16` pero `boxeo_record_wins=0` y 0 puntos en el ranking.
 
 ---
 
-## Cambios a Implementar
+## Solucion (2 cambios)
 
-### 1. Buscador de texto (nombre/email)
+### 1. Actualizar la funcion RPC en la base de datos
 
-Agregar un campo de busqueda arriba de la lista que filtre usuarios en tiempo real (client-side, ya que los datos estan cargados):
+Modificar `create_fighter_profile_with_license` para:
 
-- Filtrar por `first_name`, `last_name`, o `email`
-- Busqueda instantanea sin necesidad de llamar a la API
-- Icono de lupa y boton para limpiar busqueda
+- **Escribir los records de disciplina directamente** en el INSERT (no depender de una actualizacion posterior)
+- **Devolver `fighter_id`** en lugar de `profile_id` para compatibilidad con el frontend
 
-### 2. Filtro por rol
+Esto hace que todo sea atomico: perfil + licencia + records de disciplina + auto-inscripcion en ranking, todo en una sola transaccion.
 
-Agregar botones/tabs para filtrar por rol:
-- **Todos** | **Admin** | **Moderador** | **Usuario** | **Sin rol**
+### 2. Corregir el hook del frontend
 
-### 3. Contadores rapidos (stats)
+En `useOptimizedOnboarding.ts`:
 
-Mostrar arriba de la lista un resumen:
-- Total de usuarios
-- Cuantos son admin, moderador, usuario, sin rol
+- Actualizar la interfaz `CreateProfileResult` para aceptar tanto `fighter_id` como `profile_id`
+- Usar `result.fighter_id || result.profile_id` como fallback
+- Eliminar la actualizacion separada de records por disciplina (ya no es necesaria porque el RPC lo hace)
 
-### 4. Contador de resultados filtrados
+### 3. Reparar datos existentes (migracion one-time)
 
-Actualizar el subtitulo de la card para mostrar "Mostrando X de Y usuarios" cuando hay filtro activo.
+Ejecutar una migracion SQL que copie los records legacy a los campos de disciplina para todos los perfiles que ya estan afectados, y recalcule los puntos del ranking.
+
+---
+
+## Detalles Tecnicos
+
+### Cambio en RPC (SQL Migration)
+
+```sql
+-- Dentro del INSERT de fighter_profiles, agregar:
+mma_record_wins = CASE WHEN p_discipline = 'MMA' THEN p_record_wins ELSE 0 END,
+mma_record_losses = CASE WHEN p_discipline = 'MMA' THEN p_record_losses ELSE 0 END,
+boxeo_record_wins = CASE WHEN p_discipline = 'Boxeo' THEN p_record_wins ELSE 0 END,
+-- etc.
+
+-- Cambiar el RETURN:
+RETURN jsonb_build_object(
+  'success', true,
+  'user_id', v_user_id,
+  'fighter_id', v_profile_id,  -- Renombrar de profile_id a fighter_id
+  'license_id', v_license_id,
+  'license_number', v_license_number
+);
+```
+
+### Reparacion de datos existentes (SQL Migration)
+
+```sql
+-- Copiar records legacy a campos de disciplina donde esten vacios
+UPDATE fighter_profiles
+SET 
+  mma_record_wins = record_wins,
+  mma_record_losses = record_losses,
+  mma_record_draws = record_draws
+WHERE discipline = 'MMA' 
+  AND COALESCE(mma_record_wins, 0) = 0 
+  AND record_wins > 0;
+
+-- Similar para Boxeo...
+-- Luego recalcular puntos en fighter_rankings
+```
+
+### Cambio en useOptimizedOnboarding.ts
+
+```typescript
+// Antes:
+interface CreateProfileResult {
+  fighter_id: string; // Nunca llegaba porque RPC devuelve profile_id
+}
+
+// Despues:
+interface CreateProfileResult {
+  fighter_id: string; // Ahora el RPC devuelve este campo
+}
+// Y eliminar las lineas 107-121 (actualizacion manual de records)
+```
 
 ---
 
@@ -42,64 +100,14 @@ Actualizar el subtitulo de la card para mostrar "Mostrando X de Y usuarios" cuan
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/admin/UserRoles.tsx` | Agregar estado de busqueda, filtro por rol, logica de filtrado client-side, stats, y UI del buscador |
-
-No se requieren cambios en el hook `useUserRoles.tsx` ya que el filtrado sera client-side sobre los datos ya cargados.
+| Nueva migracion SQL | Actualizar RPC + reparar datos existentes |
+| `src/hooks/useOptimizedOnboarding.ts` | Simplificar: eliminar actualizacion manual de records |
 
 ---
 
-## Detalles Tecnicos
+## Impacto
 
-### Estado nuevo en UserRoles
-
-```typescript
-const [searchQuery, setSearchQuery] = useState('');
-const [roleFilter, setRoleFilter] = useState<AppRole | 'all' | 'none'>('all');
-```
-
-### Logica de filtrado
-
-```typescript
-const filteredUsers = useMemo(() => {
-  return users.filter(user => {
-    // Filtro de texto
-    const matchesSearch = !searchQuery || 
-      user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Filtro de rol
-    const matchesRole = roleFilter === 'all' ||
-      (roleFilter === 'none' ? user.roles.length === 0 : user.roles.includes(roleFilter));
-    
-    return matchesSearch && matchesRole;
-  });
-}, [users, searchQuery, roleFilter]);
-```
-
-### UI del buscador
-
-Se agrega entre el header y la card:
-- Input con icono de Search y boton X para limpiar
-- Fila de badges/botones clickeables para filtrar por rol
-- Stats con conteo por rol
-
-### Resultado visual esperado
-
-```text
-+--------------------------------------------------+
-| Gestion de Roles                                  |
-| Administra los roles y permisos de usuarios       |
-+--------------------------------------------------+
-| [🔍 Buscar por nombre o email...            [X]] |
-|                                                    |
-| [Todos(25)] [Admin(2)] [Moderador(3)] [Usuario(18)] [Sin rol(2)] |
-+--------------------------------------------------+
-| Usuarios del Sistema                               |
-| Mostrando 25 de 25 usuarios                        |
-|                                                    |
-| Usuario 1 ... [Editar Roles] [Eliminar]            |
-| Usuario 2 ... [Editar Roles] [Eliminar]            |
-+--------------------------------------------------+
-```
+- Los nuevos peleadores apareceran inmediatamente en el ranking con sus puntos correctos
+- Los peleadores existentes con 0 puntos seran reparados automaticamente
+- Se elimina una race condition donde la actualizacion del record podia fallar silenciosamente
 
