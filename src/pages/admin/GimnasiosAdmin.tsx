@@ -1,20 +1,31 @@
 import { useState } from 'react';
 import { useGyms, useCreateGym } from '@/hooks/useGyms';
+import { useAllDisciplines } from '@/hooks/gyms';
 import { AdminGymCard } from '@/components/admin/AdminGymCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, Building2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function GimnasiosAdmin() {
   const { data: gyms, isLoading } = useGyms();
+  const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+  const toggleDiscipline = (id: string) => {
+    setSelectedDisciplines(prev =>
+      prev.includes(id) ? prev.filter(d => d !== id) : [...prev, id]
+    );
+  };
 
   const onSubmit = async (data: any) => {
     try {
@@ -23,13 +34,25 @@ export default function GimnasiosAdmin() {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)/g, '');
 
-      await createGym.mutateAsync({
+      const selectedNames = disciplines
+        ?.filter(d => selectedDisciplines.includes(d.id))
+        .map(d => d.name) || [];
+
+      const newGym = await createGym.mutateAsync({
         ...data,
         slug,
-        disciplinas: data.disciplinas ? data.disciplinas.split(',').map((d: string) => d.trim()) : []
+        disciplinas: selectedNames,
       });
-      
+
+      // Insert relational disciplines
+      if (selectedDisciplines.length > 0 && newGym?.id) {
+        await supabase.from('gym_disciplines').insert(
+          selectedDisciplines.map(id => ({ gym_id: newGym.id, discipline_id: id }))
+        );
+      }
+
       reset();
+      setSelectedDisciplines([]);
       setIsDialogOpen(false);
     } catch (error: any) {
       toast.error('Error al crear gimnasio: ' + error.message);
@@ -80,47 +103,37 @@ export default function GimnasiosAdmin() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="ciudad">Ciudad</Label>
-                  <Input 
-                    id="ciudad" 
-                    {...register('ciudad')}
-                    placeholder="Tegucigalpa"
-                  />
+                  <Input id="ciudad" {...register('ciudad')} placeholder="Tegucigalpa" />
                 </div>
                 <div>
                   <Label htmlFor="pais">País</Label>
-                  <Input 
-                    id="pais" 
-                    {...register('pais')}
-                    defaultValue="Honduras"
-                  />
+                  <Input id="pais" {...register('pais')} defaultValue="Honduras" />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="disciplinas">Disciplinas (separadas por coma)</Label>
-                <Input 
-                  id="disciplinas" 
-                  {...register('disciplinas')}
-                  placeholder="MMA, Boxeo, BJJ"
-                />
+                <Label>Disciplinas</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto border rounded-md p-3">
+                  {disciplines?.map(disc => (
+                    <label key={disc.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={selectedDisciplines.includes(disc.id)}
+                        onCheckedChange={() => toggleDiscipline(disc.id)}
+                      />
+                      {disc.name}
+                    </label>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="telefono">Teléfono</Label>
-                  <Input 
-                    id="telefono" 
-                    {...register('telefono')}
-                    placeholder="+504 1234-5678"
-                  />
+                  <Input id="telefono" {...register('telefono')} placeholder="+504 1234-5678" />
                 </div>
                 <div>
                   <Label htmlFor="whatsapp">WhatsApp</Label>
-                  <Input 
-                    id="whatsapp" 
-                    {...register('whatsapp')}
-                    placeholder="+504 1234-5678"
-                  />
+                  <Input id="whatsapp" {...register('whatsapp')} placeholder="+504 1234-5678" />
                 </div>
               </div>
 
