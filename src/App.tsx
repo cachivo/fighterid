@@ -96,6 +96,11 @@ import EntrenadorDetalle from "./pages/EntrenadorDetalle";
 import GimnasiosAdmin from "./pages/admin/GimnasiosAdmin";
 import EntrenadoresAdmin from "./pages/admin/EntrenadoresAdmin";
 
+// Gym domain pages (lazy)
+const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
+const GymFightersPage = lazy(() => import("./pages/gym/GymFighters"));
+const GymStaffManagement = lazy(() => import("./pages/gym/GymStaffManagement"));
+
 // Lazy load RankingsManagement
 const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
 const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
@@ -173,6 +178,29 @@ const App = () => {
               {/* Rutas de Gimnasios */}
               <Route path="/gimnasios" element={<Gimnasios />} />
               <Route path="/gimnasios/:slug" element={<GimnasioDetalle />} />
+
+              {/* Gym Dashboard (staff privado) */}
+              <Route path="/gym/:gymId/dashboard" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <GymDashboard />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/gym/:gymId/fighters" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <GymFightersPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/gym/:gymId/staff" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <GymStaffManagement />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
 
               {/* Rutas de Entrenadores */}
               <Route path="/entrenadores" element={<Entrenadores />} />
