@@ -4,21 +4,24 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Phone, Pencil, Trash2, LayoutDashboard, Users, UserPlus, Swords } from 'lucide-react';
+import { MapPin, Phone, Pencil, Trash2, LayoutDashboard, Users, UserPlus, Swords, Crown } from 'lucide-react';
 import { GymEditModal } from './GymEditModal';
 import { DeleteGymDialog } from './DeleteGymDialog';
 import { AssignFighterToGymModal } from './AssignFighterToGymModal';
+import { AssignGymOwnerModal } from './AssignGymOwnerModal';
 import { supabase } from '@/integrations/supabase/client';
 import type { Gym } from '@/types/gyms';
 
 interface AdminGymCardProps {
   gym: Gym;
+  readOnly?: boolean;
 }
 
-export function AdminGymCard({ gym }: AdminGymCardProps) {
+export function AdminGymCard({ gym, readOnly = false }: AdminGymCardProps) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showOwnerModal, setShowOwnerModal] = useState(false);
   const navigate = useNavigate();
 
   const { data: staffCount } = useQuery({
@@ -126,20 +129,27 @@ export function AdminGymCard({ gym }: AdminGymCardProps) {
               <LayoutDashboard className="h-4 w-4 mr-1" />
               Dashboard
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowAssignModal(true)}>
-              <UserPlus className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {!readOnly && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setShowOwnerModal(true)} title="Asignar Admin">
+                  <Crown className="h-4 w-4 text-yellow-500" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowAssignModal(true)}>
+                  <UserPlus className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -149,6 +159,12 @@ export function AdminGymCard({ gym }: AdminGymCardProps) {
       <AssignFighterToGymModal
         open={showAssignModal}
         onClose={() => setShowAssignModal(false)}
+        gymId={gym.id}
+        gymName={gym.nombre}
+      />
+      <AssignGymOwnerModal
+        open={showOwnerModal}
+        onOpenChange={setShowOwnerModal}
         gymId={gym.id}
         gymName={gym.nombre}
       />
