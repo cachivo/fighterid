@@ -109,7 +109,7 @@ export function AdminSidebar() {
                     <NavLink 
                       to={item.url} 
                       end={item.url === '/admin'}
-                      className={getNavCls(item.url)}
+                      className={`min-h-[44px] ${getNavCls(item.url)}`}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -130,7 +130,7 @@ export function AdminSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
-                      className={getNavCls(item.url)}
+                      className={`min-h-[44px] ${getNavCls(item.url)}`}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -152,7 +152,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink 
                         to={item.url} 
-                        className={getNavCls(item.url)}
+                        className={`min-h-[44px] ${getNavCls(item.url)}`}
                       >
                         <item.icon className="h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}

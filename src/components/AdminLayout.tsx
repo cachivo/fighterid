@@ -1,14 +1,17 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar } from './AdminSidebar';
 import { Link } from 'react-router-dom';
+import { useBreakpoints } from '@/hooks/use-mobile';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  const { isTablet } = useBreakpoints();
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={!isTablet}>
       {/* Desktop-only warning for small screens */}
       {/* Mobile-only warning (< 768px) */}
       <div className="md:hidden min-h-screen w-screen flex items-center justify-center p-4 bg-background overflow-hidden">
@@ -36,7 +39,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </Link>
             <h1 className="text-base font-semibold truncate">Panel de Administración</h1>
           </header>
-          <main className="flex-1 p-4 lg:p-5 bg-muted/10 overflow-auto">
+          <main className="flex-1 p-3 md:p-4 lg:p-5 bg-muted/10 overflow-auto">
             <div className="max-w-7xl mx-auto">
               {children}
             </div>
