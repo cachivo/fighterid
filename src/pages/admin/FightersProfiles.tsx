@@ -1,12 +1,15 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle, ChevronLeft, ChevronRight, Building } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { OptimizedImage } from '@/components/ui/optimized-image';
 import { FighterEditModal } from '@/components/admin/FighterEditModal';
 import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
@@ -14,7 +17,10 @@ import { FighterDetailModal } from '@/components/admin/FighterDetailModal';
 import { useAdminFighters, AdminFighterProfile } from '@/hooks/useAdminFighters';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
+import { useGyms } from '@/hooks/useGyms';
+import { useAddMembership } from '@/hooks/gyms';
 import { WEIGHT_CLASSES, getWeightClassLabel, ENABLED_DISCIPLINES } from '@/lib/constants/disciplines';
+import { toast } from 'sonner';
 
 const PAGE_SIZE = 20;
 
@@ -37,10 +43,30 @@ export default function FightersProfiles() {
   const [sortBy, setSortBy] = useState<string>('name');
   const [showIncomplete, setShowIncomplete] = useState(false);
    const [selectedDiscipline, setSelectedDiscipline] = useState<string>('all');
+   const [selectedGymFilter, setSelectedGymFilter] = useState<string>('all');
    const [page, setPage] = useState(1);
   const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
   const [deletingFighter, setDeletingFighter] = useState<AdminFighterProfile | null>(null);
   const [viewingFighter, setViewingFighter] = useState<string | null>(null);
+  const [quickAssignFighter, setQuickAssignFighter] = useState<AdminFighterProfile | null>(null);
+  const [quickAssignGymId, setQuickAssignGymId] = useState<string>('');
+
+  const { data: gyms } = useGyms();
+  const addMembership = useAddMembership();
+
+  // Get fighter IDs with active gym memberships
+  const { data: activeMemberships } = useQuery({
+    queryKey: ['active-gym-memberships-map'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('fighter_gym_memberships')
+        .select('fighter_id, gym_id')
+        .eq('status', 'ACTIVE');
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
 
   // Enable realtime updates for all fighters (global subscription)
   useRealtimeFighterUpdates();
@@ -57,7 +83,16 @@ export default function FightersProfiles() {
        const matchesDiscipline = selectedDiscipline === 'all' || fighter.discipline === selectedDiscipline;
       const completionScore = (fighter as any).completion_score || 0;
       const matchesCompletion = !showIncomplete || completionScore < 70;
-       return matchesSearch && matchesWeight && matchesDiscipline && matchesCompletion;
+      
+      // Gym filter
+      let matchesGym = true;
+      if (selectedGymFilter === 'none') {
+        matchesGym = !(activeMemberships || []).some(m => m.fighter_id === fighter.id);
+      } else if (selectedGymFilter !== 'all') {
+        matchesGym = (activeMemberships || []).some(m => m.fighter_id === fighter.id && m.gym_id === selectedGymFilter);
+      }
+      
+       return matchesSearch && matchesWeight && matchesDiscipline && matchesCompletion && matchesGym;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -72,7 +107,7 @@ export default function FightersProfiles() {
         default:
           return a.first_name.localeCompare(b.first_name);
       }
-     }), [fighters, searchTerm, selectedWeightClass, selectedDiscipline, showIncomplete, sortBy]);
+     }), [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedGymFilter, activeMemberships, showIncomplete, sortBy]);
 
    // Pagination
    const totalPages = Math.ceil(filteredFighters.length / PAGE_SIZE);
@@ -187,6 +222,18 @@ export default function FightersProfiles() {
                 ))}
               </SelectContent>
             </Select>
+             <Select value={selectedGymFilter} onValueChange={handleFilterChange(setSelectedGymFilter)}>
+               <SelectTrigger className="w-full md:w-44">
+                 <SelectValue placeholder="Gimnasio" />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="all">Todos</SelectItem>
+                 <SelectItem value="none">Sin gimnasio</SelectItem>
+                 {(gyms || []).map(g => (
+                   <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-40">
                 <SelectValue placeholder="Ordenar por" />
@@ -245,6 +292,19 @@ export default function FightersProfiles() {
                     </div>
                   </div>
                   <div className="flex gap-1 sm:gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuickAssignFighter(fighter);
+                        setQuickAssignGymId('');
+                      }}
+                      className="h-10 w-10 min-h-[44px] min-w-[44px] touch-manipulation"
+                      title="Asignar gimnasio"
+                    >
+                      <Building className="h-5 w-5" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -385,6 +445,56 @@ export default function FightersProfiles() {
           await fetchFighters();
         }}
       />
+
+      {/* Quick Assign Gym Dialog */}
+      <Dialog open={!!quickAssignFighter} onOpenChange={(open) => { if (!open) setQuickAssignFighter(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Asignar Gimnasio
+            </DialogTitle>
+          </DialogHeader>
+          {quickAssignFighter && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Asignar <span className="font-medium text-foreground">{quickAssignFighter.first_name} {quickAssignFighter.last_name}</span> a un gimnasio:
+              </p>
+              <Select value={quickAssignGymId} onValueChange={setQuickAssignGymId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar gimnasio" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(gyms || []).map(g => (
+                    <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setQuickAssignFighter(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!quickAssignGymId || addMembership.isPending}
+                  onClick={async () => {
+                    if (!quickAssignGymId) return;
+                    try {
+                      await addMembership.mutateAsync({
+                        fighterId: quickAssignFighter.id,
+                        gymId: quickAssignGymId,
+                      });
+                      setQuickAssignFighter(null);
+                    } catch {}
+                  }}
+                >
+                  {addMembership.isPending ? 'Asignando...' : 'Asignar'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
