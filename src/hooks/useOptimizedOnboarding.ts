@@ -124,26 +124,8 @@ export function useOptimizedOnboarding() {
 
       console.log('Profile created successfully:', result);
 
-      // Update discipline-specific records after profile creation
-      if (result?.fighter_id && discipline) {
-        const recordUpdate: Record<string, number> = {};
-        if (discipline === 'MMA') {
-          recordUpdate.mma_record_wins = recordWins;
-          recordUpdate.mma_record_losses = recordLosses;
-          recordUpdate.mma_record_draws = recordDraws;
-        } else if (discipline === 'Boxeo') {
-          recordUpdate.boxeo_record_wins = recordWins;
-          recordUpdate.boxeo_record_losses = recordLosses;
-          recordUpdate.boxeo_record_draws = recordDraws;
-        }
-        
-        if (Object.keys(recordUpdate).length > 0) {
-          await supabase
-            .from('fighter_profiles')
-            .update(recordUpdate)
-            .eq('id', result.fighter_id);
-        }
-      }
+      // Discipline-specific records are now written atomically by the RPC function.
+      // No separate update needed.
 
       // Upload files in background (non-blocking)
       if (files?.identityDocument || files?.fighterPhoto) {
