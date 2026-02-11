@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+
 import { useGymDashboard } from '@/hooks/gyms/useGymDashboard';
 import { GymDashboardHeader } from '@/components/gym/GymDashboardHeader';
 import { GymStatsCards } from '@/components/gym/GymStatsCards';
