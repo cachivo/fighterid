@@ -1,155 +1,96 @@
 
+# Herramientas de Asignacion de Peleadores a Gimnasios desde Admin
 
-# Fase 4: Actualizar Admin de Gimnasios y Entrenadores
+## Contexto
 
-## Resumen
+Actualmente el sistema tiene las tablas `fighter_gym_memberships` y `gym_staff` listas, pero **no existe UI en el panel de admin** para vincular peleadores a gimnasios. El usuario necesita poder clasificar y organizar a todos los peleadores existentes asignandolos a sus respectivos gimnasios.
 
-Actualizar las paginas de admin (`GimnasiosAdmin` y `EntrenadoresAdmin`) para usar el nuevo esquema relacional (`gym_staff`, `gym_disciplines`, `disciplines`) en lugar de la tabla legacy `coaches` y los arrays de strings `disciplinas`.
+## Quien puede editar los dashboards de gimnasios
+
+- **Admins** (rol `admin` en `user_roles`): acceso total a todo, incluyendo dashboards de cualquier gimnasio
+- **Staff del gimnasio** (registrados en `gym_staff`): solo pueden ver/editar el dashboard de SU gimnasio
+- **Usuarios normales**: solo acceso de lectura a datos publicos del gimnasio
+
+Las politicas RLS ya implementadas garantizan esto: lectura publica para todos, escritura solo para staff activo del gimnasio.
 
 ---
 
-## Cambios Principales
+## Cambios a Implementar
 
-### 1. AdminSidebar: Renombrar entrada "Entrenadores" a "Staff de Gimnasios"
+### 1. Nuevo tab "Gimnasio" en el modal de detalle del peleador (`FighterDetailModal`)
 
-Cambiar el item del sidebar de "Entrenadores" a "Staff de Gimnasios" para reflejar el nuevo modelo.
+Agregar un 8vo tab llamado "Gimnasio" entre "Deportivo" y "Ligas" que muestre:
+- **Membresia activa**: nombre del gimnasio, fecha de ingreso, entrenador asignado
+- **Historial**: membresias anteriores (TRANSFERRED, INACTIVE)
+- **Acciones**: boton "Vincular a Gimnasio" o "Transferir" si ya tiene uno
 
-### 2. GimnasiosAdmin.tsx: Agregar selector de disciplinas y gestion de staff
+### 2. Nuevo componente `FighterGymTab` (`src/components/admin/FighterGymTab.tsx`)
 
-**Cambios en el formulario de creacion:**
-- Reemplazar el campo de texto libre "Disciplinas (separadas por coma)" por un selector multi-check usando la tabla `disciplines`
-- Crear un hook `useAllDisciplines()` que trae las disciplinas activas de la tabla `disciplines`
-- Al crear un gimnasio, insertar tambien las relaciones en `gym_disciplines`
+Componente dedicado que contiene:
+- Vista de membresia actual (si existe) con opcion de desvincular
+- Selector de gimnasio (dropdown con todos los gimnasios activos)
+- Selector opcional de entrenador (staff del gimnasio seleccionado con rol HEAD_COACH o ASSISTANT_COACH)
+- Boton "Vincular" que usa `useAddMembership`
+- Boton "Transferir" que usa `useTransferFighter` (si ya tiene gimnasio)
+- Historial de membresias anteriores
 
-**Cambios en el listado:**
-- Mostrar el conteo de staff activo en cada card
-- Agregar boton "Ver Dashboard" que enlaza a `/gym/{gymId}/dashboard`
+### 3. Accion rapida en la lista de peleadores (`FightersProfiles`)
 
-### 3. AdminGymCard.tsx: Mostrar staff count y link al dashboard
+Agregar un boton de icono (Building/Dumbbell) en cada card de peleador para asignar gimnasio rapidamente sin abrir el modal completo. Esto abre un mini-dialog con:
+- Selector de gimnasio
+- Boton confirmar
 
-- Agregar un badge con el numero de staff activos (query ligera a `gym_staff`)
-- Agregar boton "Dashboard" que navega a `/gym/{gymId}/dashboard`
+### 4. Filtro por gimnasio en la lista de peleadores
 
-### 4. GymEditModal.tsx: Selector de disciplinas relacional
+Agregar un dropdown "Gimnasio" en los filtros existentes de `FightersProfiles` para poder ver:
+- "Sin gimnasio" (peleadores no asignados)
+- Gimnasio especifico
 
-- Reemplazar el campo de texto `disciplinas` por checkboxes de la tabla `disciplines`
-- Al guardar, sincronizar `gym_disciplines` (delete + insert de las seleccionadas)
-
-### 5. EntrenadoresAdmin.tsx -> StaffGimnasiosAdmin.tsx
-
-Transformar la pagina completamente:
-
-**Antes:** Creaba un registro en la tabla `coaches` con nombre/apellido/avatar propio.
-
-**Ahora:**
-- Lista todo el staff de todos los gimnasios (query a `gym_staff` + `app_user` + `gyms`)
-- Formulario de "Agregar Staff": seleccionar un gimnasio, buscar un usuario existente por email/handle, asignar rol (OWNER, HEAD_COACH, ASSISTANT_COACH)
-- Acciones: cambiar rol, marcar como primary, desactivar
-
-### 6. Nuevos hooks necesarios
-
-**`useAllDisciplines()`** - en `src/hooks/gyms/useGymDisciplines.ts` (ya existe el archivo, agregar esta funcion):
-- Trae todas las disciplinas activas de la tabla `disciplines`
-- Para el selector en admin
-
-**`useAllGymStaff()`** - en `src/hooks/gyms/useGymStaff.ts` (agregar):
-- Query global de todo el staff de todos los gimnasios (para la vista admin)
-- Join con `app_user` y `gyms`
-
-### 7. Componentes a deprecar (sin eliminar)
-
-- `AdminCoachCard.tsx` - ya no se usa desde `EntrenadoresAdmin` pero se mantiene por compatibilidad
-- `CoachEditModal.tsx`, `DeleteCoachDialog.tsx` - idem
+Esto requiere un join ligero a `fighter_gym_memberships` al cargar los peleadores.
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Accion |
+| Archivo | Cambio |
 |---------|--------|
-| `src/components/AdminSidebar.tsx` | Renombrar "Entrenadores" a "Staff de Gimnasios" |
-| `src/hooks/gyms/useGymDisciplines.ts` | Agregar `useAllDisciplines()` |
-| `src/hooks/gyms/useGymStaff.ts` | Agregar `useAllGymStaff()` |
-| `src/hooks/gyms/index.ts` | Exportar nuevas funciones |
-| `src/pages/admin/GimnasiosAdmin.tsx` | Selector de disciplinas relacional |
-| `src/components/admin/AdminGymCard.tsx` | Staff count + link dashboard |
-| `src/components/admin/GymEditModal.tsx` | Disciplinas con checkboxes |
-| `src/pages/admin/EntrenadoresAdmin.tsx` | Reescribir como "Staff de Gimnasios" |
-
-## Archivos Nuevos
-
-Ninguno - todo se resuelve modificando los existentes.
-
----
+| `src/components/admin/FighterDetailModal.tsx` | Agregar tab "Gimnasio" (8 tabs total) |
+| `src/components/admin/FighterGymTab.tsx` | **Nuevo** - Componente del tab de gimnasio |
+| `src/pages/admin/FightersProfiles.tsx` | Agregar boton rapido de asignacion + filtro por gimnasio |
+| `src/hooks/gyms/index.ts` | Verificar exports necesarios |
 
 ## Detalles Tecnicos
 
-### useAllDisciplines hook
-```typescript
-export function useAllDisciplines() {
-  return useQuery({
-    queryKey: ['disciplines'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('disciplines')
-        .select('id, name, slug')
-        .eq('is_active', true)
-        .order('name');
-      if (error) throw error;
-      return data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
-```
-
-### useAllGymStaff hook
-```typescript
-export function useAllGymStaff() {
-  return useQuery({
-    queryKey: ['all-gym-staff'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('gym_staff')
-        .select('*, gyms(id, nombre, slug)')
-        .eq('active', true)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      // fetch user details in batch
-      const userIds = data.map(s => s.user_id);
-      const { data: users } = await supabase
-        .from('app_user')
-        .select('id, first_name, last_name, avatar_url, handle, email')
-        .in('id', userIds);
-      return data.map(s => ({
-        ...s,
-        user: users?.find(u => u.id === s.user_id),
-      }));
-    },
-    staleTime: 60_000,
-  });
-}
-```
-
-### Gym creation with disciplines
-Al crear un gimnasio, despues del insert en `gyms`, insertar las disciplinas seleccionadas en `gym_disciplines`:
+### FighterGymTab - Logica principal
 
 ```typescript
-// After gym creation
-if (selectedDisciplines.length > 0) {
-  await supabase.from('gym_disciplines').insert(
-    selectedDisciplines.map(id => ({ gym_id: newGym.id, discipline_id: id }))
-  );
-}
+// Usa hooks existentes
+import { useGymMembership, useAddMembership, useTransferFighter } from '@/hooks/gyms';
+import { useGyms } from '@/hooks/useGyms';
+import { useGymStaff } from '@/hooks/gyms';
+
+// 1. Consulta membresia activa del peleador
+const { data: membership } = useGymMembership(fighterId);
+
+// 2. Lista de gimnasios para el selector
+const { data: gyms } = useGyms();
+
+// 3. Si selecciona gimnasio, carga staff para asignar coach
+const { data: staff } = useGymStaff(selectedGymId);
+
+// 4. Mutations
+const addMembership = useAddMembership();
+const transferFighter = useTransferFighter();
 ```
 
-### Staff admin - Busqueda de usuarios
-Para agregar staff, se busca un usuario existente en `app_user` por handle o email, luego se inserta en `gym_staff` con el rol seleccionado.
+### Filtro "Sin Gimnasio" en FightersProfiles
 
-### Roles display
+Se consultara `fighter_gym_memberships` con una query ligera para obtener los `fighter_id` con membresia activa, y se filtrara client-side contra la lista de peleadores existente. No requiere cambio en el hook `useAdminFighters`.
+
+### Tab layout actualizado
+
 ```text
-OWNER         -> "Propietario" (badge dorado)
-HEAD_COACH    -> "Entrenador Principal" (badge azul)  
-ASSISTANT_COACH -> "Asistente" (badge gris)
+Personal | Deportivo | Gimnasio | Ligas | Licencias | Documentos | Estado | Cambios
 ```
 
+El grid del TabsList pasara de `grid-cols-7` a `grid-cols-8`.
