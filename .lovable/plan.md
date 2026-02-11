@@ -1,93 +1,71 @@
 
 
-# Restriccion de Acceso + Asignacion de Administrador de Gimnasio
+# Coherencia en Busqueda de Peleadores + Sincronizacion de Datos
 
-## Estado Actual
+## Problema Principal
 
-- `cachivo@gmail.com` ya tiene rol `super_admin` en `user_roles` (unico usuario con este rol)
-- El panel admin esta protegido por `AdminProtectedRoute` que verifica rol `admin` (6 usuarios lo tienen)
-- `gym_staff` tiene roles OWNER, HEAD_COACH, ASSISTANT_COACH pero NO tiene restriccion de un solo OWNER por gimnasio
-- `useMyGymStaff` ya detecta staff activo y muestra "Mi Gimnasio" en el Header
-- `GymDashboard` ya verifica permisos via `useGymStaffRole` (OWNER/HEAD_COACH pueden gestionar peleadores)
+La funcion `search_fighters_for_gym` devuelve TODOS los peleadores, incluyendo los que ya estan vinculados a otro gimnasio. Esto permite que un gimnasio vea peleadores que no estan disponibles, rompiendo la logica de negocio.
 
-## Cambios Necesarios
+## Cambios
 
-### 1. Migracion SQL: Un solo OWNER por gimnasio
+### 1. Modificar RPC: Excluir peleadores con gimnasio activo
 
-Crear indice parcial unico que impida mas de un OWNER activo por gimnasio:
+Actualizar la funcion `search_fighters_for_gym` agregando un parametro `p_gym_id` (el gimnasio que esta buscando) y un filtro que excluya peleadores que ya tengan membresía activa en OTRO gimnasio.
+
+Logica:
+- Peleadores SIN gimnasio: aparecen (disponibles)
+- Peleadores en ESTE gimnasio: aparecen con etiqueta "Ya vinculado" (boton deshabilitado, como ya funciona)
+- Peleadores en OTRO gimnasio: NO aparecen en la lista
+
+El filtro SQL adicional seria:
 
 ```text
-CREATE UNIQUE INDEX unique_active_gym_owner 
-ON gym_staff (gym_id) 
-WHERE role = 'OWNER' AND active = true;
+AND (m.gym_id IS NULL OR m.gym_id = p_gym_id)
 ```
 
-Esto garantiza a nivel de base de datos que solo puede existir un administrador activo por gimnasio.
+Esto elimina del resultado a cualquier peleador cuya membresía activa sea de un gimnasio diferente.
 
-### 2. Restringir edicion de gimnasios a super_admin
+### 2. Actualizar el hook useFighterSearch
 
-**Archivo: `src/pages/admin/GimnasiosAdmin.tsx`**
+Agregar parametro `gymId` al hook para pasarlo como `p_gym_id` a la funcion RPC.
 
-Agregar `useSuperAdmin()` hook. Si el usuario NO es super_admin:
-- Ocultar boton "Crear Gimnasio"
-- Las tarjetas de gimnasio mostraran solo informacion (sin botones de editar/eliminar/asignar)
+### 3. Actualizar GymAddFighter.tsx
 
-**Archivo: `src/components/admin/AdminGymCard.tsx`**
+Pasar `gymId` al hook `useFighterSearch` para que la consulta filtre correctamente.
 
-Agregar prop `readOnly?: boolean`. Cuando es `true`, ocultar los botones de edicion, eliminacion y asignacion de peleadores. Solo mostrar el boton "Dashboard" para navegar.
+### 4. Actualizar AssignFighterToGymModal.tsx
 
-### 3. Funcionalidad "Asignar Administrador de Gimnasio"
+Pasar `gymId` al hook `useFighterSearch` para mantener la misma logica en el modal del panel admin.
 
-**Archivo: `src/components/admin/AdminGymCard.tsx`**
+### 5. Trigger de sincronizacion (del plan anterior)
 
-Agregar boton "Asignar Admin" (icono Crown) junto a los botones existentes, visible solo cuando `readOnly` es `false`.
+Crear trigger `sync_fighter_gym_from_membership` para mantener `fighter_profiles.gym_id` y `gym_name` actualizados automaticamente cuando se crean o transfieren membresías.
 
-**Nuevo archivo: `src/components/admin/AssignGymOwnerModal.tsx`**
+### 6. Corregir useGymFighters y GymFighterCard (del plan anterior)
 
-Modal que permite buscar perfiles de Fighter ID y asignar como OWNER del gimnasio:
+- Agregar `discipline` y `boxeo_record_*` al query de `useGymFighters`
+- Mostrar record correcto segun disciplina en `GymFighterCard`
+- Corregir labels de nivel para coincidir con los valores de la BD
 
-- Campo de busqueda que consulta `app_user` (nombre, email)
-- Muestra si el usuario ya tiene perfil de peleador (consulta `fighter_profiles`)
-- Muestra si ya es staff de otro gimnasio (consulta `gym_staff`)
-- Al seleccionar: inserta en `gym_staff` con role = 'OWNER'
-- Si el gimnasio ya tiene OWNER activo, muestra advertencia y permite reemplazar (desactiva el anterior)
-- Invalida cache de `gym-staff`, `gym-dashboard`, `my-gym-staff`
+### 7. FighterProfile: mostrar gimnasio real (del plan anterior)
 
-Flujo del modal:
-```text
-1. Admin busca usuario por nombre o email
-2. Lista muestra: avatar, nombre, email, badge "Peleador" si tiene fighter_profiles
-3. Admin selecciona usuario
-4. Sistema verifica: ya hay OWNER activo en este gimnasio?
-   SI -> Confirmar reemplazo (desactivar anterior)
-   NO -> Insertar directamente
-5. Resultado: usuario ahora ve "Mi Gimnasio" en su celular
-```
-
-### 4. Permisos de eliminacion de peleadores para HEAD_COACH
-
-**Archivo: `src/pages/gym/GymFighters.tsx`**
-
-Verificar que HEAD_COACH pueda eliminar (desvincular) peleadores del gimnasio. Actualmente `canManageFighters` ya incluye HEAD_COACH, asi que solo hay que asegurar que el boton de remover este visible.
-
-### 5. Dashboard visible en pagina principal movil
-
-Ya implementado: `useMyGymStaff()` en el Header detecta al usuario como staff activo y muestra el enlace "Mi Gimnasio" que lleva a `/gym/{gymId}/dashboard`. No se requieren cambios adicionales.
+Usar datos de `fighter_gym_memberships` en vez del campo de texto libre `gym_name`.
 
 ---
 
 ## Resumen de Archivos
 
-| Archivo | Accion |
+| Archivo | Cambio |
 |---------|--------|
-| Migracion SQL | Indice unico parcial: un OWNER activo por gimnasio |
-| `src/pages/admin/GimnasiosAdmin.tsx` | Verificar super_admin para mostrar/ocultar acciones de edicion |
-| `src/components/admin/AdminGymCard.tsx` | Agregar prop `readOnly`, agregar boton "Asignar Admin" |
-| `src/components/admin/AssignGymOwnerModal.tsx` | **Nuevo** - Modal para buscar y asignar OWNER |
+| Migracion SQL | Modificar RPC `search_fighters_for_gym` (agregar `p_gym_id` y filtro) + trigger de sincronizacion + migracion de datos |
+| `src/hooks/gyms/useFighterSearch.ts` | Agregar parametro `gymId` |
+| `src/pages/gym/GymAddFighter.tsx` | Pasar `gymId` al hook |
+| `src/components/admin/AssignFighterToGymModal.tsx` | Pasar `gymId` al hook |
+| `src/hooks/gyms/useGymFighters.ts` | Agregar `discipline` y `boxeo_record_*` |
+| `src/components/gym/GymFighterCard.tsx` | Record por disciplina + labels corregidos |
+| `src/pages/FighterProfile.tsx` | Mostrar gimnasio real desde memberships |
 
-## Lo que NO se modifica (ya funciona)
+## Resultado esperado
 
-- Header con "Mi Gimnasio" condicional (ya implementado)
-- GymDashboard con permisos por rol (ya implementado)
-- HEAD_COACH con capacidad de gestionar peleadores (ya implementado)
-- No se duplican roles en `app_role` (gym_staff es la unica fuente de verdad)
+Un administrador de gimnasio solo vera peleadores DISPONIBLES (sin gimnasio) o los que ya estan en su propio gimnasio. No vera peleadores de otros gimnasios, eliminando confusion y errores de asignacion.
+
