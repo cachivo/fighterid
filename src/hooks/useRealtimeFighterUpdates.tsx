@@ -50,14 +50,7 @@ export function useRealtimeFighterUpdates(fighterId?: string) {
             queryClient.invalidateQueries({ queryKey: ['fighter-profile', newId] });
           }
 
-          // Dispatch custom event for non-query-based components
-          window.dispatchEvent(new CustomEvent('fighter-profile-updated', {
-            detail: { 
-              fighterId: newId || fighterId,
-              eventType: payload.eventType,
-              payload: payload.new
-            }
-          }));
+          // No custom window events — React Query invalidation is sufficient
         }
       )
       .subscribe((status) => {
@@ -100,9 +93,7 @@ export function useRealtimeRankingUpdates(organizationId?: string) {
           queryClient.invalidateQueries({ queryKey: ['ranking-data'] });
           queryClient.invalidateQueries({ queryKey: ['fighter-active-leagues'] });
           
-          window.dispatchEvent(new CustomEvent('ranking-updated', {
-            detail: { organizationId, eventType: payload.eventType }
-          }));
+          // No custom window events — React Query invalidation is sufficient
         }
       )
       .subscribe();
