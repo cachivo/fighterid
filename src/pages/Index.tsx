@@ -75,15 +75,11 @@ const Index = () => {
       <UrbanDecorations />
       <Header />
       <Hero />
-      {user && (
-        <>
-          <FighterIDCallToAction />
-          <QuickStats />
-          <LeagueSelector value={selectedOrg} onChange={setSelectedOrg} />
-          <Ranking organizationCode={selectedOrg} />
-          <StrategicAllies />
-        </>
-      )}
+      {user && <FighterIDCallToAction />}
+      <QuickStats />
+      <LeagueSelector value={selectedOrg} onChange={setSelectedOrg} />
+      <Ranking organizationCode={selectedOrg} />
+      <StrategicAllies />
       <Footer />
       <PWAInstallPrompt />
     </div>
