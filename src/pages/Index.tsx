@@ -1,26 +1,33 @@
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense, memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import { QuickStats } from "@/components/QuickStats";
-import StrategicAllies from "@/components/StrategicAllies";
 import Ranking from "@/components/sections/Ranking";
-import Footer from "@/components/Footer";
 import UrbanDecorations from "@/components/UrbanDecorations";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
-import { FighterIDCallToAction } from "@/components/FighterIDCallToAction";
 import LeagueSelector from "@/components/sections/LeagueSelector";
+
+// Lazy load non-critical below-fold components
+const StrategicAllies = lazy(() => import("@/components/StrategicAllies"));
+const Footer = lazy(() => import("@/components/Footer"));
+const PWAInstallPrompt = lazy(() => import("@/components/PWAInstallPrompt"));
+const FighterIDCallToAction = lazy(() => import("@/components/FighterIDCallToAction").then(m => ({ default: m.FighterIDCallToAction })));
+
+const MemoHeader = memo(Header);
+const MemoHero = memo(Hero);
 
 const Index = () => {
   const queryClient = useQueryClient();
   const { user, loading } = useAuth();
   const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
 
+  const handleOrgChange = useCallback((value: string) => {
+    setSelectedOrg(value);
+  }, []);
+
   useEffect(() => {
-    // Prefetch strategic partners data immediately
     queryClient.prefetchQuery({
       queryKey: ["strategic-partners"],
       queryFn: async () => {
@@ -30,34 +37,30 @@ const Index = () => {
           .in("tipo", ["Gimnasio", "Organización"])
           .eq("activo", true)
           .order("orden", { ascending: true });
-        
         if (error) throw error;
         return data;
       },
-      staleTime: 15 * 60 * 1000, // 15 minutes
+      staleTime: 15 * 60 * 1000,
     });
   }, [queryClient]);
 
   useEffect(() => {
-    // Forzar que el Hero refresque stats (evita caché mostrando eventos antiguos)
     queryClient.invalidateQueries({ queryKey: ['realtime-stats'] });
     queryClient.refetchQueries({ queryKey: ['realtime-stats'] });
   }, [queryClient]);
 
-  // Scroll to section if hash is present
   useEffect(() => {
     if (window.location.hash) {
       const id = window.location.hash.replace('#', '');
-      setTimeout(() => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const element = document.getElementById(id);
+          if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      });
     }
   }, [user, loading]);
 
-  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -69,19 +72,22 @@ const Index = () => {
     );
   }
 
-  // Show main content - Hero handles authenticated/unauthenticated states
   return (
     <div className="min-h-screen bg-black urban-home overflow-x-hidden">
       <UrbanDecorations />
-      <Header />
-      <Hero />
-      {user && <FighterIDCallToAction />}
+      <MemoHeader />
+      <MemoHero />
+      <Suspense fallback={null}>
+        {user && <FighterIDCallToAction />}
+      </Suspense>
       <QuickStats />
-      <LeagueSelector value={selectedOrg} onChange={setSelectedOrg} />
+      <LeagueSelector value={selectedOrg} onChange={handleOrgChange} />
       <Ranking organizationCode={selectedOrg} />
-      <StrategicAllies />
-      <Footer />
-      <PWAInstallPrompt />
+      <Suspense fallback={null}>
+        <StrategicAllies />
+        <Footer />
+        <PWAInstallPrompt />
+      </Suspense>
     </div>
   );
 };
