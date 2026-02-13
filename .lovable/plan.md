@@ -1,169 +1,111 @@
 
 
-# Audit de Optimizacion: Archivos Subidos vs Codebase Actual
+# Flujo Inteligente de Autenticacion: "Email-First"
 
-## Resumen Ejecutivo
+## El Problema
 
-El paquete de optimizacion propone 7 archivos con mejoras de rendimiento movil. Despues de comparar cada uno contra el codigo actual, clasifico las propuestas en 3 categorias: **adoptables directamente**, **parcialmente utiles**, y **incompatibles/riesgosas**.
+Actualmente, la pagina de login (`/license/auth` y `/auth`) muestra dos tabs: "Iniciar Sesion" y "Registrarse". Los usuarios nuevos ingresan su email en "Iniciar Sesion" pensando que ya tienen cuenta, reciben un error, se frustran. Los usuarios existentes van a "Registrarse" y reciben un error de "email ya existe".
 
----
+## La Solucion: Flujo "Email-First"
 
-## 1. IndexOptimized.tsx -- PARCIALMENTE UTIL
+En lugar de forzar al usuario a elegir entre Login y Registro, el sistema detecta automaticamente el estado del email y adapta la interfaz.
 
-**Propuestas buenas:**
-- Lazy loading de componentes no-criticos (`QuickStats`, `Footer`, `StrategicAllies`, etc.)
-- `memo()` para `Header` y `Hero`
-- `useCallback` para `handleOrgChange`
-- `requestAnimationFrame` en hash scroll
+```text
++----------------------------+
+|    Fighter ID Portal       |
+|                            |
+|  Ingresa tu email:         |
+|  [tu@email.com        ]    |
+|  [  Continuar  ]           |
++----------------------------+
+            |
+     Email ingresado
+            |
+     +------+------+
+     |             |
+  Existe       No existe
+     |             |
+     v             v
++-----------+  +----------------+
+| Paso 2A:  |  | Paso 2B:       |
+| Password  |  | Crear cuenta   |
+| [*****]   |  | Nombre: [   ]  |
+| [Entrar]  |  | Apellido: [ ]  |
+| Forgot?   |  | Password: [ ]  |
++-----------+  | Fecha nac: [ ] |
+               | [Registrarse]  |
+               +----------------+
+```
 
-**Problemas:**
-- El Intersection Observer para cargar secciones solo cuando estan visibles es complejo y puede causar "saltos" de layout (CLS)
-- La query `useRealtimeStats` con RPC `get_dashboard_stats` requiere crear esa funcion en Supabase primero
-- Elimina `UrbanDecorations` que es parte del diseno actual
+## Como se detecta si el email existe
 
-**Recomendacion:** Adoptar lazy loading y memoization. Descartar el sistema de Intersection Observer por seccion (agrega complejidad innecesaria dado que la pagina principal no es tan larga).
+Se crea una Edge Function segura (`check-email-exists`) que:
+1. Consulta `auth.users` por email (solo accesible desde el servidor con service_role)
+2. Devuelve `{ exists: true/false }` sin revelar informacion sensible
+3. Tiene rate limiting basico para evitar enumeracion masiva
 
----
+Nota de seguridad: La enumeracion de emails es un riesgo conocido. Para mitigarlo:
+- La Edge Function limita respuestas (no permite escaneo masivo)
+- El mensaje al usuario es neutral ("Continuar" en ambos casos, sin revelar si existe antes de mostrar el formulario)
+- Supabase ya tiene esta misma exposicion en su endpoint `signUp` (devuelve error si el email existe)
 
-## 2. useOptimizedQuery.ts -- ADOPTABLE CON AJUSTES
+## Cambios Especificos
 
-**Propuestas buenas:**
-- Deteccion de red lenta via `navigator.connection`
-- Cache mas largo en redes lentas
-- Menos reintentos en 2G/3G
-- `useInfiniteList` generico para listas paginadas
-- `useCachedItem` para items individuales
-- `prefetchOnHover` para precarga inteligente
+### 1. Nueva Edge Function: `check-email-exists`
+- Recibe `{ email: string }`
+- Usa `supabase.auth.admin.listUsers()` con filtro por email
+- Devuelve `{ exists: boolean }`
+- Solo accesible con la anon key (protegido por rate limiting de Supabase)
 
-**Problemas:**
-- El proyecto ya tiene su propio sistema de queries en `src/hooks/fighters/` con paginacion del servidor
-- `useInfiniteList` es generico pero no se alinea con la estructura actual de queries (que usan RPCs y vistas especificas)
+### 2. Modificar `/license/auth` (LicenseAuth.tsx)
+- Reemplazar el sistema de Tabs por un flujo de 2 pasos:
+  - **Paso 1**: Solo campo de email + boton "Continuar"
+  - **Paso 2A** (email existe): Mostrar campo de password + boton "Iniciar Sesion" + link "Olvide mi contrasena"
+  - **Paso 2B** (email no existe): Mostrar formulario de registro completo (nombre, apellido, password, fecha nacimiento)
+- Agregar boton "Usar otro email" para volver al Paso 1
+- Mantener todo el estilo visual actual (nebulosas, gradientes purple/blue)
 
-**Recomendacion:** Adoptar `useOptimizedQuery` como wrapper base. Adoptar `prefetchOnHover`. No reemplazar el sistema de queries de fighters existente.
+### 3. Modificar `/auth` (Auth.tsx)
+- Aplicar el mismo patron email-first
+- Mantener la logica de invitaciones existente
+- Mantener redirect a admin si es admin
 
----
+### Lo que NO cambia
+- El flujo post-registro (confirmacion por email, onboarding)
+- AuthCallback y smart routing
+- El sistema de invitaciones
+- Las Edge Functions de email existentes
+- El estilo visual general
 
-## 3. useVirtualList.ts -- PARCIALMENTE UTIL
+## Seccion Tecnica
 
-**Propuestas buenas:**
-- `useInView` (Intersection Observer) para lazy loading de imagenes/componentes
-- `useDebouncedValue` para inputs de busqueda
-- `useThrottledCallback` para scroll handlers
+### Edge Function `check-email-exists`
 
-**Problemas:**
-- `useVirtualList` con scroll virtualizado asume altura fija de items, incompatible con las cards actuales que tienen altura variable (nickname, badges, champion, etc.)
-- El ranking actual ya usa `InfiniteScrollContainer` con paginacion del servidor, que es mas apropiado
+```text
+POST /check-email-exists
+Body: { "email": "user@example.com" }
+Response: { "exists": true }
+```
 
-**Recomendacion:** Adoptar `useInView`, `useDebouncedValue` y `useThrottledCallback` como utilidades. No adoptar el virtual list.
+La funcion usa `supabase.auth.admin.listUsers({ filter: email })` con el service_role key que ya esta disponible como `SUPABASE_SERVICE_ROLE_KEY` en las Edge Functions.
 
----
+### Flujo de estados en el componente
 
-## 4. usePerformanceMonitor.ts -- ADOPTABLE
+```text
+Estado: 'email' → 'login' | 'register'
 
-**Propuestas buenas:**
-- Monitoreo de Core Web Vitals (FCP, LCP, CLS, FID, TTFB)
-- `useNetworkStatus` para adaptar UI a red lenta
-- `useRenderTime` para debugging en desarrollo
-- Funciones `debounce` y `throttle` utilitarias
+email → (check-email-exists) → exists? → 'login'
+                               → !exists? → 'register'
 
-**Problemas:**
-- Logs solo a console (no hay backend para almacenar metricas)
-- Referencia a `gtag` que no esta configurado
+'login' → (signIn success) → smart routing
+'register' → (signUp success) → email confirmation screen
+```
 
-**Recomendacion:** Adoptable tal cual. Es observacional, no modifica comportamiento. Util para diagnosticar rendimiento en dispositivos reales.
-
----
-
-## 5. RankingOptimized.tsx -- NO ADOPTABLE
-
-**Problemas criticos:**
-- Consulta `mv_fighter_rankings` (materialized view) que **no existe** en la base de datos
-- Elimina toda la logica de niveles (Pro/Semi/Amateur), filtros de peso, genero, champion badges
-- Elimina infinite scroll con paginacion del servidor
-- Elimina realtime subscriptions
-- El ranking actual es significativamente mas completo y funcional (388 lineas vs 207)
-- Las divisiones hardcodeadas no coinciden con las weight classes reales del sistema
-
-**Recomendacion:** No adoptar. El componente actual es superior en funcionalidad. Las optimizaciones de rendimiento relevantes (memo, useCallback) ya se pueden aplicar al componente existente.
-
----
-
-## 6. database-optimizations.sql -- PARCIALMENTE UTIL
-
-**Propuestas buenas:**
-- Indices para `fighters`, `events`, `fights`, `partners`
-- RPC `get_dashboard_stats()` para reducir round-trips
-- RPC `search_fighters()` con paginacion
-- RPC `get_fighter_profile()` con datos relacionados
-- Indices para RLS policies
-
-**Problemas:**
-- La materialized view `mv_fighter_rankings` no considera la estructura actual (levels, champion status, discipline-specific records)
-- `search_fighters` no incluye los filtros actuales (level, gender, weight class)
-- Referencias a columnas que pueden no existir (`active`, `created_by` en fighters)
-- `pg_cron` no esta disponible en Supabase por defecto
-- La funcion `auto_analyze_tables` es innecesaria (Supabase ya auto-analiza)
-
-**Recomendacion:** Adoptar los indices basicos tras verificar que las columnas existen. Adoptar `get_dashboard_stats` adaptado. No crear la materialized view sin redisenarla primero.
-
----
-
-## 7. sw.js -- NO ADOPTABLE (ya existe uno mejor)
-
-El proyecto ya tiene `public/sw.js` en version v9 con:
-- Cache estatico y dinamico separados
-- Estrategia network-first para HTML/API
-- Cache-first para assets estaticos
-- Limpieza de caches antiguos
-
-La version propuesta:
-- Cachea llamadas a Supabase API (peligroso: puede servir datos obsoletos de auth/scoring)
-- Usa `openDB` para sync offline que no esta implementado
-- La limitacion de cache de imagenes (200 items) es util pero el riesgo de cachear API responses no lo justifica
-
-**Recomendacion:** Mantener el SW actual. Considerar agregar solo la limitacion de cache de imagenes.
-
----
-
-## Plan de Implementacion Recomendado
-
-### Fase 1: Hooks utilitarios (bajo riesgo)
-- Crear `src/hooks/usePerformanceMonitor.ts` -- monitoreo Web Vitals
-- Crear `src/hooks/useInView.ts` -- extraer `useInView` y `useDebouncedValue` de useVirtualList
-- Crear `src/hooks/useNetworkStatus.ts` -- deteccion de red lenta
-
-### Fase 2: Optimizacion de Index.tsx (riesgo medio)
-- Lazy load de `Footer`, `StrategicAllies`, `PWAInstallPrompt`
-- `memo()` para `Header` y `Hero`
-- `useCallback` para `handleOrgChange`
-
-### Fase 3: Query optimization (riesgo medio)
-- Crear `useOptimizedQuery` wrapper con deteccion de red
-- Aplicar `prefetchOnHover` en navegacion de fighters
-
-### Fase 4: Database (requiere verificacion)
-- Verificar columnas existentes antes de crear indices
-- Crear RPC `get_dashboard_stats()` adaptado a la estructura real
-- Evaluar indices para tablas de alto trafico
-
-### Lo que NO se implementa
-- `RankingOptimized.tsx` -- el ranking actual es funcionalmente superior
-- `sw.js` propuesto -- el actual es mas seguro
-- Materialized view -- requiere rediseno completo
-- Virtual list -- incompatible con cards de altura variable
-- Code splitting en `vite.config.ts` con terser -- Lovable usa esbuild, no soporta terser
-
----
-
-## Resumen de Archivos a Crear/Modificar
+### Archivos a crear/modificar
 
 | Archivo | Accion |
 |---------|--------|
-| `src/hooks/usePerformanceMonitor.ts` | Crear (del archivo subido, sin gtag) |
-| `src/hooks/useInView.ts` | Crear (extraer de useVirtualList) |
-| `src/hooks/useOptimizedQuery.ts` | Crear (wrapper con deteccion de red) |
-| `src/pages/Index.tsx` | Modificar (lazy load + memo) |
-| `src/components/QuickStats.tsx` | Sin cambios (ya es eficiente) |
-| `src/components/sections/Ranking.tsx` | Sin cambios (funcionalmente superior) |
-| `public/sw.js` | Sin cambios (version actual es mas segura) |
+| `supabase/functions/check-email-exists/index.ts` | Crear |
+| `src/pages/license/LicenseAuth.tsx` | Reescribir con flujo email-first |
+| `src/pages/Auth.tsx` | Reescribir con flujo email-first |
 
