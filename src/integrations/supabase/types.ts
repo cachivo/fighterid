@@ -4799,6 +4799,7 @@ export type Database = {
         Args: { p_license_id: string }
         Returns: Json
       }
+      check_email_exists_fn: { Args: { p_email: string }; Returns: boolean }
       check_user_license_status: {
         Args: { p_auth_user_id: string }
         Returns: Json
