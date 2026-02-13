@@ -5,22 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Eye, EyeOff, Shield, Mail, CheckCircle, HelpCircle } from "lucide-react";
+import { Eye, EyeOff, Shield, Mail, CheckCircle, HelpCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+
+type AuthStep = 'email' | 'login' | 'register';
 
 export default function LicenseAuth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signIn, signUp, loading, user, resendConfirmation } = useAuth();
 
-  // Estados del formulario
+  // Flow state
+  const [step, setStep] = useState<AuthStep>('email');
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailSuccess, setEmailSuccess] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Datos básicos de registro
+  // Form data
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -38,14 +41,12 @@ export default function LicenseAuth() {
     }
   }, [searchParams]);
 
-  // Handle auth callback with tokens in hash (for email confirmation)
+  // Handle auth callback with tokens in hash
   useEffect(() => {
     const handleHashCallback = async () => {
       const hash = window.location.hash;
       if (!hash || !hash.includes('access_token')) return;
 
-      console.log('[LicenseAuth] Detected auth tokens in hash, processing...');
-      
       try {
         const hashParams = new URLSearchParams(hash.substring(1));
         const accessToken = hashParams.get('access_token');
@@ -59,12 +60,9 @@ export default function LicenseAuth() {
           });
 
           if (error) {
-            console.error('[LicenseAuth] Session error:', error);
             toast.error('Error al verificar cuenta. Intenta de nuevo.');
           } else {
-            // Clean hash from URL
             window.history.replaceState({}, '', window.location.pathname);
-            
             if (type === 'signup' || type === 'email') {
               toast.success('¡Cuenta confirmada exitosamente!');
             }
@@ -78,13 +76,12 @@ export default function LicenseAuth() {
     handleHashCallback();
   }, []);
 
+  // Smart routing for authenticated users
   useEffect(() => {
-    // Si el usuario ya está autenticado, usar smart routing
     const routeAuthenticatedUser = async () => {
       if (!user || loading) return;
 
       try {
-        // Check user's profile status to determine destination
         const { data: appUser } = await supabase
           .from('app_user')
           .select('id')
@@ -118,7 +115,6 @@ export default function LicenseAuth() {
           return;
         }
 
-        // Route based on license status
         switch (license.status) {
           case 'ACTIVE':
             navigate('/license/dashboard');
@@ -150,6 +146,58 @@ export default function LicenseAuth() {
     }
   }, [resendCooldown]);
 
+  // If mode=signup is in URL, pre-set to register flow (but still start with email step)
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'signup') {
+      // We still start with email step, but could auto-advance if needed
+    }
+  }, [searchParams]);
+
+  const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-email-exists', {
+        body: { email: emailToCheck },
+      });
+
+      if (error) {
+        console.error('Error checking email:', error);
+        return false;
+      }
+
+      return data?.exists ?? false;
+    } catch (err) {
+      console.error('Error checking email:', err);
+      return false;
+    }
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error('Ingresa tu email para continuar');
+      return;
+    }
+
+    setCheckingEmail(true);
+    const exists = await checkEmailExists(email);
+    setCheckingEmail(false);
+
+    if (exists) {
+      setStep('login');
+    } else {
+      setStep('register');
+    }
+  };
+
+  const handleBackToEmail = () => {
+    setStep('email');
+    setPassword('');
+    setFirstName('');
+    setLastName('');
+    setBirthdate('');
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -162,10 +210,19 @@ export default function LicenseAuth() {
     }
   };
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await signIn(email, password);
+    if (error) {
+      toast.error(error.message || 'Credenciales inválidas');
+    } else {
+      toast.success('Sesión iniciada correctamente');
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validaciones básicas
+
     if (!email || !password) {
       toast.error('Email y contraseña son requeridos');
       return;
@@ -180,16 +237,13 @@ export default function LicenseAuth() {
     }
 
     try {
-      // Subir avatar si existe
       let avatarUrl = '';
       if (avatar) {
         const fileExt = avatar.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
-        
         const { error: uploadError } = await supabase.storage
           .from('avatars')
           .upload(fileName, avatar);
-
         if (!uploadError) {
           const { data: urlData } = supabase.storage
             .from('avatars')
@@ -198,18 +252,14 @@ export default function LicenseAuth() {
         }
       }
 
-      // Registro con metadata mínima
       const { error } = await signUp(email, password);
-
       if (error) {
         toast.error(error.message || 'Error al registrarse');
         return;
       }
 
-      // Éxito
       setEmailSuccess(true);
       toast.success('¡Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error(error.message || 'Error al registrarse');
@@ -218,7 +268,6 @@ export default function LicenseAuth() {
 
   const handleResendEmail = async () => {
     if (resendCooldown > 0) return;
-
     try {
       const { error } = await resendConfirmation(email);
       if (error) {
@@ -229,19 +278,6 @@ export default function LicenseAuth() {
       }
     } catch (error: any) {
       toast.error(error.message || 'Error al reenviar email');
-    }
-  };
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      toast.error(error.message || 'Credenciales inválidas');
-    } else {
-      toast.success('Sesión iniciada correctamente');
-      // Smart routing will be handled by the useEffect above when user state updates
     }
   };
 
@@ -256,19 +292,21 @@ export default function LicenseAuth() {
     );
   }
 
+  const inputClasses = "bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300";
+  const labelClasses = "text-white/90 group-focus-within:text-purple-400 transition-colors duration-300";
+  const buttonClasses = "w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300";
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
-      {/* Fondo espacial con nebulosas */}
+      {/* Background nebulas */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-950 to-black" />
       <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-[0.02] bg-cover bg-center" />
-      
-      {/* Nebulosas animadas - efecto espacial suave */}
       <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
       <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }} />
       <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-indigo-600/12 rounded-full blur-[110px] animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }} />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/8 rounded-full blur-[130px] animate-pulse" style={{ animationDelay: '6s', animationDuration: '14s' }} />
       <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-cyan-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s', animationDuration: '9s' }} />
-      
+
       <Card className="w-full max-w-md bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4 animate-scale-in">
@@ -281,91 +319,125 @@ export default function LicenseAuth() {
             Fighter ID Portal
           </CardTitle>
           <CardDescription className="text-white/80">
-            Accede a tu cuenta o crea una nueva
+            {step === 'email' && 'Ingresa tu email para continuar'}
+            {step === 'login' && 'Ingresa tu contraseña'}
+            {step === 'register' && (emailSuccess ? '¡Revisa tu correo!' : 'Crea tu cuenta')}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <Tabs defaultValue={searchParams.get('mode') === 'signup' ? 'signup' : 'login'} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 bg-slate-900/50 border border-purple-500/20">
-              <TabsTrigger value="login" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="signup" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white transition-all duration-300">Registrarse</TabsTrigger>
-            </TabsList>
+          {/* STEP 1: Email input */}
+          {step === 'email' && (
+            <form onSubmit={handleEmailSubmit} className="space-y-4 animate-fade-in">
+              <div className="group">
+                <Label htmlFor="email-step" className={labelClasses}>Email</Label>
+                <Input
+                  id="email-step"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@email.com"
+                  required
+                  autoFocus
+                  className={inputClasses}
+                />
+              </div>
 
-            <TabsContent value="login" className="animate-fade-in">
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="group">
-                  <Label htmlFor="login-email" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Email</Label>
-                  <Input
-                    id="login-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="tu@email.com"
-                    required
-                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                  />
-                </div>
+              <Button type="submit" className={buttonClasses} disabled={checkingEmail}>
+                {checkingEmail ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Verificando...
+                  </>
+                ) : (
+                  'Continuar'
+                )}
+              </Button>
+            </form>
+          )}
 
-                <div className="relative group">
-                  <Label htmlFor="login-password" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Contraseña</Label>
-                  <Input
-                    id="login-password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                    className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
+          {/* STEP 2A: Login (email exists) */}
+          {step === 'login' && (
+            <form onSubmit={handleLogin} className="space-y-4 animate-fade-in">
+              <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20">
+                <p className="text-sm text-white/70">Email:</p>
+                <p className="text-white font-medium">{email}</p>
+              </div>
 
-                <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300" disabled={loading}>
-                  {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              <div className="relative group">
+                <Label htmlFor="login-password" className={labelClasses}>Contraseña</Label>
+                <Input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoFocus
+                  minLength={6}
+                  className={inputClasses}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+
+              <Button type="submit" className={buttonClasses} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Iniciando sesión...
+                  </>
+                ) : (
+                  'Iniciar Sesión'
+                )}
+              </Button>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => navigate('/license/forgot-password')}
+                  className="text-gold-400 hover:text-gold-300 font-medium underline underline-offset-4"
+                >
+                  <HelpCircle className="w-4 h-4 mr-1.5" />
+                  ¿Olvidaste tu contraseña?
                 </Button>
 
-                <div className="text-center border-t border-purple-500/20 pt-4 mt-4">
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => navigate('/license/forgot-password')}
-                    className="text-gold-400 hover:text-gold-300 font-medium underline underline-offset-4"
-                  >
-                    <HelpCircle className="w-4 h-4 mr-1.5" />
-                    ¿Olvidaste tu contraseña?
-                  </Button>
-                </div>
-              </form>
-            </TabsContent>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handleBackToEmail}
+                  className="text-white/60 hover:text-white"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1.5" />
+                  Usar otro email
+                </Button>
+              </div>
+            </form>
+          )}
 
-            <TabsContent value="signup" className="animate-fade-in">
+          {/* STEP 2B: Register (email does not exist) */}
+          {step === 'register' && (
+            <div className="animate-fade-in">
               {emailSuccess ? (
-                <div className="space-y-6 py-6">
+                <div className="space-y-6 py-4">
                   <div className="flex flex-col items-center text-center space-y-4">
                     <div className="bg-green-500/20 rounded-full p-4 animate-bounce">
                       <CheckCircle className="h-12 w-12 text-green-500" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">
-                        ¡Revisa tu correo!
-                      </h3>
-                      <p className="text-white/90">
-                        Hemos enviado un email de confirmación a
-                      </p>
+                      <h3 className="text-2xl font-bold text-white mb-2">¡Revisa tu correo!</h3>
+                      <p className="text-white/90">Hemos enviado un email de confirmación a</p>
                       <p className="text-gold-400 font-semibold mt-1">{email}</p>
                     </div>
-                    
-                    {/* Instrucciones claras paso a paso */}
+
                     <div className="bg-slate-900/60 rounded-lg p-4 w-full max-w-sm border border-purple-500/20">
                       <p className="text-sm font-medium text-white mb-3">Sigue estos pasos:</p>
                       <ol className="text-left text-sm text-white/80 space-y-2">
@@ -375,7 +447,7 @@ export default function LicenseAuth() {
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                          <span>Revisa <strong className="text-gold-400">spam</strong> o <strong className="text-gold-400">promociones</strong> si no aparece</span>
+                          <span>Revisa <strong className="text-gold-400">spam</strong> o <strong className="text-gold-400">promociones</strong></span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
@@ -383,11 +455,9 @@ export default function LicenseAuth() {
                         </li>
                       </ol>
                     </div>
-                    
-                    <p className="text-xs text-white/50 max-w-md">
-                      ⏱️ El email puede tardar 2-3 minutos en llegar
-                    </p>
-                    
+
+                    <p className="text-xs text-white/50">⏱️ El email puede tardar 2-3 minutos</p>
+
                     <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
                       <Button
                         variant="outline"
@@ -402,7 +472,7 @@ export default function LicenseAuth() {
                         variant="ghost"
                         onClick={() => {
                           setEmailSuccess(false);
-                          setEmail('');
+                          handleBackToEmail();
                         }}
                         className="flex-1 border border-gold-500/30 hover:bg-gold-500/10"
                       >
@@ -413,46 +483,24 @@ export default function LicenseAuth() {
                 </div>
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="group">
-                      <Label htmlFor="firstName" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Nombre</Label>
-                      <Input
-                        id="firstName"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="Juan"
-                        required
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                      />
-                    </div>
-                    <div className="group">
-                      <Label htmlFor="lastName" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Apellido</Label>
-                      <Input
-                        id="lastName"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Pérez"
-                        required
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                      />
-                    </div>
+                  <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20 mb-2">
+                    <p className="text-sm text-white/70">Nuevo registro para:</p>
+                    <p className="text-white font-medium">{email}</p>
                   </div>
 
-                  <div className="group">
-                    <Label htmlFor="signup-email" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="tu@email.com"
-                      required
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="group">
+                      <Label htmlFor="firstName" className={labelClasses}>Nombre</Label>
+                      <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Juan" required className={inputClasses} autoFocus />
+                    </div>
+                    <div className="group">
+                      <Label htmlFor="lastName" className={labelClasses}>Apellido</Label>
+                      <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Pérez" required className={inputClasses} />
+                    </div>
                   </div>
 
                   <div className="relative group">
-                    <Label htmlFor="signup-password" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Contraseña</Label>
+                    <Label htmlFor="signup-password" className={labelClasses}>Contraseña</Label>
                     <Input
                       id="signup-password"
                       type={showPassword ? "text" : "password"}
@@ -461,7 +509,7 @@ export default function LicenseAuth() {
                       placeholder="••••••••"
                       required
                       minLength={6}
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                      className={inputClasses}
                     />
                     <Button
                       type="button"
@@ -476,58 +524,51 @@ export default function LicenseAuth() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="group">
-                      <Label htmlFor="birthdate" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Fecha de Nacimiento</Label>
-                      <Input
-                        id="birthdate"
-                        type="date"
-                        value={birthdate}
-                        onChange={(e) => setBirthdate(e.target.value)}
-                        required
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                      />
+                      <Label htmlFor="birthdate" className={labelClasses}>Fecha de Nacimiento</Label>
+                      <Input id="birthdate" type="date" value={birthdate} onChange={(e) => setBirthdate(e.target.value)} required className={inputClasses} />
                     </div>
                     <div className="group">
-                      <Label htmlFor="country" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">País</Label>
-                      <Input
-                        id="country"
-                        value={country}
-                        onChange={(e) => setCountry(e.target.value)}
-                        placeholder="HN"
-                        required
-                        className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
-                      />
+                      <Label htmlFor="country" className={labelClasses}>País</Label>
+                      <Input id="country" value={country} onChange={(e) => setCountry(e.target.value)} placeholder="HN" required className={inputClasses} />
                     </div>
                   </div>
 
                   <div className="group">
-                    <Label htmlFor="avatar" className="text-white/90 group-focus-within:text-purple-400 transition-colors duration-300">Foto de Perfil (Opcional)</Label>
-                    <Input
-                      id="avatar"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarChange}
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 transition-all duration-300"
-                    />
+                    <Label htmlFor="avatar" className={labelClasses}>Foto de Perfil (Opcional)</Label>
+                    <Input id="avatar" type="file" accept="image/*" onChange={handleAvatarChange} className={inputClasses} />
                     {avatarPreview && (
-                      <img 
-                        src={avatarPreview} 
-                        alt="Preview" 
-                        className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)] animate-scale-in" 
-                      />
+                      <img src={avatarPreview} alt="Preview" className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)] animate-scale-in" />
                     )}
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300" disabled={loading}>
-                    {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+                  <Button type="submit" className={buttonClasses} disabled={loading}>
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Creando cuenta...
+                      </>
+                    ) : (
+                      'Crear Cuenta'
+                    )}
                   </Button>
 
-                  <p className="text-sm text-center text-gold-400/90 mt-4 font-medium">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleBackToEmail}
+                    className="w-full text-white/60 hover:text-white"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-1.5" />
+                    Usar otro email
+                  </Button>
+
+                  <p className="text-sm text-center text-gold-400/90 mt-2 font-medium">
                     ¿Eres peleador? Podrás solicitar tu Fighter ID después del registro.
                   </p>
                 </form>
               )}
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
