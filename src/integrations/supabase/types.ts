@@ -4932,6 +4932,7 @@ export type Database = {
         }[]
       }
       get_current_user_judge_id: { Args: never; Returns: string }
+      get_dashboard_stats: { Args: never; Returns: Json }
       get_fighter_sensitive_data: {
         Args: { p_fighter_id: string }
         Returns: {
