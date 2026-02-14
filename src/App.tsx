@@ -333,6 +333,7 @@ const App = () => {
                       <Route path="/email-campaigns" element={<EmailCampaigns />} />
                       <Route path="/email-campaigns/:id" element={<EmailCampaignDetail />} />
                       <Route path="/email-campaigns/editor" element={<EmailCampaignEditor />} />
+                      <Route path="/email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
                       <Route path="/inbox" element={
                         <Suspense fallback={<LoadingSpinner />}>
                           <ContactInbox />
