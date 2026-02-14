@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CalendarIcon, Trophy, Info, ImageIcon, Wand2 } from 'lucide-react';
+import { Loader2, CalendarIcon, Trophy, Info, ImageIcon, Wand2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useGymsList } from '@/hooks/useGymsList';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -35,9 +36,10 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
  }
  
  export function AdminFighterForm({ mode, existingFighter, onSuccess, onCancel }: AdminFighterFormProps) {
-   const { adminCreateFighterProfile, adminUpdateFighterProfile } = useFighterProfiles();
+    const { adminCreateFighterProfile, adminUpdateFighterProfile } = useFighterProfiles();
   const { data: organizations } = useRankingOrganizations();
   const { enrollFighter } = useFighterRankingMembership();
+  const { data: gymsList = [] } = useGymsList();
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   
@@ -47,6 +49,8 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [removeBackground, setRemoveBackground] = useState(false);
+  // Gym selector state
+  const [selectedGymMode, setSelectedGymMode] = useState<string>('__none__'); // gym id, '__none__' (independiente), '__other__' (texto libre)
 
   const [formData, setFormData] = useState<Partial<AdminFighterFormData>>({
      first_name: '',
@@ -69,44 +73,54 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
      level: 'Amateur',
    });
  
-   useEffect(() => {
-     if (existingFighter && mode === 'edit') {
-       const fighterBirthdate = existingFighter.birthdate ? new Date(existingFighter.birthdate) : undefined;
-       setBirthDate(fighterBirthdate);
-       
-       setFormData({
-         first_name: existingFighter.first_name,
-         last_name: existingFighter.last_name,
-         nickname: existingFighter.nickname || '',
-         country: existingFighter.country || 'Honduras',
-         weight_class: existingFighter.weight_class,
-         avatar_url: existingFighter.avatar_url || '',
-         discipline: existingFighter.discipline || undefined,
-         martial_arts: existingFighter.martial_arts || [],
-         record_wins: existingFighter.record_wins,
-         record_losses: existingFighter.record_losses,
-         record_draws: existingFighter.record_draws,
-         mma_record_wins: (existingFighter as any).mma_record_wins || 0,
-         mma_record_losses: (existingFighter as any).mma_record_losses || 0,
-         mma_record_draws: (existingFighter as any).mma_record_draws || 0,
-         boxeo_record_wins: (existingFighter as any).boxeo_record_wins || 0,
-         boxeo_record_losses: (existingFighter as any).boxeo_record_losses || 0,
-         boxeo_record_draws: (existingFighter as any).boxeo_record_draws || 0,
-         record_type: existingFighter.record_type || 'Amateur',
-         level: existingFighter.level || 'Amateur',
-         gender: existingFighter.gender || '',
-         height_cm: existingFighter.height_cm || 0,
-         weight_kg: Number(existingFighter.weight_kg) || 0,
-         reach_cm: existingFighter.reach_cm || 0,
-         bio: existingFighter.bio || '',
-         fighting_style: existingFighter.fighting_style || '',
-         gym_name: existingFighter.gym_name || '',
-         birthdate: existingFighter.birthdate || '',
-         birthplace: existingFighter.birthplace || '',
-         stance: existingFighter.stance || '',
-       });
-     }
-   }, [existingFighter, mode]);
+    useEffect(() => {
+      if (existingFighter && mode === 'edit') {
+        const fighterBirthdate = existingFighter.birthdate ? new Date(existingFighter.birthdate) : undefined;
+        setBirthDate(fighterBirthdate);
+        
+        // Determine gym selector mode
+        if (existingFighter.gym_id) {
+          setSelectedGymMode(existingFighter.gym_id);
+        } else if (existingFighter.gym_name) {
+          setSelectedGymMode('__other__');
+        } else {
+          setSelectedGymMode('__none__');
+        }
+        
+        setFormData({
+          first_name: existingFighter.first_name,
+          last_name: existingFighter.last_name,
+          nickname: existingFighter.nickname || '',
+          country: existingFighter.country || 'Honduras',
+          weight_class: existingFighter.weight_class,
+          avatar_url: existingFighter.avatar_url || '',
+          discipline: existingFighter.discipline || undefined,
+          martial_arts: existingFighter.martial_arts || [],
+          record_wins: existingFighter.record_wins,
+          record_losses: existingFighter.record_losses,
+          record_draws: existingFighter.record_draws,
+          mma_record_wins: (existingFighter as any).mma_record_wins || 0,
+          mma_record_losses: (existingFighter as any).mma_record_losses || 0,
+          mma_record_draws: (existingFighter as any).mma_record_draws || 0,
+          boxeo_record_wins: (existingFighter as any).boxeo_record_wins || 0,
+          boxeo_record_losses: (existingFighter as any).boxeo_record_losses || 0,
+          boxeo_record_draws: (existingFighter as any).boxeo_record_draws || 0,
+          record_type: existingFighter.record_type || 'Amateur',
+          level: existingFighter.level || 'Amateur',
+          gender: existingFighter.gender || '',
+          height_cm: existingFighter.height_cm || 0,
+          weight_kg: Number(existingFighter.weight_kg) || 0,
+          reach_cm: existingFighter.reach_cm || 0,
+          bio: existingFighter.bio || '',
+          fighting_style: existingFighter.fighting_style || '',
+          gym_name: existingFighter.gym_name || '',
+          gym_id: existingFighter.gym_id || undefined,
+          birthdate: existingFighter.birthdate || '',
+          birthplace: existingFighter.birthplace || '',
+          stance: existingFighter.stance || '',
+        });
+      }
+    }, [existingFighter, mode]);
  
   // Get selected organization data
   const selectedOrgData = organizations?.find(o => o.code === initialOrg);
@@ -636,13 +650,49 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                </div>
  
                <div>
-                 <Label htmlFor="gym_name">Gimnasio/Academia</Label>
-                 <Input
-                   id="gym_name"
-                   value={formData.gym_name}
-                   onChange={(e) => handleChange('gym_name', e.target.value)}
-                   placeholder="Ej: Gracie Barra"
-                 />
+                 <Label htmlFor="gym_select" className="flex items-center gap-1.5">
+                   <Building2 className="h-4 w-4" />
+                   Gimnasio/Academia
+                 </Label>
+                 <Select
+                   value={selectedGymMode}
+                   onValueChange={(value) => {
+                     setSelectedGymMode(value);
+                     if (value === '__none__') {
+                       handleChange('gym_id', undefined);
+                       handleChange('gym_name', '');
+                     } else if (value === '__other__') {
+                       handleChange('gym_id', undefined);
+                     } else {
+                       const gym = gymsList.find(g => g.id === value);
+                       if (gym) {
+                         handleChange('gym_id', gym.id);
+                         handleChange('gym_name', gym.nombre);
+                       }
+                     }
+                   }}
+                 >
+                   <SelectTrigger>
+                     <SelectValue placeholder="Seleccionar gimnasio" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="__none__">Independiente</SelectItem>
+                     {gymsList.map(g => (
+                       <SelectItem key={g.id} value={g.id}>
+                         {g.nombre}
+                       </SelectItem>
+                     ))}
+                     <SelectItem value="__other__">Otro (escribir nombre)</SelectItem>
+                   </SelectContent>
+                 </Select>
+                 {selectedGymMode === '__other__' && (
+                   <Input
+                     className="mt-2"
+                     value={formData.gym_name}
+                     onChange={(e) => handleChange('gym_name', e.target.value)}
+                     placeholder="Escribir nombre del gimnasio"
+                   />
+                 )}
                </div>
  
                <div className="grid grid-cols-4 gap-4">

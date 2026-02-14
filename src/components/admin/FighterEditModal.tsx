@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Loader2, CalendarIcon, Wand2 } from 'lucide-react';
+import { Loader2, CalendarIcon, Wand2, Building2 } from 'lucide-react';
+import { useGymsList } from '@/hooks/useGymsList';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,9 +60,11 @@ interface FighterEditModalProps {
 export function FighterEditModal({ fighter, open, onClose }: FighterEditModalProps) {
   const { adminUpdateFighterProfile } = useFighterProfiles();
   const { data: activeLeagues = [] } = useFighterActiveLeagues(fighter?.id || null);
+  const { data: gymsList = [] } = useGymsList();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
   const [removeBackground, setRemoveBackground] = useState(false);
+  const [selectedGymMode, setSelectedGymMode] = useState<string>('__none__');
   const [formData, setFormData] = useState<AdminFighterFormData>({
     first_name: '',
     last_name: '',
@@ -88,6 +91,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     bio: '',
     fighting_style: '',
     gym_name: '',
+    gym_id: undefined,
     birthdate: '',
     birthplace: '',
     blood_type: '',
@@ -110,6 +114,15 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
     if (fighter) {
       const fighterBirthdate = fighter.birthdate ? new Date(fighter.birthdate) : undefined;
       setBirthDate(fighterBirthdate);
+      
+      // Determine gym selector mode
+      if (fighter.gym_id) {
+        setSelectedGymMode(fighter.gym_id);
+      } else if (fighter.gym_name) {
+        setSelectedGymMode('__other__');
+      } else {
+        setSelectedGymMode('__none__');
+      }
       
       setFormData({
         first_name: fighter.first_name,
@@ -137,6 +150,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         bio: fighter.bio || '',
         fighting_style: fighter.fighting_style || '',
         gym_name: fighter.gym_name || '',
+        gym_id: fighter.gym_id || undefined,
         birthdate: fighter.birthdate || '',
         birthplace: fighter.birthplace || '',
         blood_type: fighter.blood_type || '',
@@ -264,6 +278,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
         bio: finalFormData.bio === '' ? null : finalFormData.bio,
         fighting_style: finalFormData.fighting_style === '' ? null : finalFormData.fighting_style,
         gym_name: finalFormData.gym_name === '' ? null : finalFormData.gym_name,
+        gym_id: finalFormData.gym_id === '' || finalFormData.gym_id === undefined ? null : finalFormData.gym_id,
         birthdate: finalFormData.birthdate === '' ? null : finalFormData.birthdate,
         birthplace: finalFormData.birthplace === '' ? null : finalFormData.birthplace,
         blood_type: finalFormData.blood_type === '' ? null : finalFormData.blood_type,
@@ -632,13 +647,49 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="gym_name">Nombre del Gimnasio</Label>
-                      <Input
-                        id="gym_name"
-                        value={formData.gym_name}
-                        onChange={(e) => handleChange('gym_name', e.target.value)}
-                        placeholder="Nombre del gimnasio o equipo"
-                      />
+                      <Label htmlFor="gym_select" className="flex items-center gap-1.5">
+                        <Building2 className="h-4 w-4" />
+                        Gimnasio/Academia
+                      </Label>
+                      <Select
+                        value={selectedGymMode}
+                        onValueChange={(value) => {
+                          setSelectedGymMode(value);
+                          if (value === '__none__') {
+                            handleChange('gym_id', undefined);
+                            handleChange('gym_name', '');
+                          } else if (value === '__other__') {
+                            handleChange('gym_id', undefined);
+                          } else {
+                            const gym = gymsList.find(g => g.id === value);
+                            if (gym) {
+                              handleChange('gym_id', gym.id);
+                              handleChange('gym_name', gym.nombre);
+                            }
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar gimnasio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Independiente</SelectItem>
+                          {gymsList.map(g => (
+                            <SelectItem key={g.id} value={g.id}>
+                              {g.nombre}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="__other__">Otro (escribir nombre)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {selectedGymMode === '__other__' && (
+                        <Input
+                          className="mt-2"
+                          value={formData.gym_name}
+                          onChange={(e) => handleChange('gym_name', e.target.value)}
+                          placeholder="Escribir nombre del gimnasio"
+                        />
+                      )}
                     </div>
 
                     <div>
