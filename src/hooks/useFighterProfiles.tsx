@@ -120,6 +120,7 @@ export interface AdminFighterFormData {
   country?: string;
   weight_class: string;
   avatar_url?: string;
+  gym_id?: string;
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
   martial_arts?: string[];
   record_wins?: number;
