@@ -806,6 +806,56 @@ export type Database = {
           },
         ]
       }
+      email_campaign_images: {
+        Row: {
+          alt_text: string | null
+          campaign_id: string
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          height: number | null
+          id: string
+          mime_type: string | null
+          public_url: string | null
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          campaign_id: string
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          campaign_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          mime_type?: string | null
+          public_url?: string | null
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_campaign_images_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns_v2"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_campaign_log: {
         Row: {
           created_at: string | null
@@ -842,6 +892,75 @@ export type Database = {
           test_mode?: boolean
           total_failed?: number
           total_sent?: number
+        }
+        Relationships: []
+      }
+      email_campaigns_v2: {
+        Row: {
+          asunto: string
+          created_at: string
+          created_by: string | null
+          estado: string
+          from_email: string | null
+          from_name: string | null
+          html_content: string | null
+          id: string
+          json_content: Json | null
+          last_autosave: string | null
+          metadata: Json | null
+          nombre: string
+          preview_text: string | null
+          recipient_filter: string | null
+          reply_to: string | null
+          sent_at: string | null
+          total_failed: number | null
+          total_recipients: number | null
+          total_sent: number | null
+          updated_at: string
+        }
+        Insert: {
+          asunto?: string
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          from_email?: string | null
+          from_name?: string | null
+          html_content?: string | null
+          id?: string
+          json_content?: Json | null
+          last_autosave?: string | null
+          metadata?: Json | null
+          nombre?: string
+          preview_text?: string | null
+          recipient_filter?: string | null
+          reply_to?: string | null
+          sent_at?: string | null
+          total_failed?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
+        }
+        Update: {
+          asunto?: string
+          created_at?: string
+          created_by?: string | null
+          estado?: string
+          from_email?: string | null
+          from_name?: string | null
+          html_content?: string | null
+          id?: string
+          json_content?: Json | null
+          last_autosave?: string | null
+          metadata?: Json | null
+          nombre?: string
+          preview_text?: string | null
+          recipient_filter?: string | null
+          reply_to?: string | null
+          sent_at?: string | null
+          total_failed?: number | null
+          total_recipients?: number | null
+          total_sent?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -959,6 +1078,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_templates: {
+        Row: {
+          activo: boolean | null
+          categoria: string | null
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          html_content: string | null
+          id: string
+          json_content: Json | null
+          nombre: string
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean | null
+          categoria?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          html_content?: string | null
+          id?: string
+          json_content?: Json | null
+          nombre: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean | null
+          categoria?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          html_content?: string | null
+          id?: string
+          json_content?: Json | null
+          nombre?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       events: {
         Row: {
