@@ -249,7 +249,7 @@ export function useFighterProfiles() {
   const getFighterById = async (id: string) => {
     const { data, error } = await supabase
       .from('fighter_profiles')
-      .select(`*, coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug)`)
+      .select(`*, coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug), gym:gyms!gym_id(id, nombre, logo_url, slug)`)
       .eq('id', id)
       .single();
 

@@ -12,7 +12,8 @@ export function useFighterByIdQuery(fighterId: string | null | undefined) {
         .from('fighter_profiles')
         .select(`
           *,
-          coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug)
+          coach:coaches(id, nombre, apellidos, avatar_url, especialidades, slug),
+          gym:gyms!gym_id(id, nombre, logo_url, slug)
         `)
         .eq('id', fighterId)
         .single();

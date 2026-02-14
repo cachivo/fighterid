@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit, ExternalLink, CreditCard, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Shield, Trophy, MapPin, Users, BarChart3, Info, Home, GraduationCap, Edit, ExternalLink, CreditCard, ChevronDown, Building2 } from 'lucide-react';
 import { Crown, Award, Swords } from 'lucide-react';
 import FighterUpdatesFeed from '@/components/FighterUpdatesFeed';
 import Header from '@/components/Header';
@@ -217,7 +217,7 @@ export default function FighterProfile() {
                 </div>
 
                 {/* Disciplina de Competencia - Badge prominente */}
-                <div className="my-4 sm:my-6">
+                <div className="my-4 sm:my-6 space-y-2">
                   <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-primary/10 border border-primary/20">
                     <Swords className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
                     <div className="min-w-0 flex-1">
@@ -228,6 +228,33 @@ export default function FighterProfile() {
                       <Badge variant="secondary" className="text-xs flex-shrink-0">
                         {fighter.level}
                       </Badge>
+                    )}
+                  </div>
+                  
+                  {/* Gimnasio - prominente debajo de disciplina */}
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 border border-border">
+                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Gimnasio</p>
+                      {fighter.gym_id ? (
+                        <Link
+                          to={`/gimnasios/${(fighter as any).gym?.slug || fighter.gym_id}`}
+                          className="font-bold text-sm sm:text-base md:text-lg text-primary hover:underline truncate block"
+                        >
+                          {(fighter as any).gym?.nombre || fighter.gym_name || 'Ver gimnasio'}
+                        </Link>
+                      ) : (
+                        <p className="font-bold text-sm sm:text-base md:text-lg truncate">
+                          {fighter.gym_name || 'Independiente'}
+                        </p>
+                      )}
+                    </div>
+                    {(fighter as any).gym?.logo_url && (
+                      <img 
+                        src={(fighter as any).gym.logo_url} 
+                        alt="Gym logo" 
+                        className="h-8 w-8 rounded-md object-cover flex-shrink-0"
+                      />
                     )}
                   </div>
                 </div>
@@ -423,23 +450,7 @@ export default function FighterProfile() {
                   </div>
                 )}
 
-                {/* Gym */}
-                {(fighter.gym_id || fighter.gym_name) && (
-                  <div>
-                    <h4 className="font-semibold mb-2">Gimnasio</h4>
-                    {fighter.gym_id ? (
-                      <Link
-                        to={`/gym/${fighter.gym_id}/dashboard`}
-                        className="inline-flex items-center gap-2 text-primary hover:underline font-medium"
-                      >
-                        {fighter.gym_name || 'Ver gimnasio'}
-                        <ExternalLink className="h-3 w-3" />
-                      </Link>
-                    ) : (
-                      <p className="text-muted-foreground">{fighter.gym_name}</p>
-                    )}
-                  </div>
-                )}
+                {/* Gym info moved to header section above */}
 
                 {/* Coach */}
                 {fighter.coach && (

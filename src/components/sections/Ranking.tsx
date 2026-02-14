@@ -322,6 +322,12 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                             <Badge variant="outline" className="text-[9px] xs:text-[10px] sm:text-xs border-purple-neon-primary/50 text-purple-neon-primary px-1 xs:px-1.5">
                               {getWeightClassLabel(ranking.weight_class)}
                             </Badge>
+                            {/* Gym name */}
+                            {(ranking.fighter.gym_name) && (
+                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 truncate max-w-[80px] xs:max-w-[100px] sm:max-w-none">
+                                {ranking.fighter.gym_name}
+                              </span>
+                            )}
                             {/* Fighter Record - Always visible */}
                             <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono">
                               <span className="text-green-400">{wins || 0}</span>

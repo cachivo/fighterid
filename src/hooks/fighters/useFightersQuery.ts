@@ -27,7 +27,7 @@ export function useFightersQuery(filters?: FighterFilters) {
     queryFn: async () => {
       let query = supabase
         .from('fighter_profiles')
-        .select('*', { count: 'exact' });
+        .select('*, gym:gyms!gym_id(id, nombre, logo_url, slug)', { count: 'exact' });
 
       if (active !== undefined) {
         query = query.eq('active', active);
