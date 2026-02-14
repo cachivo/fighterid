@@ -1,101 +1,121 @@
 
-# Integration of Uploaded Reference Files
 
-## Analysis
+# Auditoria: Sincronizacion Peleadores - Gimnasios
 
-You uploaded 10 reference files from another AI covering two areas. Here's what applies to your project and what doesn't:
+## Hallazgos Criticos
 
-### Area 1: Fighter/Gym Management (database-schema-2.sql, peleadorService, usePeleadores, ListaPeleadores, PerfilPeleador)
+### Problema Principal: 61 de 65 peleadores con gimnasio NO tienen membresia formal
 
-**Status: Already handled.** These files propose creating new tables `peleadores` and `gimnasios`, but your project already uses `fighter_profiles` and `gyms`. The gym synchronization work we just completed (gym selector in admin forms, unique index, data normalization) already covers the core problems these files solve. The `peleador_gimnasio_historial` concept is interesting but your project already has a similar mechanism through the `FighterGymTab` component and `gym_memberships` table.
+| Metrica | Valor |
+|---------|-------|
+| Peleadores activos totales | 68 |
+| Con `gym_id` asignado | 65 |
+| Con membresia activa (`fighter_gym_memberships`) | **4** |
+| **Desincronizados** (gym_id pero sin membresia) | **61** |
+| Gimnasios activos | 27 |
 
-**No action needed** for these files.
+Los 27 gimnasios estan afectados. Los mas criticos:
 
-### Area 2: TipTap Email Editor (EmailEditor.tsx, ImageResize.tsx, emailCampaignService.ts, useEmailCampaigns.ts, database-email-campaigns.sql, useDebounce.ts)
+| Gimnasio | Peleadores sin membresia |
+|----------|--------------------------|
+| Lunaticos | 14 |
+| Dragones Templarios | 6 |
+| Alfa y Omega MMA | 4 |
+| Club de Boxeo Chele Munguia | 3 |
+| Pericka MMA Brotherhood | 3 |
+| Martial Gang | 3 |
+| (21 gimnasios mas) | 1-2 cada uno |
 
-**Status: Ready to implement.** This matches the previously approved plan for upgrading the email editor from `contentEditable` to TipTap. The reference files provide solid implementations that need adaptation to work with your existing architecture.
+### Causa Raiz
 
----
+Existen dos triggers de sincronizacion, pero ambos son **unidireccionales**:
 
-## Implementation Plan: TipTap Email Editor
+1. `sync_fighter_gym_from_membership`: Cuando se crea una membresia ACTIVE, actualiza `gym_id` en el perfil del peleador. **Funciona correctamente.**
 
-### Step 1: Database - Create email drafts tables
+2. `sync_gym_name_from_gym_id`: Cuando se cambia `gym_id` en el perfil, solo actualiza `gym_name`. **NO crea la membresia correspondiente.**
 
-Create the tables needed for the drafts/editor workflow. The existing `email_campaign_log` and `email_sends` tables stay as-is (they handle sent campaign history). New tables:
+Es decir: si un admin asigna un gimnasio directamente en el perfil del peleador (que es lo mas comun), el peleador aparece con gimnasio en su perfil pero **no aparece en el dashboard del gimnasio** porque no tiene registro en `fighter_gym_memberships`.
 
-| Table | Purpose |
-|-------|---------|
-| `email_campaigns_v2` | Draft campaigns with auto-save, editor JSON content, status |
-| `email_campaign_images` | Image metadata for campaign images |
-| `email_templates` | Reusable email templates |
+### Datos Positivos
 
-Also create the `email-campaign-images` storage bucket.
-
-RLS policies will use the project's existing `has_role` function instead of the `auth.jwt() ->> 'role'` pattern from the reference SQL.
-
-### Step 2: Install TipTap dependencies
-
-13 packages: `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-image`, `@tiptap/extension-link`, `@tiptap/extension-text-align`, `@tiptap/extension-underline`, `@tiptap/extension-text-style`, `@tiptap/extension-color`, `@tiptap/extension-highlight`, `@tiptap/extension-table`, `@tiptap/extension-table-row`, `@tiptap/extension-table-cell`, `@tiptap/extension-table-header`
-
-### Step 3: Create components
-
-Adapt from the uploaded files:
-
-- `src/components/email/ImageResize.tsx` - Drag-to-resize image NodeView (from uploaded ImageResize.tsx)
-- `src/components/email/EmailTipTapEditor.tsx` - Full TipTap editor with toolbar, preview mode, auto-save (from uploaded EmailEditor.tsx)
-- `src/hooks/useDebounce.ts` - Already exists concept, create if missing
-- `src/services/emailCampaignService.ts` - CRUD for drafts, adapted to use `email_campaigns_v2`
-- `src/hooks/useEmailCampaignEditor.ts` - React Query hooks for drafts
-
-### Step 4: Rewrite EmailCampaignEditor page
-
-Replace the current `contentEditable` div in `src/pages/admin/EmailCampaignEditor.tsx` with the TipTap editor. Keep existing recipient selection (FighterSegmentSelector, EmailRecipientSelector) and the send-mass-email integration.
-
-Add tabs: "Contenido" (TipTap editor) and "Configuracion" (recipients, subject, test mode).
-
-### Step 5: Update EmailCampaigns list page
-
-Add a "Borradores" (Drafts) section to `src/pages/admin/EmailCampaigns.tsx` showing drafts from `email_campaigns_v2` alongside the existing sent campaign history from `email_campaign_log`.
+- No hay inconsistencias inversas: los 4 peleadores con membresia activa tienen su `gym_id` correctamente sincronizado
+- No hay peleadores con `gym_name` suelto sin `gym_id` (la normalizacion previa funciono)
+- El indice unique para evitar doble membresia activa ya existe
 
 ---
 
-## Technical Details
+## Plan de Correccion
 
-### Key adaptations from reference files
+### Paso 1: Backfill - Crear las 61 membresias faltantes
 
-1. **RLS**: Reference uses `auth.jwt() ->> 'role' = 'admin'` which won't work. Will use `public.has_role(auth.uid(), 'admin')` instead.
-2. **Table naming**: Reference uses `email_campaigns` but that could conflict with future needs. Will use `email_campaigns_v2` for drafts.
-3. **Storage**: Reference bucket `email-campaign-images` is fine. The existing `email-assets` bucket stays for backward compatibility.
-4. **Auto-save flow**: 2-second debounce to DB + localStorage backup, exactly as the uploaded EmailEditor.tsx implements.
-
-### Files to create
-
-| File | Source |
-|------|--------|
-| `src/components/email/ImageResize.tsx` | Adapted from uploaded ImageResize.tsx |
-| `src/components/email/EmailTipTapEditor.tsx` | Adapted from uploaded EmailEditor.tsx |
-| `src/services/emailCampaignService.ts` | Adapted from uploaded emailCampaignService.ts |
-| `src/hooks/useEmailCampaignEditor.ts` | Adapted from uploaded useEmailCampaigns.ts |
-| `src/hooks/useDebounce.ts` | From uploaded useDebounce.ts |
-
-### Files to modify
-
-| File | Change |
-|------|--------|
-| `src/pages/admin/EmailCampaignEditor.tsx` | Full rewrite with TipTap |
-| `src/pages/admin/EmailCampaigns.tsx` | Add drafts section |
-
-### Data flow
+Ejecutar un INSERT masivo que cree registros en `fighter_gym_memberships` para todos los peleadores que tienen `gym_id` pero no tienen membresia activa. Esto poblara inmediatamente los dashboards de los 27 gimnasios.
 
 ```text
-Admin creates campaign
-  -> INSERT into email_campaigns_v2 (estado: borrador)
-  -> TipTap editor loads
-  -> Auto-save every 2s -> UPDATE email_campaigns_v2
-  -> Images uploaded -> Storage bucket + INSERT email_campaign_images
-  -> Admin configures recipients and subject
-  -> Click "Enviar"
-  -> Calls send-mass-email edge function (existing)
-  -> Logged in email_campaign_log (existing history)
-  -> Draft status changes to "enviada"
+INSERT INTO fighter_gym_memberships (fighter_id, gym_id, status, joined_at)
+SELECT fp.id, fp.gym_id, 'ACTIVE', COALESCE(fp.updated_at, fp.created_at)
+FROM fighter_profiles fp
+WHERE fp.gym_id IS NOT NULL AND fp.active = true
+AND NOT EXISTS (
+  SELECT 1 FROM fighter_gym_memberships fgm
+  WHERE fgm.fighter_id = fp.id AND fgm.status = 'ACTIVE'
+);
 ```
+
+### Paso 2: Trigger de sincronizacion bidireccional
+
+Crear un nuevo trigger en `fighter_profiles` que, cuando se asigne o cambie `gym_id`, automaticamente:
+
+- Si se asigna un nuevo `gym_id`: cree una membresia ACTIVE (si no existe ya)
+- Si se cambia de un gimnasio a otro: marque la anterior como TRANSFERRED y cree la nueva
+- Si se limpia `gym_id` (NULL): marque la membresia actual como INACTIVE
+
+Esto garantiza que sin importar COMO se asigne el gimnasio (admin form, RPC, import), la membresia siempre se crea.
+
+### Paso 3: Verificacion post-correccion
+
+Despues de aplicar ambos cambios, verificar que:
+- Los 65 peleadores con gym_id tengan membresia activa
+- Los dashboards de gimnasios muestren el conteo correcto
+- El trigger funcione al asignar un gimnasio nuevo desde el panel admin
+
+---
+
+## Seccion Tecnica
+
+### Migracion SQL
+
+Se creara una sola migracion que:
+
+1. Define la funcion `sync_membership_from_gym_id()` como trigger BEFORE UPDATE en `fighter_profiles`
+2. Ejecuta el backfill de las 61 membresias
+
+La funcion del trigger:
+
+```text
+sync_membership_from_gym_id()
+  -- Solo si gym_id cambio
+  IF OLD.gym_id IS DISTINCT FROM NEW.gym_id THEN
+    -- Si habia gym anterior, marcar membresia como TRANSFERRED
+    IF OLD.gym_id IS NOT NULL THEN
+      UPDATE fighter_gym_memberships
+      SET status = 'TRANSFERRED', left_at = NOW()
+      WHERE fighter_id = NEW.id AND gym_id = OLD.gym_id AND status = 'ACTIVE';
+    END IF;
+    
+    -- Si hay nuevo gym, crear membresia si no existe
+    IF NEW.gym_id IS NOT NULL THEN
+      INSERT INTO fighter_gym_memberships (fighter_id, gym_id, status)
+      VALUES (NEW.id, NEW.gym_id, 'ACTIVE')
+      ON CONFLICT DO NOTHING;  -- respeta unique_active_membership
+    END IF;
+  END IF;
+```
+
+### Archivos que NO necesitan cambios
+
+Los hooks existentes (`useGymFighters`, `useGymDashboard`, `useGymMembership`) ya consultan `fighter_gym_memberships` correctamente. Una vez que las membresias existan, los dashboards se poblaran automaticamente sin cambios de codigo.
+
+### Riesgo
+
+Bajo. El backfill solo inserta registros faltantes (ON CONFLICT DO NOTHING). El trigger solo actua cuando `gym_id` realmente cambia. Los triggers existentes no entran en conflicto porque `sync_fighter_gym_from_membership` actua en la tabla de membresias (no en profiles).
+
