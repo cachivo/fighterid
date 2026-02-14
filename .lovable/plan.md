@@ -1,55 +1,63 @@
 
+# Sincronizacion Completa: Gimnasios, Rankings y Campos de Edicion
 
-# Sincronizacion de Gimnasios en Perfiles de Peleadores
+## Diagnostico
 
-## Problema Detectado
+Despues de analizar la base de datos y el codigo actual, estos son los problemas reales encontrados:
 
-Despues de analizar la base de datos actual:
+### Problema 1: Formularios admin usan texto libre para gimnasio
+Los formularios `AdminFighterForm.tsx` y `FighterEditModal.tsx` tienen un campo `<Input>` de texto libre para el gimnasio. Esto significa que cada admin escribe el nombre diferente:
+- "Dragones Templarios", "Dragones templarios", " dragones templarios" (3 variaciones, 6 peleadores)
+- "Alfa & Omega MMA", "Alfa y omega", "Alfa y Omega MMA", "ALFA Y OMEGA MMA" (4 variaciones)
+- "Lunaticos Team", "Lunático Team", "Lunaticos Team " (con espacio extra)
 
-- **68 peleadores activos**
-- Solo **4** tienen un `gym_id` vinculado formalmente a un gimnasio registrado
-- **61** tienen `gym_name` como texto libre (sin vinculo real al gimnasio)
-- **3** no tienen gimnasio asignado de ninguna forma
+**Solucion**: Reemplazar el `<Input>` de texto por un `<Select>` con los gimnasios registrados en la tabla `gyms`, mas una opcion "Otro" para texto libre. Al seleccionar un gimnasio registrado, se asigna automaticamente el `gym_id`.
 
-Esto significa que el 90% de los peleadores muestran un nombre de gimnasio escrito a mano, sin enlace al perfil del gimnasio, y las tarjetas de peleador (FighterCard) ni siquiera muestran el gimnasio.
+### Problema 2: Solo 3 gimnasios registrados de ~20 que existen
+Hay al menos 20 gimnasios unicos en los datos pero solo 3 estan registrados en la tabla `gyms`. Los otros 17 solo existen como texto libre.
 
-## Solucion en 3 Partes
+**Solucion**: Registrar los gimnasios faltantes en la tabla `gyms` y vincular los 45 peleadores pendientes.
 
-### Parte 1: Mostrar el gimnasio en todas las vistas
+### Problema 3: La tab "Gimnasio" del modal admin esta separada del formulario principal
+El componente `FighterGymTab` (que ya tiene la UI para vincular/transferir gimnasios) existe pero opera independiente del formulario de edicion principal. No se refleja en el campo `gym_name` del formulario.
 
-**FighterCard (tarjeta en listados)**
-- Agregar una linea debajo del pais mostrando el nombre del gimnasio
-- Si tiene `gym_id`, mostrar el nombre oficial del gimnasio (desde la tabla `gyms`)
-- Si solo tiene `gym_name` (texto libre), mostrarlo con un icono diferente
-- Si no tiene gimnasio, mostrar "Independiente" en gris
+**Solucion**: Integrar ambos flujos - cuando el admin edita un peleador, el selector de gimnasio en el formulario principal debe sincronizar con `FighterGymTab`.
 
-**FighterProfile (pagina de perfil)**
-- Mover la seccion de gimnasio a una posicion mas prominente (justo debajo de la disciplina, antes del record)
-- Mostrar el logo del gimnasio si esta disponible
-- Si tiene `gym_id`, enlazar al dashboard del gimnasio
+## Plan de Implementacion
 
-**Ranking (tabla de posiciones)**
-- Agregar columna/badge con el nombre del gimnasio junto al nombre del peleador
+### Paso 1: Registrar gimnasios faltantes (datos)
 
-### Parte 2: Enriquecer las queries con datos del gimnasio
+Crear los ~17 gimnasios que existen como texto libre pero no estan en la tabla `gyms`:
 
-**useFightersQuery** (listado general)
-- Modificar el `select` para incluir la relacion con `gyms`: nombre y logo
-- Esto permite mostrar el gym en las tarjetas sin queries adicionales
+| Gimnasio | Peleadores |
+|----------|-----------|
+| Dragones Templarios | 6 |
+| Alfa y Omega MMA | 4 |
+| Martial Gang | 3 |
+| Pericka MMA Brotherhood | 3 |
+| Ortiz Hawaiian Kenpo MMA | 2 |
+| Las Palmas Boxing Club | 2 |
+| Espiritu de Guerrero | 2 |
+| Club Titan MMA | 2 |
+| Lunaticos Team (ya existe pero sin vincular) | 3 |
+| Y otros con 1 peleador cada uno | ~18 |
 
-**useFighterByIdQuery** (perfil individual)
-- Agregar join a `gyms` ademas del join existente a `coaches`
-- Traer `nombre`, `logo_url`, `slug` del gimnasio vinculado
+Luego vincular automaticamente los `gym_id` de los 45 peleadores pendientes.
 
-### Parte 3: Sincronizar gym_name con gym_id
+### Paso 2: Selector de gimnasio en formularios admin
 
-Crear una migracion de base de datos que:
+Modificar `AdminFighterForm.tsx` y `FighterEditModal.tsx`:
+- Reemplazar el `<Input>` de texto libre por un `<Select>` con dropdown de gimnasios registrados
+- Agregar opcion "Independiente" y "Otro (texto libre)"
+- Al seleccionar un gimnasio del dropdown, asignar `gym_id` automaticamente
+- Mostrar el logo del gimnasio seleccionado como preview
 
-1. **Normalice los nombres de gimnasio existentes**: Para los 61 peleadores que tienen `gym_name` como texto libre pero no tienen `gym_id`, intentar hacer match con gimnasios registrados en la tabla `gyms` (por nombre similar)
+### Paso 3: Verificar sincronizacion ranking-perfil
 
-2. **Trigger de sincronizacion**: Cuando se asigna un `gym_id` a un peleador (via membresía o admin), actualizar automaticamente el campo `gym_name` con el nombre oficial del gimnasio
-
-3. **Trigger inverso**: Cuando se actualiza el nombre de un gimnasio en la tabla `gyms`, propagar el cambio a todos los `fighter_profiles` que tienen ese `gym_id`
+Validar que los triggers existentes funcionan correctamente:
+- Cuando se cambia `discipline` en el perfil, se actualiza en rankings
+- Cuando se cambia `level` en rankings, se refleja en el perfil
+- Cuando se cambia `gym_id`, se actualiza `gym_name`
 
 ---
 
@@ -59,44 +67,45 @@ Crear una migracion de base de datos que:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/hooks/fighters/useFightersQuery.ts` | Agregar join a `gyms(nombre, logo_url, slug)` en el select |
-| `src/hooks/fighters/useFighterByIdQuery.ts` | Agregar join a `gyms(nombre, logo_url, slug)` junto al de coaches |
-| `src/components/FighterCard.tsx` | Mostrar nombre del gimnasio con icono de edificio |
-| `src/pages/FighterProfile.tsx` | Mover seccion gimnasio arriba, mostrar logo si disponible |
-| `src/components/sections/Ranking.tsx` | Mostrar gym_name junto al nombre del peleador en la tabla |
-| `src/hooks/useFighterProfiles.tsx` | Actualizar `getFighterById` para incluir join a gyms |
-| Migracion SQL | Trigger de sync gym_name y normalizacion de datos existentes |
+| `src/components/admin/AdminFighterForm.tsx` | Reemplazar Input de gym_name por Select con gimnasios + asignacion de gym_id |
+| `src/components/admin/FighterEditModal.tsx` | Mismo cambio: Select de gimnasios en lugar de texto libre |
+| `src/hooks/useFighterProfiles.tsx` | Agregar `gym_id` a `AdminFighterFormData` |
+| Migracion SQL (datos) | INSERT de gimnasios faltantes + UPDATE de gym_id en fighter_profiles |
 
-### Query modificada (useFightersQuery)
+### Cambio en AdminFighterForm
 
 ```text
-supabase
-  .from('fighter_profiles')
-  .select('*, gym:gyms!gym_id(nombre, logo_url, slug)', { count: 'exact' })
+ANTES:
+<Label>Gimnasio/Academia</Label>
+<Input value={formData.gym_name} onChange={...} placeholder="Ej: Gracie Barra" />
+
+DESPUES:
+<Label>Gimnasio/Academia</Label>
+<Select value={selectedGymId} onValueChange={handleGymSelect}>
+  <SelectItem value="none">Independiente</SelectItem>
+  {gyms.map(g => <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>)}
+  <SelectItem value="other">Otro (escribir nombre)</SelectItem>
+</Select>
+{selectedGymId === 'other' && <Input value={formData.gym_name} ... />}
 ```
 
-### Trigger de sincronizacion (SQL)
-
-Se creara un trigger `sync_gym_name_on_membership` que:
-- Al insertar/actualizar una membresia ACTIVE en `fighter_gym_memberships`, actualiza `fighter_profiles.gym_id` y `fighter_profiles.gym_name`
-- Al actualizar `gyms.nombre`, propaga a todos los `fighter_profiles` con ese `gym_id`
-
-### Normalizacion de datos existentes
-
-Se ejecutara un UPDATE que haga match entre `gym_name` (texto libre) y `gyms.nombre` para vincular automaticamente los peleadores que ya tienen el nombre correcto pero no el ID. Los que no coincidan se dejaran como estan (texto libre) para revision manual.
-
-### Visualizacion en FighterCard
+### Flujo de datos al guardar
 
 ```text
-+----------------------------------+
-|  [Avatar]  Nombre Apellido       |
-|            "Nickname"            |
-|            Peso Ligero | Honduras|
-|            Gimnasio: Team X  [G] |  <-- NUEVO
-+----------------------------------+
-|  Record: 3-1-0  | Compite: MMA  |
-+----------------------------------+
+Si gym seleccionado del dropdown:
+  → formData.gym_id = gym.id
+  → formData.gym_name = gym.nombre (auto-rellenado)
+  → Trigger DB sincroniza gym_name automaticamente
+
+Si "Otro" seleccionado:
+  → formData.gym_id = null
+  → formData.gym_name = texto ingresado
+
+Si "Independiente":
+  → formData.gym_id = null
+  → formData.gym_name = null
 ```
 
-Los peleadores sin gimnasio mostraran "Independiente" con un badge gris, lo que facilita identificar rapidamente quienes necesitan ser asignados.
+### Normalizacion de datos
 
+Se usara un UPDATE con `LOWER(TRIM())` para hacer match fuzzy entre los nombres de texto libre y los gimnasios recien registrados, cubriendo variaciones de mayusculas, espacios y acentos.
