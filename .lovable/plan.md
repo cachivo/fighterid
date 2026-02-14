@@ -1,63 +1,46 @@
 
-# Sincronizacion Completa: Gimnasios, Rankings y Campos de Edicion
+# Prevencion de Duplicados y Completitud de Gimnasios
 
-## Diagnostico
+## Estado Actual
 
-Despues de analizar la base de datos y el codigo actual, estos son los problemas reales encontrados:
+- **27 gimnasios** registrados en la tabla `gyms`, **0 duplicados** actualmente
+- El campo `slug` tiene restriccion UNIQUE, pero el campo `nombre` **NO** tiene ninguna restriccion
+- El formulario de "Crear Gimnasio" no verifica si ya existe un gimnasio con nombre similar antes de insertar
+- De los 27 gimnasios, **24 tienen informacion incompleta** (sin descripcion, logo, ciudad, o administrador asignado)
 
-### Problema 1: Formularios admin usan texto libre para gimnasio
-Los formularios `AdminFighterForm.tsx` y `FighterEditModal.tsx` tienen un campo `<Input>` de texto libre para el gimnasio. Esto significa que cada admin escribe el nombre diferente:
-- "Dragones Templarios", "Dragones templarios", " dragones templarios" (3 variaciones, 6 peleadores)
-- "Alfa & Omega MMA", "Alfa y omega", "Alfa y Omega MMA", "ALFA Y OMEGA MMA" (4 variaciones)
-- "Lunaticos Team", "Lunático Team", "Lunaticos Team " (con espacio extra)
+## Solucion
 
-**Solucion**: Reemplazar el `<Input>` de texto por un `<Select>` con los gimnasios registrados en la tabla `gyms`, mas una opcion "Otro" para texto libre. Al seleccionar un gimnasio registrado, se asigna automaticamente el `gym_id`.
+### Parte 1: Restriccion de unicidad en base de datos
 
-### Problema 2: Solo 3 gimnasios registrados de ~20 que existen
-Hay al menos 20 gimnasios unicos en los datos pero solo 3 estan registrados en la tabla `gyms`. Los otros 17 solo existen como texto libre.
+Agregar un indice unico sobre el nombre normalizado (minusculas, sin espacios extra) para que la base de datos misma rechace duplicados, sin importar si el admin escribe "Alfa y Omega MMA" o "alfa y omega mma".
 
-**Solucion**: Registrar los gimnasios faltantes en la tabla `gyms` y vincular los 45 peleadores pendientes.
+Esto se implementa con un indice funcional:
+```text
+CREATE UNIQUE INDEX gyms_nombre_normalized_unique 
+ON gyms (LOWER(TRIM(nombre))) 
+WHERE activo = true;
+```
 
-### Problema 3: La tab "Gimnasio" del modal admin esta separada del formulario principal
-El componente `FighterGymTab` (que ya tiene la UI para vincular/transferir gimnasios) existe pero opera independiente del formulario de edicion principal. No se refleja en el campo `gym_name` del formulario.
+Solo aplica a gimnasios activos, asi que si uno fue "eliminado" (activo=false), el nombre queda libre para reutilizar.
 
-**Solucion**: Integrar ambos flujos - cuando el admin edita un peleador, el selector de gimnasio en el formulario principal debe sincronizar con `FighterGymTab`.
+### Parte 2: Validacion en el formulario de creacion
 
-## Plan de Implementacion
+Antes de enviar el formulario, verificar en tiempo real si ya existe un gimnasio con nombre similar:
 
-### Paso 1: Registrar gimnasios faltantes (datos)
+- Al escribir el nombre, hacer una busqueda con debounce (300ms)
+- Si encuentra un match, mostrar un aviso: "Ya existe un gimnasio con este nombre: [Nombre]. Puedes editarlo desde su tarjeta."
+- Bloquear el boton "Crear" si hay duplicado
 
-Crear los ~17 gimnasios que existen como texto libre pero no estan en la tabla `gyms`:
+Lo mismo aplica al formulario de edicion: si cambias el nombre de un gimnasio existente, verificar que no colisione con otro.
 
-| Gimnasio | Peleadores |
-|----------|-----------|
-| Dragones Templarios | 6 |
-| Alfa y Omega MMA | 4 |
-| Martial Gang | 3 |
-| Pericka MMA Brotherhood | 3 |
-| Ortiz Hawaiian Kenpo MMA | 2 |
-| Las Palmas Boxing Club | 2 |
-| Espiritu de Guerrero | 2 |
-| Club Titan MMA | 2 |
-| Lunaticos Team (ya existe pero sin vincular) | 3 |
-| Y otros con 1 peleador cada uno | ~18 |
+### Parte 3: Indicadores de completitud en las tarjetas
 
-Luego vincular automaticamente los `gym_id` de los 45 peleadores pendientes.
+Agregar a cada `AdminGymCard` un indicador visual del estado de completitud:
 
-### Paso 2: Selector de gimnasio en formularios admin
-
-Modificar `AdminFighterForm.tsx` y `FighterEditModal.tsx`:
-- Reemplazar el `<Input>` de texto libre por un `<Select>` con dropdown de gimnasios registrados
-- Agregar opcion "Independiente" y "Otro (texto libre)"
-- Al seleccionar un gimnasio del dropdown, asignar `gym_id` automaticamente
-- Mostrar el logo del gimnasio seleccionado como preview
-
-### Paso 3: Verificar sincronizacion ranking-perfil
-
-Validar que los triggers existentes funcionan correctamente:
-- Cuando se cambia `discipline` en el perfil, se actualiza en rankings
-- Cuando se cambia `level` en rankings, se refleja en el perfil
-- Cuando se cambia `gym_id`, se actualiza `gym_name`
+- Barra de progreso o badge mostrando que porcentaje de campos importantes estan llenos
+- Campos evaluados: nombre (siempre lleno), descripcion, ciudad, telefono/whatsapp, disciplinas, logo, administrador asignado
+- Gimnasios incompletos muestran un badge amarillo "Completar info"
+- Gimnasios completos muestran un badge verde
 
 ---
 
@@ -67,45 +50,49 @@ Validar que los triggers existentes funcionan correctamente:
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/AdminFighterForm.tsx` | Reemplazar Input de gym_name por Select con gimnasios + asignacion de gym_id |
-| `src/components/admin/FighterEditModal.tsx` | Mismo cambio: Select de gimnasios en lugar de texto libre |
-| `src/hooks/useFighterProfiles.tsx` | Agregar `gym_id` a `AdminFighterFormData` |
-| Migracion SQL (datos) | INSERT de gimnasios faltantes + UPDATE de gym_id en fighter_profiles |
+| Migracion SQL | Indice UNIQUE sobre `LOWER(TRIM(nombre))` donde `activo = true` |
+| `src/pages/admin/GimnasiosAdmin.tsx` | Agregar verificacion de duplicados antes de crear; mostrar alerta si ya existe |
+| `src/components/admin/GymEditModal.tsx` | Agregar verificacion de duplicados al cambiar nombre |
+| `src/components/admin/AdminGymCard.tsx` | Agregar badge/barra de completitud |
+| `src/hooks/useGyms.tsx` | Agregar hook `useCheckGymDuplicate(nombre)` para busqueda en tiempo real |
 
-### Cambio en AdminFighterForm
-
-```text
-ANTES:
-<Label>Gimnasio/Academia</Label>
-<Input value={formData.gym_name} onChange={...} placeholder="Ej: Gracie Barra" />
-
-DESPUES:
-<Label>Gimnasio/Academia</Label>
-<Select value={selectedGymId} onValueChange={handleGymSelect}>
-  <SelectItem value="none">Independiente</SelectItem>
-  {gyms.map(g => <SelectItem key={g.id} value={g.id}>{g.nombre}</SelectItem>)}
-  <SelectItem value="other">Otro (escribir nombre)</SelectItem>
-</Select>
-{selectedGymId === 'other' && <Input value={formData.gym_name} ... />}
-```
-
-### Flujo de datos al guardar
+### Hook de verificacion de duplicados
 
 ```text
-Si gym seleccionado del dropdown:
-  → formData.gym_id = gym.id
-  → formData.gym_name = gym.nombre (auto-rellenado)
-  → Trigger DB sincroniza gym_name automaticamente
-
-Si "Otro" seleccionado:
-  → formData.gym_id = null
-  → formData.gym_name = texto ingresado
-
-Si "Independiente":
-  → formData.gym_id = null
-  → formData.gym_name = null
+useCheckGymDuplicate(nombre: string, excludeId?: string)
+  - Hace query: SELECT id, nombre FROM gyms WHERE LOWER(TRIM(nombre)) = LOWER(TRIM(input)) AND activo = true AND id != excludeId
+  - Retorna: { isDuplicate: boolean, existingGym: { id, nombre } | null }
+  - Se ejecuta con debounce de 300ms
+  - enabled: nombre.length >= 3
 ```
 
-### Normalizacion de datos
+### Calculo de completitud en AdminGymCard
 
-Se usara un UPDATE con `LOWER(TRIM())` para hacer match fuzzy entre los nombres de texto libre y los gimnasios recien registrados, cubriendo variaciones de mayusculas, espacios y acentos.
+```text
+Campos evaluados (7 total):
+  1. descripcion  - tiene texto?
+  2. ciudad       - tiene texto?
+  3. telefono OR whatsapp - al menos uno?
+  4. disciplinas  - tiene al menos 1?
+  5. logo_url     - tiene URL?
+  6. owner_id     - tiene admin asignado?
+  7. email        - tiene email?
+
+Porcentaje = campos llenos / 7 * 100
+Badge: < 50% rojo, 50-85% amarillo, >= 86% verde
+```
+
+### Flujo de creacion con validacion
+
+```text
+Admin escribe nombre
+  → debounce 300ms
+  → Query a gyms por nombre normalizado
+  → Si existe:
+      Mostrar: "⚠️ Ya existe: [Nombre Oficial] - [Ciudad]"
+      Boton "Crear" deshabilitado
+  → Si no existe:
+      Boton "Crear" habilitado
+      Al enviar: INSERT con slug auto-generado
+      Si falla por constraint UNIQUE: mostrar error amigable
+```
