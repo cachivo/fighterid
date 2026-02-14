@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, Shield, Award, Medal, Trophy, Gem, Swords } from 'lucide-react';
+import { CreditCard, Shield, Award, Medal, Trophy, Gem, Swords, Building2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { getWeightClassLabel, MARTIAL_ARTS_TRAINING } from '@/lib/constants/disciplines';
 
@@ -110,6 +110,12 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
               </Badge>
               <span className="text-xs text-muted-foreground">
                 {fighter.country}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+              <Building2 className="h-3 w-3 flex-shrink-0" />
+              <span className="truncate">
+                {(fighter as any).gym?.nombre || fighter.gym_name || 'Independiente'}
               </span>
             </div>
           </div>

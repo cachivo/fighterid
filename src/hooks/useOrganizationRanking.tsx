@@ -21,6 +21,7 @@ export interface RankingEntry {
     record_wins: number | null;
     record_losses: number | null;
     record_draws: number | null;
+    gym_name: string | null;
   };
   weight_class: string;
   level: string;
@@ -89,7 +90,8 @@ export function useOrganizationRanking(
               boxeo_record_draws,
               record_wins,
               record_losses,
-              record_draws
+              record_draws,
+              gym_name
             )
          `, { count: 'exact' })
          .eq('organization_id', org.id)
@@ -150,6 +152,7 @@ export function useOrganizationRanking(
             record_wins: r.fighter_profiles.record_wins,
             record_losses: r.fighter_profiles.record_losses,
             record_draws: r.fighter_profiles.record_draws,
+            gym_name: r.fighter_profiles.gym_name,
           },
           weight_class: r.weight_class,
           level: r.level,
