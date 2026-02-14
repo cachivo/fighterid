@@ -60,7 +60,7 @@ export default function FightersProfiles() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('fighter_gym_memberships')
-        .select('fighter_id, gym_id')
+        .select('fighter_id, gym_id, gyms(nombre)')
         .eq('status', 'ACTIVE');
       if (error) throw error;
       return data || [];
@@ -378,6 +378,20 @@ export default function FightersProfiles() {
                     </div>
                   )}
                   
+                  {/* Gimnasio */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Gimnasio:</span>
+                    {(() => {
+                      const membership = (activeMemberships || []).find(m => m.fighter_id === fighter.id);
+                      const gymName = (membership?.gyms as any)?.nombre;
+                      return gymName ? (
+                        <span className="text-sm font-medium truncate max-w-[60%] text-right">{gymName}</span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">Independiente</span>
+                      );
+                    })()}
+                  </div>
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Estado:</span>
                     <Badge variant={fighter.active ? "default" : "secondary"}>
