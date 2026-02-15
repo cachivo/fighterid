@@ -232,10 +232,10 @@ export default function FighterProfile() {
                   </div>
                   
                   {/* Gimnasio - prominente debajo de disciplina */}
-                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 border border-border">
-                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
+                  <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-muted/50 border border-border border-l-4 border-l-blue-500">
+                    <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500 flex-shrink-0" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide">Gimnasio</p>
+                      <p className="text-xs text-blue-400 uppercase tracking-wide font-semibold">Club</p>
                       {fighter.gym_id ? (
                         <Link
                           to={`/gimnasios/${(fighter as any).gym?.slug || fighter.gym_id}`}
@@ -341,6 +341,54 @@ export default function FighterProfile() {
           ))}
         </div>
 
+        {/* Active Leagues - Separate Card */}
+        {activeLeagues && activeLeagues.length > 0 && (
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Trophy className="h-5 w-5 text-yellow-500" />
+                Ligas Activas
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Organizaciones donde compite</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {activeLeagues.map((league) => (
+                  <div 
+                    key={league.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-yellow-500/10">
+                        <Trophy className="h-4 w-4 text-yellow-500" />
+                      </div>
+                      <div>
+                        <div className="font-medium flex items-center gap-2">
+                          {league.organization_name}
+                          {league.is_champion && (
+                            <Crown className="h-4 w-4 text-yellow-500" />
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {league.organization_short_name} • {league.discipline} • {league.level} • {league.weight_class}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-yellow-500">{league.points} pts</div>
+                      {league.ranking_position && (
+                        <div className="text-xs text-muted-foreground">
+                          Posición #{league.ranking_position}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Fighter Updates Feed - Prominently placed */}
         <Card>
           <CardHeader>
@@ -397,50 +445,7 @@ export default function FighterProfile() {
                 </div>
 
                 {/* Active Leagues - Separated from martial arts */}
-                {activeLeagues && activeLeagues.length > 0 && (
-                  <>
-                    <Separator />
-                    <div>
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <Award className="h-4 w-4" />
-                        Ligas Activas
-                      </h4>
-                      <div className="space-y-3">
-                        {activeLeagues.map((league) => (
-                          <div 
-                            key={league.id}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="p-2 rounded-full bg-primary/10">
-                                <Swords className="h-4 w-4 text-primary" />
-                              </div>
-                              <div>
-                                <div className="font-medium flex items-center gap-2">
-                                  {league.organization_short_name}
-                                  {league.is_champion && (
-                                    <Crown className="h-4 w-4 text-yellow-500" />
-                                  )}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {league.discipline} • {league.level} • {league.weight_class}
-                                </div>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-bold text-primary">{league.points} pts</div>
-                              {league.ranking_position && (
-                                <div className="text-xs text-muted-foreground">
-                                  Posición #{league.ranking_position}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+                {/* Ligas Activas moved to separate Card below */}
 
                 {/* Fighting Style */}
                 {fighter.fighting_style && (
