@@ -1,70 +1,63 @@
 
-# Mejoras al Flujo de Recuperacion de Contrasena
 
-## Problema
-1. La opcion "Olvidaste tu contrasena?" solo es visible en el paso de login. Si el usuario no llega a ese paso (por ejemplo, si la verificacion de email falla o usa un email incorrecto), nunca ve la opcion de recuperacion.
-2. Las paginas de "Recuperar Contrasena" (`/auth/forgot-password`) y "Nueva Contrasena" (`/auth/reset-password`) no tienen el logo de Fighter ID, rompiendo la consistencia visual.
+# Auditoria Completa: Flujo de Autenticacion y Sincronizacion
 
-## Cambios Propuestos
+## Problemas Encontrados
 
-### 1. Agregar enlace de recuperacion al paso de Email (paso 1)
-En `src/pages/Auth.tsx`, agregar un enlace discreto debajo del boton "Continuar" en el paso de email:
-- Texto: "Olvidaste tu contrasena?" con icono `HelpCircle`
-- Enlace directo a `/auth/forgot-password`
-- Estilo sutil (`text-sm text-muted-foreground`) para no distraer del flujo principal
+### Problema 1: "Olvide mi contrasena" no funciona (CRITICO)
+**Causa raiz**: Tanto el enlace en el paso de email (linea 258) como el boton en el paso de login (linea 297) usan navegacion nativa del navegador (`<a href>` y `window.location.href`) en lugar de React Router. Esto causa una recarga completa de la pagina, lo que destruye el estado de la aplicacion React (contexto de autenticacion, sesion, etc.) y puede resultar en una pantalla en blanco o comportamiento inesperado.
 
-### 2. Agregar logo de Fighter ID a ForgotPassword
-En `src/pages/auth/ForgotPassword.tsx`:
-- Importar `fighterIdLogo from '@/assets/fighter-id-logo-auth.png'`
-- Agregar `<img>` centrado en el `CardHeader` antes del titulo "Recuperar Contrasena"
+**Solucion**: Reemplazar ambos con el componente `<Link>` de React Router o `useNavigate()` para navegacion del lado del cliente.
 
-### 3. Agregar logo de Fighter ID a ResetPassword
-En `src/pages/auth/ResetPassword.tsx`:
-- Importar `fighterIdLogo from '@/assets/fighter-id-logo-auth.png'`
-- Agregar `<img>` centrado en el `CardHeader` antes del titulo "Nueva Contrasena"
-- Tambien agregar el logo en la pantalla de "Verificando enlace..." (estado de carga)
+### Problema 2: Registro falla con "Database error saving new user" (CRITICO)
+**Causa raiz**: Hay una desincronizacion entre `auth.users` y `app_user`:
+- El email `miocorreo88@gmail.com` existe en la tabla `app_user` (con `auth_user_id: 029e9cd6-...`)
+- Pero NO existe en `auth.users` (el usuario fue eliminado de Auth pero no de `app_user`)
+- La funcion `check_email_exists_fn` solo verifica `auth.users`, asi que retorna `false` (usuario no existe)
+- El sistema muestra el formulario de registro
+- Al intentar registrar, un trigger en la base de datos detecta que el email ya existe en `app_user` y lanza un error 500
 
-## Resultado Visual Esperado
+**Solucion en dos partes**:
+1. Actualizar `check_email_exists_fn` para verificar AMBAS tablas (`auth.users` Y `app_user`)
+2. Mejorar el manejo de errores en Auth.tsx para capturar el error 500 de signup y mostrar un mensaje amigable
 
-### Paso de Email (Auth.tsx)
-```text
-+------------------------------------------+
-|          [FIGHTER ID LOGO]               |
-|       Acceso a Fighter ID               |
-|   Ingresa tu email para continuar        |
-|                                          |
-|  Email: [________________]               |
-|  [       Continuar       ]               |
-|                                          |
-|  ? Olvidaste tu contrasena?              |
-+------------------------------------------+
+### Problema 3: Manejo de error 500 en signup inexistente
+Cuando el signup retorna un error 500 ("Database error saving new user"), el codigo actual no maneja este caso especifico. El usuario ve un mensaje generico o el toast no es claro.
+
+**Solucion**: Agregar manejo especifico para errores de duplicado en el flujo de registro.
+
+---
+
+## Plan de Implementacion
+
+### Paso 1: Corregir navegacion de "Olvide mi contrasena"
+**Archivo**: `src/pages/Auth.tsx`
+- Linea 257-262: Cambiar `<a href="/auth/forgot-password">` por `<Link to="/auth/forgot-password">`
+- Linea 297: Cambiar `window.location.href = '/auth/forgot-password'` por navegacion con React Router (`useNavigate`)
+
+### Paso 2: Actualizar funcion de verificacion de email
+**Migracion SQL**: Modificar `check_email_exists_fn` para verificar tanto `auth.users` como `app_user`:
+```sql
+CREATE OR REPLACE FUNCTION public.check_email_exists_fn(p_email text)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users WHERE email = lower(trim(p_email))
+  ) OR EXISTS (
+    SELECT 1 FROM public.app_user WHERE email = lower(trim(p_email))
+  );
+$$;
 ```
 
-### Pagina Forgot Password
-```text
-+------------------------------------------+
-|          [FIGHTER ID LOGO]               |
-|       Recuperar Contrasena               |
-|  Ingresa tu email y te enviaremos un     |
-|  enlace para restablecer tu contrasena   |
-|                                          |
-|  Email: [________________]               |
-|  [  Enviar enlace de recuperacion  ]     |
-|                                          |
-|  <- Volver al inicio de sesion           |
-+------------------------------------------+
-```
+### Paso 3: Mejorar manejo de errores en registro
+**Archivo**: `src/pages/Auth.tsx`
+- En la funcion `handleSignUp`, capturar errores 500 y mensajes que contengan "already exists" o "Database error"
+- Mostrar un mensaje claro: "Este correo ya esta registrado en el sistema. Intenta iniciar sesion o recupera tu contrasena."
+- Cambiar automaticamente al paso de login cuando esto ocurra
 
-## Seccion Tecnica
+### Paso 4: Limpiar dato huerfano (recomendacion)
+El registro huerfano en `app_user` para `miocorreo88@gmail.com` (sin usuario correspondiente en `auth.users`) deberia limpiarse. Esto se puede hacer con una consulta SQL manual o automatizando la limpieza.
 
-### Archivo: `src/pages/Auth.tsx`
-- En el paso `email` (despues del boton "Continuar", alrededor de la linea 251), agregar un `Button variant="link"` con enlace a `/auth/forgot-password`
-
-### Archivo: `src/pages/auth/ForgotPassword.tsx`
-- Importar el logo: `import fighterIdLogo from '@/assets/fighter-id-logo-auth.png'`
-- En el `CardHeader` (linea 97-101), agregar `<img src={fighterIdLogo} alt="Fighter ID Logo" className="w-32 mx-auto mb-2" />` antes del `CardTitle`
-
-### Archivo: `src/pages/auth/ResetPassword.tsx`
-- Importar el logo: `import fighterIdLogo from '@/assets/fighter-id-logo-auth.png'`
-- En el `CardHeader` (linea 156-160), agregar la misma imagen del logo
-- En el estado de carga/verificacion (linea 141-150), agregar el logo tambien
