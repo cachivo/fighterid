@@ -1,114 +1,65 @@
 
 
-# Mejoras al Sistema de Sincronizacion Bidireccional
+# Mejora Visual: Gimnasio vs Ligas Activas
 
-## Estado Actual (Auditoria)
+## Problema
 
-El sistema ya tiene sincronizacion bidireccional funcional y **0 inconsistencias**:
+En el perfil del peleador, la seccion de **Gimnasio** (club al que pertenece) y las **Ligas Activas** (organizaciones donde compite) tienen un estilo visual similar. Esto causa confusion, como en el caso de Willis Yang donde "Club de Boxeo Chele Munguia" (su gimnasio) y "Honduras Hood Fights" (una liga) parecen ser lo mismo.
 
-| Verificacion | Resultado |
-|---|---|
-| Perfiles con gym_id sin membresia ACTIVE | **0** |
-| Membresias ACTIVE sin gym_id en perfil | **0** |
-| Multiples membresias ACTIVE por peleador | **0** |
+## Solucion
 
-### Triggers existentes
+Diferenciar visualmente ambas secciones con iconos, colores y etiquetas claras.
 
-**fighter_profiles:**
-- `trg_sync_membership_from_gym_id` (BEFORE UPDATE) - Crea/transfiere membresias cuando cambia gym_id
-- `trg_sync_gym_name_from_gym_id` (BEFORE UPDATE) - Sincroniza gym_name
+### Cambio 1: Seccion Gimnasio en el header (ya existente, mejorar)
 
-**fighter_gym_memberships:**
-- `trg_sync_fighter_gym` - Sincroniza gym_id de vuelta al perfil
-- `trg_sync_fighter_gym_on_membership` - Duplicado funcional del anterior
+- Agregar una etiqueta "CLUB" mas visible con icono `Building2`
+- Mantener el fondo `bg-muted/50` actual pero agregar un borde izquierdo de color para diferenciarlo
+- Si no tiene gimnasio, mostrar "Independiente" con icono de usuario solo
 
-### Lo que falta vs lo que propone el archivo subido
+### Cambio 2: Seccion Ligas Activas (ya existente, mejorar)
 
-| Caracteristica | Estado actual | Accion |
-|---|---|---|
-| Sync UPDATE profiles -> memberships | Ya funciona | Mantener |
-| Sync INSERT profiles -> memberships | **No existe** | Implementar |
-| Sync memberships -> profiles | Ya funciona | Mantener |
-| Validacion de duplicados ACTIVE | Indice unique existe | No necesario (trigger redundante) |
-| Tabla de logs/auditoria | **No existe** | Implementar |
-| Vistas utiles | **No existen** | Implementar (adaptadas) |
-| Funciones de utilidad | **No existen** | Implementar |
+- Cambiar icono de `Swords` a `Trophy` para cada liga individual (las ligas son competencias, no combates)
+- Agregar una etiqueta explicativa debajo del titulo: "Organizaciones donde compite"
+- Agregar un borde izquierdo de color diferente (amarillo/dorado) para diferenciar de gimnasio
+- Mostrar el nombre completo de la organizacion, no solo el `short_name`
 
-## Adaptaciones Necesarias
+### Cambio 3: Mover Ligas Activas fuera de la seccion "Perfil del Peleador"
 
-El archivo SQL subido fue escrito para otro esquema. Las diferencias criticas:
+Actualmente las ligas estan mezcladas dentro de la card de "Perfil del Peleador" junto con biografia y artes marciales. Moverlas a su propia Card separada inmediatamente despues del gimnasio, para que la distincion sea aun mas clara.
 
-| Archivo subido usa | Tu proyecto usa |
-|---|---|
-| `gimnasios` | `gyms` |
-| `nombre`, `apellido`, `nombre_completo` | `first_name`, `last_name` |
-| `codigo` (en gimnasios) | `slug` (en gyms) |
-
-Todas las vistas y funciones se adaptaran a tu esquema real.
-
-## Plan de Implementacion
-
-### Paso 1: Mejorar trigger de profiles para manejar INSERT
-
-Modificar `sync_membership_from_gym_id()` para que tambien actue en INSERT (cuando se crea un peleador con gym_id desde el inicio). Actualmente solo actua en UPDATE.
-
-### Paso 2: Crear tabla de logs de auditoria
+## Resultado Visual Esperado
 
 ```text
-fighter_gym_membership_logs
-  - id (UUID PK)
-  - fighter_id (FK -> fighter_profiles)
-  - gym_id (FK -> gyms)
-  - old_gym_id (FK -> gyms)
-  - action (TEXT: JOINED, LEFT, TRANSFERRED, REJOINED)
-  - status_before (TEXT)
-  - status_after (TEXT)
-  - changed_at (TIMESTAMPTZ)
-  - changed_by (UUID)
-  - notes (TEXT)
++------------------------------------------+
+| CLUB (Building2 icon)                    |
+| Club de Boxeo Chele Munguia  [logo]     |
+| border-left: blue                        |
++------------------------------------------+
+
++------------------------------------------+
+| LIGAS ACTIVAS (Trophy icon)              |
+| "Organizaciones donde compite"           |
+|                                          |
+| [Trophy] UCC Honduras                   |
+|   MMA - Amateur - 135 lbs  |  45 pts    |
+|                                          |
+| [Trophy] Honduras Hood Fights            |
+|   MMA - Amateur - 135 lbs  |  30 pts    |
+| border-left: yellow/gold                 |
++------------------------------------------+
 ```
-
-Con trigger automatico en `fighter_gym_memberships` que registra cada cambio.
-
-### Paso 3: Crear vistas utiles (adaptadas)
-
-- `v_fighters_current_gym` - Peleadores con su gimnasio actual, dias en el gym
-- `v_fighter_gym_history` - Historial completo de membresias
-- `v_gym_statistics` - Estadisticas por gimnasio (peleadores activos, total historico, promedio de dias)
-
-### Paso 4: Crear funciones de utilidad
-
-- `get_fighter_gym_history(p_fighter_id)` - Retorna historial con nombres de gimnasio y duracion
-- `can_join_gym(p_fighter_id, p_gym_id)` - Verifica si un peleador puede unirse
-
-### Paso 5: Limpiar trigger duplicado
-
-Eliminar `trg_sync_fighter_gym_on_membership` que es un duplicado de `trg_sync_fighter_gym`. Tener dos triggers haciendo lo mismo puede causar actualizaciones dobles.
-
-### Paso 6: Agregar RLS a tabla de logs
-
-Solo admins pueden leer los logs de auditoria.
 
 ## Seccion Tecnica
 
-### Migracion SQL unica
+### Archivo modificado: `src/pages/FighterProfile.tsx`
 
-Se creara una sola migracion que:
+1. **Lineas 234-259** (seccion Gimnasio en header): Agregar `border-l-4 border-l-blue-500` y hacer la etiqueta "CLUB" mas prominente
 
-1. Reemplaza `sync_membership_from_gym_id()` para soportar INSERT + UPDATE
-2. Crea `fighter_gym_membership_logs` con RLS
-3. Crea la funcion `log_membership_changes()` y su trigger
-4. Crea las 3 vistas adaptadas a tu esquema (`gyms`, `first_name`/`last_name`)
-5. Crea las 2 funciones de utilidad
-6. Elimina el trigger duplicado `trg_sync_fighter_gym_on_membership`
+2. **Lineas 400-443** (seccion Ligas Activas): Extraer de la card "Perfil del Peleador" y crear una Card independiente justo despues de la grid de stats (linea 342). Cambiar iconos de `Swords` a `Trophy`, agregar subtitulo explicativo, y usar `border-l-4 border-l-yellow-500`
 
-### Lo que NO se implementa del archivo subido
+3. **Mostrar nombre completo**: Cambiar `league.organization_short_name` a `league.organization_name` con `organization_short_name` como subtexto
 
-- **Trigger de validacion de duplicados**: Redundante porque ya existe el indice `unique_active_membership` que previene esto a nivel de base de datos (mas eficiente que un trigger)
-- **Backfill**: Ya se ejecuto anteriormente y la verificacion muestra 0 inconsistencias
-- **ON CONFLICT (fighter_id, gym_id)**: El archivo subido asume un indice unique en (fighter_id, gym_id), pero tu indice es en (fighter_id) WHERE status='ACTIVE'. Se adapta el SQL para usar `ON CONFLICT DO NOTHING` que funciona con tu indice existente
+### Archivo modificado: `src/components/EnhancedFighterID.tsx`
 
-### Archivos de codigo (sin cambios)
-
-Los hooks existentes (`useGymFighters`, `useGymDashboard`, `useGymMembership`, `FighterGymTab`) ya funcionan correctamente. Las vistas y funciones nuevas quedan disponibles para uso futuro pero no requieren cambios inmediatos en el frontend.
+No requiere cambios ya que este componente no muestra ligas (solo muestra info del gimnasio en la seccion profesional).
 
