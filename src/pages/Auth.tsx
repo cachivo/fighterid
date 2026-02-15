@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, UserCheck, Mail, HelpCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import fighterIdLogo from '@/assets/fighter-id-logo-auth.png';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -224,6 +225,7 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <img src={fighterIdLogo} alt="Fighter ID Logo" className="w-32 mx-auto mb-2" />
           <CardTitle className="text-2xl font-bold">Acceso a Fighter ID</CardTitle>
           <CardDescription>
             {step === 'email' && 'Ingresa tu email para continuar'}
@@ -291,6 +293,9 @@ export default function Auth() {
                   <HelpCircle className="w-4 h-4 mr-1.5" />
                   ¿Olvidaste tu contraseña?
                 </Button>
+                <p className="text-xs text-muted-foreground px-2">
+                  Te enviaremos un correo con un enlace seguro para crear una nueva contraseña. El enlace es válido por 24 horas.
+                </p>
                 <Button
                   type="button"
                   variant="ghost"
