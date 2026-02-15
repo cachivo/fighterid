@@ -254,6 +254,12 @@ export default function Auth() {
                 {checkingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Continuar
               </Button>
+              <div className="text-center">
+                <a href="/auth/forgot-password" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  ¿Olvidaste tu contraseña?
+                </a>
+              </div>
             </form>
           )}
 

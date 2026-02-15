@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Loader2, Mail, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import fighterIdLogo from '@/assets/fighter-id-logo-auth.png';
 
 export default function ForgotPassword() {
   const { resetPassword } = useAuth();
@@ -95,6 +96,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <img src={fighterIdLogo} alt="Fighter ID Logo" className="w-32 mx-auto mb-2" />
           <CardTitle className="text-2xl font-bold">Recuperar Contraseña</CardTitle>
           <CardDescription>
             Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
