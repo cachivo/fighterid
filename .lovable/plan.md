@@ -1,65 +1,59 @@
 
 
-# Mejora Visual: Gimnasio vs Ligas Activas
+# Mejoras a la Pantalla de Inicio de Sesion
 
 ## Problema
+1. La pagina de autenticacion no tiene el logo de Fighter ID, lo que le resta identidad de marca.
+2. El enlace de "Olvidaste tu contrasena" existe pero no ofrece contexto ni instrucciones al usuario sobre que esperar del proceso de recuperacion.
 
-En el perfil del peleador, la seccion de **Gimnasio** (club al que pertenece) y las **Ligas Activas** (organizaciones donde compite) tienen un estilo visual similar. Esto causa confusion, como en el caso de Willis Yang donde "Club de Boxeo Chele Munguia" (su gimnasio) y "Honduras Hood Fights" (una liga) parecen ser lo mismo.
+## Cambios Propuestos
 
-## Solucion
+### 1. Agregar Logo de Fighter ID
+- Copiar la imagen subida (`Fighter_ID_Logo-3.PNG`) a `src/assets/fighter-id-logo-auth.png`
+- Mostrar el logo centrado encima del titulo "Acceso a Fighter ID" dentro del `CardHeader`
+- Tamano aproximado: `w-32` (128px), centrado con `mx-auto`
 
-Diferenciar visualmente ambas secciones con iconos, colores y etiquetas claras.
+### 2. Mejorar la seccion "Olvidaste tu contrasena"
+En el paso de login (step === 'login'), reemplazar el enlace simple por una seccion mas informativa:
 
-### Cambio 1: Seccion Gimnasio en el header (ya existente, mejorar)
-
-- Agregar una etiqueta "CLUB" mas visible con icono `Building2`
-- Mantener el fondo `bg-muted/50` actual pero agregar un borde izquierdo de color para diferenciarlo
-- Si no tiene gimnasio, mostrar "Independiente" con icono de usuario solo
-
-### Cambio 2: Seccion Ligas Activas (ya existente, mejorar)
-
-- Cambiar icono de `Swords` a `Trophy` para cada liga individual (las ligas son competencias, no combates)
-- Agregar una etiqueta explicativa debajo del titulo: "Organizaciones donde compite"
-- Agregar un borde izquierdo de color diferente (amarillo/dorado) para diferenciar de gimnasio
-- Mostrar el nombre completo de la organizacion, no solo el `short_name`
-
-### Cambio 3: Mover Ligas Activas fuera de la seccion "Perfil del Peleador"
-
-Actualmente las ligas estan mezcladas dentro de la card de "Perfil del Peleador" junto con biografia y artes marciales. Moverlas a su propia Card separada inmediatamente despues del gimnasio, para que la distincion sea aun mas clara.
+- Mantener el boton "Olvidaste tu contrasena?" pero agregar debajo un texto explicativo breve:
+  - "Te enviaremos un correo con un enlace seguro para crear una nueva contrasena. El enlace es valido por 24 horas."
+- Esto se mostrara como un pequeno bloque informativo (`text-xs text-muted-foreground`) justo debajo del boton de recuperacion, antes del boton "Usar otro email"
 
 ## Resultado Visual Esperado
 
 ```text
 +------------------------------------------+
-| CLUB (Building2 icon)                    |
-| Club de Boxeo Chele Munguia  [logo]     |
-| border-left: blue                        |
-+------------------------------------------+
-
-+------------------------------------------+
-| LIGAS ACTIVAS (Trophy icon)              |
-| "Organizaciones donde compite"           |
+|          [FIGHTER ID LOGO]               |
 |                                          |
-| [Trophy] UCC Honduras                   |
-|   MMA - Amateur - 135 lbs  |  45 pts    |
+|       Acceso a Fighter ID               |
+|   Ingresa tu contrasena para acceder     |
 |                                          |
-| [Trophy] Honduras Hood Fights            |
-|   MMA - Amateur - 135 lbs  |  30 pts    |
-| border-left: yellow/gold                 |
+|  Email:                                  |
+|  usuario@email.com                       |
+|                                          |
+|  Contrasena: [________]                  |
+|                                          |
+|  [    Iniciar Sesion    ]                |
+|  ─────────────────────────               |
+|  ? Olvidaste tu contrasena?              |
+|  Te enviaremos un correo con un enlace   |
+|  seguro para crear una nueva contrasena. |
+|                                          |
+|  <- Usar otro email                      |
 +------------------------------------------+
 ```
 
 ## Seccion Tecnica
 
-### Archivo modificado: `src/pages/FighterProfile.tsx`
+### Archivos modificados
 
-1. **Lineas 234-259** (seccion Gimnasio en header): Agregar `border-l-4 border-l-blue-500` y hacer la etiqueta "CLUB" mas prominente
+**`src/pages/Auth.tsx`**
+1. Copiar imagen del usuario a `src/assets/fighter-id-logo-auth.png`
+2. Importar la imagen: `import fighterIdLogo from '@/assets/fighter-id-logo-auth.png'`
+3. En el `CardHeader` (linea ~226), agregar `<img>` del logo centrado antes del `CardTitle`
+4. En la seccion de login (lineas 284-303), agregar un parrafo explicativo debajo del boton de "Olvidaste tu contrasena" con instrucciones claras sobre el proceso de recuperacion
 
-2. **Lineas 400-443** (seccion Ligas Activas): Extraer de la card "Perfil del Peleador" y crear una Card independiente justo despues de la grid de stats (linea 342). Cambiar iconos de `Swords` a `Trophy`, agregar subtitulo explicativo, y usar `border-l-4 border-l-yellow-500`
-
-3. **Mostrar nombre completo**: Cambiar `league.organization_short_name` a `league.organization_name` con `organization_short_name` como subtexto
-
-### Archivo modificado: `src/components/EnhancedFighterID.tsx`
-
-No requiere cambios ya que este componente no muestra ligas (solo muestra info del gimnasio en la seccion profesional).
+### Sin otros archivos afectados
+La pagina de `ForgotPassword.tsx` ya tiene buenas instrucciones y feedback, no requiere cambios.
 
