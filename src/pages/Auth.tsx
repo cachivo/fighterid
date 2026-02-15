@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
@@ -167,8 +167,10 @@ export default function Auth() {
         if (signUpError.message?.includes('For security purposes') || signUpError.message?.includes('email_send_rate_limit')) {
           throw new Error('Has intentado registrarte varias veces. Espera 60 segundos.');
         }
-        if (signUpError.message?.includes('already registered')) {
-          toast({ title: 'Cuenta existente', description: 'Este email ya está registrado. Redirigiendo...' });
+        if (signUpError.message?.includes('already registered') || 
+            signUpError.message?.includes('already exists') ||
+            signUpError.message?.includes('Database error')) {
+          toast({ title: 'Cuenta existente', description: 'Este correo ya está registrado en el sistema. Intenta iniciar sesión o recupera tu contraseña.' });
           setTimeout(() => setStep('login'), 1500);
           setLoading(false);
           return;
@@ -255,10 +257,10 @@ export default function Auth() {
                 Continuar
               </Button>
               <div className="text-center">
-                <a href="/auth/forgot-password" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Link to="/auth/forgot-password" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <HelpCircle className="h-3.5 w-3.5" />
                   ¿Olvidaste tu contraseña?
-                </a>
+                </Link>
               </div>
             </form>
           )}
@@ -290,15 +292,13 @@ export default function Auth() {
               </Button>
 
               <div className="flex flex-col gap-2 pt-2 border-t border-border/50">
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-4"
-                  onClick={() => window.location.href = '/auth/forgot-password'}
+                <Link
+                  to="/auth/forgot-password"
+                  className="inline-flex items-center justify-center text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-4"
                 >
                   <HelpCircle className="w-4 h-4 mr-1.5" />
                   ¿Olvidaste tu contraseña?
-                </Button>
+                </Link>
                 <p className="text-xs text-muted-foreground px-2">
                   Te enviaremos un correo con un enlace seguro para crear una nueva contraseña. El enlace es válido por 24 horas.
                 </p>
