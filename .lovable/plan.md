@@ -1,63 +1,161 @@
 
 
-# Auditoria Completa: Flujo de Autenticacion y Sincronizacion
+# Auditoria Completa del Sistema Fighter ID
 
-## Problemas Encontrados
+## Resumen Ejecutivo
 
-### Problema 1: "Olvide mi contrasena" no funciona (CRITICO)
-**Causa raiz**: Tanto el enlace en el paso de email (linea 258) como el boton en el paso de login (linea 297) usan navegacion nativa del navegador (`<a href>` y `window.location.href`) en lugar de React Router. Esto causa una recarga completa de la pagina, lo que destruye el estado de la aplicacion React (contexto de autenticacion, sesion, etc.) y puede resultar en una pantalla en blanco o comportamiento inesperado.
-
-**Solucion**: Reemplazar ambos con el componente `<Link>` de React Router o `useNavigate()` para navegacion del lado del cliente.
-
-### Problema 2: Registro falla con "Database error saving new user" (CRITICO)
-**Causa raiz**: Hay una desincronizacion entre `auth.users` y `app_user`:
-- El email `miocorreo88@gmail.com` existe en la tabla `app_user` (con `auth_user_id: 029e9cd6-...`)
-- Pero NO existe en `auth.users` (el usuario fue eliminado de Auth pero no de `app_user`)
-- La funcion `check_email_exists_fn` solo verifica `auth.users`, asi que retorna `false` (usuario no existe)
-- El sistema muestra el formulario de registro
-- Al intentar registrar, un trigger en la base de datos detecta que el email ya existe en `app_user` y lanza un error 500
-
-**Solucion en dos partes**:
-1. Actualizar `check_email_exists_fn` para verificar AMBAS tablas (`auth.users` Y `app_user`)
-2. Mejorar el manejo de errores en Auth.tsx para capturar el error 500 de signup y mostrar un mensaje amigable
-
-### Problema 3: Manejo de error 500 en signup inexistente
-Cuando el signup retorna un error 500 ("Database error saving new user"), el codigo actual no maneja este caso especifico. El usuario ve un mensaje generico o el toast no es claro.
-
-**Solucion**: Agregar manejo especifico para errores de duplicado en el flujo de registro.
+El sistema tiene **157 usuarios** en `app_user`, de los cuales **12 son huerfanos** (eliminados de `auth.users` pero presentes en `app_user`). El flujo de autenticacion, registro y onboarding tiene varios componentes funcionales, pero se identificaron problemas criticos de sincronizacion y flujos inactivos/rotos.
 
 ---
 
-## Plan de Implementacion
+## Arquitectura del Flujo de Usuario
 
-### Paso 1: Corregir navegacion de "Olvide mi contrasena"
-**Archivo**: `src/pages/Auth.tsx`
-- Linea 257-262: Cambiar `<a href="/auth/forgot-password">` por `<Link to="/auth/forgot-password">`
-- Linea 297: Cambiar `window.location.href = '/auth/forgot-password'` por navegacion con React Router (`useNavigate`)
-
-### Paso 2: Actualizar funcion de verificacion de email
-**Migracion SQL**: Modificar `check_email_exists_fn` para verificar tanto `auth.users` como `app_user`:
-```sql
-CREATE OR REPLACE FUNCTION public.check_email_exists_fn(p_email text)
-RETURNS boolean
-LANGUAGE sql
-SECURITY DEFINER
-SET search_path = ''
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM auth.users WHERE email = lower(trim(p_email))
-  ) OR EXISTS (
-    SELECT 1 FROM public.app_user WHERE email = lower(trim(p_email))
-  );
-$$;
+```text
+[Email] --> check_email_exists_fn --> [Existe?]
+   |                                     |
+   |-- NO --> Registro (signUp) --> Trigger handle_new_user --> app_user
+   |               |
+   |               +--> Confirmacion Email --> /auth/callback --> /license/onboarding
+   |                                               |
+   |                                               +--> create_fighter_profile_with_license (RPC)
+   |                                                        |
+   |                                                        +--> fighter_profiles + fighter_licenses (PENDING_REVIEW)
+   |
+   |-- SI --> Login (signIn) --> Smart Routing
+                                    |
+                                    +-- No profile --> /license/onboarding
+                                    +-- Pending license --> /license/pending
+                                    +-- Active license --> /license/dashboard
+                                    +-- Suspended --> /license/suspended
 ```
 
-### Paso 3: Mejorar manejo de errores en registro
-**Archivo**: `src/pages/Auth.tsx`
-- En la funcion `handleSignUp`, capturar errores 500 y mensajes que contengan "already exists" o "Database error"
-- Mostrar un mensaje claro: "Este correo ya esta registrado en el sistema. Intenta iniciar sesion o recupera tu contrasena."
-- Cambiar automaticamente al paso de login cuando esto ocurra
+---
 
-### Paso 4: Limpiar dato huerfano (recomendacion)
-El registro huerfano en `app_user` para `miocorreo88@gmail.com` (sin usuario correspondiente en `auth.users`) deberia limpiarse. Esto se puede hacer con una consulta SQL manual o automatizando la limpieza.
+## Estado Actual de Cada Componente
+
+### 1. Verificacion de Email (`check_email_exists_fn`) - CORREGIDO
+- Verifica en `auth.users` Y `app_user`
+- Estado: Funcionando correctamente tras la migracion reciente
+
+### 2. Registro (Trigger `handle_new_user`) - FUNCIONAL
+- Se ejecuta al insertar en `auth.users`
+- Crea registro en `app_user` con datos basicos
+- No crea `fighter_profiles` (correcto, eso se hace en onboarding)
+
+### 3. Forgot Password (Auth general: `/auth/forgot-password`) - FUNCIONAL
+- Usa `useAuth().resetPassword()` que invoca edge function `send-password-recovery`
+- Edge function usa Resend + SITE_URL para generar enlace
+- Redirige a `/auth/reset-password`
+- **Secrets necesarios configurados**: RESEND_API_KEY, SITE_URL - OK
+
+### 4. Forgot Password (License: `/license/forgot-password`) - FUNCIONAL
+- Usa `useLicenseAuth().resetPassword()` - misma edge function
+- Redirige a `/license/reset-password`
+
+### 5. Reset Password (`/auth/reset-password`) - FUNCIONAL CON OBSERVACIONES
+- Procesa tokens de recuperacion (hash, code, token_hash)
+- Timeout de 12 segundos para verificacion
+- Muestra formulario si hay sesion activa
+- Muestra opciones de recuperacion si no hay sesion
+
+### 6. Onboarding (`/license/onboarding`) - FUNCIONAL
+- Usa `create_fighter_profile_with_license` (RPC atomica)
+- Crea: app_user (si no existe) + fighter_profiles + fighter_licenses
+- Sube documentos en background
+- Guarda borrador en localStorage
+
+### 7. Smart Routing (`AuthCallback.tsx` y `LicenseAuth.tsx`) - FUNCIONAL
+- Determina destino basado en estado del perfil/licencia
+- Cadena: auth.users -> app_user -> fighter_profiles -> fighter_licenses
+
+---
+
+## Problemas Identificados
+
+### CRITICO: 12 Registros Huerfanos en app_user
+Usuarios eliminados de `auth.users` pero que persisten en `app_user`. Esto causa:
+- `check_email_exists_fn` retorna `true` (correcto tras fix)
+- El usuario ve paso de "login" pero no puede autenticarse (no existe en auth.users)
+- No hay forma de que el usuario se re-registre ni inicie sesion
+
+**Emails afectados:**
+- jmelendez@outlook.com
+- uclesjimmy801@gmail.com
+- soyharperlin@gmail.com
+- jmelendezm@outlook.com
+- wyang@liopametales.com
+- nayelifonsecasanchez@gmail.com
+- jimmyucles801@gmail.com
+- sofiaordo2007@icloud.com
+- enox01aldo@gamil.com
+- jonalysh09@gmail.com
+- miocorreo88@gmail.com
+- josuepokemon255@gmail.com
+
+### MEDIO: Restriccion UNIQUE duplicada en app_user.email
+Existen dos constraints UNIQUE para email: `app_user_email_key` y `app_user_email_unique`. No causa errores pero es redundante.
+
+### MEDIO: Usuarios "atascados" sin fighter_profiles
+De los 157 app_user, muchos no tienen fighter_profiles (registraron pero no completaron onboarding). No hay un mecanismo para re-engancharlos o recordarles completar el proceso.
+
+### BAJO: Uso de `window.location.href` en useLicenseAuth
+En lineas 101-102, 111-112, 119-120 de `useLicenseAuth.tsx`, se usa `window.location.href` para redirigir. Esto recarga la pagina completa y pierde estado. Deberia usar `navigate()` (ya disponible en el hook).
+
+---
+
+## Plan de Correccion
+
+### Paso 1: Limpiar registros huerfanos
+Ejecutar migracion SQL para eliminar los 12 registros en `app_user` que no tienen usuario correspondiente en `auth.users`. Esto permitira que esos emails se puedan re-registrar.
+
+```sql
+DELETE FROM public.app_user 
+WHERE auth_user_id NOT IN (SELECT id FROM auth.users);
+```
+
+### Paso 2: Eliminar constraint UNIQUE duplicado
+```sql
+ALTER TABLE public.app_user DROP CONSTRAINT IF EXISTS app_user_email_unique;
+```
+(Mantener `app_user_email_key` que es el original)
+
+### Paso 3: Reemplazar `window.location.href` por `navigate()` en useLicenseAuth
+En las lineas donde se hace redireccion forzada (101, 111, 119, 143, 263, 431), cambiar a `navigate(ruta, { replace: true })` para mantener el estado de la SPA.
+
+### Paso 4: Agregar validacion defensiva en el flujo de login
+Cuando `check_email_exists_fn` retorna `true` pero el usuario falla al autenticarse, mostrar un mensaje que sugiera contactar soporte o intentar registrarse con otro email, en caso de que sea un registro huerfano.
+
+---
+
+## Seccion Tecnica Detallada
+
+### Archivos a Modificar
+
+1. **Migracion SQL** (nueva):
+   - Limpieza de huerfanos
+   - Eliminar constraint duplicado
+
+2. **`src/hooks/useLicenseAuth.tsx`** (lineas 101-102, 111-112, 119-120, 143-145, 263-264, 431-432):
+   - Reemplazar `window.location.href = '/ruta'` por `navigate('/ruta', { replace: true })`
+
+3. **`src/pages/Auth.tsx`** (manejo de error en login):
+   - En `handleSignIn`, si el error es "Invalid login credentials", agregar sugerencia de recuperacion
+
+### Tablas Involucradas
+- `auth.users` (Supabase Auth, solo lectura)
+- `public.app_user` (tabla principal de usuarios)
+- `public.fighter_profiles` (perfiles de peleadores)
+- `public.fighter_licenses` (licencias)
+- `public.user_roles` (roles admin/moderator)
+
+### Edge Functions Involucradas
+- `check-email-exists` - Verificacion de email
+- `send-password-recovery` - Envio de correo de recuperacion (usa Resend)
+- `send-signup-confirmation` - Confirmacion de registro
+
+### Funciones RPC Involucradas
+- `check_email_exists_fn` - Verifica email en auth.users + app_user
+- `handle_new_user` - Trigger que crea app_user al registrar
+- `create_fighter_profile_with_license` - Onboarding atomico
+- `check_user_license_status` - Estado de licencia optimizado
 
