@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import fighterIdLogo from '@/assets/fighter-id-logo-auth.png';
 
 export default function ResetPassword() {
   const { updatePassword, session } = useAuth();
@@ -142,6 +143,7 @@ export default function ResetPassword() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-12">
+            <img src={fighterIdLogo} alt="Fighter ID Logo" className="w-32 mb-4" />
             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
             <p className="text-muted-foreground">Verificando enlace de recuperación...</p>
           </CardContent>
@@ -154,6 +156,7 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <img src={fighterIdLogo} alt="Fighter ID Logo" className="w-32 mx-auto mb-2" />
           <CardTitle className="text-2xl font-bold">Nueva Contraseña</CardTitle>
           <CardDescription>
             {session ? 'Ingresa tu nueva contraseña' : 'Enlace de recuperación inválido'}
