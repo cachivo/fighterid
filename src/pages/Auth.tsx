@@ -135,7 +135,14 @@ export default function Auth() {
     setLoading(true);
     const { error } = await signIn(email, password);
     if (error) {
-      toast({ title: 'Error de autenticación', description: error.message, variant: 'destructive' });
+      const isInvalidCredentials = error.message?.includes('Invalid login credentials');
+      toast({ 
+        title: 'Error de autenticación', 
+        description: isInvalidCredentials 
+          ? 'Credenciales incorrectas. Si no puedes acceder, intenta recuperar tu contraseña o regístrate con otro email.'
+          : error.message, 
+        variant: 'destructive' 
+      });
     } else {
       toast({ title: 'Bienvenido', description: 'Has iniciado sesión correctamente' });
     }
