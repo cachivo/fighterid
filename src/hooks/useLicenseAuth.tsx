@@ -99,7 +99,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setHasActiveLicense(true);
         
         if (window.location.pathname === '/license/pending') {
-          window.location.href = '/license/dashboard';
+          navigate('/license/dashboard', { replace: true });
         }
       } else if (data.status === 'suspended_license' && license) {
         console.log('[LICENSE AUTH] Suspended license found');
@@ -108,7 +108,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setHasActiveLicense(false);
         
         if (window.location.pathname !== '/license/suspended') {
-          window.location.href = '/license/suspended';
+          navigate('/license/suspended', { replace: true });
         }
       } else if (data.status === 'pending_license' && license) {
         console.log('[LICENSE AUTH] Pending license found');
@@ -117,7 +117,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setHasActiveLicense(false);
         
         if (window.location.pathname === '/license/dashboard') {
-          window.location.href = '/license/pending';
+          navigate('/license/pending', { replace: true });
         }
       } else if (data.status === 'no_license' && profile) {
         // CONSISTENCY FALLBACK: RPC says no_license but profile has active license data
@@ -141,7 +141,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setHasActiveLicense(true);
             
             if (window.location.pathname === '/license/pending') {
-              window.location.href = '/license/dashboard';
+              navigate('/license/dashboard', { replace: true });
             }
             return;
           } else if (!directError) {
@@ -158,7 +158,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
             setHasActiveLicense(true);
             
             if (window.location.pathname === '/license/pending') {
-              window.location.href = '/license/dashboard';
+              navigate('/license/dashboard', { replace: true });
             }
             return;
           }
@@ -429,13 +429,13 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
               setLicenseData((prev: any) => prev ? { ...prev, status: 'ACTIVE' } : prev);
               // Auto-redirect from pending page
               if (window.location.pathname === '/license/pending') {
-                window.location.href = '/license/dashboard';
+                navigate('/license/dashboard', { replace: true });
               }
             } else if (mounted && payload.new?.status === 'SUSPENDED') {
               setHasActiveLicense(false);
               setLicenseData((prev: any) => prev ? { ...prev, status: 'SUSPENDED' } : prev);
               if (window.location.pathname === '/license/dashboard') {
-                window.location.href = '/license/suspended';
+                navigate('/license/suspended', { replace: true });
               }
             }
           }
