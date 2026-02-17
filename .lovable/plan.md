@@ -1,161 +1,107 @@
 
+# Auditoria de Operatividad Movil - Fighter ID
 
-# Auditoria Completa del Sistema Fighter ID
+## Estado General: BUENO con 5 problemas a corregir
 
-## Resumen Ejecutivo
-
-El sistema tiene **157 usuarios** en `app_user`, de los cuales **12 son huerfanos** (eliminados de `auth.users` pero presentes en `app_user`). El flujo de autenticacion, registro y onboarding tiene varios componentes funcionales, pero se identificaron problemas criticos de sincronizacion y flujos inactivos/rotos.
-
----
-
-## Arquitectura del Flujo de Usuario
-
-```text
-[Email] --> check_email_exists_fn --> [Existe?]
-   |                                     |
-   |-- NO --> Registro (signUp) --> Trigger handle_new_user --> app_user
-   |               |
-   |               +--> Confirmacion Email --> /auth/callback --> /license/onboarding
-   |                                               |
-   |                                               +--> create_fighter_profile_with_license (RPC)
-   |                                                        |
-   |                                                        +--> fighter_profiles + fighter_licenses (PENDING_REVIEW)
-   |
-   |-- SI --> Login (signIn) --> Smart Routing
-                                    |
-                                    +-- No profile --> /license/onboarding
-                                    +-- Pending license --> /license/pending
-                                    +-- Active license --> /license/dashboard
-                                    +-- Suspended --> /license/suspended
-```
-
----
-
-## Estado Actual de Cada Componente
-
-### 1. Verificacion de Email (`check_email_exists_fn`) - CORREGIDO
-- Verifica en `auth.users` Y `app_user`
-- Estado: Funcionando correctamente tras la migracion reciente
-
-### 2. Registro (Trigger `handle_new_user`) - FUNCIONAL
-- Se ejecuta al insertar en `auth.users`
-- Crea registro en `app_user` con datos basicos
-- No crea `fighter_profiles` (correcto, eso se hace en onboarding)
-
-### 3. Forgot Password (Auth general: `/auth/forgot-password`) - FUNCIONAL
-- Usa `useAuth().resetPassword()` que invoca edge function `send-password-recovery`
-- Edge function usa Resend + SITE_URL para generar enlace
-- Redirige a `/auth/reset-password`
-- **Secrets necesarios configurados**: RESEND_API_KEY, SITE_URL - OK
-
-### 4. Forgot Password (License: `/license/forgot-password`) - FUNCIONAL
-- Usa `useLicenseAuth().resetPassword()` - misma edge function
-- Redirige a `/license/reset-password`
-
-### 5. Reset Password (`/auth/reset-password`) - FUNCIONAL CON OBSERVACIONES
-- Procesa tokens de recuperacion (hash, code, token_hash)
-- Timeout de 12 segundos para verificacion
-- Muestra formulario si hay sesion activa
-- Muestra opciones de recuperacion si no hay sesion
-
-### 6. Onboarding (`/license/onboarding`) - FUNCIONAL
-- Usa `create_fighter_profile_with_license` (RPC atomica)
-- Crea: app_user (si no existe) + fighter_profiles + fighter_licenses
-- Sube documentos en background
-- Guarda borrador en localStorage
-
-### 7. Smart Routing (`AuthCallback.tsx` y `LicenseAuth.tsx`) - FUNCIONAL
-- Determina destino basado en estado del perfil/licencia
-- Cadena: auth.users -> app_user -> fighter_profiles -> fighter_licenses
+La aplicacion esta bien optimizada para movil en general: botones con `min-h-[44px]`, clases `touch-manipulation`, layouts responsivos con `flex-col sm:flex-row`, y carga diferida con `React.lazy`. Sin embargo, se identificaron problemas criticos que afectan la experiencia del usuario en dispositivos moviles.
 
 ---
 
 ## Problemas Identificados
 
-### CRITICO: 12 Registros Huerfanos en app_user
-Usuarios eliminados de `auth.users` pero que persisten en `app_user`. Esto causa:
-- `check_email_exists_fn` retorna `true` (correcto tras fix)
-- El usuario ve paso de "login" pero no puede autenticarse (no existe en auth.users)
-- No hay forma de que el usuario se re-registre ni inicie sesion
+### 1. CRITICO: RPC `check_user_license_status` retorna `no_license` incorrectamente
 
-**Emails afectados:**
-- jmelendez@outlook.com
-- uclesjimmy801@gmail.com
-- soyharperlin@gmail.com
-- jmelendezm@outlook.com
-- wyang@liopametales.com
-- nayelifonsecasanchez@gmail.com
-- jimmyucles801@gmail.com
-- sofiaordo2007@icloud.com
-- enox01aldo@gamil.com
-- jonalysh09@gmail.com
-- miocorreo88@gmail.com
-- josuepokemon255@gmail.com
+El RPC retorna `no_license` para usuarios con licencia ACTIVA (ej: Willis Yang, `FGT-2025-006`). Aunque el perfil tiene `primary_license_id` apuntando a una licencia con status `ACTIVE`, la funcion falla en encontrarla. Esto causa:
+- 4 llamadas redundantes al RPC en cada carga de pagina (visible en console logs)
+- El fallback directo (`[FALLBACK] Direct fetch found ACTIVE license!`) rescata la situacion pero agrega latencia innecesaria
+- En conexiones lentas (2G/3G), estas 4+ llamadas extras pueden tardar 8-12 segundos adicionales
 
-### MEDIO: Restriccion UNIQUE duplicada en app_user.email
-Existen dos constraints UNIQUE para email: `app_user_email_key` y `app_user_email_unique`. No causa errores pero es redundante.
+**Impacto movil**: Tiempo de carga del dashboard duplicado en redes lentas.
 
-### MEDIO: Usuarios "atascados" sin fighter_profiles
-De los 157 app_user, muchos no tienen fighter_profiles (registraron pero no completaron onboarding). No hay un mecanismo para re-engancharlos o recordarles completar el proceso.
+**Solucion**: Reescribir la funcion RPC para simplificar la logica de busqueda de licencia, eliminando la cascada de fallbacks que no esta funcionando correctamente.
 
-### BAJO: Uso de `window.location.href` en useLicenseAuth
-En lineas 101-102, 111-112, 119-120 de `useLicenseAuth.tsx`, se usa `window.location.href` para redirigir. Esto recarga la pagina completa y pierde estado. Deberia usar `navigate()` (ya disponible en el hook).
+### 2. MEDIO: Service Worker no excluye rutas OAuth
+
+El `sw.js` no tiene exclusion para rutas `/~oauth` ni `/auth/callback`. Si un usuario instala la PWA y luego intenta autenticarse via OAuth (si se implementa en el futuro), el Service Worker podria interceptar y cachear la redireccion, causando un loop infinito de autenticacion.
+
+**Solucion**: Agregar exclusion explicita en `sw.js`:
+```javascript
+if (url.pathname.startsWith('/~oauth') || url.pathname.startsWith('/auth/callback')) {
+  return; // Never cache auth redirects
+}
+```
+
+### 3. MEDIO: Footer usa enlaces nativos `<a href>` en lugar de React Router
+
+En `Footer.tsx`, los enlaces del footer (lineas 37-39, 46-48) usan `<a href="#">` nativos. Al hacer click en estos desde movil:
+- Se recarga la pagina completa
+- Se pierde el estado de autenticacion temporalmente
+- El enlace `/license/auth` en linea 46 causa recarga completa
+
+**Solucion**: Reemplazar con `<Link to="">` de React Router.
+
+### 4. BAJO: `viewport` bloquea zoom del usuario
+
+En `index.html` linea 5: `maximum-scale=1.0, user-scalable=no`. Esto viola las pautas de accesibilidad WCAG 2.1 (criterio 1.4.4) y puede ser problematico para usuarios con discapacidad visual que necesitan hacer zoom.
+
+**Solucion**: Cambiar a `maximum-scale=5.0` y eliminar `user-scalable=no`.
+
+### 5. BAJO: `useLicenseAuth` ejecuta `checkLicenseStatus` 4 veces en montaje
+
+Los console logs muestran que al cargar la pagina principal, `checkLicenseStatus` se ejecuta 4 veces identicas en paralelo. Esto es causado por la combinacion de:
+- `onAuthStateChange` dispara una verificacion
+- `getSession()` dispara otra verificacion
+- Cada una causa un re-render que dispara nuevamente
+
+**Solucion**: Agregar un flag de debounce o `useRef` para prevenir ejecuciones duplicadas.
 
 ---
 
-## Plan de Correccion
+## Lo que FUNCIONA BIEN en movil
 
-### Paso 1: Limpiar registros huerfanos
-Ejecutar migracion SQL para eliminar los 12 registros en `app_user` que no tienen usuario correspondiente en `auth.users`. Esto permitira que esos emails se puedan re-registrar.
-
-```sql
-DELETE FROM public.app_user 
-WHERE auth_user_id NOT IN (SELECT id FROM auth.users);
-```
-
-### Paso 2: Eliminar constraint UNIQUE duplicado
-```sql
-ALTER TABLE public.app_user DROP CONSTRAINT IF EXISTS app_user_email_unique;
-```
-(Mantener `app_user_email_key` que es el original)
-
-### Paso 3: Reemplazar `window.location.href` por `navigate()` en useLicenseAuth
-En las lineas donde se hace redireccion forzada (101, 111, 119, 143, 263, 431), cambiar a `navigate(ruta, { replace: true })` para mantener el estado de la SPA.
-
-### Paso 4: Agregar validacion defensiva en el flujo de login
-Cuando `check_email_exists_fn` retorna `true` pero el usuario falla al autenticarse, mostrar un mensaje que sugiera contactar soporte o intentar registrarse con otro email, en caso de que sea un registro huerfano.
+- Header responsivo con menu hamburguesa funcional (Sheet)
+- Botones con tamanos tactiles adecuados (44px minimo)
+- Pagina de autenticacion bien centrada y legible
+- "Olvide mi contrasena" navega correctamente (corregido en auditoria anterior)
+- QuickStats con scroll horizontal y snap
+- FighterCards responsivas
+- PWA manifest correctamente configurado
+- Carga diferida de componentes pesados
+- Filtros con `min-h-[44px]` y `touch-manipulation`
 
 ---
 
-## Seccion Tecnica Detallada
+## Plan de Implementacion
 
-### Archivos a Modificar
+### Paso 1: Corregir RPC `check_user_license_status`
+Reescribir la funcion para simplificar: si el perfil tiene `primary_license_id`, buscar directamente y retornar. Eliminar la cascada compleja de fallbacks que causa el bug.
 
-1. **Migracion SQL** (nueva):
-   - Limpieza de huerfanos
-   - Eliminar constraint duplicado
+### Paso 2: Agregar exclusiones al Service Worker
+Actualizar `public/sw.js` para no interceptar rutas de autenticacion.
 
-2. **`src/hooks/useLicenseAuth.tsx`** (lineas 101-102, 111-112, 119-120, 143-145, 263-264, 431-432):
-   - Reemplazar `window.location.href = '/ruta'` por `navigate('/ruta', { replace: true })`
+### Paso 3: Corregir enlaces del Footer
+Reemplazar `<a href>` por `<Link to>` en `src/components/Footer.tsx`.
 
-3. **`src/pages/Auth.tsx`** (manejo de error en login):
-   - En `handleSignIn`, si el error es "Invalid login credentials", agregar sugerencia de recuperacion
+### Paso 4: Corregir viewport meta tag
+Actualizar `index.html` para permitir zoom del usuario.
 
-### Tablas Involucradas
-- `auth.users` (Supabase Auth, solo lectura)
-- `public.app_user` (tabla principal de usuarios)
-- `public.fighter_profiles` (perfiles de peleadores)
-- `public.fighter_licenses` (licencias)
-- `public.user_roles` (roles admin/moderator)
+### Paso 5: Debounce de `checkLicenseStatus`
+Agregar proteccion contra ejecuciones duplicadas en `src/hooks/useLicenseAuth.tsx`.
 
-### Edge Functions Involucradas
-- `check-email-exists` - Verificacion de email
-- `send-password-recovery` - Envio de correo de recuperacion (usa Resend)
-- `send-signup-confirmation` - Confirmacion de registro
+---
 
-### Funciones RPC Involucradas
-- `check_email_exists_fn` - Verifica email en auth.users + app_user
-- `handle_new_user` - Trigger que crea app_user al registrar
-- `create_fighter_profile_with_license` - Onboarding atomico
-- `check_user_license_status` - Estado de licencia optimizado
+## Seccion Tecnica
 
+### Archivos a modificar:
+1. **Migracion SQL** - Reescribir `check_user_license_status` con logica simplificada
+2. **`public/sw.js`** - Agregar exclusiones para `/~oauth` y `/auth/callback`
+3. **`src/components/Footer.tsx`** - Reemplazar `<a>` por `<Link>`
+4. **`index.html`** - Corregir meta viewport
+5. **`src/hooks/useLicenseAuth.tsx`** - Agregar debounce con `useRef`
+
+### Prioridad de ejecucion:
+1. RPC fix (critico - afecta rendimiento en redes lentas)
+2. Debounce de license check (medio - reduce llamadas redundantes)
+3. Footer links (medio - mantiene integridad SPA)
+4. Service Worker exclusions (medio - previene problemas futuros)
+5. Viewport meta (bajo - accesibilidad)
