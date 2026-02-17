@@ -1,4 +1,5 @@
 import { useSystemAssets } from "@/hooks/useSystemAssets";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const { logoUrl } = useSystemAssets();
@@ -34,18 +35,18 @@ const Footer = () => {
           <div>
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-accent">Eventos</h4>
             <ul className="space-y-2 text-gray-300">
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Próximas Batallas</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Calendario</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Resultados</a></li>
+              <li><Link to="/eventos" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Próximas Batallas</Link></li>
+              <li><Link to="/eventos" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Calendario</Link></li>
+              <li><Link to="/resultados" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Resultados</Link></li>
             </ul>
           </div>
           
           <div>
             <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-accent">Comunidad</h4>
             <ul className="space-y-2 text-gray-300">
-              <li><a href="/license/auth" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Licencia de Peleador</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Ser Jurado</a></li>
-              <li><a href="/contacto" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Contacto</a></li>
+              <li><Link to="/license/auth" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Licencia de Peleador</Link></li>
+              <li><Link to="/contacto" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Ser Jurado</Link></li>
+              <li><Link to="/contacto" className="hover:text-accent transition-colors text-sm sm:text-base touch-manipulation">Contacto</Link></li>
             </ul>
           </div>
         </div>

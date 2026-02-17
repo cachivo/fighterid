@@ -36,6 +36,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const navigate = useNavigate();
   const retryCountRef = useRef(0);
   const maxRetries = 1;
+  const checkInProgressRef = useRef(false);
 
   // Type for RPC response
   interface LicenseStatusResponse {
@@ -48,6 +49,12 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }
 
   const checkLicenseStatusOptimized = async (userId: string) => {
+    // Prevent duplicate concurrent executions
+    if (checkInProgressRef.current) {
+      console.log('[LICENSE AUTH] Check already in progress, skipping duplicate call');
+      return;
+    }
+    checkInProgressRef.current = true;
     console.log('[LICENSE AUTH] Starting optimized check for user:', userId);
     setLoadingMessage('Verificando tu cuenta...');
     setLoadingProgress(20);
@@ -192,6 +199,7 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLicenseData(null);
     } finally {
       console.log('[LICENSE AUTH] Check complete. Setting loading to false.');
+      checkInProgressRef.current = false;
       setLoading(false);
     }
   };
