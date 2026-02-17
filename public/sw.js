@@ -57,6 +57,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Never cache auth redirects (OAuth, callbacks)
+  if (url.pathname.startsWith('/~oauth') || url.pathname.startsWith('/auth/callback') || url.pathname.startsWith('/license/callback')) {
+    return;
+  }
+
   // Network-first strategy for API calls and HTML pages
   if (url.pathname.startsWith('/api') || request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
