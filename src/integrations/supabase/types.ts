@@ -4767,6 +4767,143 @@ export type Database = {
           },
         ]
       }
+      sanction_appeals: {
+        Row: {
+          appealed_by: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          evidence_urls: string[] | null
+          id: string
+          reason: string
+          sanction_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appealed_by: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reason: string
+          sanction_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appealed_by?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          evidence_urls?: string[] | null
+          id?: string
+          reason?: string
+          sanction_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanction_appeals_sanction_id_fkey"
+            columns: ["sanction_id"]
+            isOneToOne: false
+            referencedRelation: "sanctions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sanctions: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          description: string | null
+          end_date: string | null
+          evidence_urls: string[] | null
+          fine_amount: number | null
+          fine_paid: boolean | null
+          id: string
+          issued_by: string | null
+          notes: string | null
+          reason: string
+          related_event_id: string | null
+          related_fight_id: string | null
+          sanction_type: string
+          severity: number
+          start_date: string
+          status: string
+          target_id: string
+          target_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          evidence_urls?: string[] | null
+          fine_amount?: number | null
+          fine_paid?: boolean | null
+          id?: string
+          issued_by?: string | null
+          notes?: string | null
+          reason: string
+          related_event_id?: string | null
+          related_fight_id?: string | null
+          sanction_type: string
+          severity?: number
+          start_date?: string
+          status?: string
+          target_id: string
+          target_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          evidence_urls?: string[] | null
+          fine_amount?: number | null
+          fine_paid?: boolean | null
+          id?: string
+          issued_by?: string | null
+          notes?: string | null
+          reason?: string
+          related_event_id?: string | null
+          related_fight_id?: string | null
+          sanction_type?: string
+          severity?: number
+          start_date?: string
+          status?: string
+          target_id?: string
+          target_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sanctions_related_event_id_fkey"
+            columns: ["related_event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sanctions_related_fight_id_fkey"
+            columns: ["related_fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scoring_events: {
         Row: {
           corner: Database["public"]["Enums"]["corner"]

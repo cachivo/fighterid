@@ -109,6 +109,7 @@ const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement
 const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
 const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
 const RequestFight = lazy(() => import("./pages/gym/RequestFight"));
+const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
@@ -391,6 +392,11 @@ const App = () => {
                        <Route path="/fight-approval" element={
                          <Suspense fallback={<LoadingSpinner />}>
                            <FightApproval />
+                         </Suspense>
+                       } />
+                       <Route path="/sanctions" element={
+                         <Suspense fallback={<LoadingSpinner />}>
+                           <Sanctions />
                          </Suspense>
                        } />
                     </Routes>
