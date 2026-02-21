@@ -43,6 +43,7 @@ const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
   { title: 'Centro de Moderación', url: '/admin/pending-changes', icon: Activity },
   { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Calendar },
+  { title: 'Aprobación de Peleas', url: '/admin/fight-approval', icon: Gavel },
   { title: 'Organizaciones', url: '/admin/organizations', icon: Building2 },
   { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
   { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },

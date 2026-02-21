@@ -107,6 +107,8 @@ const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement")
 const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
 const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement"));
 const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
+const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
+const RequestFight = lazy(() => import("./pages/gym/RequestFight"));
 
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
@@ -211,8 +213,14 @@ const App = () => {
                   </Suspense>
                 </ProtectedRoute>
               } />
+              <Route path="/gym/request-fight" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <RequestFight />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
 
-              {/* Rutas de Entrenadores */}
               <Route path="/entrenadores" element={<Entrenadores />} />
               <Route path="/entrenadores/:slug" element={<EntrenadorDetalle />} />
               
@@ -378,6 +386,11 @@ const App = () => {
                        <Route path="/organizations" element={
                          <Suspense fallback={<LoadingSpinner />}>
                            <OrganizationsManagement />
+                         </Suspense>
+                       } />
+                       <Route path="/fight-approval" element={
+                         <Suspense fallback={<LoadingSpinner />}>
+                           <FightApproval />
                          </Suspense>
                        } />
                     </Routes>

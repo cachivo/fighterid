@@ -1565,6 +1565,186 @@ export type Database = {
           },
         ]
       }
+      fight_requests: {
+        Row: {
+          created_at: string
+          discipline: string
+          eligibility_check: Json | null
+          event_id: string | null
+          fight_id: string | null
+          fight_type: string
+          fighter_a_id: string | null
+          fighter_a_name: string | null
+          fighter_b_id: string | null
+          fighter_b_name: string | null
+          gym_id: string | null
+          id: string
+          is_championship: boolean | null
+          notes: string | null
+          number_of_rounds: number | null
+          opponent_gym_id: string | null
+          rejection_reason: string | null
+          requested_by: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+          weight_class: string
+        }
+        Insert: {
+          created_at?: string
+          discipline?: string
+          eligibility_check?: Json | null
+          event_id?: string | null
+          fight_id?: string | null
+          fight_type?: string
+          fighter_a_id?: string | null
+          fighter_a_name?: string | null
+          fighter_b_id?: string | null
+          fighter_b_name?: string | null
+          gym_id?: string | null
+          id?: string
+          is_championship?: boolean | null
+          notes?: string | null
+          number_of_rounds?: number | null
+          opponent_gym_id?: string | null
+          rejection_reason?: string | null
+          requested_by: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          weight_class: string
+        }
+        Update: {
+          created_at?: string
+          discipline?: string
+          eligibility_check?: Json | null
+          event_id?: string | null
+          fight_id?: string | null
+          fight_type?: string
+          fighter_a_id?: string | null
+          fighter_a_name?: string | null
+          fighter_b_id?: string | null
+          fighter_b_name?: string | null
+          gym_id?: string | null
+          id?: string
+          is_championship?: boolean | null
+          notes?: string | null
+          number_of_rounds?: number | null
+          opponent_gym_id?: string | null
+          rejection_reason?: string | null
+          requested_by?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+          weight_class?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_requests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_statistics"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_opponent_gym_id_fkey"
+            columns: ["opponent_gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_opponent_gym_id_fkey"
+            columns: ["opponent_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_statistics"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fight_results: {
         Row: {
           confirmed_at: string | null
@@ -2676,8 +2856,12 @@ export type Database = {
       }
       fights: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           card_position: string | null
           created_at: string
+          discipline: string | null
+          doctor_id: string | null
           event_id: string
           fight_number: number
           fight_type: string
@@ -2691,16 +2875,28 @@ export type Database = {
           finish_round: number | null
           finish_time: string | null
           id: string
+          inspector_id: string | null
           is_championship: boolean | null
+          notes: string | null
+          number_of_rounds: number | null
+          referee_id: string | null
+          rejection_reason: string | null
+          requested_by: string | null
+          round_duration_seconds: number | null
           scheduled_time: string | null
           status: string
+          timekeeper_id: string | null
           updated_at: string
           weight_class: string
           winner_id: string | null
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           card_position?: string | null
           created_at?: string
+          discipline?: string | null
+          doctor_id?: string | null
           event_id: string
           fight_number: number
           fight_type?: string
@@ -2714,16 +2910,28 @@ export type Database = {
           finish_round?: number | null
           finish_time?: string | null
           id?: string
+          inspector_id?: string | null
           is_championship?: boolean | null
+          notes?: string | null
+          number_of_rounds?: number | null
+          referee_id?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          round_duration_seconds?: number | null
           scheduled_time?: string | null
           status?: string
+          timekeeper_id?: string | null
           updated_at?: string
           weight_class: string
           winner_id?: string | null
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           card_position?: string | null
           created_at?: string
+          discipline?: string | null
+          doctor_id?: string | null
           event_id?: string
           fight_number?: number
           fight_type?: string
@@ -2737,14 +2945,36 @@ export type Database = {
           finish_round?: number | null
           finish_time?: string | null
           id?: string
+          inspector_id?: string | null
           is_championship?: boolean | null
+          notes?: string | null
+          number_of_rounds?: number | null
+          referee_id?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          round_duration_seconds?: number | null
           scheduled_time?: string | null
           status?: string
+          timekeeper_id?: string | null
           updated_at?: string
           weight_class?: string
           winner_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fights_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fights_event_id_fkey"
             columns: ["event_id"]
@@ -2807,6 +3037,34 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_fighters_current_gym"
             referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_timekeeper_id_fkey"
+            columns: ["timekeeper_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fights_winner_id_fkey"
@@ -5975,6 +6233,14 @@ export type Database = {
       user_update_fighter_profile: {
         Args: { p_fighter_id: string; p_profile_data: Json }
         Returns: undefined
+      }
+      validate_fight_eligibility: {
+        Args: {
+          p_fighter_a_id: string
+          p_fighter_b_id: string
+          p_weight_class?: string
+        }
+        Returns: Json
       }
       validate_fighter_invitation: {
         Args: { p_token: string }
