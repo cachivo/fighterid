@@ -1,107 +1,316 @@
 
-# Auditoria de Operatividad Movil - Fighter ID
 
-## Estado General: BUENO con 5 problemas a corregir
+# Arquitectura Completa del Ecosistema Fighter ID - Plan de Implementacion
 
-La aplicacion esta bien optimizada para movil en general: botones con `min-h-[44px]`, clases `touch-manipulation`, layouts responsivos con `flex-col sm:flex-row`, y carga diferida con `React.lazy`. Sin embargo, se identificaron problemas criticos que afectan la experiencia del usuario en dispositivos moviles.
+## Diagnostico: Que YA existe vs Que FALTA
 
----
+### Estado actual de la base de datos (97 tablas)
 
-## Problemas Identificados
+| Componente | Estado | Datos |
+|---|---|---|
+| fighter_profiles (57 cols) | COMPLETO | 42+ peleadores |
+| fighter_licenses (23 cols) | COMPLETO | 41 licencias |
+| gyms (21 cols) | COMPLETO | 27 gimnasios |
+| gym_staff (8 cols) | COMPLETO | 3 staff |
+| fighter_gym_memberships (9 cols) | COMPLETO | 65 membresías |
+| judges (17 cols) | PARCIAL | 4 jueces |
+| fights (21 cols) | PARCIAL | 4 peleas |
+| events (12 cols) | PARCIAL - esquema limitado | 0 eventos |
+| organizations (5 cols) | MINIMO - solo ranking | 0 registros |
+| fight_officials (10 cols) | EXISTE | 0 registros |
+| medical_certifications (12 cols) | EXISTE | 0 registros |
+| audit_log (11 cols) | EXISTE | 1,044 registros |
+| user_roles | EXISTE | admin(6), super_admin(1), moderator(4), user(143) |
 
-### 1. CRITICO: RPC `check_user_license_status` retorna `no_license` incorrectamente
+### Lo que FALTA construir
 
-El RPC retorna `no_license` para usuarios con licencia ACTIVA (ej: Willis Yang, `FGT-2025-006`). Aunque el perfil tiene `primary_license_id` apuntando a una licencia con status `ACTIVE`, la funcion falla en encontrarla. Esto causa:
-- 4 llamadas redundantes al RPC en cada carga de pagina (visible en console logs)
-- El fallback directo (`[FALLBACK] Direct fetch found ACTIVE license!`) rescata la situacion pero agrega latencia innecesaria
-- En conexiones lentas (2G/3G), estas 4+ llamadas extras pueden tardar 8-12 segundos adicionales
+**Base de datos (tablas nuevas o extensiones):**
+- `officials` - Tabla unificada para jueces/arbitros/medicos/cronometristas/inspectores (actualmente solo `judges`)
+- `official_certifications` - Certificaciones de officials (separada de `medical_certifications` que es para peleadores)
+- `sanctions` - Sistema de sanciones
+- `sanction_appeals` - Apelaciones
+- `fighter_eligibility` - Estado de elegibilidad calculado
+- `fighter_insurance` - Validacion de seguros
+- Ampliar `events` - Necesita status workflow, venue, organization_id funcional
+- Ampliar `organizations` - Necesita contacto, permisos, verificacion
+- Ampliar `fights` - Necesita `requested_by`, workflow de aprobacion
+- Nuevos roles en `user_roles` - license_officer, technical_coordinator, auditor, promoter, official_*
 
-**Impacto movil**: Tiempo de carga del dashboard duplicado en redes lentas.
-
-**Solucion**: Reescribir la funcion RPC para simplificar la logica de busqueda de licencia, eliminando la cascada de fallbacks que no esta funcionando correctamente.
-
-### 2. MEDIO: Service Worker no excluye rutas OAuth
-
-El `sw.js` no tiene exclusion para rutas `/~oauth` ni `/auth/callback`. Si un usuario instala la PWA y luego intenta autenticarse via OAuth (si se implementa en el futuro), el Service Worker podria interceptar y cachear la redireccion, causando un loop infinito de autenticacion.
-
-**Solucion**: Agregar exclusion explicita en `sw.js`:
-```javascript
-if (url.pathname.startsWith('/~oauth') || url.pathname.startsWith('/auth/callback')) {
-  return; // Never cache auth redirects
-}
-```
-
-### 3. MEDIO: Footer usa enlaces nativos `<a href>` en lugar de React Router
-
-En `Footer.tsx`, los enlaces del footer (lineas 37-39, 46-48) usan `<a href="#">` nativos. Al hacer click en estos desde movil:
-- Se recarga la pagina completa
-- Se pierde el estado de autenticacion temporalmente
-- El enlace `/license/auth` en linea 46 causa recarga completa
-
-**Solucion**: Reemplazar con `<Link to="">` de React Router.
-
-### 4. BAJO: `viewport` bloquea zoom del usuario
-
-En `index.html` linea 5: `maximum-scale=1.0, user-scalable=no`. Esto viola las pautas de accesibilidad WCAG 2.1 (criterio 1.4.4) y puede ser problematico para usuarios con discapacidad visual que necesitan hacer zoom.
-
-**Solucion**: Cambiar a `maximum-scale=5.0` y eliminar `user-scalable=no`.
-
-### 5. BAJO: `useLicenseAuth` ejecuta `checkLicenseStatus` 4 veces en montaje
-
-Los console logs muestran que al cargar la pagina principal, `checkLicenseStatus` se ejecuta 4 veces identicas en paralelo. Esto es causado por la combinacion de:
-- `onAuthStateChange` dispara una verificacion
-- `getSession()` dispara otra verificacion
-- Cada una causa un re-render que dispara nuevamente
-
-**Solucion**: Agregar un flag de debounce o `useRef` para prevenir ejecuciones duplicadas.
+**Frontend (paginas nuevas):**
+- Portal Officials completo (dashboard, asignaciones, scorecards, certificaciones)
+- Panel Admin: Sanctions, Officials Management, Eligibility
+- Flujos de solicitud de pelea desde Gym
+- Sistema de notificaciones para asignaciones
 
 ---
 
-## Lo que FUNCIONA BIEN en movil
+## Plan de Implementacion por Fases
 
-- Header responsivo con menu hamburguesa funcional (Sheet)
-- Botones con tamanos tactiles adecuados (44px minimo)
-- Pagina de autenticacion bien centrada y legible
-- "Olvide mi contrasena" navega correctamente (corregido en auditoria anterior)
-- QuickStats con scroll horizontal y snap
-- FighterCards responsivas
-- PWA manifest correctamente configurado
-- Carga diferida de componentes pesados
-- Filtros con `min-h-[44px]` y `touch-manipulation`
+Dado el tamano del ecosistema, se divide en 6 fases incrementales. Cada fase es funcional por si sola.
 
 ---
 
-## Plan de Implementacion
+### FASE 1: Expandir Roles y Officials (Fundacion)
+**Duracion estimada: 3-4 sesiones**
 
-### Paso 1: Corregir RPC `check_user_license_status`
-Reescribir la funcion para simplificar: si el perfil tiene `primary_license_id`, buscar directamente y retornar. Eliminar la cascada compleja de fallbacks que causa el bug.
+**Objetivo**: Crear la infraestructura de roles expandida y la tabla `officials` unificada que reemplaza/extiende `judges`.
 
-### Paso 2: Agregar exclusiones al Service Worker
-Actualizar `public/sw.js` para no interceptar rutas de autenticacion.
+**Cambios en base de datos:**
 
-### Paso 3: Corregir enlaces del Footer
-Reemplazar `<a href>` por `<Link to>` en `src/components/Footer.tsx`.
+1. **Expandir `user_roles`** - Agregar nuevos roles al enum:
+   - `license_officer`, `technical_coordinator`, `auditor`, `promoter`
+   - `official_judge`, `official_referee`, `official_doctor`, `official_timekeeper`, `official_inspector`
 
-### Paso 4: Corregir viewport meta tag
-Actualizar `index.html` para permitir zoom del usuario.
+2. **Crear tabla `officials`** - Perfil unificado de oficial:
+   - Tipo (judge/referee/doctor/timekeeper/inspector)
+   - Nivel de certificacion (regional/national/international)
+   - Info personal, contacto
+   - Stats (eventos trabajados, peleas, rating promedio)
+   - Status (activo, disponible, suspendido)
+   - Vinculado a `user_id` de `app_user`
 
-### Paso 5: Debounce de `checkLicenseStatus`
-Agregar proteccion contra ejecuciones duplicadas en `src/hooks/useLicenseAuth.tsx`.
+3. **Crear tabla `official_certifications`** - Certificaciones por disciplina:
+   - Disciplina, tipo, entidad emisora
+   - Fechas de emision/vencimiento
+   - Documento adjunto
+   - Verificacion por admin
+
+4. **Migrar datos de `judges`** a `officials` (los 4 jueces existentes)
+
+**Cambios en frontend:**
+
+5. **Actualizar `/admin/user-roles`** - Mostrar y asignar los nuevos roles
+6. **Crear pagina `/admin/officials`** - CRUD de officials con filtros por tipo
+7. **Crear pagina `/admin/officials/:id`** - Detalle de official con certificaciones
+
+**Archivos a modificar/crear:**
+- Nueva migracion SQL (officials, official_certifications, roles expandidos)
+- `src/pages/admin/OfficialsManagement.tsx` (nuevo)
+- `src/pages/admin/OfficialDetail.tsx` (nuevo)
+- `src/hooks/useOfficials.tsx` (nuevo)
+- `src/components/admin/OfficialCard.tsx` (nuevo)
+- `src/components/admin/OfficialForm.tsx` (nuevo)
+- `src/App.tsx` (nuevas rutas)
+- `src/components/AdminSidebar.tsx` (nuevos enlaces)
 
 ---
+
+### FASE 2: Expandir Events y Organizations
+**Duracion estimada: 2-3 sesiones**
+
+**Objetivo**: Convertir la tabla `events` limitada en un sistema completo de gestion de eventos con workflow de aprobacion.
+
+**Cambios en base de datos:**
+
+1. **Expandir tabla `events`** - Agregar columnas:
+   - `organization_id` (FK a organizations)
+   - `venue_name`, `venue_address`, `city`, `country`
+   - `status` (draft/pending/approved/live/completed/cancelled)
+   - `poster_url`, `rules_document_url`
+   - `approved_by`, `approved_at`
+   - `total_fights`, `total_attendees`
+
+2. **Expandir tabla `organizations`** - Agregar columnas:
+   - `slug`, `logo_url`
+   - `contact_name`, `contact_email`, `contact_phone`
+   - `can_create_events`, `can_sanction_fights`
+   - `active`, `verified`
+
+3. **Crear tabla `event_officials`** - Officials asignados a eventos
+
+**Cambios en frontend:**
+
+4. **Refactorizar `/admin/eventos-pelea`** - Agregar workflow de status, asignacion de officials
+5. **Crear componente de asignacion de officials a evento**
+6. **Dashboard de evento con officials asignados**
+
+**Archivos a modificar/crear:**
+- Nueva migracion SQL
+- `src/pages/admin/EventosPelea.tsx` (refactorizar)
+- `src/components/admin/EventForm.tsx` (nuevo/expandido)
+- `src/hooks/useEvents.tsx` (expandir)
+
+---
+
+### FASE 3: Workflow de Peleas con Aprobacion
+**Duracion estimada: 3-4 sesiones**
+
+**Objetivo**: Implementar el flujo completo solicitud-validacion-aprobacion-asignacion de peleas.
+
+**Cambios en base de datos:**
+
+1. **Expandir tabla `fights`** - Agregar:
+   - `requested_by` (quien solicita la pelea)
+   - `discipline` (si no existe)
+   - `referee_id`, `doctor_id`, `timekeeper_id`, `inspector_id` (FKs a officials)
+   - `approved_by`, `approved_at`
+   - `result_type` (ko/tko/submission/decision/draw/no_contest/dq)
+
+2. **Crear tabla `fight_requests`** (opcional, o usar status en fights):
+   - Solicitud de gym owner/coach
+   - Validacion automatica de elegibilidad
+
+3. **Crear funcion RPC `validate_fight_eligibility`**:
+   - Verificar licencias vigentes de ambos peleadores
+   - Verificar no suspendidos
+   - Verificar peso compatible
+   - Retornar lista de checks passed/failed
+
+**Cambios en frontend:**
+
+4. **Crear pagina de solicitud de pelea desde Gym Dashboard**
+5. **Panel admin de aprobacion de peleas con checks automaticos**
+6. **Asignacion de officials a peleas individuales**
+
+**Archivos a modificar/crear:**
+- Nueva migracion SQL
+- `src/pages/gym/RequestFight.tsx` (nuevo)
+- `src/components/admin/FightApprovalPanel.tsx` (nuevo)
+- `src/components/admin/FightOfficialAssignment.tsx` (nuevo)
+- `src/hooks/useFightRequests.tsx` (nuevo)
+
+---
+
+### FASE 4: Sistema de Sanciones
+**Duracion estimada: 2-3 sesiones**
+
+**Objetivo**: Sistema completo de sanciones con casos, evidencia y apelaciones.
+
+**Cambios en base de datos:**
+
+1. **Crear tabla `sanctions`**:
+   - target_type (fighter/coach/official/gym/organization)
+   - target_id
+   - sanction_type (suspension/fine/warning/license_revocation/ban)
+   - severity (1-5)
+   - Fechas de inicio/fin
+   - Multa (monto, pagado)
+   - Status (open/under_review/decided/appealed/closed)
+   - Evidencia (URLs)
+   - Relacion con fight/event
+
+2. **Crear tabla `sanction_appeals`**:
+   - Razon, evidencia
+   - Decision, decidido por
+
+3. **Crear trigger** que actualice elegibilidad cuando se aplique sancion
+
+**Cambios en frontend:**
+
+4. **Crear `/admin/sanctions`** - Lista de sanciones con filtros
+5. **Crear `/admin/sanctions/new`** - Formulario de nueva sancion
+6. **Crear `/admin/sanctions/:id`** - Detalle con timeline de caso
+7. **Mostrar sanciones activas en perfiles de peleadores**
+
+**Archivos a modificar/crear:**
+- Nueva migracion SQL
+- `src/pages/admin/Sanctions.tsx` (nuevo)
+- `src/pages/admin/SanctionDetail.tsx` (nuevo)
+- `src/components/admin/SanctionForm.tsx` (nuevo)
+- `src/hooks/useSanctions.tsx` (nuevo)
+
+---
+
+### FASE 5: Elegibilidad y Validacion Medica
+**Duracion estimada: 2 sesiones**
+
+**Objetivo**: Sistema automatizado que determina si un peleador puede pelear.
+
+**Cambios en base de datos:**
+
+1. **Crear tabla `fighter_eligibility`**:
+   - fighter_id (unique)
+   - is_eligible, license_valid, insurance_valid, medical_cleared, not_suspended, weight_verified
+   - ineligibility_reasons (array)
+   - next_eligible_date
+
+2. **Crear tabla `fighter_insurance`**:
+   - fighter_id, company, policy_number, valid_from, valid_until, document_url, verified
+
+3. **Crear funcion RPC `recalculate_eligibility`** que:
+   - Verifica licencia activa y no vencida
+   - Verifica seguro vigente
+   - Verifica certificacion medica vigente
+   - Verifica no suspendido
+   - Actualiza `fighter_eligibility`
+
+4. **Crear trigger** que recalcule elegibilidad cuando cambien licencias, sanciones, o certificaciones medicas
+
+**Cambios en frontend:**
+
+5. **Badge de elegibilidad en perfil del peleador**
+6. **Panel admin de elegibilidad masiva**
+7. **Alertas de licencias/seguros por vencer**
+
+---
+
+### FASE 6: Portal de Officials (Mobile + Web)
+**Duracion estimada: 3-4 sesiones**
+
+**Objetivo**: Interfaz dedicada para jueces, arbitros, medicos y otros officials.
+
+**Cambios en frontend:**
+
+1. **Crear layout `/officials`** con navegacion propia
+2. **Dashboard de official** - Proximos eventos, stats personales
+3. **Lista de asignaciones** - Eventos asignados con status
+4. **Scorecard digital** - Para jueces (integrar con sistema de scoring existente)
+5. **Notas medicas** - Para doctores (pre/post pelea)
+6. **Historial** - Eventos trabajados, evaluaciones recibidas
+7. **Certificaciones** - Ver y subir certificaciones
+
+**Archivos a crear:**
+- `src/pages/officials/OfficialDashboard.tsx`
+- `src/pages/officials/OfficialAssignments.tsx`
+- `src/pages/officials/OfficialScorecard.tsx`
+- `src/pages/officials/OfficialHistory.tsx`
+- `src/pages/officials/OfficialCertifications.tsx`
+- `src/components/officials/` (varios componentes)
+- Protected route para officials
+
+---
+
+## Resumen de Impacto
+
+| Metrica | Actual | Despues |
+|---|---|---|
+| Tablas | ~97 | ~107 |
+| Roles | 4 | 14 |
+| Paginas admin | 28 | ~36 |
+| Portales de usuario | 3 (Fighter, Gym, Admin) | 4 (+Officials) |
+| Flujos de negocio automatizados | 2 | 6 |
+
+## Recomendacion de Inicio
+
+Comenzar con **Fase 1** (Officials + Roles expandidos) ya que es la fundacion sobre la que se construyen las demas fases. Sin la tabla `officials` y los roles expandidos, no se pueden implementar asignaciones a peleas, sanciones ni el portal de officials.
 
 ## Seccion Tecnica
 
-### Archivos a modificar:
-1. **Migracion SQL** - Reescribir `check_user_license_status` con logica simplificada
-2. **`public/sw.js`** - Agregar exclusiones para `/~oauth` y `/auth/callback`
-3. **`src/components/Footer.tsx`** - Reemplazar `<a>` por `<Link>`
-4. **`index.html`** - Corregir meta viewport
-5. **`src/hooks/useLicenseAuth.tsx`** - Agregar debounce con `useRef`
+### Dependencias entre fases
 
-### Prioridad de ejecucion:
-1. RPC fix (critico - afecta rendimiento en redes lentas)
-2. Debounce de license check (medio - reduce llamadas redundantes)
-3. Footer links (medio - mantiene integridad SPA)
-4. Service Worker exclusions (medio - previene problemas futuros)
-5. Viewport meta (bajo - accesibilidad)
+```text
+Fase 1 (Officials + Roles) ──┬──→ Fase 2 (Events expandido)
+                              │
+                              ├──→ Fase 3 (Fight workflow) ──→ Fase 4 (Sanciones)
+                              │
+                              ├──→ Fase 5 (Elegibilidad)
+                              │
+                              └──→ Fase 6 (Portal Officials)
+```
+
+Fase 1 es prerequisito de todas las demas. Fases 2-6 pueden ejecutarse en paralelo despues de Fase 1, aunque el orden propuesto es el mas logico.
+
+### Patron de codigo a seguir
+- Hooks: `src/hooks/useOfficials.tsx` siguiendo el patron de `src/hooks/useJudges.tsx`
+- Paginas admin: Siguiendo patron de `src/pages/admin/JudgesManagement.tsx`
+- Componentes: Siguiendo patron de `src/components/admin/AdminCoachCard.tsx`
+- Rutas protegidas: Usando `AdminProtectedRoute` existente
+- Migraciones: Con RLS policies, indices, y triggers
+
+### Tablas existentes que se reutilizan (NO duplicar)
+- `audit_log` - Ya funcional con 1,044 registros
+- `fight_officials` - Ya existe, se adapta
+- `medical_certifications` - Ya existe, se reutiliza
+- `fight_judges` - Ya existe, se vincula a `officials`
+- `gym_staff` - Ya funcional
+
