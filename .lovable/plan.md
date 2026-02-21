@@ -1,50 +1,90 @@
 
-# Limpieza de Codigo: Mobile-First
 
-El acceso es 100% movil. Vamos a eliminar codigo desktop-only y restricciones innecesarias que bloquean a usuarios moviles.
+# Unificar Pagina de Autenticacion con Selector de Rol
 
-## Cambios a realizar
+Actualmente existen dos paginas de auth separadas (`/auth` y `/license/auth`) con logica duplicada. Vamos a crear una experiencia unificada en `/auth` donde el usuario selecciona su tipo de cuenta antes de registrarse o iniciar sesion.
 
-### 1. Eliminar archivos desktop-only (3 archivos)
-- **`src/hooks/useDeviceRestriction.tsx`** - Hook que detecta si es desktop. Ya no se necesita.
-- **`src/components/DesktopOnlyRoute.tsx`** - Componente que bloquea acceso movil. Eliminar.
-- **`src/components/judge/DesktopJudgePanel.tsx`** - Panel de juez con clicks de mouse (izq/der). Este panel es incompatible con touch. Las estaciones de scoring (`Station1Scoring`, `Station2Scoring`) ya manejan la version movil-tactil, asi que este componente es redundante.
+## Flujo propuesto
 
-### 2. Adaptar `JudgeScoringPanel` para movil
-- **`src/pages/judge/JudgeScoringPanel.tsx`** - Actualmente renderiza `DesktopJudgePanel`. Se adaptara para redirigir al flujo de estaciones moviles (`/estacion/X/scoring/:fightId`) en lugar de mostrar el panel desktop.
+```text
+/auth
+  |
+  v
+[Selector de Rol] -- 4 tarjetas visuales --
+  |
+  +--> Peleador    --> Email-first flow --> Registro --> /license/onboarding
+  +--> Gimnasio    --> Email-first flow --> Registro --> /gym/dashboard
+  +--> Juez        --> Email-first flow --> Registro --> /judge/...
+  +--> Admin       --> Email-first flow --> Login    --> /admin/dashboard
+  |
+  (Login existente: detecta rol automaticamente y redirige)
+```
 
-### 3. Desbloquear `AdminLayout` en movil
-- **`src/components/AdminLayout.tsx`** - Actualmente muestra "Acceso Restringido" en pantallas menores a 768px. Se eliminara ese bloqueo y se mostrara el sidebar como sheet/drawer en movil (el componente `Sidebar` de shadcn ya soporta esto nativamente con `useIsMobile`).
+## Experiencia del usuario
 
-### 4. Limpiar rutas en `App.tsx`
-- Quitar el wrapper `<DesktopOnlyRoute>` de la ruta `/judge/fight/:fightId`.
-- Quitar el import de `DesktopOnlyRoute`.
+### Paso 0: Selector de tipo (solo para nuevos)
+- 4 tarjetas con iconos claros: Peleador (guantes), Gimnasio (edificio), Juez (balanza), Administrador (escudo)
+- Diseno mobile-first con cuadricula 2x2
+- Boton "Ya tengo cuenta" abajo que salta directo al paso de email (login detecta rol automaticamente)
 
-### 5. Simplificar `use-mobile.tsx`
-- Mantener `useIsMobile` (lo usa el sidebar de shadcn).
-- Evaluar si `useBreakpoints` con `isDesktop` sigue siendo necesario. Si `AdminLayout` ya no lo necesita, simplificar.
+### Paso 1: Email (igual que ahora)
+- Si el email ya existe -> login con contrasena, redireccion inteligente segun roles del usuario
+- Si el email no existe -> registro con contrasena
 
----
+### Paso 2: Post-registro (segun tipo seleccionado)
+- **Peleador**: redirige a `/license/onboarding` (flujo existente con datos deportivos + documentos)
+- **Gimnasio**: redirige a un nuevo onboarding simplificado `/gym/onboarding` (nombre del gym, direccion, telefono)
+- **Juez**: redirige a `/judge/onboarding` (datos basicos + certificaciones)
+- **Admin**: no se auto-registra, solo login. Los admins son asignados manualmente.
 
-## Detalle tecnico
+### Login (usuarios existentes)
+- El sistema detecta automaticamente los roles del usuario en `user_roles` y `fighter_licenses`
+- Redirige al dashboard correspondiente (prioridad: admin > gym > fighter > judge)
 
-### Archivos a eliminar
-- `src/hooks/useDeviceRestriction.tsx`
-- `src/components/DesktopOnlyRoute.tsx`
-- `src/components/judge/DesktopJudgePanel.tsx`
+## Cambios tecnicos
 
-### Archivos a editar
+### Archivos a modificar
+
 | Archivo | Cambio |
 |---------|--------|
-| `src/App.tsx` | Quitar import y wrapper `DesktopOnlyRoute` |
-| `src/components/AdminLayout.tsx` | Eliminar bloqueo movil, mostrar layout completo en todas las pantallas |
-| `src/pages/judge/JudgeScoringPanel.tsx` | Redirigir al flujo de estaciones moviles en vez de renderizar `DesktopJudgePanel` |
+| `src/pages/Auth.tsx` | Reescribir: agregar paso 0 con selector de rol, unificar logica de LicenseAuth, post-registro inteligente |
+| `src/pages/AuthCallback.tsx` | Actualizar `determineUserDestination` para considerar roles de gym/judge ademas de fighter |
+| `src/App.tsx` | Redirigir `/license/auth` a `/auth?role=fighter`, agregar rutas de onboarding para gym y judge |
 
-### Lo que NO se toca
-- **Clases CSS responsivas** (`md:grid-cols-2`, `lg:grid-cols-3`, etc.) - Estas son responsive design normal y benefician la experiencia en cualquier pantalla. No son "desktop-only".
-- **`SocialSidebar`** (`hidden lg:block`) - Es un sidebar complementario que se oculta en movil. Es correcto. El contenido principal sigue accesible.
-- **`Header`** - Ya tiene navegacion movil con hamburger menu. Funciona bien.
-- **Hooks de red/performance** - `useNetworkStatus`, `useOptimizedQuery`, etc. son utiles para movil.
+### Archivos nuevos
 
-### Resultado
-~200 lineas de codigo eliminadas, 0 restricciones de acceso bloqueando usuarios moviles, panel admin accesible desde cualquier dispositivo.
+| Archivo | Proposito |
+|---------|-----------|
+| `src/pages/gym/GymOnboarding.tsx` | Formulario simple: nombre del gimnasio, direccion, telefono, logo. Crea registro en `gyms` y asigna rol `gym_owner` |
+| `src/pages/judge/JudgeOnboarding.tsx` | Formulario simple: nombre, certificaciones, experiencia. Asigna rol `official_judge` |
+
+### Archivos a eliminar
+
+| Archivo | Razon |
+|---------|-------|
+| `src/pages/license/LicenseAuth.tsx` | Logica absorbida por el nuevo `Auth.tsx` unificado. La ruta `/license/auth` redirige a `/auth?role=fighter` |
+
+### Logica de redireccion post-login
+
+El `Auth.tsx` unificado consultara `user_roles` para determinar el destino:
+
+1. Si tiene rol `admin` o `super_admin` -> `/admin/dashboard`
+2. Si tiene rol `gym_owner` o `gym_coach` -> `/gym/dashboard`
+3. Si tiene rol `official_judge` -> `/judge/scorecard` (o estacion asignada)
+4. Si tiene `fighter_license` activa -> `/license/dashboard`
+5. Si tiene `fighter_license` pendiente -> `/license/pending`
+6. Default -> `/` (landing publica)
+
+### Almacenamiento del tipo seleccionado
+
+- Se guarda `selectedRole` en `localStorage` durante el registro
+- `AuthCallback.tsx` lo lee para redirigir al onboarding correcto despues de confirmar email
+- Se limpia despues del primer login exitoso
+
+## Lo que NO cambia
+
+- El onboarding de peleador (`LicenseOnboarding.tsx`) permanece intacto
+- La tabla `user_roles` y el sistema RBAC existente no se modifican
+- Los dashboards de cada portal siguen funcionando igual
+- El flujo de invitaciones de peleador sigue operando via query params
+
