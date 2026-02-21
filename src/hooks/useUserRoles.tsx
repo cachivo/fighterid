@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'admin' | 'moderator' | 'user';
+type AppRole = 'admin' | 'moderator' | 'user' | 'judge' | 'super_admin' | 'license_officer' | 'technical_coordinator' | 'auditor' | 'promoter' | 'official_judge' | 'official_referee' | 'official_doctor' | 'official_timekeeper' | 'official_inspector' | 'gym_owner' | 'gym_coach' | 'gym_assistant';
 
 interface UserRoleData {
   id: string;

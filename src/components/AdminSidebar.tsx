@@ -62,7 +62,8 @@ const superAdminItems = [
 ];
 
 const fightControlItems = [
-  { title: 'Jueces & Oficiales', url: '/admin/judges', icon: Gavel },
+  { title: 'Oficiales del Sistema', url: '/admin/officials', icon: Gavel },
+  { title: 'Jueces (Legacy)', url: '/admin/judges', icon: Gavel },
   { title: 'Estaciones de Scoring', url: '/admin/scoring/stations', icon: Monitor },
   { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
   { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
