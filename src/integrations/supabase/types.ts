@@ -3661,6 +3661,152 @@ export type Database = {
           },
         ]
       }
+      official_certifications: {
+        Row: {
+          active: boolean | null
+          certification_type: string
+          created_at: string
+          discipline: string
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          issue_date: string
+          issuing_body: string
+          official_id: string
+          updated_at: string
+          verified: boolean | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          certification_type: string
+          created_at?: string
+          discipline: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date: string
+          issuing_body: string
+          official_id: string
+          updated_at?: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          certification_type?: string
+          created_at?: string
+          discipline?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string
+          issuing_body?: string
+          official_id?: string
+          updated_at?: string
+          verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_certifications_official_id_fkey"
+            columns: ["official_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      officials: {
+        Row: {
+          active: boolean | null
+          available: boolean | null
+          average_rating: number | null
+          certification_date: string | null
+          certification_expires: string | null
+          certification_level: string
+          certified_by: string | null
+          country: string | null
+          created_at: string
+          document_id: string | null
+          email: string | null
+          first_name: string
+          id: string
+          last_name: string
+          legacy_judge_id: string | null
+          license_number: string | null
+          official_type: string
+          organization_id: string | null
+          phone: string | null
+          photo_url: string | null
+          specialization: string[] | null
+          suspended: boolean | null
+          total_events_worked: number | null
+          total_fights_worked: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          available?: boolean | null
+          average_rating?: number | null
+          certification_date?: string | null
+          certification_expires?: string | null
+          certification_level?: string
+          certified_by?: string | null
+          country?: string | null
+          created_at?: string
+          document_id?: string | null
+          email?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          legacy_judge_id?: string | null
+          license_number?: string | null
+          official_type: string
+          organization_id?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          specialization?: string[] | null
+          suspended?: boolean | null
+          total_events_worked?: number | null
+          total_fights_worked?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          available?: boolean | null
+          average_rating?: number | null
+          certification_date?: string | null
+          certification_expires?: string | null
+          certification_level?: string
+          certified_by?: string | null
+          country?: string | null
+          created_at?: string
+          document_id?: string | null
+          email?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          legacy_judge_id?: string | null
+          license_number?: string | null
+          official_type?: string
+          organization_id?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          specialization?: string[] | null
+          suspended?: boolean | null
+          total_events_worked?: number | null
+          total_fights_worked?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       organizations: {
         Row: {
           country: string | null
@@ -5535,6 +5681,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_official_role: {
+        Args: { _official_type: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5758,7 +5908,24 @@ export type Database = {
           }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "judge" | "super_admin"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "judge"
+        | "super_admin"
+        | "license_officer"
+        | "technical_coordinator"
+        | "auditor"
+        | "promoter"
+        | "official_judge"
+        | "official_referee"
+        | "official_doctor"
+        | "official_timekeeper"
+        | "official_inspector"
+        | "gym_owner"
+        | "gym_coach"
+        | "gym_assistant"
       corner: "red" | "blue"
       discipline:
         | "MMA"
@@ -5940,7 +6107,25 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "judge", "super_admin"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "judge",
+        "super_admin",
+        "license_officer",
+        "technical_coordinator",
+        "auditor",
+        "promoter",
+        "official_judge",
+        "official_referee",
+        "official_doctor",
+        "official_timekeeper",
+        "official_inspector",
+        "gym_owner",
+        "gym_coach",
+        "gym_assistant",
+      ],
       corner: ["red", "blue"],
       discipline: [
         "MMA",

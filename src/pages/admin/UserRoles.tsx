@@ -15,17 +15,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { RoleEditDialog } from '@/components/admin/roles/RoleEditDialog';
 import { DeleteUserDialog } from '@/components/admin/roles/DeleteUserDialog';
 
-type AppRole = 'admin' | 'moderator' | 'user';
-type RoleFilter = AppRole | 'all' | 'none';
+// Use string type for roles to avoid conflicts with hook's internal AppRole type
+type RoleFilter = string;
 
-interface UserRoleData {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  roles: AppRole[];
-  created_at: string;
-}
+const ROLE_BADGE_CONFIG: Record<string, { variant: "default" | "secondary" | "outline"; icon: typeof Shield }> = {
+  admin: { variant: "default", icon: Shield },
+  super_admin: { variant: "default", icon: Shield },
+  moderator: { variant: "secondary", icon: UserCog },
+  user: { variant: "outline", icon: User },
+  judge: { variant: "secondary", icon: UserCog },
+  license_officer: { variant: "secondary", icon: Shield },
+  technical_coordinator: { variant: "secondary", icon: UserCog },
+  auditor: { variant: "outline", icon: User },
+  promoter: { variant: "outline", icon: User },
+  official_judge: { variant: "secondary", icon: UserCog },
+  official_referee: { variant: "secondary", icon: Shield },
+  official_doctor: { variant: "secondary", icon: UserCog },
+  official_timekeeper: { variant: "outline", icon: User },
+  official_inspector: { variant: "outline", icon: User },
+  gym_owner: { variant: "secondary", icon: UserCog },
+  gym_coach: { variant: "outline", icon: User },
+  gym_assistant: { variant: "outline", icon: User },
+};
 
 const ROLE_FILTER_CONFIG: { value: RoleFilter; label: string; icon: typeof Shield }[] = [
   { value: 'all', label: 'Todos', icon: Users },
@@ -60,20 +71,16 @@ export default function UserRoles() {
         user.last_name?.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q);
       const matchesRole = roleFilter === 'all' ||
-        (roleFilter === 'none' ? user.roles.length === 0 : user.roles.includes(roleFilter));
+        (roleFilter === 'none' ? user.roles.length === 0 : user.roles.includes(roleFilter as any));
       return matchesSearch && matchesRole;
     });
   }, [users, searchQuery, roleFilter]);
 
-  const getRoleBadge = (role: AppRole) => {
-    const config: Record<AppRole, { variant: "default" | "secondary" | "outline"; icon: typeof Shield }> = {
-      admin: { variant: "default", icon: Shield },
-      moderator: { variant: "secondary", icon: UserCog },
-      user: { variant: "outline", icon: User }
-    };
-    const { variant, icon: Icon } = config[role];
+  const getRoleBadge = (role: string) => {
+    const cfg = ROLE_BADGE_CONFIG[role] || { variant: "outline" as const, icon: User };
+    const Icon = cfg.icon;
     return (
-      <Badge key={role} variant={variant} className="gap-1">
+      <Badge key={role} variant={cfg.variant} className="gap-1">
         <Icon className="w-3 h-3" />
         {role}
       </Badge>
@@ -177,12 +184,12 @@ export default function UserRoles() {
 
                 <div className="flex gap-2">
                   <RoleEditDialog
-                    user={user}
+                    user={user as any}
                     currentUserId={currentUser?.id || ''}
                     onRolesUpdated={refetch}
                   />
                   <DeleteUserDialog
-                    user={user}
+                    user={user as any}
                     currentUserId={currentUser?.id || ''}
                     onUserDeleted={refetch}
                   />

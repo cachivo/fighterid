@@ -7,7 +7,7 @@ import { UserCog, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'admin' | 'moderator' | 'user';
+type AppRole = 'admin' | 'moderator' | 'user' | 'judge' | 'super_admin' | 'license_officer' | 'technical_coordinator' | 'auditor' | 'promoter' | 'official_judge' | 'official_referee' | 'official_doctor' | 'official_timekeeper' | 'official_inspector' | 'gym_owner' | 'gym_coach' | 'gym_assistant';
 
 interface UserRoleData {
   id: string;
@@ -24,10 +24,42 @@ interface RoleEditDialogProps {
   onRolesUpdated: () => void;
 }
 
-const ROLES: { value: AppRole; label: string }[] = [
-  { value: 'admin', label: 'Administrador' },
-  { value: 'moderator', label: 'Moderador' },
-  { value: 'user', label: 'Usuario' },
+const ROLE_GROUPS: { group: string; roles: { value: AppRole; label: string }[] }[] = [
+  {
+    group: 'Sistema',
+    roles: [
+      { value: 'admin', label: 'Administrador' },
+      { value: 'moderator', label: 'Moderador' },
+      { value: 'user', label: 'Usuario' },
+    ],
+  },
+  {
+    group: 'Administración Especial',
+    roles: [
+      { value: 'license_officer', label: 'Oficial de Licencias' },
+      { value: 'technical_coordinator', label: 'Coordinador Técnico' },
+      { value: 'auditor', label: 'Auditor' },
+      { value: 'promoter', label: 'Promotor' },
+    ],
+  },
+  {
+    group: 'Oficiales',
+    roles: [
+      { value: 'official_judge', label: 'Juez Oficial' },
+      { value: 'official_referee', label: 'Árbitro Oficial' },
+      { value: 'official_doctor', label: 'Médico Oficial' },
+      { value: 'official_timekeeper', label: 'Cronometrador' },
+      { value: 'official_inspector', label: 'Inspector' },
+    ],
+  },
+  {
+    group: 'Gimnasios',
+    roles: [
+      { value: 'gym_owner', label: 'Dueño de Gym' },
+      { value: 'gym_coach', label: 'Entrenador' },
+      { value: 'gym_assistant', label: 'Asistente' },
+    ],
+  },
 ];
 
 export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEditDialogProps) {
@@ -91,22 +123,27 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
         <DialogHeader>
           <DialogTitle>Editar roles de {user.first_name} {user.last_name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-3">
-            {ROLES.map(({ value, label }) => (
-              <div key={value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`role-${value}`}
-                  checked={selectedRoles.includes(value)}
-                  onCheckedChange={(checked) => handleRoleToggle(value, checked as boolean)}
-                  disabled={isLoading}
-                />
-                <Label htmlFor={`role-${value}`} className="text-sm font-medium cursor-pointer">
-                  {label}
-                </Label>
+        <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
+          {ROLE_GROUPS.map(({ group, roles }) => (
+            <div key={group}>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{group}</p>
+              <div className="space-y-2 ml-1">
+                {roles.map(({ value, label }) => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`role-${value}`}
+                      checked={selectedRoles.includes(value)}
+                      onCheckedChange={(checked) => handleRoleToggle(value, checked as boolean)}
+                      disabled={isLoading}
+                    />
+                    <Label htmlFor={`role-${value}`} className="text-sm font-medium cursor-pointer">
+                      {label}
+                    </Label>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
           {isCurrentUser && selectedRoles.includes('admin') && (
             <p className="text-sm text-muted-foreground">
               No puedes remover tu propio rol de administrador
