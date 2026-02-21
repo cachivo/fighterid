@@ -11,7 +11,7 @@ import LicenseProtectedRoute from '@/components/LicenseProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
-import { DesktopOnlyRoute } from '@/components/DesktopOnlyRoute';
+
 import { JudgeProtectedRoute } from '@/components/JudgeProtectedRoute';
 import { FighterLicense } from './pages/FighterLicense';
 import UserProfile from './pages/UserProfile';
@@ -411,13 +411,11 @@ const App = () => {
                 </Suspense>
               } />
               
-              {/* Desktop Scoring Panel - Ahora usa validación de sesión interna */}
+              {/* Scoring Panel - Redirige al flujo de estaciones móviles */}
               <Route path="/judge/fight/:fightId" element={
-                <DesktopOnlyRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <JudgeScoringPanel />
-                  </Suspense>
-                </DesktopOnlyRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <JudgeScoringPanel />
+                </Suspense>
               } />
               
               <Route path="/referee/control/:fightId" element={

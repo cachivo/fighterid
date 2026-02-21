@@ -1,31 +1,18 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar } from './AdminSidebar';
 import { Link } from 'react-router-dom';
-import { useBreakpoints } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const { isTablet } = useBreakpoints();
+  const isMobile = useIsMobile();
 
   return (
-    <SidebarProvider defaultOpen={!isTablet}>
-      {/* Desktop-only warning for small screens */}
-      {/* Mobile-only warning (< 768px) */}
-      <div className="md:hidden min-h-screen w-screen flex items-center justify-center p-4 bg-background overflow-hidden">
-        <div className="text-center space-y-4 max-w-[90vw]">
-          <h1 className="text-xl font-bold text-destructive">Acceso Restringido</h1>
-          <p className="text-sm text-muted-foreground">
-            El panel de administración solo está disponible en tablets y computadores. 
-            Por favor accede desde un dispositivo con pantalla más grande.
-          </p>
-        </div>
-      </div>
-
-      {/* Tablet & Desktop layout (>= 768px) */}
-      <div className="hidden md:flex min-h-screen w-full overflow-hidden">
+    <SidebarProvider defaultOpen={!isMobile}>
+      <div className="flex min-h-screen w-full overflow-hidden">
         <AdminSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-14 border-b bg-background flex items-center px-4 shrink-0">
