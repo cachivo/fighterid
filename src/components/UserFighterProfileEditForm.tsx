@@ -693,7 +693,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   name="stance"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Postura</FormLabel>
+                      <FormLabel>Guardia</FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
                         value={field.value || '__none__'}

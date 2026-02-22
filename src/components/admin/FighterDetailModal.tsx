@@ -241,7 +241,7 @@ export const FighterDetailModal = ({ fighterId, open, onClose }: FighterDetailMo
                         <InfoItem icon={Target} label="Disciplina" value={data.profile?.discipline} />
                         <InfoItem icon={Activity} label="Estilo de pelea" value={data.profile?.fighting_style} />
                         <InfoItem icon={MapPin} label="Gimnasio" value={data.profile?.gym_name} />
-                        <InfoItem icon={Activity} label="Stance" value={data.profile?.stance} />
+                        <InfoItem icon={Activity} label="Guardia" value={data.profile?.stance} />
                         <InfoItem icon={FileText} label="Tipo de récord" value={data.profile?.record_type} />
                         <InfoItem icon={Weight} label="Peso" value={data.profile?.weight_kg ? `${data.profile.weight_kg} kg` : null} />
                         <InfoItem icon={Ruler} label="Altura" value={data.profile?.height_cm ? `${data.profile.height_cm} cm` : null} />

@@ -566,7 +566,7 @@ export default function ValidacionLicencias() {
                            </div>
 
                            <div className="space-y-2">
-                             <Label>Stance</Label>
+                             <Label>Guardia</Label>
                              <p className="text-sm bg-muted/50 p-2 rounded">
                                {reviewingLicense.fighter?.stance || 'No proporcionado'}
                              </p>

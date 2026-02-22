@@ -624,7 +624,7 @@ export function FighterEditModal({ fighter, open, onClose }: FighterEditModalPro
                     )}
 
                     <div>
-                      <Label htmlFor="stance">Postura</Label>
+                      <Label htmlFor="stance">Guardia</Label>
                       <Select value={formData.stance} onValueChange={(value) => handleChange('stance', value)}>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar postura" />
