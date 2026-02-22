@@ -1,134 +1,121 @@
 
 
-# Flujo de Creacion de Gimnasios con Invitacion al Main Coach
+# Correccion de Flujo de Onboarding por Modulo + Solucion de Emails en Spam
 
-## Resumen
+## Problemas Identificados
 
-Cuando el admin crea un gimnasio desde el panel, ingresa el email del entrenador principal. El sistema:
-1. Crea el gimnasio
-2. Envia un correo de invitacion al entrenador
-3. Al confirmar su email y registrarse, el entrenador selecciona "Gimnasio" en la pantalla de roles
-4. Se redirige automaticamente al dashboard de su gimnasio
-5. Si el entrenador tambien pelea, puede seleccionar "Peleador" en otra sesion para acceder a ese modulo
+### Problema 1: Gimnasio redirige al formulario de Peleador
+Cuando un usuario selecciona "Gimnasio" y se registra, el `AuthCallback` lo envia a `/gym/onboarding` (si no hay sesion) o a `resolveGymDestination()` (si hay sesion). Pero `resolveGymDestination()` busca en `gym_staff` por `user_id` -- y como el usuario es nuevo, no tiene registro ahi, entonces lo manda a `/gimnasios` (pagina publica). Si la sesion no se establece en el callback, lo manda a `/gym/onboarding` que esta protegido por `SuperAdminRoute`, asi que un usuario normal no puede acceder.
+
+**Causa raiz**: El onboarding de gimnasio (`/gym/onboarding`) esta envuelto en `SuperAdminRoute` en App.tsx linea 233, bloqueando el acceso a usuarios nuevos. Ademas, el flujo normal para gimnasios nuevos deberia ser a traves de la invitacion del admin, no auto-registro.
+
+### Problema 2: Juez cae al formulario de Peleador
+Cuando un juez confirma su email sin sesion activa, el callback linea 49 lo envia a `/judge/onboarding` correctamente. Pero si la sesion SI se establece, `determineUserDestination()` cae al default (`resolveFighterDestination`) que lo manda a `/license/onboarding` -- el formulario de peleador.
+
+### Problema 3: No hay deteccion de cuentas con multiples roles
+El sistema no verifica si un usuario ya tiene un perfil de peleador al registrarse como gimnasio o juez, ni viceversa. Cada modulo opera de forma independiente.
+
+### Problema 4: Emails caen en spam
+
+Esto es un problema de configuracion de dominio, **no de codigo**. El sistema ya usa `notificaciones@fighter-id.org` como remitente. Para que los emails no caigan en spam se necesita configurar registros DNS en el proveedor de dominio de `fighter-id.org`.
 
 ---
 
-## Cambios Necesarios
+## Plan de Implementacion
 
-### 1. Nueva tabla `gym_invitations`
+### Paso 1: Corregir rutas en App.tsx
 
-Similar a `fighter_invitations` pero especifica para gimnasios:
+- Remover `SuperAdminRoute` del wrapper de `/gym/onboarding` para que cualquier usuario autenticado pueda acceder
+- La creacion de gimnasios desde el admin panel sigue protegida por `AdminProtectedRoute`
+- El onboarding es solo para usuarios invitados por el admin
 
-```text
-gym_invitations
-  id           uuid PK
-  gym_id       uuid FK -> gyms.id
-  email        text NOT NULL
-  coach_name   text
-  token        text UNIQUE
-  status       text (pending/accepted/expired/cancelled)
-  invited_by   uuid FK -> auth.users
-  created_at   timestamptz
-  expires_at   timestamptz
-  accepted_at  timestamptz
-```
+### Paso 2: Corregir logica de redireccion en AuthCallback.tsx
 
-### 2. Nueva Edge Function: `send-gym-invitation`
+Actualizar `determineUserDestination()` para que cuando `savedRole === 'gym'` y el usuario no tiene `gym_staff`, lo redirija correctamente:
+- Si tiene invitacion de gimnasio pendiente: procesarla
+- Si no tiene gym_staff: mostrar mensaje de que necesita una invitacion del admin
 
-Basada en la estructura existente de `send-fighter-invitation`:
-- Recibe: `gymId`, `email`, `coachName`
-- Crea registro en `gym_invitations`
-- Envia email con enlace `https://fighterid.lovable.app/auth?role=gym&invite_gym=TOKEN`
-- Maneja duplicados y reenvios igual que fighter invitations
-- Usa el sistema compartido de email (`_shared/email-config.ts`)
+Actualizar el bloque sin sesion (linea 44-53) para manejar correctamente cada rol.
 
-### 3. Modificar formulario "Crear Gimnasio" en `GimnasiosAdmin.tsx`
+### Paso 3: Corregir logica de redireccion en Auth.tsx
 
-Agregar campo obligatorio:
-- **Email del Entrenador Principal** (campo nuevo)
-- **Nombre del Entrenador** (campo nuevo, opcional)
+Actualizar `routeAuthenticatedUser()` para que:
+- `gym` sin `gym_staff` -> muestre un mensaje informativo en vez de redirigir al formulario de peleador
+- `judge` sin registro -> vaya a `/judge/onboarding` correctamente
+- `fighter` -> siga el flujo actual de licencia
 
-Al enviar el formulario:
-1. Crear el gimnasio (como ahora)
-2. Invocar `send-gym-invitation` con el email y gymId
-3. Mostrar confirmacion de que se envio la invitacion
+### Paso 4: Crear pagina informativa para gym sin invitacion
 
-### 4. Modificar flujo de registro en `Auth.tsx`
+Crear una pagina simple `/gym/pending-invitation` que muestre:
+- "Tu cuenta esta lista. Un administrador te vinculara a tu gimnasio."
+- Contacto del admin para solicitar vinculacion
 
-Detectar parametro `invite_gym` en la URL:
-- Pre-seleccionar rol "Gimnasio"
-- Al registrarse y confirmar email, vincular automaticamente:
-  - Crear `app_user` si no existe
-  - Insertar en `gym_staff` con `role: 'OWNER'`
-  - Asignar rol `gym_owner` en `user_roles`
-  - Actualizar `gym_invitations.status = 'accepted'`
-- Redirigir al dashboard del gimnasio
+### Paso 5: Emails en Spam - Acciones Requeridas
 
-### 5. Caso: entrenador que tambien pelea
+**Esto NO se soluciona con codigo.** Se necesita configurar en el proveedor DNS de `fighter-id.org`:
 
-No requiere cambios adicionales. El flujo ya implementado en la sesion anterior lo maneja:
-- Al iniciar sesion, el entrenador ve la pantalla de seleccion de modulo
-- Si elige "Gimnasio" -> va al dashboard del gym
-- Si elige "Peleador" -> va al flujo de licencia de peleador
-- Puede alternar entre modulos cerrando sesion y seleccionando otro
+1. **SPF Record** (TXT): Autorizar a Resend como servidor de envio
+2. **DKIM Record** (CNAME): Firma digital para autenticar emails
+3. **DMARC Record** (TXT): Politica de autenticacion de email
+
+Estos registros se obtienen del dashboard de Resend (resend.com) en la seccion "Domains" y se agregan en el panel DNS del proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc.).
+
+---
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/App.tsx` | Remover `SuperAdminRoute` de `/gym/onboarding` |
+| `src/pages/AuthCallback.tsx` | Corregir redireccion para gym y judge |
+| `src/pages/Auth.tsx` | Corregir `routeAuthenticatedUser` para gym sin staff |
+| `src/pages/gym/GymOnboarding.tsx` | Agregar verificacion de invitacion pendiente |
+
+## Archivo Nuevo
+
+| Archivo | Descripcion |
+|---------|-------------|
+| `src/pages/gym/GymPendingInvitation.tsx` | Pagina informativa para usuarios gym sin invitacion |
 
 ---
 
 ## Detalle Tecnico
 
-### Archivos a Crear
-
-| Archivo | Descripcion |
-|---------|-------------|
-| `supabase/functions/send-gym-invitation/index.ts` | Edge function para enviar invitacion |
-| Migracion SQL | Tabla `gym_invitations` + RLS |
-
-### Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/admin/GimnasiosAdmin.tsx` | Agregar campos email/nombre del entrenador al formulario de creacion |
-| `src/pages/Auth.tsx` | Detectar `invite_gym` param, vincular coach al gym post-registro |
-| `src/pages/AuthCallback.tsx` | Mismo manejo de `invite_gym` para el callback de confirmacion de email |
-
-### Flujo Completo
+### AuthCallback - Redireccion corregida
 
 ```text
-Admin crea gimnasio
-  |
-  v
-Ingresa email del entrenador -> Se crea gym + se envia invitacion
-  |
-  v
-Entrenador recibe email -> Click en enlace
-  |
-  v
-Llega a /auth?role=gym&invite_gym=TOKEN
-  |
-  +--> Si es usuario nuevo: se registra, confirma email
-  |    -> Se vincula automaticamente como OWNER del gym
-  |    -> Redirige a /gym/:id/dashboard
-  |
-  +--> Si ya tiene cuenta: inicia sesion
-       -> Se vincula como OWNER del gym
-       -> Redirige a /gym/:id/dashboard
+determineUserDestination(authUserId):
+  savedRole = localStorage
+  
+  if savedRole == 'gym':
+    -> buscar gym_staff activo
+    -> SI tiene: /gym/:id/dashboard  
+    -> NO tiene: /gym/pending-invitation
+    
+  if savedRole == 'judge':
+    -> buscar en judges table
+    -> SI tiene: / (home, esperando aprobacion)
+    -> NO tiene: /judge/onboarding
+    
+  if savedRole == 'fighter':
+    -> flujo actual (license/onboarding -> pending -> dashboard)
 ```
 
-### Edge Function: `send-gym-invitation`
+### App.tsx - Ruta corregida
 
-Estructura identica a `send-fighter-invitation`:
-- Verificar autenticacion y permisos de admin
-- Validar que el gym existe
-- Crear/actualizar registro en `gym_invitations`
-- Enviar email usando `sendEmailWithFallback` con template de Fighter ID
-- Manejar duplicados: reenviar si expiro, rechazar si ya fue aceptada
+```text
+Antes:  ProtectedRoute > SuperAdminRoute > GymOnboarding
+Ahora:  ProtectedRoute > GymOnboarding
+```
 
-### Tabla `gym_invitations` - RLS
+### Emails - Pasos en Resend Dashboard
 
-- SELECT: solo admins y el usuario invitado (por email match)
-- INSERT: solo admins
-- UPDATE: solo admins o el usuario aceptando su propia invitacion
-- DELETE: solo admins
+1. Ir a resend.com/domains
+2. Agregar dominio `fighter-id.org`
+3. Copiar los registros DNS que Resend proporciona
+4. Agregar esos registros en el panel DNS del proveedor
+5. Esperar verificacion (puede tomar 24-48 horas)
+6. Una vez verificado, los emails ya no caeran en spam
 
-**Total: 2 archivos nuevos, 3 archivos modificados, 1 migracion SQL**
+**Importante**: Si el dominio `fighter-id.org` ya esta verificado en Resend, el problema podria ser que la API key no esta scoped a ese dominio. En ese caso, crear una nueva API key en Resend scoped a `fighter-id.org` y actualizar el secret `RESEND_API_KEY`.
 
