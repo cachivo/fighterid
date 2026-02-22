@@ -145,7 +145,8 @@ async function resolveGymDestination(authUserId: string): Promise<string> {
     .eq('user_id', authUserId)
     .eq('active', true)
     .maybeSingle();
-  return staffRecord ? `/gym/${staffRecord.gym_id}/dashboard` : '/gimnasios';
+  if (staffRecord) return `/gym/${staffRecord.gym_id}/dashboard`;
+  return '/gym/pending-invitation';
 }
 
 async function resolveFighterDestination(authUserId: string): Promise<string> {

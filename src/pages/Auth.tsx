@@ -126,7 +126,7 @@ export default function Auth() {
       .eq('user_id', user!.id)
       .eq('active', true)
       .maybeSingle();
-    navigate(staffRecord ? `/gym/${staffRecord.gym_id}/dashboard` : '/gimnasios', { replace: true });
+    navigate(staffRecord ? `/gym/${staffRecord.gym_id}/dashboard` : '/gym/pending-invitation', { replace: true });
   };
 
   // Helper: route to fighter license flow
