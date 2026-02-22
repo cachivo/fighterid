@@ -29,7 +29,11 @@ const roleLabels: Record<string, string> = {
 function getStaffDisplayName(user: { first_name: string | null; last_name: string | null; handle?: string }) {
   const full = [user.first_name, user.last_name].filter(Boolean).join(' ');
   if (full) return full;
-  if (user.handle) return `@${user.handle}`;
+  if (user.handle) {
+    // Si el handle es un email, mostrar solo la parte antes del @
+    if (user.handle.includes('@')) return user.handle.split('@')[0];
+    return user.handle;
+  }
   return 'Sin nombre';
 }
 
