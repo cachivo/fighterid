@@ -98,7 +98,13 @@ export function AdminGymCard({ gym, readOnly = false }: AdminGymCardProps) {
                 </p>
               )}
             </div>
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
+              {!gym.owner_id && (
+                <Badge variant="destructive" className="flex items-center gap-1 text-[10px]">
+                  <AlertCircle className="h-3 w-3" />
+                  Sin Main Coach
+                </Badge>
+              )}
               {typeof fighterCount === 'number' && (
                 <Badge variant="outline" className="flex items-center gap-1">
                   <Swords className="h-3 w-3" />
