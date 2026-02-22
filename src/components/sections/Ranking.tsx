@@ -300,36 +300,38 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
 
                         {/* Fighter Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 flex-wrap mb-0.5 xs:mb-1">
-                            <h4 className="text-xs xs:text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors truncate max-w-[100px] xs:max-w-[140px] sm:max-w-none">
+                          {/* Line 1: Name + Champion badge */}
+                          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 mb-0.5">
+                            <h4 className="text-xs xs:text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors truncate">
                               {ranking.fighter.first_name} {ranking.fighter.last_name}
                             </h4>
                             {ranking.is_champion && (
-                              <Badge className="bg-yellow-500 text-yellow-950 text-[8px] xs:text-[10px] flex items-center gap-0.5 px-1 xs:px-1.5">
+                              <Badge className="bg-yellow-500 text-yellow-950 text-[8px] xs:text-[10px] flex items-center gap-0.5 px-1 xs:px-1.5 shrink-0">
                                 <Crown className="h-2.5 w-2.5 xs:h-3 xs:w-3" /> 
                                 <span className="hidden xs:inline">CAMPEÓN</span>
                                 <span className="xs:hidden">🏆</span>
                               </Badge>
                             )}
                           </div>
-                          {ranking.fighter.nickname && (
-                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium truncate block mb-0.5">
-                              "{ranking.fighter.nickname}"
-                            </span>
-                          )}
-                          
-                          <div className="flex flex-wrap items-center gap-1 xs:gap-1.5 sm:gap-2">
-                            <Badge variant="outline" className="text-[9px] xs:text-[10px] sm:text-xs border-purple-neon-primary/50 text-purple-neon-primary px-1 xs:px-1.5">
+                          {/* Line 2: Nickname (min-height for uniform cards) */}
+                          <div className="min-h-[14px] mb-0.5">
+                            {ranking.fighter.nickname && (
+                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium italic truncate block">
+                                "{ranking.fighter.nickname}"
+                              </span>
+                            )}
+                          </div>
+                          {/* Line 3: Division + Gym + Record */}
+                          <div className="flex items-center gap-1.5">
+                            <Badge variant="outline" className="text-[9px] xs:text-[10px] sm:text-xs border-purple-neon-primary/50 text-purple-neon-primary px-1 xs:px-1.5 shrink-0">
                               {getWeightClassLabel(ranking.weight_class)}
                             </Badge>
-                            {/* Gym name */}
-                            {(ranking.fighter.gym_name) && (
-                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 truncate max-w-[80px] xs:max-w-[100px] sm:max-w-none">
+                            {ranking.fighter.gym_name && (
+                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 truncate flex-1 min-w-0">
                                 {ranking.fighter.gym_name}
                               </span>
                             )}
-                            {/* Fighter Record - Always visible */}
-                            <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono">
+                            <span className="text-[9px] xs:text-[10px] sm:text-xs font-mono shrink-0 ml-auto">
                               <span className="text-green-400">{wins || 0}</span>
                               <span className="text-gray-500">-</span>
                               <span className="text-red-400">{losses || 0}</span>
