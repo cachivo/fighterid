@@ -1,90 +1,43 @@
 
 
-# Unificar Pagina de Autenticacion con Selector de Rol
+# Uniformar Tarjetas de Ranking
 
-Actualmente existen dos paginas de auth separadas (`/auth` y `/license/auth`) con logica duplicada. Vamos a crear una experiencia unificada en `/auth` donde el usuario selecciona su tipo de cuenta antes de registrarse o iniciar sesion.
+Las tarjetas del ranking actualmente se ven inconsistentes porque la informacion se acomoda de forma variable: algunos peleadores tienen nickname y otros no, los nombres de gimnasio se truncan a distintos anchos, y el record se mezcla con los badges en una sola linea que se desborda.
 
-## Flujo propuesto
+## Cambios
+
+### Estructura fija por filas en cada tarjeta (archivo: `src/components/sections/Ranking.tsx`)
+
+Reorganizar el contenido de cada tarjeta para que siempre ocupe las mismas lineas, sin importar si el peleador tiene nickname o gym:
 
 ```text
-/auth
-  |
-  v
-[Selector de Rol] -- 4 tarjetas visuales --
-  |
-  +--> Peleador    --> Email-first flow --> Registro --> /license/onboarding
-  +--> Gimnasio    --> Email-first flow --> Registro --> /gym/dashboard
-  +--> Juez        --> Email-first flow --> Registro --> /judge/...
-  +--> Admin       --> Email-first flow --> Login    --> /admin/dashboard
-  |
-  (Login existente: detecta rol automaticamente y redirige)
+Linea 1: Nombre completo + badge campeon (si aplica)
+Linea 2: Nickname (si existe, en italica; si no, se omite pero el espacio se mantiene con min-height)
+Linea 3: [Badge division] [Gym name] [Record W-L-D]
 ```
 
-## Experiencia del usuario
+Cambios especificos:
 
-### Paso 0: Selector de tipo (solo para nuevos)
-- 4 tarjetas con iconos claros: Peleador (guantes), Gimnasio (edificio), Juez (balanza), Administrador (escudo)
-- Diseno mobile-first con cuadricula 2x2
-- Boton "Ya tengo cuenta" abajo que salta directo al paso de email (login detecta rol automaticamente)
+1. **Nombre del peleador**: Quitar `max-w-[100px]` y `truncate` del nombre. En movil, permitir que el nombre ocupe toda la linea con `text-ellipsis` solo si realmente no cabe.
 
-### Paso 1: Email (igual que ahora)
-- Si el email ya existe -> login con contrasena, redireccion inteligente segun roles del usuario
-- Si el email no existe -> registro con contrasena
+2. **Nickname**: Mantener un `min-h-[14px]` para que las tarjetas sin nickname no colapsen esa linea, manteniendo la alineacion vertical uniforme entre todas las tarjetas.
 
-### Paso 2: Post-registro (segun tipo seleccionado)
-- **Peleador**: redirige a `/license/onboarding` (flujo existente con datos deportivos + documentos)
-- **Gimnasio**: redirige a un nuevo onboarding simplificado `/gym/onboarding` (nombre del gym, direccion, telefono)
-- **Juez**: redirige a `/judge/onboarding` (datos basicos + certificaciones)
-- **Admin**: no se auto-registra, solo login. Los admins son asignados manualmente.
+3. **Fila de badges (division + gym + record)**: Usar `flex items-center gap-1.5` con anchos maximos consistentes para cada elemento:
+   - Division badge: ancho fijo con truncate
+   - Gym name: `flex-1 truncate` para que ocupe el espacio disponible sin empujar el record
+   - Record (W-L-D): `shrink-0 ml-auto` para que siempre quede alineado a la derecha de esa fila
 
-### Login (usuarios existentes)
-- El sistema detecta automaticamente los roles del usuario en `user_roles` y `fighter_licenses`
-- Redirige al dashboard correspondiente (prioridad: admin > gym > fighter > judge)
+4. **Puntos**: Ya estan bien posicionados a la derecha. Sin cambios.
 
-## Cambios tecnicos
+### Resultado visual esperado
 
-### Archivos a modificar
+Todas las tarjetas tendran exactamente la misma altura y estructura visual, con la informacion alineada en las mismas posiciones independientemente de los datos del peleador.
+
+## Detalle tecnico
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Auth.tsx` | Reescribir: agregar paso 0 con selector de rol, unificar logica de LicenseAuth, post-registro inteligente |
-| `src/pages/AuthCallback.tsx` | Actualizar `determineUserDestination` para considerar roles de gym/judge ademas de fighter |
-| `src/App.tsx` | Redirigir `/license/auth` a `/auth?role=fighter`, agregar rutas de onboarding para gym y judge |
+| `src/components/sections/Ranking.tsx` | Reestructurar lineas 301-340: separar nickname en su propia linea con min-height, fijar layout de badges, quitar truncates agresivos del nombre |
 
-### Archivos nuevos
-
-| Archivo | Proposito |
-|---------|-----------|
-| `src/pages/gym/GymOnboarding.tsx` | Formulario simple: nombre del gimnasio, direccion, telefono, logo. Crea registro en `gyms` y asigna rol `gym_owner` |
-| `src/pages/judge/JudgeOnboarding.tsx` | Formulario simple: nombre, certificaciones, experiencia. Asigna rol `official_judge` |
-
-### Archivos a eliminar
-
-| Archivo | Razon |
-|---------|-------|
-| `src/pages/license/LicenseAuth.tsx` | Logica absorbida por el nuevo `Auth.tsx` unificado. La ruta `/license/auth` redirige a `/auth?role=fighter` |
-
-### Logica de redireccion post-login
-
-El `Auth.tsx` unificado consultara `user_roles` para determinar el destino:
-
-1. Si tiene rol `admin` o `super_admin` -> `/admin/dashboard`
-2. Si tiene rol `gym_owner` o `gym_coach` -> `/gym/dashboard`
-3. Si tiene rol `official_judge` -> `/judge/scorecard` (o estacion asignada)
-4. Si tiene `fighter_license` activa -> `/license/dashboard`
-5. Si tiene `fighter_license` pendiente -> `/license/pending`
-6. Default -> `/` (landing publica)
-
-### Almacenamiento del tipo seleccionado
-
-- Se guarda `selectedRole` en `localStorage` durante el registro
-- `AuthCallback.tsx` lo lee para redirigir al onboarding correcto despues de confirmar email
-- Se limpia despues del primer login exitoso
-
-## Lo que NO cambia
-
-- El onboarding de peleador (`LicenseOnboarding.tsx`) permanece intacto
-- La tabla `user_roles` y el sistema RBAC existente no se modifican
-- Los dashboards de cada portal siguen funcionando igual
-- El flujo de invitaciones de peleador sigue operando via query params
+Solo se modifica 1 archivo. No hay cambios en base de datos ni en logica de negocio.
 
