@@ -55,7 +55,7 @@ const ROLE_GROUPS: { group: string; roles: { value: AppRole; label: string }[] }
   {
     group: 'Gimnasios',
     roles: [
-      { value: 'gym_owner', label: 'Dueño de Gym' },
+      { value: 'gym_owner', label: 'Main Coach' },
       { value: 'gym_coach', label: 'Entrenador' },
       { value: 'gym_assistant', label: 'Asistente' },
     ],

@@ -162,7 +162,7 @@ export function AdminGymCard({ gym, readOnly = false }: AdminGymCardProps) {
             </Button>
             {!readOnly && (
               <>
-                <Button variant="outline" size="sm" onClick={() => setShowOwnerModal(true)} title="Asignar Admin">
+                <Button variant="outline" size="sm" onClick={() => setShowOwnerModal(true)} title="Asignar Main Coach">
                   <Crown className="h-4 w-4 text-yellow-500" />
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowAssignModal(true)}>

@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useGymStaff, useRemoveGymStaff } from '@/hooks/gyms/useGymStaff';
+import { useGymStaffRole } from '@/hooks/gyms/useMyGymStaff';
 import { GymStaffCard } from '@/components/gym/GymStaffCard';
 import { PageHeader } from '@/components/ui/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,7 +10,10 @@ import Header from '@/components/Header';
 export default function GymStaffManagement() {
   const { gymId } = useParams<{ gymId: string }>();
   const { data: staff, isLoading } = useGymStaff(gymId || '');
+  const { data: staffRole } = useGymStaffRole(gymId || '');
   const removeStaff = useRemoveGymStaff(gymId || '');
+
+  const canManageStaff = staffRole?.canManageStaff ?? false;
 
   return (
     <div className="min-h-screen bg-background">
@@ -35,7 +39,7 @@ export default function GymStaffManagement() {
               <GymStaffCard
                 key={s.id}
                 staff={s}
-                canManage={true}
+                canManage={canManageStaff}
                 onRemove={(id) => removeStaff.mutate(id)}
               />
             ))
