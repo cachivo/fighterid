@@ -20,7 +20,7 @@ interface GymDashboardHeaderProps {
 }
 
 const roleLabels: Record<string, string> = {
-  OWNER: 'Dueño',
+  OWNER: 'Main Coach',
   HEAD_COACH: 'Entrenador Principal',
   ASSISTANT_COACH: 'Asistente',
 };
@@ -31,15 +31,15 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
   return (
     <div className="relative">
       {/* Banner */}
-      <div className="h-32 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
+      <div className="h-28 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
         {gym.banner_url && (
           <img src={gym.banner_url} alt="" className="w-full h-full object-cover opacity-60" />
         )}
       </div>
 
       {/* Shield + Info */}
-      <div className="px-4 -mt-10 flex items-end gap-4">
-        <Avatar className="h-16 w-16 sm:h-20 sm:w-20 border-4 border-background shadow-lg">
+      <div className="px-4 -mt-10 flex items-end gap-3">
+        <Avatar className="h-16 w-16 border-4 border-background shadow-lg">
           <AvatarImage src={gym.logo_url || undefined} alt={gym.nombre} />
           <AvatarFallback className="bg-primary/10 text-primary">
             <Shield className="h-8 w-8" />
@@ -47,7 +47,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
         </Avatar>
 
         <div className="pb-1 min-w-0">
-          <h1 className="text-xl font-bold truncate text-balance">{gym.nombre}</h1>
+          <h1 className="text-lg font-bold truncate">{gym.nombre}</h1>
           {(gym.ciudad || gym.pais) && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3 flex-shrink-0" />
@@ -57,7 +57,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
             </div>
           )}
           {owner && (
-            <Badge variant="secondary" className="mt-1 text-xs max-w-full truncate">
+            <Badge variant="secondary" className="mt-1 text-xs">
               {roleLabels[owner.role]}: {owner.user.first_name} {owner.user.last_name}
             </Badge>
           )}

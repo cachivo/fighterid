@@ -20,16 +20,16 @@ export function GymStatsCards({ stats, disciplines }: GymStatsCardsProps) {
 
   return (
     <div className="space-y-4">
-      {/* Stats horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide snap-x snap-mandatory">
+      {/* Stats grid - fixed 4 columns for mobile */}
+      <div className="grid grid-cols-4 gap-2">
         {cards.map(card => (
           <div
             key={card.label}
-            className="min-w-[100px] flex-shrink-0 rounded-xl border bg-card p-3 text-center snap-start"
+            className="rounded-xl border bg-card p-2 text-center"
           >
-            <card.icon className={`h-5 w-5 mx-auto mb-1 ${card.color}`} />
-            <p className="text-2xl font-bold">{card.value}</p>
-            <p className="text-xs text-muted-foreground">{card.label}</p>
+            <card.icon className={`h-4 w-4 mx-auto mb-0.5 ${card.color}`} />
+            <p className="text-xl font-bold">{card.value}</p>
+            <p className="text-[10px] text-muted-foreground leading-tight">{card.label}</p>
           </div>
         ))}
       </div>

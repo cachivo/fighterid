@@ -114,7 +114,7 @@ export function AssignGymOwnerModal({ open, onOpenChange, gymId, gymName }: Assi
       });
       if (error) throw error;
 
-      toast.success('Administrador de gimnasio asignado');
+      toast.success('Main Coach asignado exitosamente');
       queryClient.invalidateQueries({ queryKey: ['gym-staff'] });
       queryClient.invalidateQueries({ queryKey: ['gym-dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['my-gym-staff'] });
@@ -143,7 +143,7 @@ export function AssignGymOwnerModal({ open, onOpenChange, gymId, gymName }: Assi
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Crown className="h-5 w-5 text-yellow-500" />
-            Asignar Admin — {gymName}
+            Asignar Main Coach — {gymName}
           </DialogTitle>
         </DialogHeader>
 
@@ -152,7 +152,7 @@ export function AssignGymOwnerModal({ open, onOpenChange, gymId, gymName }: Assi
             <div className="flex items-start gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20">
               <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium">Este gimnasio ya tiene administrador</p>
+                <p className="font-medium">Este gimnasio ya tiene Main Coach</p>
                 <p className="text-muted-foreground mt-1">
                   <strong>{currentOwner?.user_name}</strong> será reemplazado por{' '}
                   <strong>{[selectedUser.first_name, selectedUser.last_name].filter(Boolean).join(' ')}</strong>

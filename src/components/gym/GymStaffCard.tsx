@@ -11,7 +11,7 @@ interface GymStaffCardProps {
 }
 
 const roleLabels: Record<string, string> = {
-  OWNER: 'Dueño',
+  OWNER: 'Main Coach',
   HEAD_COACH: 'Entrenador Principal',
   ASSISTANT_COACH: 'Asistente',
 };

@@ -68,7 +68,7 @@ export function useMyGymStaff() {
 export function useGymStaffRole(gymId: string) {
   const { user } = useAuth();
 
-  return useQuery<{ role: string; canManageFighters: boolean } | null>({
+  return useQuery<{ role: string; canManageFighters: boolean; canEditGymProfile: boolean; canManageStaff: boolean } | null>({
     queryKey: ['gym-staff-role', gymId, user?.id],
     queryFn: async () => {
       if (!user || !gymId) return null;
@@ -94,6 +94,8 @@ export function useGymStaffRole(gymId: string) {
       return {
         role: staffRecord.role,
         canManageFighters: staffRecord.role === 'OWNER' || staffRecord.role === 'HEAD_COACH',
+        canEditGymProfile: staffRecord.role === 'OWNER',
+        canManageStaff: staffRecord.role === 'OWNER',
       };
     },
     enabled: !!user && !!gymId,
