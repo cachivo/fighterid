@@ -230,9 +230,11 @@ const App = () => {
               {/* Gym & Judge Onboarding */}
               <Route path="/gym/onboarding" element={
                 <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymOnboarding />
-                  </Suspense>
+                  <SuperAdminRoute>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <GymOnboarding />
+                    </Suspense>
+                  </SuperAdminRoute>
                 </ProtectedRoute>
               } />
               <Route path="/judge/onboarding" element={
