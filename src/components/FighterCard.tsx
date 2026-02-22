@@ -125,7 +125,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
       <CardContent className="p-3 sm:p-4 md:p-6">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground text-xs sm:text-sm">Record</p>
+            <p className="text-muted-foreground text-xs sm:text-sm">Récord</p>
             <p className="font-semibold text-foreground text-sm sm:text-base">
               {record.wins}-{record.losses}-{record.draws}
             </p>

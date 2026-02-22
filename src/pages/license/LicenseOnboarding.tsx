@@ -539,7 +539,7 @@ export default function LicenseOnboarding() {
                     </p>
                   </div>
                   <div>
-                    <Label htmlFor="stance">Stance</Label>
+                    <Label htmlFor="stance">Guardia</Label>
                     <Select 
                       value={formData.stance || '__none__'} 
                       onValueChange={(value) => setFormData({...formData, stance: value === '__none__' ? '' : value as 'Ortodoxo' | 'Zurdo' | 'Switch'})}

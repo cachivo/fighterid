@@ -21,7 +21,7 @@ interface GymDashboardHeaderProps {
 }
 
 const roleLabels: Record<string, string> = {
-  OWNER: 'Main Coach',
+  OWNER: 'Director',
   HEAD_COACH: 'Entrenador Principal',
   ASSISTANT_COACH: 'Asistente',
 };
