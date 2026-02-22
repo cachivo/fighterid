@@ -1,58 +1,101 @@
 
+# Auditoría y Reestructuración del Módulo de Gimnasios
 
-# Corregir Ranking y Agregar Seccion de Gimnasios
+## Problemas detectados
 
-## Problema actual
-
-En las tarjetas de ranking, el nombre del gimnasio aparece comprimido entre la division y el record, truncandose a una sola letra (ej: "C.", "L."). Ademas, falta una seccion dedicada a gimnasios en la pagina principal.
+1. **Rol "Dueño" incorrecto**: El sistema usa "OWNER" / "Dueño" cuando debería ser "Main Coach" -- el coach principal es quien gestiona la escuela, no un "dueño".
+2. **Dashboard no optimizado para móvil**: Las stats cards se desbordan, los botones de acción no están apilados correctamente para pantallas pequeñas.
+3. **Permisos inconsistentes**: No hay distinción clara entre lo que puede hacer el Main Coach vs el Admin desde el panel de administración.
+4. **Falta funcionalidad**: El Main Coach no puede editar el perfil del gimnasio desde su dashboard.
 
 ## Cambios
 
-### 1. Reestructurar tarjetas de ranking (archivo: `src/components/sections/Ranking.tsx`)
+### 1. Renombrar "Dueño/OWNER" a "Main Coach" en toda la UI
 
-Cambiar de 3 lineas a 4 lineas por tarjeta:
+Archivos afectados:
+- `src/components/gym/GymDashboardHeader.tsx`: Cambiar `roleLabels` de "Dueño" a "Main Coach"
+- `src/components/gym/GymStaffCard.tsx`: Misma corrección en `roleLabels`
+- `src/components/admin/AssignGymOwnerModal.tsx`: Cambiar título de "Asignar Admin" a "Asignar Main Coach", actualizar textos
+- `src/components/admin/AdminGymCard.tsx`: Actualizar tooltip del botón Crown
+- `src/components/admin/roles/RoleEditDialog.tsx`: Cambiar label de "Dueño de Gym" a "Main Coach"
+- `src/pages/gym/GymOnboarding.tsx`: Actualizar textos de confirmación
+
+**Nota**: El valor en la base de datos (`OWNER` en gym_staff, `gym_owner` en user_roles) NO se cambia. Solo se modifica la etiqueta visual en la UI. Esto evita migraciones y mantiene compatibilidad.
+
+### 2. Optimizar GymDashboard para móvil y gama baja
+
+Archivo: `src/pages/gym/GymDashboard.tsx`
+
+- Apilar botones de acción verticalmente (1 columna) en lugar de 3 en fila
+- Agregar botón "Editar Gimnasio" visible solo para Main Coach (OWNER)
+- Mejorar el padding y spacing para touch targets de 44px mínimo
+- Los botones usan `w-full` en lugar de `flex-1` para evitar overflow
+
+### 3. Agregar edición de perfil de gimnasio desde el dashboard del Main Coach
+
+Archivo: `src/pages/gym/GymDashboard.tsx`
+
+- Importar `GymEditModal` del admin
+- Agregar botón "Editar Gimnasio" (con icono Pencil) visible solo cuando el rol es OWNER
+- El modal reutiliza el componente existente `GymEditModal` que ya soporta edición completa (nombre, descripción, logo, banner, contacto, disciplinas)
+
+### 4. Definir permisos claros por rol
 
 ```text
-Linea 1: Nombre completo + badge campeon
-Linea 2: Nickname (con min-height para uniformidad)
-Linea 3: [Badge division] [Record W-L-D]
-Linea 4: Icono edificio + Nombre del gimnasio (o "Independiente")
+Acción                          | Main Coach (OWNER) | Head Coach | Assistant | Admin (panel)
+--------------------------------|--------------------|-----------:|----------:|--------------
+Ver dashboard del gym           |         Si         |     Si     |    Si     |      Si
+Editar perfil del gimnasio      |         Si         |     No     |    No     |      Si
+Agregar/remover peleadores      |         Si         |     Si     |    No     |      Si
+Ver lista de peleadores         |         Si         |     Si     |    Si     |      Si
+Editar record de pelea          |         No         |     No     |    No     |      Si
+Gestionar staff                 |         Si         |     No     |    No     |      Si
+Subir rendimientos de alumnos   |         Si         |     Si     |    No     |      Si
 ```
 
-El gimnasio pasa a tener su propia linea debajo de la division, con un icono de edificio y texto en gris claro. Asi se ve completo sin truncarse.
+### 5. Ajustar permisos en el código
 
-### 2. Nueva seccion "Escuelas" en la pagina principal
+Archivo: `src/hooks/gyms/useMyGymStaff.ts`
+- Agregar `canEditGymProfile` al return: `staffRecord.role === 'OWNER'`
+- Agregar `canManageStaff` al return: `staffRecord.role === 'OWNER'`
+- `canManageFighters` ya está correcto (OWNER o HEAD_COACH)
 
-Crear `src/components/sections/GymShowcase.tsx` - una seccion ligera que muestra los gimnasios con sus peleadores agrupados por escuela.
+Archivo: `src/pages/gym/GymStaffManagement.tsx`
+- Verificar que solo OWNER pueda remover staff (actualmente `canManage={true}` hardcodeado)
+- Usar `useGymStaffRole` para determinar si el usuario puede gestionar
 
-Caracteristicas:
-- Query optimizado: un solo SELECT con JOIN a `fighter_profiles` para traer gym + conteo de peleadores
-- Solo muestra gyms con al menos 1 peleador registrado
-- Cada gym se muestra como una tarjeta compacta con: logo (o fallback con iniciales), nombre, ciudad, disciplinas, y cantidad de peleadores
-- Al tocar un gym, navega a `/gimnasios/{slug}` para ver el detalle completo
-- Scroll horizontal con snap para gama baja (sin grid pesado)
-- Lazy-loaded con `React.lazy` + `Suspense`
+Archivo: `src/pages/gym/GymDashboard.tsx`
+- Mostrar botón "Editar Gimnasio" solo si `canEditGymProfile`
+- Mostrar botón "Staff" con ícono de settings solo si es OWNER; para otros mostrar solo vista
 
-### 3. Integrar en la pagina principal (archivo: `src/pages/Index.tsx`)
+### 6. Corregir dimensiones del GymDashboardHeader para móvil
 
-Agregar la seccion de gimnasios entre el Ranking y los Aliados Estrategicos:
+Archivo: `src/components/gym/GymDashboardHeader.tsx`
+- Reducir banner height a `h-28` para dejar más espacio al contenido
+- Avatar: mantener `h-16 w-16` sin variantes `sm:` (mobile-only)
+- Nombre del gym: `text-lg` en lugar de `text-xl` para evitar overflow
+- Badge del Main Coach: sin `max-w-full` que causa truncamiento
 
-```text
-Header > Hero > CTA > QuickStats > LeagueSelector > Ranking > [GymShowcase] > Allies > Footer
-```
+### 7. GymStatsCards: layout compacto
 
-### 4. Hook dedicado (archivo: `src/hooks/useGymsWithFighters.ts`)
+Archivo: `src/components/gym/GymStatsCards.tsx`
+- Usar grid `grid-cols-4` fijo en lugar de scroll horizontal para 4 items (caben en 360px)
+- Reducir padding interno a `p-2` y font sizes para gama baja
+- Quitar scroll arrows innecesarios
 
-Query liviano que trae gimnasios activos con conteo de peleadores, ordenados por cantidad de peleadores (los mas grandes primero). Usa `staleTime` largo para evitar re-fetches innecesarios en gama baja.
+## Detalle técnico
 
-## Detalle tecnico
-
-| Archivo | Accion |
+| Archivo | Acción |
 |---------|--------|
-| `src/components/sections/Ranking.tsx` | Modificar: mover gym a linea propia debajo de division |
-| `src/components/sections/GymShowcase.tsx` | Crear: seccion de gimnasios con peleadores agrupados |
-| `src/hooks/useGymsWithFighters.ts` | Crear: hook con query optimizado gyms + fighter count |
-| `src/pages/Index.tsx` | Modificar: agregar GymShowcase lazy-loaded |
+| `src/components/gym/GymDashboardHeader.tsx` | Modificar: renombrar "Dueño" a "Main Coach", ajustar tamaños móvil |
+| `src/components/gym/GymStaffCard.tsx` | Modificar: renombrar "Dueño" a "Main Coach" en roleLabels |
+| `src/components/gym/GymStatsCards.tsx` | Modificar: grid-cols-4 fijo, padding compacto |
+| `src/pages/gym/GymDashboard.tsx` | Modificar: botones apilados, agregar edición de gym, permisos granulares |
+| `src/pages/gym/GymStaffManagement.tsx` | Modificar: verificar permisos reales antes de mostrar gestión |
+| `src/hooks/gyms/useMyGymStaff.ts` | Modificar: agregar canEditGymProfile, canManageStaff al return |
+| `src/components/admin/AssignGymOwnerModal.tsx` | Modificar: renombrar textos a "Main Coach" |
+| `src/components/admin/AdminGymCard.tsx` | Modificar: actualizar tooltip |
+| `src/components/admin/roles/RoleEditDialog.tsx` | Modificar: label "Main Coach" |
+| `src/pages/gym/GymOnboarding.tsx` | Modificar: texto de confirmación |
 
-No hay cambios en base de datos. Toda la informacion ya existe en las tablas `gyms` y `fighter_profiles` (campo `gym_id`).
-
+No hay cambios en la base de datos. El valor `OWNER` en `gym_staff.role` y `gym_owner` en `user_roles` se mantienen intactos; solo cambian las etiquetas de la interfaz.
