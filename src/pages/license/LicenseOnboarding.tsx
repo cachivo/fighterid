@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useOptimizedOnboarding } from '@/hooks/useOptimizedOnboarding';
+import { useGymsList } from '@/hooks/useGymsList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,40 @@ import { useNavigate } from 'react-router-dom';
 import { Loader2, User, Award, Upload, FileText, CheckCircle } from 'lucide-react';
 import { FileUpload } from '@/components/ui/file-upload';
 import { ENABLED_DISCIPLINES, WEIGHT_CLASSES } from '@/lib/constants/disciplines';
+
+function GymSelector({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { data: gyms, isLoading } = useGymsList();
+  
+  return (
+    <div>
+      <Label>Gimnasio/Academia</Label>
+      <Select 
+        value={value || '__none__'} 
+        onValueChange={(v) => onChange(v === '__none__' || v === '__independiente__' ? (v === '__independiente__' ? 'Independiente' : '') : v)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Selecciona tu gimnasio" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__" className="text-muted-foreground">-- Sin gimnasio --</SelectItem>
+          <SelectItem value="__independiente__">Independiente</SelectItem>
+          {isLoading ? (
+            <SelectItem value="__loading__" disabled>Cargando...</SelectItem>
+          ) : (
+            gyms?.map((gym) => (
+              <SelectItem key={gym.id} value={gym.nombre}>
+                {gym.nombre}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+      <p className="text-xs text-muted-foreground mt-1">
+        Selecciona el gimnasio donde entrenas
+      </p>
+    </div>
+  );
+}
 
 export default function LicenseOnboarding() {
   const { user } = useLicenseAuth();
@@ -428,18 +463,10 @@ export default function LicenseOnboarding() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="gymName">Gimnasio/Academia</Label>
-                  <Input
-                    id="gymName"
-                    value={formData.gymName}
-                    onChange={(e) => setFormData({...formData, gymName: e.target.value})}
-                    placeholder="Ej: Team Alpha, Gimnasio Central"
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Opcional - Nombre de tu gimnasio o academia de entrenamiento
-                  </p>
-                </div>
+                <GymSelector 
+                  value={formData.gymName}
+                  onChange={(value) => setFormData({...formData, gymName: value})}
+                />
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>

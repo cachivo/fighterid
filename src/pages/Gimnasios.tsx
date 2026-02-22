@@ -21,24 +21,22 @@ export default function Gimnasios() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 pt-20">
-          <PageHeader
-            title="Gimnasios"
-            subtitle="Explora los mejores gimnasios de artes marciales en tu zona"
-            backTo="/"
-            backLabel="Volver al inicio"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Building2 className="h-4 w-4" />
-              {gyms?.length || 0} Gimnasios Registrados
-            </div>
-          </PageHeader>
-        </div>
+      <div className="pt-16 px-4 py-4 border-b border-border">
+        <PageHeader
+          title="Gimnasios"
+          subtitle="Explora los mejores gimnasios de artes marciales"
+          backTo="/"
+          backLabel="Volver"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+            <Building2 className="h-3.5 w-3.5" />
+            {gyms?.length || 0} Registrados
+          </div>
+        </PageHeader>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="relative mb-8">
+      <div className="px-4 py-4">
+        <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Buscar por nombre o ciudad..."
@@ -49,13 +47,13 @@ export default function Gimnasios() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-64" />
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24" />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-3">
             {filteredGyms?.map(gym => (
               <GymCard key={gym.id} gym={gym} />
             ))}
@@ -64,8 +62,8 @@ export default function Gimnasios() {
 
         {filteredGyms?.length === 0 && (
           <div className="text-center py-12">
-            <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No se encontraron gimnasios</p>
+            <Building2 className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+            <p className="text-sm text-muted-foreground">No se encontraron gimnasios</p>
           </div>
         )}
       </div>
