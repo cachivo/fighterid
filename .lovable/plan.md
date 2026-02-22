@@ -1,81 +1,110 @@
 
-# Correccion de Logica de Redireccion Post-Login por Modulo Seleccionado
+# Auditoría y Estructura de Gimnasios: Asignación de Main Coach y Flujo de Administración
 
-## Problema Identificado
+## Estado Actual
 
-Actualmente, cuando un usuario inicia sesion, el sistema usa una logica de **prioridad de roles** que ignora completamente la seleccion que hizo en la pantalla inicial:
+De 27 gimnasios activos, solo 3 tienen un Main Coach (OWNER) asignado en `gym_staff`:
 
-```
-1. Si tiene rol admin/super_admin → SIEMPRE va a /admin/dashboard
-2. Si tiene rol gym_owner/gym_coach → SIEMPRE va a gym dashboard
-3. Si tiene rol judge → SIEMPRE va a /
-4. Si no tiene roles especiales → verifica licencia de peleador
-```
+| Gimnasio | Main Coach | Email |
+|----------|-----------|-------|
+| Club de Boxeo Chele Munguia | Jorge Luis Munguía Ortiz | chelemunguia123@gmail.com |
+| Honduras Hood Fights | cachivo (Super Admin) | cachivo@gmail.com |
+| Lunaticos | Show time | lunatime@hotmail.com |
 
-Esto significa que si `cachivo@gmail.com` (super_admin) selecciona "Gimnasio" en la pantalla de rol, el sistema lo ignora y lo manda a `/admin/dashboard`.
+Los otros **24 gimnasios no tienen Main Coach asignado**, lo que significa que nadie puede acceder a su dashboard para editarlos.
 
-El valor de `localStorage('fighter_id_selected_role')` solo se lee cuando el usuario NO tiene `app_user` (usuario completamente nuevo). Para usuarios existentes con multiples roles, se ignora por completo.
+El campo `owner_id` en la tabla `gyms` esta en `null` para los 27 gimnasios -- la relacion de propiedad se maneja solo via `gym_staff`.
 
-## Solucion
+---
 
-Cambiar la logica en 2 archivos para que el **modulo seleccionado** tenga prioridad sobre los roles de la base de datos:
+## Plan de Implementacion
 
-### Archivo 1: `src/pages/Auth.tsx` - funcion `routeAuthenticatedUser()`
+### Paso 1: Sincronizar `gyms.owner_id` con `gym_staff`
 
-Antes de verificar roles en la BD, leer `fighter_id_selected_role` de localStorage. Si existe un valor seleccionado, enrutar directamente al modulo correspondiente:
+Actualmente `owner_id` en la tabla `gyms` no se usa. Hay que sincronizarlo con los 3 OWNERs existentes en `gym_staff` para que el indicador de completitud funcione correctamente.
 
-- `'admin'` → verificar que tenga rol admin, luego ir a `/admin/dashboard`
-- `'gym'` → buscar su gym_staff, ir a `/gym/:id/dashboard` (o `/gimnasios` si no tiene gym)
-- `'judge'` → ir a `/judge/onboarding` o dashboard de juez
-- `'fighter'` → seguir el flujo de licencia (onboarding/pending/dashboard/suspended)
+**Migracion SQL:**
+- UPDATE `gyms` SET `owner_id` = user_id del OWNER activo para los 3 gimnasios que ya tienen Main Coach
+- Crear un trigger que sincronice automaticamente `gyms.owner_id` cuando se inserta/actualiza/elimina un registro OWNER en `gym_staff`
 
-Si NO hay seleccion en localStorage (ej: el usuario uso "Ya tengo cuenta" sin pasar por el selector), entonces usar la logica actual de prioridad de roles como fallback.
+### Paso 2: Restringir creacion de gimnasios solo a Super Admin
 
-### Archivo 2: `src/pages/AuthCallback.tsx` - funcion `determineUserDestination()`
+El codigo actual ya restringe el boton "Crear Gimnasio" con `isSuperAdmin` en `GimnasiosAdmin.tsx`. Esta logica esta correcta. No se necesitan cambios.
 
-Aplicar la misma logica: leer `fighter_id_selected_role` primero, enrutar por modulo seleccionado, y solo usar la prioridad de roles como fallback.
+### Paso 3: Flujo de acceso post-login para Main Coach
 
-## Cambios Especificos
+Cuando un Main Coach selecciona "Gimnasio" al iniciar sesion:
+1. El sistema busca su `gym_staff` activo con `role = 'OWNER'`
+2. Lo redirige a `/gym/:gymId/dashboard`
+3. Desde ahi puede editar el perfil, gestionar roster y staff
 
-### `Auth.tsx` - `routeAuthenticatedUser()` (lineas 117-207)
+Este flujo ya se implemento en la correccion anterior de `Auth.tsx` y `AuthCallback.tsx`. Se verificara que funcione correctamente.
 
-Reestructurar la funcion:
+### Paso 4: Indicador visual de gimnasios sin Main Coach
 
-```
-1. Leer savedRole de localStorage
-2. Leer roles de la BD (user_roles)
-3. Si savedRole existe:
-   - 'admin' → si tiene rol admin/super_admin → /admin/dashboard, sino → toast error
-   - 'gym' → buscar gym_staff → /gym/:id/dashboard o /gimnasios
-   - 'judge' → verificar licencia de juez o /judge/onboarding
-   - 'fighter' → flujo de licencia (app_user → fighter_profile → license)
-4. Si NO hay savedRole (login directo):
-   - Usar logica de prioridad actual como fallback
-5. Limpiar localStorage al final
-```
+En `AdminGymCard.tsx`, agregar un indicador visual claro cuando un gimnasio no tiene Main Coach asignado, facilitando al super admin identificar cuales necesitan asignacion.
 
-### `AuthCallback.tsx` - `determineUserDestination()` (lineas 123-191)
+### Paso 5: Validar que el dashboard del gimnasio sea editable solo por su Main Coach
 
-Misma reestructuracion:
+Verificar que `GymDashboard`, `GymEditModal` y las herramientas de staff esten protegidas correctamente:
+- Solo el Main Coach (OWNER) puede editar perfil del gimnasio y gestionar staff
+- Head Coach y Assistant Coach pueden ver el dashboard pero no editar el perfil
+- Cualquier usuario con rol `gym_staff` activo puede ver el dashboard de su gimnasio
 
-```
-1. Leer savedRole de localStorage
-2. Si savedRole existe, enrutar al modulo correspondiente
-3. Si no, usar fallback de prioridad de roles
-4. Limpiar localStorage
-```
-
-## Detalle Tecnico
-
-- Se mantiene la validacion de permisos: si alguien selecciona "admin" pero no tiene el rol, se le niega acceso
-- La seleccion de rol solo afecta la redireccion post-login, no los permisos de acceso a las rutas (los ProtectedRoute/AdminProtectedRoute siguen funcionando igual)
-- Para el flujo de "Ya tengo cuenta" (sin seleccion de rol), se mantiene el comportamiento actual de prioridad
+---
 
 ## Archivos a Modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Auth.tsx` | Reestructurar `routeAuthenticatedUser()` (~40 lineas) |
-| `src/pages/AuthCallback.tsx` | Reestructurar `determineUserDestination()` (~30 lineas) |
+| Migracion SQL | Sincronizar `gyms.owner_id` con OWNERs existentes + trigger automatico |
+| `src/components/admin/AdminGymCard.tsx` | Agregar indicador cuando no hay Main Coach |
+| `src/components/admin/AssignGymOwnerModal.tsx` | Actualizar tambien `gyms.owner_id` al asignar |
 
-**Total: 2 archivos, ~70 lineas de cambio**
+## Archivos a Verificar (sin cambios esperados)
+
+| Archivo | Verificacion |
+|---------|-------------|
+| `src/pages/gym/GymDashboard.tsx` | Permisos de edicion por rol |
+| `src/pages/Auth.tsx` | Redireccion al seleccionar modulo Gimnasio |
+| `src/hooks/gyms/useMyGymStaff.ts` | Permisos correctos segun rol |
+
+---
+
+## Detalle Tecnico
+
+### Migracion SQL
+
+```sql
+-- 1. Sincronizar owner_id actual
+UPDATE gyms g SET owner_id = gs.user_id
+FROM gym_staff gs
+WHERE gs.gym_id = g.id AND gs.role = 'OWNER' AND gs.active = true;
+
+-- 2. Trigger para mantener sincronizado
+CREATE OR REPLACE FUNCTION sync_gym_owner_from_staff()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' AND NEW.role = 'OWNER' AND NEW.active = true THEN
+    UPDATE gyms SET owner_id = NEW.user_id WHERE id = NEW.gym_id;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF NEW.role = 'OWNER' AND NEW.active = true THEN
+      UPDATE gyms SET owner_id = NEW.user_id WHERE id = NEW.gym_id;
+    ELSIF OLD.role = 'OWNER' AND (NEW.active = false OR NEW.role != 'OWNER') THEN
+      UPDATE gyms SET owner_id = NULL WHERE id = NEW.gym_id AND owner_id = OLD.user_id;
+    END IF;
+  ELSIF TG_OP = 'DELETE' AND OLD.role = 'OWNER' THEN
+    UPDATE gyms SET owner_id = NULL WHERE id = OLD.gym_id AND owner_id = OLD.user_id;
+  END IF;
+  RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### AdminGymCard - Indicador sin Main Coach
+
+Se mostrara un badge de advertencia cuando `staffCount` no incluya un OWNER, con un boton rapido para asignar uno.
+
+### AssignGymOwnerModal - Sincronizacion
+
+Al asignar un nuevo OWNER en `gym_staff`, el trigger se encargara de actualizar `gyms.owner_id` automaticamente, pero tambien se actualizara `AssignGymOwnerModal` para que haga el update directo como respaldo.
