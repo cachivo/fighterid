@@ -15,6 +15,7 @@ interface GymDashboardHeaderProps {
     user: {
       first_name: string | null;
       last_name: string | null;
+      handle?: string;
     };
   }>;
 }
@@ -25,28 +26,35 @@ const roleLabels: Record<string, string> = {
   ASSISTANT_COACH: 'Asistente',
 };
 
+function getStaffDisplayName(user: { first_name: string | null; last_name: string | null; handle?: string }) {
+  const full = [user.first_name, user.last_name].filter(Boolean).join(' ');
+  if (full) return full;
+  if (user.handle) return `@${user.handle}`;
+  return 'Sin nombre';
+}
+
 export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
   const owner = staff.find(s => s.role === 'OWNER');
 
   return (
-    <div className="relative">
-      {/* Banner */}
-      <div className="h-28 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
-        {gym.banner_url && (
-          <img src={gym.banner_url} alt="" className="w-full h-full object-cover opacity-60" />
-        )}
-      </div>
+    <div className="border-b border-border">
+      {/* Banner compacto solo si existe */}
+      {gym.banner_url && (
+        <div className="h-20 overflow-hidden">
+          <img src={gym.banner_url} alt="" className="w-full h-full object-cover" />
+        </div>
+      )}
 
-      {/* Shield + Info */}
-      <div className="px-4 -mt-10 flex items-end gap-3">
-        <Avatar className="h-16 w-16 border-4 border-background shadow-lg">
+      {/* Avatar + Info */}
+      <div className="px-4 py-3 flex items-center gap-3">
+        <Avatar className="h-14 w-14 border-2 border-border shadow-sm flex-shrink-0">
           <AvatarImage src={gym.logo_url || undefined} alt={gym.nombre} />
           <AvatarFallback className="bg-primary/10 text-primary">
-            <Shield className="h-8 w-8" />
+            <Shield className="h-7 w-7" />
           </AvatarFallback>
         </Avatar>
 
-        <div className="pb-1 min-w-0">
+        <div className="min-w-0">
           <h1 className="text-lg font-bold truncate">{gym.nombre}</h1>
           {(gym.ciudad || gym.pais) && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -58,7 +66,7 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
           )}
           {owner && (
             <Badge variant="secondary" className="mt-1 text-xs">
-              {roleLabels[owner.role]}: {owner.user.first_name} {owner.user.last_name}
+              {roleLabels[owner.role]}: {getStaffDisplayName(owner.user)}
             </Badge>
           )}
         </div>
