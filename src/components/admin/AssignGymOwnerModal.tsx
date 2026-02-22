@@ -120,6 +120,7 @@ export function AssignGymOwnerModal({ open, onOpenChange, gymId, gymName }: Assi
       queryClient.invalidateQueries({ queryKey: ['my-gym-staff'] });
       queryClient.invalidateQueries({ queryKey: ['all-gym-staff'] });
       queryClient.invalidateQueries({ queryKey: ['gym-staff-count'] });
+      queryClient.invalidateQueries({ queryKey: ['gyms'] });
       resetAndClose();
     } catch (e: any) {
       toast.error('Error: ' + e.message);
