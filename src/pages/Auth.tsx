@@ -114,92 +114,104 @@ export default function Auth() {
     routeAuthenticatedUser();
   }, [user, authLoading]);
 
+  // Helper: route to gym dashboard
+  const routeToGym = async () => {
+    const { data: staffRecord } = await supabase
+      .from('gym_staff')
+      .select('gym_id')
+      .eq('user_id', user!.id)
+      .eq('active', true)
+      .maybeSingle();
+    navigate(staffRecord ? `/gym/${staffRecord.gym_id}/dashboard` : '/gimnasios', { replace: true });
+  };
+
+  // Helper: route to fighter license flow
+  const routeToFighter = async () => {
+    const { data: appUser } = await supabase
+      .from('app_user')
+      .select('id')
+      .eq('auth_user_id', user!.id)
+      .maybeSingle();
+
+    if (!appUser) { navigate('/license/onboarding', { replace: true }); return; }
+
+    const { data: fighterProfile } = await supabase
+      .from('fighter_profiles')
+      .select('id')
+      .eq('user_id', appUser.id)
+      .maybeSingle();
+
+    if (!fighterProfile) { navigate('/license/onboarding', { replace: true }); return; }
+
+    const { data: license } = await supabase
+      .from('fighter_licenses')
+      .select('status')
+      .eq('fighter_id', fighterProfile.id)
+      .maybeSingle();
+
+    if (!license) { navigate('/license/onboarding', { replace: true }); return; }
+
+    switch (license.status) {
+      case 'ACTIVE': navigate('/license/dashboard', { replace: true }); break;
+      case 'PENDING_REVIEW':
+      case 'APPLIED': navigate('/license/pending', { replace: true }); break;
+      case 'SUSPENDED':
+      case 'REVOKED': navigate('/license/suspended', { replace: true }); break;
+      default: navigate('/license/onboarding', { replace: true });
+    }
+  };
+
   const routeAuthenticatedUser = async () => {
     try {
-      // 1. Check admin/gym/judge roles
+      const savedRole = localStorage.getItem('fighter_id_selected_role');
+      localStorage.removeItem('fighter_id_selected_role');
+
+      // 1. Get user roles from DB
       const { data: roles } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user!.id);
-
       const roleList = (roles || []).map(r => r.role);
 
+      // 2. If a module was selected, route to that module
+      if (savedRole) {
+        switch (savedRole) {
+          case 'admin':
+            if (roleList.includes('admin') || roleList.includes('super_admin')) {
+              navigate('/admin/dashboard', { replace: true });
+            } else {
+              toast.error('No tienes permisos de administrador.');
+              navigate('/', { replace: true });
+            }
+            return;
+          case 'gym':
+            await routeToGym();
+            return;
+          case 'judge':
+            navigate('/judge/onboarding', { replace: true });
+            return;
+          case 'fighter':
+            await routeToFighter();
+            return;
+        }
+      }
+
+      // 3. Fallback: no module selected (direct login) — use role priority
       if (roleList.includes('admin') || roleList.includes('super_admin')) {
         navigate('/admin/dashboard', { replace: true });
         return;
       }
-
       if (roleList.includes('gym_owner') || roleList.includes('gym_coach')) {
-        // Find their gym
-        const { data: staffRecord } = await supabase
-          .from('gym_staff')
-          .select('gym_id')
-          .eq('user_id', user!.id)
-          .eq('active', true)
-          .maybeSingle();
-        if (staffRecord) {
-          navigate(`/gym/${staffRecord.gym_id}/dashboard`, { replace: true });
-        } else {
-          navigate('/gimnasios', { replace: true });
-        }
+        await routeToGym();
         return;
       }
-
       if (roleList.includes('official_judge') || roleList.includes('official_referee')) {
         navigate('/', { replace: true });
         return;
       }
 
-      // 2. Check fighter license flow
-      const { data: appUser } = await supabase
-        .from('app_user')
-        .select('id')
-        .eq('auth_user_id', user!.id)
-        .maybeSingle();
-
-      if (!appUser) {
-        // Determine onboarding by saved role
-        const savedRole = localStorage.getItem('fighter_id_selected_role');
-        localStorage.removeItem('fighter_id_selected_role');
-        if (savedRole === 'gym') { navigate('/gym/onboarding', { replace: true }); return; }
-        if (savedRole === 'judge') { navigate('/judge/onboarding', { replace: true }); return; }
-        navigate('/license/onboarding', { replace: true });
-        return;
-      }
-
-      const { data: fighterProfile } = await supabase
-        .from('fighter_profiles')
-        .select('id')
-        .eq('user_id', appUser.id)
-        .maybeSingle();
-
-      if (!fighterProfile) {
-        const savedRole = localStorage.getItem('fighter_id_selected_role');
-        localStorage.removeItem('fighter_id_selected_role');
-        if (savedRole === 'gym') { navigate('/gym/onboarding', { replace: true }); return; }
-        if (savedRole === 'judge') { navigate('/judge/onboarding', { replace: true }); return; }
-        navigate('/license/onboarding', { replace: true });
-        return;
-      }
-
-      const { data: license } = await supabase
-        .from('fighter_licenses')
-        .select('status')
-        .eq('fighter_id', fighterProfile.id)
-        .maybeSingle();
-
-      if (!license) { navigate('/license/onboarding', { replace: true }); return; }
-
-      switch (license.status) {
-        case 'ACTIVE': navigate('/license/dashboard', { replace: true }); break;
-        case 'PENDING_REVIEW':
-        case 'APPLIED': navigate('/license/pending', { replace: true }); break;
-        case 'SUSPENDED':
-        case 'REVOKED': navigate('/license/suspended', { replace: true }); break;
-        default: navigate('/license/onboarding', { replace: true });
-      }
-
-      localStorage.removeItem('fighter_id_selected_role');
+      // 4. Default: fighter license flow
+      await routeToFighter();
     } catch (error) {
       console.error('[Auth] Error routing user:', error);
       navigate('/', { replace: true });
