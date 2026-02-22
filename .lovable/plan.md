@@ -1,110 +1,134 @@
 
-# Auditoría y Estructura de Gimnasios: Asignación de Main Coach y Flujo de Administración
 
-## Estado Actual
+# Flujo de Creacion de Gimnasios con Invitacion al Main Coach
 
-De 27 gimnasios activos, solo 3 tienen un Main Coach (OWNER) asignado en `gym_staff`:
+## Resumen
 
-| Gimnasio | Main Coach | Email |
-|----------|-----------|-------|
-| Club de Boxeo Chele Munguia | Jorge Luis Munguía Ortiz | chelemunguia123@gmail.com |
-| Honduras Hood Fights | cachivo (Super Admin) | cachivo@gmail.com |
-| Lunaticos | Show time | lunatime@hotmail.com |
-
-Los otros **24 gimnasios no tienen Main Coach asignado**, lo que significa que nadie puede acceder a su dashboard para editarlos.
-
-El campo `owner_id` en la tabla `gyms` esta en `null` para los 27 gimnasios -- la relacion de propiedad se maneja solo via `gym_staff`.
+Cuando el admin crea un gimnasio desde el panel, ingresa el email del entrenador principal. El sistema:
+1. Crea el gimnasio
+2. Envia un correo de invitacion al entrenador
+3. Al confirmar su email y registrarse, el entrenador selecciona "Gimnasio" en la pantalla de roles
+4. Se redirige automaticamente al dashboard de su gimnasio
+5. Si el entrenador tambien pelea, puede seleccionar "Peleador" en otra sesion para acceder a ese modulo
 
 ---
 
-## Plan de Implementacion
+## Cambios Necesarios
 
-### Paso 1: Sincronizar `gyms.owner_id` con `gym_staff`
+### 1. Nueva tabla `gym_invitations`
 
-Actualmente `owner_id` en la tabla `gyms` no se usa. Hay que sincronizarlo con los 3 OWNERs existentes en `gym_staff` para que el indicador de completitud funcione correctamente.
+Similar a `fighter_invitations` pero especifica para gimnasios:
 
-**Migracion SQL:**
-- UPDATE `gyms` SET `owner_id` = user_id del OWNER activo para los 3 gimnasios que ya tienen Main Coach
-- Crear un trigger que sincronice automaticamente `gyms.owner_id` cuando se inserta/actualiza/elimina un registro OWNER en `gym_staff`
+```text
+gym_invitations
+  id           uuid PK
+  gym_id       uuid FK -> gyms.id
+  email        text NOT NULL
+  coach_name   text
+  token        text UNIQUE
+  status       text (pending/accepted/expired/cancelled)
+  invited_by   uuid FK -> auth.users
+  created_at   timestamptz
+  expires_at   timestamptz
+  accepted_at  timestamptz
+```
 
-### Paso 2: Restringir creacion de gimnasios solo a Super Admin
+### 2. Nueva Edge Function: `send-gym-invitation`
 
-El codigo actual ya restringe el boton "Crear Gimnasio" con `isSuperAdmin` en `GimnasiosAdmin.tsx`. Esta logica esta correcta. No se necesitan cambios.
+Basada en la estructura existente de `send-fighter-invitation`:
+- Recibe: `gymId`, `email`, `coachName`
+- Crea registro en `gym_invitations`
+- Envia email con enlace `https://fighterid.lovable.app/auth?role=gym&invite_gym=TOKEN`
+- Maneja duplicados y reenvios igual que fighter invitations
+- Usa el sistema compartido de email (`_shared/email-config.ts`)
 
-### Paso 3: Flujo de acceso post-login para Main Coach
+### 3. Modificar formulario "Crear Gimnasio" en `GimnasiosAdmin.tsx`
 
-Cuando un Main Coach selecciona "Gimnasio" al iniciar sesion:
-1. El sistema busca su `gym_staff` activo con `role = 'OWNER'`
-2. Lo redirige a `/gym/:gymId/dashboard`
-3. Desde ahi puede editar el perfil, gestionar roster y staff
+Agregar campo obligatorio:
+- **Email del Entrenador Principal** (campo nuevo)
+- **Nombre del Entrenador** (campo nuevo, opcional)
 
-Este flujo ya se implemento en la correccion anterior de `Auth.tsx` y `AuthCallback.tsx`. Se verificara que funcione correctamente.
+Al enviar el formulario:
+1. Crear el gimnasio (como ahora)
+2. Invocar `send-gym-invitation` con el email y gymId
+3. Mostrar confirmacion de que se envio la invitacion
 
-### Paso 4: Indicador visual de gimnasios sin Main Coach
+### 4. Modificar flujo de registro en `Auth.tsx`
 
-En `AdminGymCard.tsx`, agregar un indicador visual claro cuando un gimnasio no tiene Main Coach asignado, facilitando al super admin identificar cuales necesitan asignacion.
+Detectar parametro `invite_gym` en la URL:
+- Pre-seleccionar rol "Gimnasio"
+- Al registrarse y confirmar email, vincular automaticamente:
+  - Crear `app_user` si no existe
+  - Insertar en `gym_staff` con `role: 'OWNER'`
+  - Asignar rol `gym_owner` en `user_roles`
+  - Actualizar `gym_invitations.status = 'accepted'`
+- Redirigir al dashboard del gimnasio
 
-### Paso 5: Validar que el dashboard del gimnasio sea editable solo por su Main Coach
+### 5. Caso: entrenador que tambien pelea
 
-Verificar que `GymDashboard`, `GymEditModal` y las herramientas de staff esten protegidas correctamente:
-- Solo el Main Coach (OWNER) puede editar perfil del gimnasio y gestionar staff
-- Head Coach y Assistant Coach pueden ver el dashboard pero no editar el perfil
-- Cualquier usuario con rol `gym_staff` activo puede ver el dashboard de su gimnasio
-
----
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| Migracion SQL | Sincronizar `gyms.owner_id` con OWNERs existentes + trigger automatico |
-| `src/components/admin/AdminGymCard.tsx` | Agregar indicador cuando no hay Main Coach |
-| `src/components/admin/AssignGymOwnerModal.tsx` | Actualizar tambien `gyms.owner_id` al asignar |
-
-## Archivos a Verificar (sin cambios esperados)
-
-| Archivo | Verificacion |
-|---------|-------------|
-| `src/pages/gym/GymDashboard.tsx` | Permisos de edicion por rol |
-| `src/pages/Auth.tsx` | Redireccion al seleccionar modulo Gimnasio |
-| `src/hooks/gyms/useMyGymStaff.ts` | Permisos correctos segun rol |
+No requiere cambios adicionales. El flujo ya implementado en la sesion anterior lo maneja:
+- Al iniciar sesion, el entrenador ve la pantalla de seleccion de modulo
+- Si elige "Gimnasio" -> va al dashboard del gym
+- Si elige "Peleador" -> va al flujo de licencia de peleador
+- Puede alternar entre modulos cerrando sesion y seleccionando otro
 
 ---
 
 ## Detalle Tecnico
 
-### Migracion SQL
+### Archivos a Crear
 
-```sql
--- 1. Sincronizar owner_id actual
-UPDATE gyms g SET owner_id = gs.user_id
-FROM gym_staff gs
-WHERE gs.gym_id = g.id AND gs.role = 'OWNER' AND gs.active = true;
+| Archivo | Descripcion |
+|---------|-------------|
+| `supabase/functions/send-gym-invitation/index.ts` | Edge function para enviar invitacion |
+| Migracion SQL | Tabla `gym_invitations` + RLS |
 
--- 2. Trigger para mantener sincronizado
-CREATE OR REPLACE FUNCTION sync_gym_owner_from_staff()
-RETURNS TRIGGER AS $$
-BEGIN
-  IF TG_OP = 'INSERT' AND NEW.role = 'OWNER' AND NEW.active = true THEN
-    UPDATE gyms SET owner_id = NEW.user_id WHERE id = NEW.gym_id;
-  ELSIF TG_OP = 'UPDATE' THEN
-    IF NEW.role = 'OWNER' AND NEW.active = true THEN
-      UPDATE gyms SET owner_id = NEW.user_id WHERE id = NEW.gym_id;
-    ELSIF OLD.role = 'OWNER' AND (NEW.active = false OR NEW.role != 'OWNER') THEN
-      UPDATE gyms SET owner_id = NULL WHERE id = NEW.gym_id AND owner_id = OLD.user_id;
-    END IF;
-  ELSIF TG_OP = 'DELETE' AND OLD.role = 'OWNER' THEN
-    UPDATE gyms SET owner_id = NULL WHERE id = OLD.gym_id AND owner_id = OLD.user_id;
-  END IF;
-  RETURN COALESCE(NEW, OLD);
-END;
-$$ LANGUAGE plpgsql;
+### Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/admin/GimnasiosAdmin.tsx` | Agregar campos email/nombre del entrenador al formulario de creacion |
+| `src/pages/Auth.tsx` | Detectar `invite_gym` param, vincular coach al gym post-registro |
+| `src/pages/AuthCallback.tsx` | Mismo manejo de `invite_gym` para el callback de confirmacion de email |
+
+### Flujo Completo
+
+```text
+Admin crea gimnasio
+  |
+  v
+Ingresa email del entrenador -> Se crea gym + se envia invitacion
+  |
+  v
+Entrenador recibe email -> Click en enlace
+  |
+  v
+Llega a /auth?role=gym&invite_gym=TOKEN
+  |
+  +--> Si es usuario nuevo: se registra, confirma email
+  |    -> Se vincula automaticamente como OWNER del gym
+  |    -> Redirige a /gym/:id/dashboard
+  |
+  +--> Si ya tiene cuenta: inicia sesion
+       -> Se vincula como OWNER del gym
+       -> Redirige a /gym/:id/dashboard
 ```
 
-### AdminGymCard - Indicador sin Main Coach
+### Edge Function: `send-gym-invitation`
 
-Se mostrara un badge de advertencia cuando `staffCount` no incluya un OWNER, con un boton rapido para asignar uno.
+Estructura identica a `send-fighter-invitation`:
+- Verificar autenticacion y permisos de admin
+- Validar que el gym existe
+- Crear/actualizar registro en `gym_invitations`
+- Enviar email usando `sendEmailWithFallback` con template de Fighter ID
+- Manejar duplicados: reenviar si expiro, rechazar si ya fue aceptada
 
-### AssignGymOwnerModal - Sincronizacion
+### Tabla `gym_invitations` - RLS
 
-Al asignar un nuevo OWNER en `gym_staff`, el trigger se encargara de actualizar `gyms.owner_id` automaticamente, pero tambien se actualizara `AssignGymOwnerModal` para que haga el update directo como respaldo.
+- SELECT: solo admins y el usuario invitado (por email match)
+- INSERT: solo admins
+- UPDATE: solo admins o el usuario aceptando su propia invitacion
+- DELETE: solo admins
+
+**Total: 2 archivos nuevos, 3 archivos modificados, 1 migracion SQL**
+
