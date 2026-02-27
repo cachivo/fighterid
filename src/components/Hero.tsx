@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Zap, Shield, Trophy, MapPin } from 'lucide-react';
+import { Calendar, Dumbbell, Shield, Trophy, MapPin } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -121,22 +121,22 @@ const Hero = () => {
         {/* CTAs para usuarios autenticados */}
         <div className="mt-3 sm:mt-4 md:mt-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
           <Button
-            onClick={() => navigate('/social/feed')}
+            onClick={() => navigate('/fighters')}
             variant="hero"
             size="default"
             className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
           >
-            <Zap className="h-4 w-4 sm:h-5 sm:w-5" />
-            Ver Feed Social
+            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+            Ver Peleadores
           </Button>
           <Button
-            onClick={() => navigate('/fighters')}
+            onClick={() => navigate('/gimnasios')}
             variant="urban"
             size="default"
             className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
           >
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
-            Explorar Peleadores
+            <Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />
+            Ver Gimnasios
           </Button>
         </div>
         
