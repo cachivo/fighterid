@@ -1,12 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Dumbbell, Shield, Trophy, MapPin } from 'lucide-react';
+import { Dumbbell, Shield, Trophy, MapPin, Users, Calendar } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useUserRole } from '@/hooks/useUserRole';
-import batallaPoster from "@/assets/batalla-poster.jpg";
-import blueArena from "@/assets/blue-arena.jpg";
+import cageBackground from "@/assets/mma-cage-background.png";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -15,160 +13,204 @@ const Hero = () => {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const navigate = useNavigate();
-  
-  // Si no hay usuario autenticado, mostrar landing page con logo grande
+
+  const hasLiveEvent = stats?.liveEvents && stats.liveEvents.length > 0;
+
   if (!user) {
     return (
-      <section className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] lg:min-h-[75vh] flex items-center justify-center overflow-hidden pt-16 pb-8">
-        {/* Background with gradient animation */}
+      <section className="relative min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center justify-center overflow-hidden pt-16">
+        {/* Background image */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-background to-black"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(206,16,16,0.12),transparent_50%)] animate-pulse-slow"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(206,16,16,0.08),transparent_50%)]"></div>
+          <img
+            src={cageBackground}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="eager"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-background" />
+          {/* Vignette */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.7)_100%)]" />
         </div>
-        
+
         {/* Content */}
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
-          {/* Subtítulo */}
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 mb-4 sm:mb-6 md:mb-8 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+        <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto">
+          {/* Red accent line */}
+          <div className="w-16 h-1 bg-primary mx-auto mb-6 animate-fade-in" />
+
+          {/* Title */}
+          <h1 className="ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-widest text-white mb-3 animate-fade-in-up">
+            FIGHTER <span className="text-primary">ID</span>
+          </h1>
+
+          {/* Subtitle */}
+          <p className="text-sm sm:text-base md:text-lg text-white/80 mb-8 max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '100ms' }}>
             Plataforma profesional de gestión de peleadores
           </p>
-          
-          {/* BOTONES */}
+
+          {/* Mini Stats Bar */}
+          <div className="combat-cut inline-flex items-center gap-4 sm:gap-6 bg-white/5 backdrop-blur-md border border-white/10 px-5 py-3 mb-8 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center gap-2 text-white/90">
+              <Users className="h-4 w-4 text-primary" />
+              <span className="ufc-label text-sm tracking-wider">{stats?.totalFighters || 0}+ Peleadores</span>
+            </div>
+            <div className="w-px h-5 bg-white/20" />
+            <div className="flex items-center gap-2 text-white/90">
+              <Dumbbell className="h-4 w-4 text-primary" />
+              <span className="ufc-label text-sm tracking-wider">Gimnasios</span>
+            </div>
+            <div className="w-px h-5 bg-white/20 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-2 text-white/90">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="ufc-label text-sm tracking-wider">{stats?.totalEvents || 0}+ Eventos</span>
+            </div>
+          </div>
+
+          {/* CTAs */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center max-w-md mx-auto animate-fade-in-up" style={{ animationDelay: '300ms' }}>
-            <Button 
+            <Button
               onClick={() => navigate('/auth?mode=signin')}
               variant="hero"
               size="default"
-              className="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base min-h-[44px] touch-manipulation"
+              className="w-full sm:w-auto px-8 py-3 text-sm sm:text-base min-h-[48px] touch-manipulation"
             >
               Iniciar Sesión
             </Button>
-            <Button 
+            <Button
               onClick={() => navigate('/license/auth?mode=signup')}
               variant="urban"
               size="default"
-              className="w-full sm:w-auto px-6 py-2.5 sm:px-8 sm:py-3 text-sm sm:text-base min-h-[44px] touch-manipulation"
+              className="w-full sm:w-auto px-8 py-3 text-sm sm:text-base min-h-[48px] touch-manipulation"
             >
               Registrarse
             </Button>
           </div>
-          
-          {/* Info adicional */}
-          <p className="mt-4 sm:mt-6 text-white/70 text-xs sm:text-sm animate-fade-in-up" style={{ animationDelay: '450ms' }}>
-            Únete a la comunidad de peleadores profesionales
-          </p>
-        </div>
-        
-        {/* Scroll indicator for mobile */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce md:hidden">
-          <div className="w-6 h-10 border-2 border-primary/60 rounded-full flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 bg-primary/60 rounded-full animate-pulse"></div>
-          </div>
+
+          {/* Bottom red line */}
+          <div className="w-24 h-1 bg-primary mx-auto mt-10 animate-fade-in-up" style={{ animationDelay: '400ms' }} />
         </div>
 
-        {/* Cinematic bottom fade */}
-        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent"></div>
-        
-      {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-16 h-16 border-l border-t border-primary/20"></div>
-      <div className="absolute bottom-0 right-0 w-16 h-16 border-r border-b border-primary/20"></div>
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent" />
       </section>
     );
   }
-  
-  // Usuario autenticado - mostrar Hero con stats
+
+  // Authenticated user
   return (
-    <section className="relative min-h-[45vh] sm:min-h-[55vh] md:min-h-[65vh] lg:min-h-[70vh] flex items-center justify-center overflow-hidden pt-16 pb-8">
-      {/* Background with gradient animation */}
+    <section className="relative min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] flex items-center justify-center overflow-hidden pt-16">
+      {/* Background image */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-950/30 via-background to-black"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(206,16,16,0.12),transparent_50%)] animate-pulse-slow"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(206,16,16,0.08),transparent_50%)]"></div>
+        <img
+          src={cageBackground}
+          alt=""
+          className="w-full h-full object-cover"
+          loading="eager"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/55 to-background" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.7)_100%)]" />
       </div>
-      
+
       {/* Content */}
-      <div className="relative z-10 text-center text-white px-4 sm:px-6 max-w-4xl mx-auto">
-        {/* Live indicator with cinematic style and dynamic data */}
-        <div className="mt-2 sm:mt-3 md:mt-4 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 text-primary font-semibold animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-          <div className="flex items-center gap-2 max-w-full">
-            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-primary rounded-full animate-pulse-purple-neon shadow-lg shadow-primary/50 flex-shrink-0"></div>
-            <span className="text-[11px] sm:text-xs md:text-sm tracking-wider text-center truncate max-w-[200px] sm:max-w-none">
-              {stats?.liveEvents && stats.liveEvents.length > 0 
-                ? `EN VIVO: ${stats.liveEvents[0].name.toUpperCase()}${stats.liveEvents[0].venue ? ` - ${stats.liveEvents[0].venue.toUpperCase()}` : ''}`
-                : stats?.nextEvent
-                  ? `${stats.nextEvent.name.toUpperCase()} - ${format(new Date(stats.nextEvent.start_time), 'dd MMM', { locale: es }).toUpperCase()}`
-                  : 'PRÓXIMOS EVENTOS PRONTO'
-              }
-            </span>
+      <div className="relative z-10 text-center px-4 sm:px-6 max-w-4xl mx-auto">
+        {/* Live / Next Event indicator */}
+        <div className="mb-5 animate-fade-in">
+          {hasLiveEvent ? (
+            <div className="inline-flex items-center gap-3 combat-cut bg-primary/15 backdrop-blur-md border border-primary/30 px-5 py-2.5">
+              <span className="status-live text-xs sm:text-sm font-bold tracking-wider">EN VIVO</span>
+              <span className="ufc-label text-xs sm:text-sm text-white tracking-wider">
+                {stats.liveEvents[0].name.toUpperCase()}
+                {stats.liveEvents[0].venue && ` — ${stats.liveEvents[0].venue.toUpperCase()}`}
+              </span>
+            </div>
+          ) : stats?.nextEvent ? (
+            <div className="inline-flex items-center gap-3 combat-cut bg-white/5 backdrop-blur-md border border-white/10 px-5 py-2.5">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span className="ufc-label text-xs sm:text-sm text-white/90 tracking-wider">
+                PRÓXIMO: {stats.nextEvent.name.toUpperCase()} — {format(new Date(stats.nextEvent.start_time), 'dd MMM', { locale: es }).toUpperCase()}
+              </span>
+              {stats.nextEvent.venue && (
+                <>
+                  <div className="w-px h-4 bg-white/20" />
+                  <span className="flex items-center gap-1 text-white/70 text-xs">
+                    <MapPin className="h-3 w-3" />
+                    {stats.nextEvent.venue}
+                  </span>
+                </>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {/* Stats Bar */}
+        <div className="combat-cut inline-flex items-center gap-4 sm:gap-6 bg-white/5 backdrop-blur-md border border-white/10 px-5 py-3 mb-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+          <div className="text-center">
+            <p className="ufc-label text-lg sm:text-2xl font-bold text-white">{stats?.totalFighters || 0}</p>
+            <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Peleadores</p>
           </div>
-          
-          {/* Event additional info - discipline or venue */}
-          {stats?.liveEvents?.[0]?.discipline && (
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs bg-black/30 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              <Trophy className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span>{stats.liveEvents[0].discipline.toUpperCase()}</span>
-            </div>
-          )}
-          {!stats?.liveEvents?.length && stats?.nextEvent?.venue && (
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs bg-black/30 px-2.5 py-1 rounded-full backdrop-blur-sm">
-              <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span>{stats.nextEvent.venue.toUpperCase()}</span>
-            </div>
+          <div className="w-px h-8 bg-white/15" />
+          <div className="text-center">
+            <p className="ufc-label text-lg sm:text-2xl font-bold text-primary">{stats?.activeFighters || 0}</p>
+            <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Activos</p>
+          </div>
+          <div className="w-px h-8 bg-white/15" />
+          <div className="text-center">
+            <p className="ufc-label text-lg sm:text-2xl font-bold text-white">{stats?.totalEvents || 0}</p>
+            <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Eventos</p>
+          </div>
+          {(stats?.liveEvents?.length ?? 0) > 0 && (
+            <>
+              <div className="w-px h-8 bg-white/15" />
+              <div className="text-center">
+                <p className="ufc-label text-lg sm:text-2xl font-bold text-primary animate-pulse">{stats.liveEvents.length}</p>
+                <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">En Vivo</p>
+              </div>
+            </>
           )}
         </div>
-        
-        {/* CTAs para usuarios autenticados */}
-        <div className="mt-3 sm:mt-4 md:mt-5 flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center animate-fade-in-up" style={{ animationDelay: '300ms' }}>
+
+        {/* CTAs */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up" style={{ animationDelay: '200ms' }}>
           <Button
             onClick={() => navigate('/fighters')}
             variant="hero"
             size="default"
-            className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
+            className="gap-2 min-h-[48px] text-sm sm:text-base touch-manipulation px-6 sm:px-8"
           >
-            <Trophy className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Trophy className="h-5 w-5" />
             Ver Peleadores
           </Button>
           <Button
             onClick={() => navigate('/gimnasios')}
             variant="urban"
             size="default"
-            className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base touch-manipulation px-5 sm:px-6"
+            className="gap-2 min-h-[48px] text-sm sm:text-base touch-manipulation px-6 sm:px-8"
           >
-            <Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Dumbbell className="h-5 w-5" />
             Ver Gimnasios
           </Button>
         </div>
-        
-        {/* Admin Button - Only visible for admin users */}
+
+        {/* Admin Button */}
         {isAdmin && (
-          <div className="mt-3 sm:mt-4 animate-fade-in">
+          <div className="mt-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
             <Button
               onClick={() => navigate('/admin/dashboard')}
               variant="hero"
               size="default"
-              className="gap-2 min-h-[42px] sm:min-h-[44px] text-sm sm:text-base px-5 sm:px-6"
+              className="gap-2 min-h-[44px] text-sm px-6"
             >
-              <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Shield className="h-4 w-4" />
               Panel de Administración
             </Button>
           </div>
         )}
-      </div>
-      
-      {/* Scroll indicator for mobile */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce md:hidden">
-        <div className="w-6 h-10 border-2 border-primary/60 rounded-full flex items-start justify-center p-2">
-          <div className="w-1.5 h-3 bg-primary/60 rounded-full animate-pulse"></div>
-        </div>
+
+        {/* Bottom red line */}
+        <div className="w-24 h-1 bg-primary mx-auto mt-8" />
       </div>
 
-      {/* Cinematic bottom fade */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent"></div>
-      
-      {/* Corner accents */}
-      <div className="absolute top-0 left-0 w-16 h-16 border-l border-t border-primary/20"></div>
-      <div className="absolute bottom-0 right-0 w-16 h-16 border-r border-b border-primary/20"></div>
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );
 };
