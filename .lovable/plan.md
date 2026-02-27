@@ -1,121 +1,126 @@
 
 
-# Correccion de Flujo de Onboarding por Modulo + Solucion de Emails en Spam
+# Fix de 12 Bugs y Mejoras del Sistema de Scoring
 
-## Problemas Identificados
+## Fase 1: Bugs Criticos (3 fixes)
 
-### Problema 1: Gimnasio redirige al formulario de Peleador
-Cuando un usuario selecciona "Gimnasio" y se registra, el `AuthCallback` lo envia a `/gym/onboarding` (si no hay sesion) o a `resolveGymDestination()` (si hay sesion). Pero `resolveGymDestination()` busca en `gym_staff` por `user_id` -- y como el usuario es nuevo, no tiene registro ahi, entonces lo manda a `/gimnasios` (pagina publica). Si la sesion no se establece en el callback, lo manda a `/gym/onboarding` que esta protegido por `SuperAdminRoute`, asi que un usuario normal no puede acceder.
+### Bug #1 -- Loop infinito en estaciones (snake_case vs camelCase)
 
-**Causa raiz**: El onboarding de gimnasio (`/gym/onboarding`) esta envuelto en `SuperAdminRoute` en App.tsx linea 233, bloqueando el acceso a usuarios nuevos. Ademas, el flujo normal para gimnasios nuevos deberia ser a traves de la invitacion del admin, no auto-registro.
+**Archivos**: `Station1Scoring.tsx`, `Station2Scoring.tsx`, `Station3RoundControl.tsx`
 
-### Problema 2: Juez cae al formulario de Peleador
-Cuando un juez confirma su email sin sesion activa, el callback linea 49 lo envia a `/judge/onboarding` correctamente. Pero si la sesion SI se establece, `determineUserDestination()` cae al default (`resolveFighterDestination`) que lo manda a `/license/onboarding` -- el formulario de peleador.
+Cambiar `parsed.stationNumber` a `parsed.station_number` en las 3 estaciones. `StationPinLogin` ya guarda correctamente como `station_number`.
 
-### Problema 3: No hay deteccion de cuentas con multiples roles
-El sistema no verifica si un usuario ya tiene un perfil de peleador al registrarse como gimnasio o juez, ni viceversa. Cada modulo opera de forma independiente.
+- Station1Scoring linea 24: `parsed.stationNumber` -> `parsed.station_number`
+- Station2Scoring linea 24: `parsed.stationNumber` -> `parsed.station_number`
+- Station3RoundControl linea 30: `parsed.stationNumber` -> `parsed.station_number`
 
-### Problema 4: Emails caen en spam
+### Bug #2 -- URLs con slash faltante
 
-Esto es un problema de configuracion de dominio, **no de codigo**. El sistema ya usa `notificaciones@fighter-id.org` como remitente. Para que los emails no caigan en spam se necesita configurar registros DNS en el proveedor de dominio de `fighter-id.org`.
+**Archivos**: `StationWaiting.tsx` linea 27, `JudgeScoringPanel.tsx` linea 42
 
----
+- `navigate('/estacion${stationNumber}')` -> `navigate('/estacion/${stationNumber}')`
+- `navigate('/estacion${session.station_number}')` -> `navigate('/estacion/${session.station_number}')`
 
-## Plan de Implementacion
+Nota: `StationWaiting.tsx` linea 27 ya tiene la URL correcta con slash (`/estacion/${stationNumber}`). Solo `JudgeScoringPanel.tsx` linea 42 tiene el bug (falta el slash: `` navigate(`/estacion${session.station_number}`) ``).
 
-### Paso 1: Corregir rutas en App.tsx
+### Bug #3 -- Double trigger race condition
 
-- Remover `SuperAdminRoute` del wrapper de `/gym/onboarding` para que cualquier usuario autenticado pueda acceder
-- La creacion de gimnasios desde el admin panel sigue protegida por `AdminProtectedRoute`
-- El onboarding es solo para usuarios invitados por el admin
+**Migracion SQL**: Eliminar el trigger duplicado `trigger_update_record_on_finish` de la tabla `fights`. Dejar solo el trigger en `fight_results`.
 
-### Paso 2: Corregir logica de redireccion en AuthCallback.tsx
+```text
+DROP TRIGGER IF EXISTS trigger_update_record_on_finish ON fights;
+```
 
-Actualizar `determineUserDestination()` para que cuando `savedRole === 'gym'` y el usuario no tiene `gym_staff`, lo redirija correctamente:
-- Si tiene invitacion de gimnasio pendiente: procesarla
-- Si no tiene gym_staff: mostrar mensaje de que necesita una invitacion del admin
+Ademas, modificar `FightResults.tsx` `submitResult()` para hacer ambas operaciones (insert/update fight_results + update fights.status) en una sola llamada RPC atomica, eliminando la ventana de race condition.
 
-Actualizar el bloque sin sesion (linea 44-53) para manejar correctamente cada rol.
-
-### Paso 3: Corregir logica de redireccion en Auth.tsx
-
-Actualizar `routeAuthenticatedUser()` para que:
-- `gym` sin `gym_staff` -> muestre un mensaje informativo en vez de redirigir al formulario de peleador
-- `judge` sin registro -> vaya a `/judge/onboarding` correctamente
-- `fighter` -> siga el flujo actual de licencia
-
-### Paso 4: Crear pagina informativa para gym sin invitacion
-
-Crear una pagina simple `/gym/pending-invitation` que muestre:
-- "Tu cuenta esta lista. Un administrador te vinculara a tu gimnasio."
-- Contacto del admin para solicitar vinculacion
-
-### Paso 5: Emails en Spam - Acciones Requeridas
-
-**Esto NO se soluciona con codigo.** Se necesita configurar en el proveedor DNS de `fighter-id.org`:
-
-1. **SPF Record** (TXT): Autorizar a Resend como servidor de envio
-2. **DKIM Record** (CNAME): Firma digital para autenticar emails
-3. **DMARC Record** (TXT): Politica de autenticacion de email
-
-Estos registros se obtienen del dashboard de Resend (resend.com) en la seccion "Domains" y se agregan en el panel DNS del proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc.).
+Crear funcion SQL `save_fight_result(...)` que haga todo en una transaccion.
 
 ---
 
-## Archivos a Modificar
+## Fase 2: Bugs de Base de Datos (2 fixes)
+
+### Bug #4 -- Record amateur/pro se sobreescribe
+
+La tabla `fighter_profiles` ya tiene columnas separadas: `mma_record_wins/losses/draws` y `boxeo_record_wins/losses/draws`. Sin embargo, `update_single_fighter_record()` solo escribe en `record_wins/losses/draws` generico.
+
+**Migracion SQL**: Actualizar `update_single_fighter_record()` para:
+- Agregar columnas `amateur_wins/losses/draws`, `semi_pro_wins/losses/draws`, `pro_wins/losses/draws` a `fighter_profiles`
+- Escribir en la columna correcta segun `p_fight_type` (AMATEUR, SEMI_PRO, PROFESSIONAL)
+- Mantener `record_wins/losses/draws` como totales agregados (suma de todas las categorias)
+
+### Bug #5 -- Empates cuentan peleas sin resultado
+
+La funcion `update_single_fighter_record()` ya filtra por `f.status = 'finished'` en la linea 67. Sin embargo, una pelea `finished` sin `winner_id` podria ser un No Contest y no un empate real. Agregar filtro adicional para excluir peleas con `fight_results.result_type = 'NO_CONTEST'`:
+
+```text
+-- Empates: peleas finished sin ganador y que NO sean No Contest
+WHERE f.status = 'finished'
+  AND f.fight_type = p_fight_type
+  AND f.winner_id IS NULL
+  AND NOT EXISTS (
+    SELECT 1 FROM fight_results fr 
+    WHERE fr.fight_id = f.id 
+    AND fr.result_type = 'NO_CONTEST'
+  )
+```
+
+---
+
+## Fase 3: Mejoras de Mediana Prioridad (7 items)
+
+### Mejora #1 -- Realtime en StationWaiting (reemplazar polling)
+
+**Archivo**: `StationWaiting.tsx`
+
+Reemplazar `setInterval` de 10s con suscripcion Supabase Realtime a cambios en tabla `fights` filtrado por `event_id`. Latencia baja de ~10s a <500ms.
+
+### Mejora #2 -- Notificar jueces cuando termina la pelea
+
+**Archivos**: `Station1Scoring.tsx`, `Station2Scoring.tsx`
+
+Agregar `useEffect` con suscripcion Realtime a `fights` filtrado por `id=eq.${fightId}`. Cuando `status` cambia a `finished`, mostrar toast y redirigir a `/estacion/${station_number}/waiting`.
+
+### Mejora #3 -- Conectar selector de duracion en Station3
+
+**Archivo**: `Station3RoundControl.tsx`
+
+Pasar `customDuration` al `handleStart`: antes de llamar `startRound(nextRound.id)`, hacer `UPDATE fight_rounds SET duration_seconds = customDuration WHERE id = nextRound.id`.
+
+### Mejora #4 -- Tipo StationSession centralizado
+
+**Archivo nuevo**: `src/types/station.ts`
+
+Crear interfaz unica `StationSession` con campo canonico `station_number` (snake_case). Importar desde Station1, Station2, Station3, StationWaiting y JudgeScoringPanel.
+
+### Mejora #5 -- Record multi-categoria en UI
+
+Pendiente para despues de aplicar Bug #4. Mostrar record discriminado por categoria en `FighterProfile.tsx` y `FighterCard.tsx`.
+
+### Mejora #6 -- Race condition en reset de round (useStrikeCounter)
+
+**Archivo**: `useStrikeCounter.tsx` linea ~56
+
+Unificar el reset de `eventsRef.current` y `setState` en una sola operacion para evitar inconsistencias.
+
+### Mejora #7 -- Validacion en scoring_events (mejora de seguridad)
+
+Agregar validacion de que el `judge_id` y `corner` coincidan con la sesion activa. Se implementa como trigger de validacion en la tabla `scoring_events`.
+
+---
+
+## Resumen de Archivos
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/App.tsx` | Remover `SuperAdminRoute` de `/gym/onboarding` |
-| `src/pages/AuthCallback.tsx` | Corregir redireccion para gym y judge |
-| `src/pages/Auth.tsx` | Corregir `routeAuthenticatedUser` para gym sin staff |
-| `src/pages/gym/GymOnboarding.tsx` | Agregar verificacion de invitacion pendiente |
+| `Station1Scoring.tsx` | Fix snake_case + Realtime fin de pelea |
+| `Station2Scoring.tsx` | Fix snake_case + Realtime fin de pelea |
+| `Station3RoundControl.tsx` | Fix snake_case + conectar customDuration |
+| `JudgeScoringPanel.tsx` | Fix URL slash |
+| `StationWaiting.tsx` | Polling -> Realtime |
+| `useStrikeCounter.tsx` | Fix race condition en reset |
+| `FightResults.tsx` | Usar RPC atomico |
+| Migracion SQL | Drop trigger duplicado, crear RPC atomica, agregar columnas record por categoria, fix empates, trigger validacion scoring |
+| `src/types/station.ts` | Nuevo: tipo StationSession centralizado |
 
-## Archivo Nuevo
-
-| Archivo | Descripcion |
-|---------|-------------|
-| `src/pages/gym/GymPendingInvitation.tsx` | Pagina informativa para usuarios gym sin invitacion |
-
----
-
-## Detalle Tecnico
-
-### AuthCallback - Redireccion corregida
-
-```text
-determineUserDestination(authUserId):
-  savedRole = localStorage
-  
-  if savedRole == 'gym':
-    -> buscar gym_staff activo
-    -> SI tiene: /gym/:id/dashboard  
-    -> NO tiene: /gym/pending-invitation
-    
-  if savedRole == 'judge':
-    -> buscar en judges table
-    -> SI tiene: / (home, esperando aprobacion)
-    -> NO tiene: /judge/onboarding
-    
-  if savedRole == 'fighter':
-    -> flujo actual (license/onboarding -> pending -> dashboard)
-```
-
-### App.tsx - Ruta corregida
-
-```text
-Antes:  ProtectedRoute > SuperAdminRoute > GymOnboarding
-Ahora:  ProtectedRoute > GymOnboarding
-```
-
-### Emails - Pasos en Resend Dashboard
-
-1. Ir a resend.com/domains
-2. Agregar dominio `fighter-id.org`
-3. Copiar los registros DNS que Resend proporciona
-4. Agregar esos registros en el panel DNS del proveedor
-5. Esperar verificacion (puede tomar 24-48 horas)
-6. Una vez verificado, los emails ya no caeran en spam
-
-**Importante**: Si el dominio `fighter-id.org` ya esta verificado en Resend, el problema podria ser que la API key no esta scoped a ese dominio. En ese caso, crear una nueva API key en Resend scoped a `fighter-id.org` y actualizar el secret `RESEND_API_KEY`.
+**Total: 1 archivo nuevo, 7 archivos modificados, 1 migracion SQL**
 
