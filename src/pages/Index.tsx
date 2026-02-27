@@ -81,7 +81,7 @@ const Index = () => {
       <Suspense fallback={null}>
         {user && <FighterIDCallToAction />}
       </Suspense>
-      <QuickStats />
+      {!user && <QuickStats />}
       <LeagueSelector value={selectedOrg} onChange={handleOrgChange} />
       <Ranking organizationCode={selectedOrg} />
       <Suspense fallback={null}>
