@@ -1,50 +1,39 @@
 
+# Rediseno de la Pagina de Perfil de Peleador -- Estilo UFC Cinematico
 
-# Rediseno del Hero -- Estilo UFC Impactante
+## Problema Actual
 
-## Vision
-
-Transformar el Hero actual (minimalista con gradientes sutiles) en una seccion cinematica estilo UFC con imagen de fondo de octogono/arena, estadisticas en vivo prominentes, y una estructura visual de alto impacto.
+La pagina de perfil del peleador (`/fighter/:id`) tiene un diseno generico con Cards de Radix sobre fondo oscuro plano. No tiene el impacto visual cinematico del Hero de la landing page. Ademas, hay problemas de coherencia cromatica: algunos textos se pierden contra fondos oscuros (ej: "Club" en verde sobre fondo oscuro, badges con bajo contraste).
 
 ---
 
-## Estructura del Nuevo Hero
-
-### Para usuarios NO autenticados
+## Estructura Propuesta
 
 ```text
 +----------------------------------------------------------+
-|  [Imagen de fondo: octogono/arena con overlay oscuro]    |
+| [Imagen de fondo: arena MMA con overlay oscuro/rojo]     |
 |                                                           |
-|        FIGHTER ID (logo grande, centrado)                 |
-|   "La plataforma profesional de artes marciales mixtas"   |
+|  < Inicio   < Fighters              [Editar Mi Perfil]  |
 |                                                           |
-|   +--- Stats en linea (sin auth) ---+                    |
-|   | 150+ Peleadores | 20+ Gimnasios | 10+ Eventos |     |
-|   +----------------------------------+                    |
+|  +--AVATAR--+   "Muneco Gonzales"                        |
+|  |          |   MIGUEL ALBERTO GONZALES MENA             |
+|  |  (foto)  |   Honduras  |  Boxeo  |  Profesional      |
+|  |          |   Club: Muneco Gonzales                    |
+|  +----------+                                            |
 |                                                           |
-|   [ Iniciar Sesion ]   [ Registrarse ]                   |
+|  +--- Record Bar (combat-cut) ---+                       |
+|  |  16 Victorias | 12 Derrotas | 0 Empates  |           |
+|  +--------------------------------+                      |
 |                                                           |
-|   Linea roja decorativa horizontal (combat-cut)           |
+|  Linea roja decorativa                                    |
 +----------------------------------------------------------+
-```
-
-### Para usuarios autenticados
-
-```text
-+----------------------------------------------------------+
-|  [Imagen de fondo: arena con overlay rojo/negro]         |
 |                                                           |
-|  [EN VIVO] BATALLA DE CAMPEONES - 15 DIC                |
+|  [Stats Grid: Altura | Peso | Alcance | Guardia]        |
 |                                                           |
-|  +--- Quick Stats Bar (combat-cut) ---+                  |
-|  | Peleadores: 150 | Activos: 89 | En Vivo: 2 |        |
-|  +-------------------------------------+                  |
+|  [Ligas Activas]                                         |
 |                                                           |
-|   [ Ver Peleadores ]   [ Ver Gimnasios ]                 |
-|   [ Panel de Administracion ] (solo admin)               |
-|                                                           |
-|   Linea roja decorativa                                   |
+|  [Perfil del Peleador: Bio, Artes Marciales, Estilo]    |
+|  [Record + Licencia Digital]                             |
 +----------------------------------------------------------+
 ```
 
@@ -52,33 +41,46 @@ Transformar el Hero actual (minimalista con gradientes sutiles) en una seccion c
 
 ## Cambios Concretos
 
-### 1. `src/components/Hero.tsx` (reescritura completa)
+### 1. `src/pages/FighterProfile.tsx` -- Rediseno del header del perfil
 
-**Fondo cinematico:**
-- Usar imagen de fondo (`mma-cage-background.png` o `blue-arena.jpg` que ya existen en assets)
-- Overlay oscuro con gradiente: `bg-gradient-to-b from-black/70 via-black/50 to-background`
-- Barra diagonal roja decorativa usando `combat-cut` en la parte inferior
+**Hero cinematico del perfil (lineas 149-322):**
 
-**Seccion no-auth:**
-- Titulo grande "FIGHTER ID" con `font-barlow-condensed text-5xl md:text-7xl font-extrabold uppercase tracking-widest`
-- Subtitulo con `ufc-label` class
-- Mini stats bar inline mostrando contadores de peleadores, gimnasios y eventos (datos de `useRealTimeStats`)
-- Botones Iniciar Sesion / Registrarse con separador visual tipo linea roja
+Reemplazar el Card generico del header por una seccion estilo Hero con:
 
-**Seccion auth:**
-- Indicador EN VIVO mas prominente con badge `status-live`
-- Stats bar horizontal con fondo semi-transparente y `combat-cut` styling
-- CTAs "Ver Peleadores" y "Ver Gimnasios" mas grandes con iconos
-- Boton admin con estilo diferenciado
+- **Fondo cinematico**: Imagen de fondo (`mma-cage-background.png`) con overlay oscuro gradiente, igual que el Hero de la landing
+- **Layout**: Avatar grande a la izquierda, info del peleador a la derecha con tipografia `ufc-label` y `font-barlow-condensed`
+- **Nombre**: Texto grande blanco con `text-4xl md:text-6xl font-extrabold tracking-wider` -- alta visibilidad
+- **Nickname**: En color `text-primary` (rojo UFC) para contraste
+- **Record bar**: Contenedor `combat-cut` con fondo semi-transparente (`bg-white/5 backdrop-blur-md border border-white/10`)
+- **Badges**: Status en colores de alto contraste, disciplina y nivel prominentes
+- **Club/Gym**: Texto blanco con icono, no verde que se pierde
+- **Vignette**: Efecto de bordes oscuros igual al Hero
 
-**Elementos decorativos:**
-- Linea horizontal roja (`w-24 h-1 bg-primary`) como separador visual
-- Esquinas cortadas estilo `combat-cut` en contenedores
-- Efecto de vignette (bordes oscuros) en la imagen de fondo
+**Coherencia cromatica -- reglas aplicadas:**
 
-### 2. `src/pages/Index.tsx` (menor)
+- Textos principales: `text-white` (no `text-foreground` que puede ser gris)
+- Textos secundarios: `text-white/70` o `text-white/80` (legibles sobre fondo oscuro)
+- Labels/subtitulos: `text-white/60` con `uppercase tracking-wider`
+- Badges de status: Colores solidos de alto contraste (verde/rojo/amarillo sobre fondo oscuro)
+- Links: `text-primary` (rojo UFC) con hover underline
+- Separadores: `bg-primary` (rojo) en vez de `bg-border` gris invisible
 
-- Mover `QuickStats` para que no se duplique con los stats del Hero (solo mostrar debajo si el usuario no esta autenticado, o eliminar duplicacion)
+### 2. Auditoria de Coherencia Cromatica
+
+**Problemas identificados y correcciones:**
+
+| Elemento | Problema | Solucion |
+|----------|----------|----------|
+| "CLUB" label | Verde (`text-blue-400`) poco visible | `text-white/60 uppercase` |
+| Gym name | `text-primary` puede ser bajo contraste en cards | Mantener `text-primary` solo sobre fondos oscuros |
+| Record numbers | Verde/Rojo/Gris sobre fondos claros de card | Sobre Hero: `text-white` con bg colored; en cards: mantener actual |
+| Muted foreground | `55%` luminosidad -- puede ser muy tenue | Verificar legibilidad en context de hero |
+| Breadcrumb nav | `variant="ghost"` puede perderse | Textos blancos sobre el hero background |
+| Stats grid cards | Fondo `bg-card` (8% negro) con texto `text-foreground` | Mantener -- funciona bien fuera del hero |
+
+### 3. `src/pages/FighterProfile.tsx` -- Stats grid y secciones inferiores
+
+Las secciones debajo del Hero (stats grid, ligas activas, biografia, record, licencia digital) se mantienen con el diseno actual de Cards, que funciona bien sobre el fondo `bg-background`. Solo se ajusta el espaciado para fluir naturalmente desde el hero.
 
 ---
 
@@ -86,29 +88,17 @@ Transformar el Hero actual (minimalista con gradientes sutiles) en una seccion c
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/Hero.tsx` | Reescritura completa con estructura UFC impactante, imagen de fondo, stats inline, combat-cut decorations |
-| `src/pages/Index.tsx` | Ajustar posicion de QuickStats para evitar duplicacion con Hero stats |
+| `src/pages/FighterProfile.tsx` | Reescritura del header section (lineas 149-322) como hero cinematico con fondo de arena, combat-cut decorations, tipografia UFC. Ajuste de colores para coherencia cromatica |
 
-**Total: 2 archivos, sin archivos nuevos**
-
----
-
-## Assets Existentes Disponibles
-
-Ya existen en el proyecto y se pueden usar como fondo del Hero:
-- `src/assets/mma-cage-background.png`
-- `src/assets/blue-arena.jpg`
-- `src/assets/arena-octagon.png`
-- `public/lovable-uploads/octagon-background.png`
-
-Se usara `mma-cage-background.png` como imagen de fondo principal con un overlay negro/rojo.
+**Total: 1 archivo principal modificado**
 
 ---
 
 ## Notas Tecnicas
 
-- Se mantienen las clases CSS de combate ya creadas (`.combat-cut`, `.status-live`, `.ufc-label`)
-- Se reutiliza `useRealTimeStats` para datos dinamicos
+- Reutiliza las clases CSS existentes: `.combat-cut`, `.ufc-label`, `.status-live`
+- Importa `cageBackground` de `@/assets/mma-cage-background.png` (ya usado en Hero.tsx)
 - Responsive: mobile-first con breakpoints sm/md/lg
-- Imagen de fondo con `object-cover` y lazy loading
-
+- El avatar se muestra mas grande en el hero (h-64 w-48 en desktop, h-48 w-36 en mobile)
+- Breadcrumbs con texto blanco sobre overlay oscuro para visibilidad
+- Sin cambios en backend ni base de datos
