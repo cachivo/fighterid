@@ -1,105 +1,70 @@
 
-# Auditoria Completa del Sistema -- Campos, Modulos y Perfiles
+# Correccion de Pop-ups de Perfil, Integridad de Datos y Seleccion de Gimnasios
 
-## Resumen de Hallazgos
+## Problema 1: Pop-ups de perfil incompleto aparecen incluso con perfil completo
 
-Se auditaron todos los perfiles de peleador, formularios de edicion, dashboards, y la base de datos. Se encontraron **7 problemas** que requieren correccion.
+**Causa raiz:** `ProfileIncompleteNotification` (Header.tsx) verifica solo 3 campos (`birthdate`, `gender`, `phone`) pero el campo `phone` se busca en `fighter_profiles` donde no existe -- siempre sera `undefined`, haciendo que el pop-up aparezca siempre para usuarios con licencia, incluso si ya tienen telefono en `app_user`.
 
----
+**Solucion:**
+- **`src/components/ProfileIncompleteNotification.tsx`**: Modificar para que busque `phone` desde `app_user` (igual que LicenseDashboard). Despues de obtener el perfil del peleador, hacer un fetch a `app_user` para verificar si tiene telefono. Si los 3 campos estan completos, no mostrar la notificacion.
+- Adicionalmente, si `birthdate` y `gender` estan llenos y `phone` esta en `app_user`, el pop-up no debe aparecer.
 
-## Problemas Encontrados
+## Problema 2: Datos posiblemente perdidos tras actualizaciones
 
-### 1. CRITICO: Campo `phone` no existe en `fighter_profiles` -- Error silencioso en edicion
+**Hallazgos de la base de datos:**
+- La data NO se ha perdido. Consulte los perfiles activos y la informacion esta intacta en la base de datos (gym_name, gym_id, height_cm, weight_kg, etc.)
+- El problema visual es que algunos campos no se cargan correctamente en el formulario de edicion (ej: `phone` siempre aparece vacio porque viene de `app_user`, no de `fighter_profiles`)
+- En el ultimo fix ya se corrigio el enrichment de `phone` en LicenseDashboard, pero el formulario de edicion `UserFighterProfileEditForm` aun puede no recibir el phone correctamente si el `profile` pasado no lo incluye
 
-**Problema:** El formulario `UserFighterProfileEditForm.tsx` (linea 124) inicializa `phone` desde `profile.phone`, pero la tabla `fighter_profiles` **no tiene columna `phone`**. El campo `phone` vive en `app_user`. 
+**Solucion:** Verificar que la prop `enrichedProfile` en LicenseDashboard incluye correctamente el phone y que no hay campos que se esten borrando al guardar. Revisar que el `onSubmit` no envia campos vacios que sobrescriban datos existentes.
 
-- El formulario carga `phone` del perfil del peleador (siempre sera `undefined`)
-- Al guardar, intenta actualizar `app_user.phone` (lineas 286-293) pero la comparacion `data.phone !== profile.phone` siempre sera falsa si el perfil no carga el phone desde app_user
-- El `ProfileProgressWidget` tambien evalua `(profile as any).phone` que siempre sera `undefined`
+## Problema 3: Gimnasio debe ser solo de gimnasios registrados (no texto libre)
 
-**Solucion:** Al cargar el perfil en LicenseDashboard, hacer un join o fetch separado de `app_user.phone` y pasarlo al formulario. Alternativamente, cargar el phone desde `useLicenseAuth` que ya tiene acceso al user.
+**Problemas encontrados:**
+1. **`FighterProfileForm.tsx` (creacion de perfiles admin)**: Tiene un Select de gimnasios registrados PERO tambien un Input de texto libre debajo que dice "O escribe el nombre del gimnasio manualmente" (linea 239-245). Este input debe eliminarse.
+2. **`UserFighterProfileEditForm.tsx` (edicion del usuario)**: El campo `gym_name` es un Input de texto libre (linea 784-785). Debe reemplazarse por un Select con gimnasios registrados + opcion "Independiente".
 
-**Archivos:** `src/components/UserFighterProfileEditForm.tsx`, `src/hooks/useProfileCompletion.tsx`, `src/pages/license/LicenseDashboard.tsx`
-
-### 2. MEDIO: `document_type` y `document_number` no editables por el usuario
-
-**Problema:** El dashboard muestra "Tipo de Documento" y "Numero de Documento" (lineas 431-437 de LicenseDashboard), pero el formulario `UserFighterProfileEditForm` **no incluye estos campos**. Solo el admin puede editarlos via `FighterEditModal`.
-
-El esquema Zod del formulario no tiene `document_type` ni `document_number`. El usuario no puede completar esta informacion.
-
-**Solucion:** Agregar campos `document_type` (Select con DNI/Pasaporte/Cedula) y `document_number` (Input) al formulario del usuario, en la seccion "Imagen de Identidad" donde ya sube la foto del documento.
-
-**Archivos:** `src/components/UserFighterProfileEditForm.tsx`
-
-### 3. MEDIO: `Postura` vs `Guardia` -- Inconsistencia terminologica
-
-**Problema:** El LicenseDashboard muestra "Postura" (linea 469) pero el formulario de edicion dice "Guardia" (linea 696). La regla de negocio dice que se debe usar "Guardia" en todo el sistema.
-
-**Solucion:** Cambiar "Postura" a "Guardia" en LicenseDashboard.
-
-**Archivos:** `src/pages/license/LicenseDashboard.tsx` (linea 469)
-
-### 4. MENOR: `window.location.reload()` en lugar de invalidacion de cache
-
-**Problema:** LicenseDashboard usa `window.location.reload()` (lineas 813 y 832) cuando se crea o elimina una actualizacion del peleador. Esto es una mala practica que pierde todo el estado de la pagina.
-
-**Solucion:** Reemplazar con invalidacion de React Query: `queryClient.invalidateQueries({ queryKey: ['fighter-updates'] })`.
-
-**Archivos:** `src/pages/license/LicenseDashboard.tsx` (lineas 811-813, 830-832)
-
-### 5. MENOR: Console.log en produccion
-
-**Problema:** LicenseDashboard tiene `console.log` activos (lineas 40-41) que exponen datos de licencia en la consola del navegador.
-
-**Solucion:** Eliminar los `console.log` de debugging.
-
-**Archivos:** `src/pages/license/LicenseDashboard.tsx` (lineas 40-41)
-
-### 6. MENOR: `FighterProfileForm.tsx` tiene console.log de debug
-
-**Problema:** El formulario de creacion de perfil tiene logs de debug activos (lineas 64-69) que muestran datos de gimnasios en consola.
-
-**Solucion:** Eliminar los `console.log` de debugging.
-
-**Archivos:** `src/components/FighterProfileForm.tsx` (lineas 64-69)
-
-### 7. INFO: Datos de `document_type` y `document_number` vacios en DB
-
-**Problema:** Todos los perfiles de peleador consultados tienen `document_type` y `document_number` como `null`. Esto se debe al problema #2 -- los usuarios no pueden llenar estos campos.
-
-**Solucion:** Se resuelve automaticamente al implementar el fix #2.
+**Solucion:**
+- **`src/components/FighterProfileForm.tsx`**: Eliminar el Input de texto libre de `gym_name` (lineas 239-245). Mantener solo el Select con gimnasios registrados. Cuando se selecciona un gimnasio, automaticamente llenar `gym_name` con el nombre del gimnasio seleccionado.
+- **`src/components/UserFighterProfileEditForm.tsx`**: Reemplazar el Input de `gym_name` por un Select que cargue gimnasios desde `useGyms()`. Agregar opcion "Independiente" (sin gimnasio). Al seleccionar, actualizar tanto `gym_id` como `gym_name` automaticamente. Agregar `gym_id` al esquema Zod.
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambios |
-|---------|---------|
-| `src/components/UserFighterProfileEditForm.tsx` | Agregar campos document_type + document_number al esquema Zod y al formulario. Corregir carga inicial de phone desde app_user |
-| `src/pages/license/LicenseDashboard.tsx` | Corregir "Postura" a "Guardia". Eliminar console.logs. Reemplazar window.location.reload() con invalidacion de cache. Pasar phone al formulario de edicion |
-| `src/hooks/useProfileCompletion.tsx` | Documentar que phone viene de app_user (no cambia logica, solo depende del fix en el componente padre) |
-| `src/components/FighterProfileForm.tsx` | Eliminar console.logs de debug |
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/ProfileIncompleteNotification.tsx` | Fetch phone desde app_user antes de decidir si mostrar la notificacion. No mostrar si todos los campos criticos estan completos |
+| `src/components/FighterProfileForm.tsx` | Eliminar Input de texto libre para gym_name (lineas 239-245). Auto-llenar gym_name desde el Select |
+| `src/components/UserFighterProfileEditForm.tsx` | Reemplazar Input de gym_name por Select de gimnasios registrados con opcion "Independiente". Agregar gym_id al esquema y al submit |
 
-**Total: 4 archivos. 0 archivos nuevos. Sin migraciones de base de datos (todos los campos ya existen en la DB).**
+**Total: 3 archivos. 0 archivos nuevos. Sin migraciones de base de datos.**
 
 ---
 
-## Detalle Tecnico por Fix
+## Detalle Tecnico
 
-### Fix 1: Phone desde app_user
-- En `LicenseDashboard`, al pasar `fighterProfile` al formulario de edicion, enriquecer el objeto con el phone del usuario desde `licenseData` o un fetch a `app_user`
-- El `useLicenseAuth` ya tiene el perfil del usuario; agregar `phone` al query de license status RPC o hacer fetch separado
+### Fix 1: ProfileIncompleteNotification
+```text
+Flujo actual:
+  getUserFighterProfile() -> profile.phone (undefined) -> siempre muestra pop-up
 
-### Fix 2: document_type + document_number en formulario
-- Agregar al esquema Zod: `document_type: z.string().optional()` y `document_number: z.string().max(30).optional()`
-- Agregar Select (DNI/Pasaporte/Cedula) + Input en la seccion "Imagen de Identidad"
-- Incluir en `immediateUpdateFields` para actualizacion directa
+Flujo corregido:
+  getUserFighterProfile() -> si tiene user_id:
+    fetch app_user.phone -> verificar birthdate + gender + phone
+    Si todos completos -> no mostrar
+    Si faltan -> mostrar con conteo correcto
+```
 
-### Fix 3: Postura -> Guardia
-- Cambio de string en una linea
+### Fix 3: Select de Gimnasios en UserFighterProfileEditForm
+- Importar `useGyms` desde `@/hooks/useGyms`
+- Agregar `gym_id` al esquema Zod como `z.string().optional().or(z.literal(''))`
+- Reemplazar Input por Select con opciones de gimnasios activos
+- Al cambiar gimnasio: `gym_id = selectedId`, `gym_name = selectedGym.nombre`
+- Opcion "Independiente" establece `gym_id = null`, `gym_name = "Independiente"`
+- Agregar `gym_id` a `immediateUpdateFields` para persistencia directa
 
-### Fix 4: Invalidacion de cache
-- Importar `useQueryClient` y reemplazar `window.location.reload()` con `queryClient.invalidateQueries`
-
-### Fix 5-6: Console.logs
-- Eliminar lineas de debug
+### Verificacion de integridad de datos
+- Los datos existen en la base de datos (verificado via query directa)
+- No se ha perdido informacion de campos como gym_name, height_cm, weight_kg, etc.
+- El problema es de visualizacion/carga, no de perdida de datos
