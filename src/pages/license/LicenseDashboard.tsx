@@ -1,4 +1,5 @@
 import { Shield, Calendar, AlertTriangle, CheckCircle, Clock, QrCode, Edit, RefreshCw, MapPin, Dumbbell, Target, User, Zap, Heart, FileText, Activity } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { getWeightClassLabel } from '@/lib/constants/disciplines';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useLicenseData } from '@/hooks/useLicenseSystem';
@@ -22,6 +23,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function LicenseDashboard() {
   const { user, licenseData, refreshLicense, forceLicenseUpdate } = useLicenseAuth();
@@ -31,14 +33,15 @@ export default function LicenseDashboard() {
     licenseData?.id || null
   );
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
 
   // Enable realtime updates for the current user's fighter profile
   useRealtimeFighterUpdates(licenseData?.fighter_profile_id);
 
-  console.log('Dashboard - licenseData:', licenseData);
-  console.log('Dashboard - license:', license);
 
   // Redirigir a /license/pending si la licencia está PENDING_REVIEW
   useEffect(() => {
@@ -46,6 +49,21 @@ export default function LicenseDashboard() {
       navigate('/license/pending', { replace: true });
     }
   }, [licenseData, navigate]);
+
+  // Fetch phone from app_user (phone lives in app_user, not fighter_profiles)
+  const fighterProfileForPhone = licenseData?.fighter_profiles;
+  useEffect(() => {
+    if (fighterProfileForPhone?.user_id) {
+      supabase
+        .from('app_user')
+        .select('phone')
+        .eq('id', fighterProfileForPhone.user_id)
+        .single()
+        .then(({ data }) => {
+          if (data?.phone) setUserPhone(data.phone);
+        });
+    }
+  }, [fighterProfileForPhone?.user_id]);
 
   const refreshData = async () => {
     setIsRefreshing(true);
@@ -93,7 +111,6 @@ export default function LicenseDashboard() {
     );
   };
 
-  const [isEditing, setIsEditing] = useState(false);
 
   const handleUpdateInfo = () => {
     setIsEditing(true);
@@ -155,9 +172,12 @@ export default function LicenseDashboard() {
     cert.cleared && new Date(cert.expires_date) > new Date()
   );
 
-  // Get fighter profile from license data
+  // Get fighter profile from license data, enriched with phone from app_user
   const fighterProfile = licenseData?.fighter_profiles;
-  const missingFields = getMissingFields(fighterProfile);
+  
+  // Enrich profile with phone for the edit form and progress widget
+  const enrichedProfile = fighterProfile ? { ...fighterProfile, phone: userPhone || fighterProfile.phone } : fighterProfile;
+  const missingFields = getMissingFields(enrichedProfile);
 
   // Show edit form if editing mode is active
   if (isEditing && fighterProfile) {
@@ -177,7 +197,7 @@ export default function LicenseDashboard() {
           </Card>
           
           <UserFighterProfileEditForm
-            profile={fighterProfile}
+            profile={enrichedProfile}
             onSuccess={handleEditSuccess}
             onCancel={handleEditCancel}
           />
@@ -396,9 +416,9 @@ export default function LicenseDashboard() {
         </Card>
 
         {/* Profile Progress Widget */}
-        {fighterProfile && (
+        {enrichedProfile && (
           <ProfileProgressWidget
-            profile={fighterProfile}
+            profile={enrichedProfile}
             onEditClick={handleUpdateInfo}
           />
         )}
@@ -466,7 +486,7 @@ export default function LicenseDashboard() {
                   <p>{fighterProfile?.reach_cm ? `${fighterProfile.reach_cm} cm` : 'No especificado'}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Postura</p>
+                  <p className="text-sm font-medium text-muted-foreground">Guardia</p>
                   <p>{fighterProfile?.stance || 'No especificada'}</p>
                 </div>
                 <div>
@@ -809,8 +829,7 @@ export default function LicenseDashboard() {
               <FighterStatusUpdateForm 
                 fighterId={fighterProfile?.id} 
                 onUpdateCreated={() => {
-                  // Refresh the feed when a new update is created
-                  window.location.reload();
+                  queryClient.invalidateQueries({ queryKey: ['fighter-updates'] });
                 }}
               />
             </CardContent>
@@ -828,8 +847,7 @@ export default function LicenseDashboard() {
                 fighterId={fighterProfile?.id}
                 isOwner={true}
                 onUpdateDeleted={() => {
-                  // Refresh when update is deleted
-                  window.location.reload();
+                  queryClient.invalidateQueries({ queryKey: ['fighter-updates'] });
                 }}
               />
             </CardContent>
