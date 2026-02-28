@@ -47,28 +47,21 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const availableLevels = currentOrg?.allowed_levels || [];
   const availableWeightClasses = rankingData?.weightClasses || [];
 
-  // Smart default level selection: prioritize levels with data
+  // Smart default level selection: Amateur siempre primero
   useEffect(() => {
     if (availableLevels.length > 0 && !selectedLevel) {
-      const levelCounts = rankingData?.levelCounts || {};
-      
-      // Prioridad: Profesional > Semi-profesional > Amateur, pero solo si tienen datos
-      if (availableLevels.includes('Profesional') && (levelCounts['Profesional'] || 0) > 0) {
-        setSelectedLevel('Profesional');
-      } else if (availableLevels.includes('Semi-profesional') && (levelCounts['Semi-profesional'] || 0) > 0) {
-        setSelectedLevel('Semi-profesional');
-      } else if (availableLevels.includes('Amateur') && (levelCounts['Amateur'] || 0) > 0) {
+      // Prioridad: Amateur > Semi-profesional > Profesional
+      if (availableLevels.includes('Amateur')) {
         setSelectedLevel('Amateur');
+      } else if (availableLevels.includes('Semi-profesional')) {
+        setSelectedLevel('Semi-profesional');
+      } else if (availableLevels.includes('Profesional')) {
+        setSelectedLevel('Profesional');
       } else {
-        // Fallback: nivel con más peleadores
-        const bestLevel = Object.entries(levelCounts)
-          .filter(([level]) => availableLevels.includes(level))
-          .sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0];
-        
-        setSelectedLevel(bestLevel || availableLevels[0]);
+        setSelectedLevel(availableLevels[0]);
       }
     }
-  }, [availableLevels, selectedLevel, rankingData?.levelCounts]);
+  }, [availableLevels, selectedLevel]);
 
   // Reset page and filters when org changes
   useEffect(() => {
