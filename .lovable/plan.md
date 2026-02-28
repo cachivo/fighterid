@@ -1,102 +1,105 @@
 
+# Auditoria Completa del Sistema -- Campos, Modulos y Perfiles
 
-# Auditoria Estetica Completa -- Coherencia Cromatica del Sistema
+## Resumen de Hallazgos
 
-## Problema Principal
-
-Los colores `professional-*` (danger, foreground, accent, primary, muted, border) estan definidos como variables CSS en `index.css` pero **NO estan registrados en `tailwind.config.ts`**. Esto significa que todas las clases como `text-professional-danger`, `bg-professional-foreground`, `border-professional-border` **no generan ningun CSS** -- son invisibles. Multiples componentes del sistema usan estas clases rotas.
-
-Adicionalmente, el `ProfileProgressWidget` (la lista de campos faltantes que se ve en el screenshot) usa colores de la paleta generica de Tailwind (`bg-red-50`, `dark:bg-red-950/20`) en lugar del sistema de diseno UFC, lo que rompe la coherencia visual.
+Se auditaron todos los perfiles de peleador, formularios de edicion, dashboards, y la base de datos. Se encontraron **7 problemas** que requieren correccion.
 
 ---
 
-## Archivos Afectados y Correcciones
+## Problemas Encontrados
 
-### 1. `tailwind.config.ts` -- Registrar colores professional-*
+### 1. CRITICO: Campo `phone` no existe en `fighter_profiles` -- Error silencioso en edicion
 
-Agregar los tokens de color faltantes en la seccion `colors` del theme:
+**Problema:** El formulario `UserFighterProfileEditForm.tsx` (linea 124) inicializa `phone` desde `profile.phone`, pero la tabla `fighter_profiles` **no tiene columna `phone`**. El campo `phone` vive en `app_user`. 
 
-```text
-'professional-primary': 'hsl(var(--professional-primary))'
-'professional-primary-foreground': 'hsl(var(--professional-primary-foreground))'
-'professional-secondary': 'hsl(var(--professional-secondary))'
-'professional-secondary-foreground': 'hsl(var(--professional-secondary-foreground))'
-'professional-accent': 'hsl(var(--professional-accent))'
-'professional-accent-foreground': 'hsl(var(--professional-accent-foreground))'
-'professional-muted': 'hsl(var(--professional-muted))'
-'professional-border': 'hsl(var(--professional-border))'
-'professional-danger': 'hsl(var(--professional-danger))'       <-- NUEVO
-'professional-foreground': 'hsl(var(--professional-foreground))' <-- NUEVO
-```
+- El formulario carga `phone` del perfil del peleador (siempre sera `undefined`)
+- Al guardar, intenta actualizar `app_user.phone` (lineas 286-293) pero la comparacion `data.phone !== profile.phone` siempre sera falsa si el perfil no carga el phone desde app_user
+- El `ProfileProgressWidget` tambien evalua `(profile as any).phone` que siempre sera `undefined`
 
-Notas: `professional-danger` y `professional-foreground` no tienen variable CSS definida. Se crearan en index.css:
-- `--professional-danger`: reutiliza `0 84% 44%` (mismo que --primary, rojo UFC)
-- `--professional-foreground`: reutiliza `0 0% 95%` (mismo que --foreground, blanco)
+**Solucion:** Al cargar el perfil en LicenseDashboard, hacer un join o fetch separado de `app_user.phone` y pasarlo al formulario. Alternativamente, cargar el phone desde `useLicenseAuth` que ya tiene acceso al user.
 
-### 2. `src/index.css` -- Agregar variables CSS faltantes
+**Archivos:** `src/components/UserFighterProfileEditForm.tsx`, `src/hooks/useProfileCompletion.tsx`, `src/pages/license/LicenseDashboard.tsx`
 
-Agregar en la seccion `Professional License/Profile System`:
+### 2. MEDIO: `document_type` y `document_number` no editables por el usuario
 
-```text
---professional-danger: 0 84% 44%;
---professional-foreground: 0 0% 95%;
-```
+**Problema:** El dashboard muestra "Tipo de Documento" y "Numero de Documento" (lineas 431-437 de LicenseDashboard), pero el formulario `UserFighterProfileEditForm` **no incluye estos campos**. Solo el admin puede editarlos via `FighterEditModal`.
 
-### 3. `src/components/ProfileProgressWidget.tsx` -- Corregir contraste
+El esquema Zod del formulario no tiene `document_type` ni `document_number`. El usuario no puede completar esta informacion.
 
-Reemplazar colores genericos por colores del sistema UFC:
+**Solucion:** Agregar campos `document_type` (Select con DNI/Pasaporte/Cedula) y `document_number` (Input) al formulario del usuario, en la seccion "Imagen de Identidad" donde ya sube la foto del documento.
 
-| Antes | Despues |
-|-------|---------|
-| `bg-red-50 dark:bg-red-950/20` | `bg-primary/10 border-primary/30` |
-| `border-red-200 dark:border-red-800` | `border-primary/20` |
-| `text-red-600 dark:text-red-400` (label) | `text-primary` |
-| `text-red-600 dark:text-red-400` (icon) | `text-primary` |
-| `bg-red-600` (badge) | `bg-primary` |
-| `bg-amber-50 dark:bg-amber-950/20` | `bg-fighter-warning/10 border-fighter-warning/20` |
-| `text-amber-600 dark:text-amber-400` | `text-fighter-warning` |
-| `bg-blue-50 dark:bg-blue-950/20` | `bg-fighter-info/10 border-fighter-info/20` |
-| `text-blue-600 dark:text-blue-400` | `text-fighter-info` |
+**Archivos:** `src/components/UserFighterProfileEditForm.tsx`
 
-Garantizar que `text-foreground` (blanco 95%) se mantiene en los labels de campo para legibilidad maxima.
+### 3. MEDIO: `Postura` vs `Guardia` -- Inconsistencia terminologica
 
-### 4. `src/components/ProfileCompletionPrompt.tsx` -- Ya funcional tras fix de tailwind
+**Problema:** El LicenseDashboard muestra "Postura" (linea 469) pero el formulario de edicion dice "Guardia" (linea 696). La regla de negocio dice que se debe usar "Guardia" en todo el sistema.
 
-Con los tokens `professional-*` registrados, las clases existentes (`text-professional-danger`, `bg-professional-danger/5`, etc.) empezaran a funcionar correctamente sin cambios adicionales al componente.
+**Solucion:** Cambiar "Postura" a "Guardia" en LicenseDashboard.
 
-### 5. `src/components/EnhancedFighterID.tsx` -- Ya funcional tras fix de tailwind
+**Archivos:** `src/pages/license/LicenseDashboard.tsx` (linea 469)
 
-Las clases `text-professional-danger`, `text-professional-foreground`, `bg-professional-danger/5` empezaran a funcionar.
+### 4. MENOR: `window.location.reload()` en lugar de invalidacion de cache
 
-### 6. `src/components/FighterCard.tsx` -- Ya funcional tras fix de tailwind
+**Problema:** LicenseDashboard usa `window.location.reload()` (lineas 813 y 832) cuando se crea o elimina una actualizacion del peleador. Esto es una mala practica que pierde todo el estado de la pagina.
 
-Las clases `bg-professional-danger`, `bg-professional-accent`, `bg-professional-muted` empezaran a funcionar.
+**Solucion:** Reemplazar con invalidacion de React Query: `queryClient.invalidateQueries({ queryKey: ['fighter-updates'] })`.
 
-### 7. `src/pages/license/LicenseDashboard.tsx` -- Coherencia cromatica menor
+**Archivos:** `src/pages/license/LicenseDashboard.tsx` (lineas 811-813, 830-832)
 
-Reemplazar colores genericos en la seccion de observaciones administrativas:
+### 5. MENOR: Console.log en produccion
 
-| Antes | Despues |
-|-------|---------|
-| `bg-blue-50 dark:bg-blue-950/20` | `bg-fighter-info/10` |
-| `border-blue-200 dark:border-blue-800` | `border-fighter-info/20` |
-| `text-blue-800 dark:text-blue-200` | `text-fighter-info` |
-| `bg-red-50 dark:bg-red-950/20` (suspension) | `bg-primary/10` |
-| `border-red-200 dark:border-red-800` | `border-primary/20` |
-| `text-red-800 dark:text-red-200` | `text-primary` |
+**Problema:** LicenseDashboard tiene `console.log` activos (lineas 40-41) que exponen datos de licencia en la consola del navegador.
+
+**Solucion:** Eliminar los `console.log` de debugging.
+
+**Archivos:** `src/pages/license/LicenseDashboard.tsx` (lineas 40-41)
+
+### 6. MENOR: `FighterProfileForm.tsx` tiene console.log de debug
+
+**Problema:** El formulario de creacion de perfil tiene logs de debug activos (lineas 64-69) que muestran datos de gimnasios en consola.
+
+**Solucion:** Eliminar los `console.log` de debugging.
+
+**Archivos:** `src/components/FighterProfileForm.tsx` (lineas 64-69)
+
+### 7. INFO: Datos de `document_type` y `document_number` vacios en DB
+
+**Problema:** Todos los perfiles de peleador consultados tienen `document_type` y `document_number` como `null`. Esto se debe al problema #2 -- los usuarios no pueden llenar estos campos.
+
+**Solucion:** Se resuelve automaticamente al implementar el fix #2.
 
 ---
 
-## Resumen de Cambios
+## Archivos a Modificar
 
-| Archivo | Tipo de Cambio |
-|---------|---------------|
-| `tailwind.config.ts` | Registrar 10 tokens de color professional-* |
-| `src/index.css` | Agregar 2 variables CSS faltantes |
-| `src/components/ProfileProgressWidget.tsx` | Reemplazar colores genericos por sistema UFC |
-| `src/pages/license/LicenseDashboard.tsx` | Reemplazar colores genericos en observaciones |
+| Archivo | Cambios |
+|---------|---------|
+| `src/components/UserFighterProfileEditForm.tsx` | Agregar campos document_type + document_number al esquema Zod y al formulario. Corregir carga inicial de phone desde app_user |
+| `src/pages/license/LicenseDashboard.tsx` | Corregir "Postura" a "Guardia". Eliminar console.logs. Reemplazar window.location.reload() con invalidacion de cache. Pasar phone al formulario de edicion |
+| `src/hooks/useProfileCompletion.tsx` | Documentar que phone viene de app_user (no cambia logica, solo depende del fix en el componente padre) |
+| `src/components/FighterProfileForm.tsx` | Eliminar console.logs de debug |
 
-**4 archivos modificados. 0 archivos nuevos. Sin cambios en backend/base de datos.**
+**Total: 4 archivos. 0 archivos nuevos. Sin migraciones de base de datos (todos los campos ya existen en la DB).**
 
-Los componentes `ProfileCompletionPrompt`, `EnhancedFighterID`, y `FighterCard` se corrigen automaticamente al registrar los tokens en Tailwind -- no requieren edicion de codigo.
+---
 
+## Detalle Tecnico por Fix
+
+### Fix 1: Phone desde app_user
+- En `LicenseDashboard`, al pasar `fighterProfile` al formulario de edicion, enriquecer el objeto con el phone del usuario desde `licenseData` o un fetch a `app_user`
+- El `useLicenseAuth` ya tiene el perfil del usuario; agregar `phone` al query de license status RPC o hacer fetch separado
+
+### Fix 2: document_type + document_number en formulario
+- Agregar al esquema Zod: `document_type: z.string().optional()` y `document_number: z.string().max(30).optional()`
+- Agregar Select (DNI/Pasaporte/Cedula) + Input en la seccion "Imagen de Identidad"
+- Incluir en `immediateUpdateFields` para actualizacion directa
+
+### Fix 3: Postura -> Guardia
+- Cambio de string en una linea
+
+### Fix 4: Invalidacion de cache
+- Importar `useQueryClient` y reemplazar `window.location.reload()` con `queryClient.invalidateQueries`
+
+### Fix 5-6: Console.logs
+- Eliminar lineas de debug
