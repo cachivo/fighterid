@@ -51,7 +51,9 @@ const fighterProfileSchema = z.object({
   insurance_company: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   insurance_policy: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   boxrec_url: z.string().url('URL inválida').optional().or(z.literal('')),
-  tapology_url: z.string().url('URL inválida').optional().or(z.literal(''))
+  tapology_url: z.string().url('URL inválida').optional().or(z.literal('')),
+  document_type: z.string().optional().or(z.literal('')),
+  document_number: z.string().max(30, 'Máximo 30 caracteres').optional().or(z.literal(''))
 });
 
 type FighterProfileFormData = z.infer<typeof fighterProfileSchema>;
@@ -144,7 +146,9 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       insurance_company: profile.insurance_company || '',
       insurance_policy: profile.insurance_policy || '',
       boxrec_url: profile.boxrec_url || '',
-      tapology_url: profile.tapology_url || ''
+      tapology_url: profile.tapology_url || '',
+      document_type: (profile as any).document_type || '',
+      document_number: (profile as any).document_number || ''
     }
   });
 
@@ -210,7 +214,8 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
         'height_cm', 'weight_kg', 'reach_cm', 'stance',
         'weight_class', 'fighting_style', 'gym_name', 'level',
-        'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace', 'gender'
+        'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace', 'gender',
+        'document_type', 'document_number'
       ];
 
       // Campos de récord (bloqueados SI licencia está ACTIVE)
@@ -637,6 +642,49 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                   </div>
                 </div>
               </div>
+
+                {/* Document Type and Number */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                  <FormField
+                    control={form.control}
+                    name="document_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Documento</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                          value={field.value || '__none__'}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar tipo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="__none__" className="text-muted-foreground">-- Seleccionar --</SelectItem>
+                            <SelectItem value="DNI">DNI</SelectItem>
+                            <SelectItem value="Cédula">Cédula</SelectItem>
+                            <SelectItem value="Pasaporte">Pasaporte</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="document_number"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Número de Documento</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Ej: 0801-1990-12345" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
             </CardContent>
           </Card>
 

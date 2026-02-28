@@ -61,12 +61,6 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
   );
   const { toast } = useToast();
 
-  // Debug: Log gyms data
-  useEffect(() => {
-    console.log('[FIGHTER FORM] Gyms data:', gyms);
-    console.log('[FIGHTER FORM] Gyms loading:', gymsLoading);
-    console.log('[FIGHTER FORM] Gyms error:', gymsError);
-  }, [gyms, gymsLoading, gymsError]);
 
   useEffect(() => {
     if (existingProfile) {
