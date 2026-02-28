@@ -40,7 +40,7 @@ export const LicenseCard = ({
 
   return (
     <div className={`flex items-center gap-4 p-4 rounded-lg border ${
-      isPending ? 'border-amber-200 bg-white' : 'border-border/50 bg-card/50'
+      isPending ? 'border-fighter-warning/30 bg-card' : 'border-border/50 bg-card/50'
     }`}>
       {/* Fighter Avatar */}
       <div className="flex-shrink-0">
@@ -134,7 +134,7 @@ export const LicenseCard = ({
                 size="sm"
                 variant="outline"
                 onClick={() => onReview(license)}
-                className="border-blue-200 hover:bg-blue-50"
+                className="border-primary/30 hover:bg-primary/10"
               >
                 <Eye className="h-3 w-3 mr-1" />
                 Revisar
@@ -146,7 +146,7 @@ export const LicenseCard = ({
                 variant="default"
                 onClick={() => onApprove(license.id)}
                 disabled={isLoading || !isAdmin}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-fighter-success hover:bg-fighter-success/80"
               >
                 {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                 Aprobar
@@ -172,7 +172,7 @@ export const LicenseCard = ({
                 variant="outline"
                 onClick={() => onActivate(license.id)}
                 disabled={isLoading || !isAdmin}
-                className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white disabled:opacity-50"
+                className="text-fighter-success border-fighter-success/50 hover:bg-fighter-success hover:text-white disabled:opacity-50"
                 title={!isAdmin ? "Solo administradores pueden activar licencias" : ""}
               >
                 {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
@@ -185,7 +185,7 @@ export const LicenseCard = ({
                 variant="outline"
                 onClick={() => onSuspend(license.id)}
                 disabled={isLoading || !isAdmin}
-                className="text-orange-600 border-orange-600 hover:bg-orange-600 hover:text-white disabled:opacity-50"
+                className="text-fighter-warning border-fighter-warning/50 hover:bg-fighter-warning hover:text-white disabled:opacity-50"
                 title={!isAdmin ? "Solo administradores pueden suspender licencias" : ""}
               >
                 {isLoading ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
