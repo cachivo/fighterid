@@ -1,70 +1,64 @@
 
-# Correccion de Pop-ups de Perfil, Integridad de Datos y Seleccion de Gimnasios
+# Correccion: Datos de Peleadores No Sincronizados con el Dashboard
 
-## Problema 1: Pop-ups de perfil incompleto aparecen incluso con perfil completo
+## Causa Raiz
 
-**Causa raiz:** `ProfileIncompleteNotification` (Header.tsx) verifica solo 3 campos (`birthdate`, `gender`, `phone`) pero el campo `phone` se busca en `fighter_profiles` donde no existe -- siempre sera `undefined`, haciendo que el pop-up aparezca siempre para usuarios con licencia, incluso si ya tienen telefono en `app_user`.
+La funcion RPC `check_user_license_status` construye manualmente un objeto JSON del perfil con solo ~17 campos, pero el perfil tiene **40+ campos**. Los campos faltantes incluyen:
 
-**Solucion:**
-- **`src/components/ProfileIncompleteNotification.tsx`**: Modificar para que busque `phone` desde `app_user` (igual que LicenseDashboard). Despues de obtener el perfil del peleador, hacer un fetch a `app_user` para verificar si tiene telefono. Si los 3 campos estan completos, no mostrar la notificacion.
-- Adicionalmente, si `birthdate` y `gender` estan llenos y `phone` esta en `app_user`, el pop-up no debe aparecer.
+- `gender` (genero)
+- `birthplace` (lugar de nacimiento)  
+- `blood_type` (tipo de sangre)
+- `weight_kg` (peso)
+- `fighting_style` (estilo de pelea)
+- `level`, `record_type`, `bio`
+- `emergency_contact_name`, `emergency_contact_phone`, `emergency_contact_relation`
+- `medical_conditions`, `medical_allergies`
+- `insurance_company`, `insurance_policy`
+- `boxrec_url`, `tapology_url`
+- `document_type`, `document_number`, `document_image_url`
+- `martial_arts`
+- `mma_record_wins/losses/draws`, `boxeo_record_wins/losses/draws`
 
-## Problema 2: Datos posiblemente perdidos tras actualizaciones
+Adicionalmente, el campo `birthdate` se devuelve como `date_of_birth` en el RPC, pero el formulario busca `birthdate` -- por lo que la fecha de nacimiento siempre aparece vacia aunque exista en la base de datos.
 
-**Hallazgos de la base de datos:**
-- La data NO se ha perdido. Consulte los perfiles activos y la informacion esta intacta en la base de datos (gym_name, gym_id, height_cm, weight_kg, etc.)
-- El problema visual es que algunos campos no se cargan correctamente en el formulario de edicion (ej: `phone` siempre aparece vacio porque viene de `app_user`, no de `fighter_profiles`)
-- En el ultimo fix ya se corrigio el enrichment de `phone` en LicenseDashboard, pero el formulario de edicion `UserFighterProfileEditForm` aun puede no recibir el phone correctamente si el `profile` pasado no lo incluye
+**La data NO se perdio.** Esta intacta en la base de datos. El problema es que el RPC no la envia al frontend.
 
-**Solucion:** Verificar que la prop `enrichedProfile` en LicenseDashboard incluye correctamente el phone y que no hay campos que se esten borrando al guardar. Revisar que el `onSubmit` no envia campos vacios que sobrescriban datos existentes.
+---
 
-## Problema 3: Gimnasio debe ser solo de gimnasios registrados (no texto libre)
+## Solucion
 
-**Problemas encontrados:**
-1. **`FighterProfileForm.tsx` (creacion de perfiles admin)**: Tiene un Select de gimnasios registrados PERO tambien un Input de texto libre debajo que dice "O escribe el nombre del gimnasio manualmente" (linea 239-245). Este input debe eliminarse.
-2. **`UserFighterProfileEditForm.tsx` (edicion del usuario)**: El campo `gym_name` es un Input de texto libre (linea 784-785). Debe reemplazarse por un Select con gimnasios registrados + opcion "Independiente".
+### 1. Migracion SQL: Actualizar la funcion RPC `check_user_license_status`
 
-**Solucion:**
-- **`src/components/FighterProfileForm.tsx`**: Eliminar el Input de texto libre de `gym_name` (lineas 239-245). Mantener solo el Select con gimnasios registrados. Cuando se selecciona un gimnasio, automaticamente llenar `gym_name` con el nombre del gimnasio seleccionado.
-- **`src/components/UserFighterProfileEditForm.tsx`**: Reemplazar el Input de `gym_name` por un Select que cargue gimnasios desde `useGyms()`. Agregar opcion "Independiente" (sin gimnasio). Al seleccionar, actualizar tanto `gym_id` como `gym_name` automaticamente. Agregar `gym_id` al esquema Zod.
+Reescribir la seccion `v_profile_json` para incluir TODOS los campos relevantes del perfil, ademas del telefono desde `app_user`:
+
+```text
+Campos a agregar al JSON del perfil:
+- gender, birthdate (no date_of_birth), birthplace, blood_type
+- weight_kg, fighting_style, level, record_type, bio
+- emergency_contact_name, emergency_contact_phone, emergency_contact_relation
+- medical_conditions, medical_allergies
+- insurance_company, insurance_policy  
+- boxrec_url, tapology_url
+- document_type, document_number, document_image_url
+- martial_arts
+- mma_record_wins, mma_record_losses, mma_record_draws
+- boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+- phone (desde app_user via v_app_user_id)
+```
+
+Corregir `date_of_birth` a `birthdate` para coincidir con lo que espera el frontend.
+
+### 2. Archivo: `src/hooks/useLicenseAuth.tsx`
+
+Actualmente hay un campo mapeado como `date_of_birth` en el RPC. Tras la migracion, este campo sera `birthdate`. Verificar que no haya mapeos legacy que referencien `date_of_birth` y que se use `birthdate` consistentemente.
 
 ---
 
 ## Archivos a Modificar
 
-| Archivo | Cambio |
+| Recurso | Cambio |
 |---------|--------|
-| `src/components/ProfileIncompleteNotification.tsx` | Fetch phone desde app_user antes de decidir si mostrar la notificacion. No mostrar si todos los campos criticos estan completos |
-| `src/components/FighterProfileForm.tsx` | Eliminar Input de texto libre para gym_name (lineas 239-245). Auto-llenar gym_name desde el Select |
-| `src/components/UserFighterProfileEditForm.tsx` | Reemplazar Input de gym_name por Select de gimnasios registrados con opcion "Independiente". Agregar gym_id al esquema y al submit |
+| Funcion SQL `check_user_license_status` | Agregar ~25 campos faltantes al JSON del perfil. Corregir `date_of_birth` a `birthdate`. Incluir phone desde `app_user` |
+| `src/hooks/useLicenseAuth.tsx` | Verificar/limpiar mapeos de campos legacy si existen |
 
-**Total: 3 archivos. 0 archivos nuevos. Sin migraciones de base de datos.**
-
----
-
-## Detalle Tecnico
-
-### Fix 1: ProfileIncompleteNotification
-```text
-Flujo actual:
-  getUserFighterProfile() -> profile.phone (undefined) -> siempre muestra pop-up
-
-Flujo corregido:
-  getUserFighterProfile() -> si tiene user_id:
-    fetch app_user.phone -> verificar birthdate + gender + phone
-    Si todos completos -> no mostrar
-    Si faltan -> mostrar con conteo correcto
-```
-
-### Fix 3: Select de Gimnasios en UserFighterProfileEditForm
-- Importar `useGyms` desde `@/hooks/useGyms`
-- Agregar `gym_id` al esquema Zod como `z.string().optional().or(z.literal(''))`
-- Reemplazar Input por Select con opciones de gimnasios activos
-- Al cambiar gimnasio: `gym_id = selectedId`, `gym_name = selectedGym.nombre`
-- Opcion "Independiente" establece `gym_id = null`, `gym_name = "Independiente"`
-- Agregar `gym_id` a `immediateUpdateFields` para persistencia directa
-
-### Verificacion de integridad de datos
-- Los datos existen en la base de datos (verificado via query directa)
-- No se ha perdido informacion de campos como gym_name, height_cm, weight_kg, etc.
-- El problema es de visualizacion/carga, no de perdida de datos
+**1 migracion SQL + 1 archivo de codigo. Los datos existentes en la DB se mostraran correctamente sin necesidad de re-ingresarlos.**
