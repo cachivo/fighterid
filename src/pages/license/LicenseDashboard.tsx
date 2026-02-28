@@ -768,18 +768,18 @@ export default function LicenseDashboard() {
             <CardContent>
               <div className="space-y-3">
                 {licenseData.notes && (
-                  <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                    <p className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-1">Notas de Licencia:</p>
-                    <p className="text-sm text-blue-700 dark:text-blue-300">{licenseData.notes}</p>
+                  <div className="p-3 rounded-lg bg-fighter-info/10 border border-fighter-info/20">
+                    <p className="text-xs font-medium text-fighter-info mb-1">Notas de Licencia:</p>
+                    <p className="text-sm text-foreground">{licenseData.notes}</p>
                   </div>
                 )}
                 
                 {licenseData.suspension_reason && (
-                  <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800">
-                    <p className="text-xs font-medium text-red-800 dark:text-red-200 mb-1">Razón de Suspensión:</p>
-                    <p className="text-sm text-red-700 dark:text-red-300">{licenseData.suspension_reason}</p>
+                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                    <p className="text-xs font-medium text-primary mb-1">Razón de Suspensión:</p>
+                    <p className="text-sm text-foreground">{licenseData.suspension_reason}</p>
                     {licenseData.suspension_until && (
-                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                      <p className="text-xs text-primary mt-1">
                         Hasta: {format(new Date(licenseData.suspension_until), 'PP', { locale: es })}
                       </p>
                     )}

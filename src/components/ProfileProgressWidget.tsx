@@ -125,7 +125,7 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
               {/* Campos de Prioridad Alta (Críticos) */}
               {highPriorityFields.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wide flex items-center gap-1">
                     <AlertCircle className="h-3 w-3" />
                     Información Crítica
                   </p>
@@ -134,13 +134,13 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
                     return (
                       <div 
                         key={field.field}
-                        className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800"
+                        className="flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20"
                       >
                         <div className="flex items-center gap-2">
-                          <FieldIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <FieldIcon className="h-4 w-4 text-primary" />
                           <span className="text-sm text-foreground font-medium">{field.label}</span>
                         </div>
-                        <Badge variant="destructive" className="bg-red-600">
+                        <Badge variant="destructive" className="bg-primary">
                           +{field.points}%
                         </Badge>
                       </div>
@@ -152,7 +152,7 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
               {/* Campos de Prioridad Media (Importantes) */}
               {mediumPriorityFields.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-xs font-semibold text-fighter-warning uppercase tracking-wide flex items-center gap-1">
                     <Star className="h-3 w-3" />
                     Información Importante
                   </p>
@@ -161,13 +161,13 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
                     return (
                       <div 
                         key={field.field}
-                        className="flex items-center justify-between p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800"
+                        className="flex items-center justify-between p-3 rounded-lg bg-fighter-warning/10 border border-fighter-warning/20"
                       >
                         <div className="flex items-center gap-2">
-                          <FieldIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                          <FieldIcon className="h-4 w-4 text-fighter-warning" />
                           <span className="text-sm text-foreground">{field.label}</span>
                         </div>
-                        <Badge variant="outline" className="border-amber-600 text-amber-600 dark:border-amber-400 dark:text-amber-400">
+                        <Badge variant="outline" className="border-fighter-warning text-fighter-warning">
                           +{field.points}%
                         </Badge>
                       </div>
@@ -179,7 +179,7 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
               {/* Campos de Prioridad Baja (Opcionales) */}
               {lowPriorityFields.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide flex items-center gap-1">
+                  <p className="text-xs font-semibold text-fighter-info uppercase tracking-wide flex items-center gap-1">
                     <Info className="h-3 w-3" />
                     Información Adicional
                   </p>
@@ -188,13 +188,13 @@ export function ProfileProgressWidget({ profile, onEditClick }: ProfileProgressW
                     return (
                       <div 
                         key={field.field}
-                        className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800"
+                        className="flex items-center justify-between p-3 rounded-lg bg-fighter-info/10 border border-fighter-info/20"
                       >
                         <div className="flex items-center gap-2">
-                          <FieldIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <FieldIcon className="h-4 w-4 text-fighter-info" />
                           <span className="text-sm text-foreground">{field.label}</span>
                         </div>
-                        <Badge variant="outline" className="border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400">
+                        <Badge variant="outline" className="border-fighter-info text-fighter-info">
                           +{field.points}%
                         </Badge>
                       </div>
