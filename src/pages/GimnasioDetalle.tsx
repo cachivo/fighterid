@@ -178,11 +178,11 @@ export default function GimnasioDetalle() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-sm font-medium break-words leading-tight">
                           {fighter.first_name} {fighter.last_name}
                         </p>
                         {fighter.nickname && (
-                          <p className="text-xs text-muted-foreground italic truncate">"{fighter.nickname}"</p>
+                          <p className="text-xs text-muted-foreground italic break-words">"{fighter.nickname}"</p>
                         )}
                         <div className="flex items-center gap-2 mt-0.5">
                           {fighter.discipline && (

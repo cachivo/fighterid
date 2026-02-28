@@ -282,11 +282,11 @@ export default function FightersProfiles() {
                       }
                       priority={false}
                     />
-                    <div className="min-w-0 flex-1 h-14 flex flex-col justify-center">
-                      <CardTitle className="text-base font-semibold leading-tight truncate">
+                    <div className="min-w-0 flex-1 flex flex-col justify-center">
+                      <CardTitle className="text-base font-semibold leading-tight break-words">
                         {fighter.first_name} {fighter.last_name}
                       </CardTitle>
-                      <p className="text-sm text-muted-foreground truncate mt-0.5">
+                      <p className="text-sm text-muted-foreground break-words mt-0.5">
                         {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
                       </p>
                     </div>

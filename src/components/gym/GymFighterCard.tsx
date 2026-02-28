@@ -38,12 +38,10 @@ export function GymFighterCard({ fighter }: GymFighterCardProps) {
       </Avatar>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="font-semibold truncate">{name}</p>
-          {f.nickname && (
-            <span className="text-xs text-muted-foreground truncate">"{f.nickname}"</span>
-          )}
-        </div>
+        <p className="font-semibold break-words leading-tight">{name}</p>
+        {f.nickname && (
+          <span className="text-xs text-muted-foreground break-words">"{f.nickname}"</span>
+        )}
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-sm font-mono font-bold">{record}</span>
           {f.discipline && (

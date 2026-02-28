@@ -295,7 +295,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                         <div className="flex-1 min-w-0">
                           {/* Line 1: Name + Champion badge */}
                           <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2 mb-0.5">
-                            <h4 className="text-xs xs:text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors truncate">
+                            <h4 className="text-xs xs:text-sm sm:text-base font-bold text-white group-hover:text-purple-neon-primary transition-colors break-words">
                               {ranking.fighter.first_name} {ranking.fighter.last_name}
                             </h4>
                             {ranking.is_champion && (
@@ -309,7 +309,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                           {/* Line 2: Nickname (min-height for uniform cards) */}
                           <div className="min-h-[14px] mb-0.5">
                             {ranking.fighter.nickname && (
-                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium italic truncate block">
+                              <span className="text-[9px] xs:text-[10px] sm:text-xs text-white/90 font-medium italic break-words block">
                                 "{ranking.fighter.nickname}"
                               </span>
                             )}
@@ -330,7 +330,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                           {/* Line 4: Gym */}
                           <div className="flex items-center gap-1 mt-0.5">
                             <Building2 className="h-2.5 w-2.5 text-gray-500 shrink-0" />
-                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 truncate">
+                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 break-words">
                               {ranking.fighter.gym_name || 'Independiente'}
                             </span>
                           </div>

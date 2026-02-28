@@ -96,11 +96,11 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
           )}
           
           <div className="flex-1 min-w-0">
-            <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground break-words leading-tight">
               {fighter.first_name} {fighter.last_name}
             </h3>
             {fighter.nickname && (
-              <p className="text-sm text-professional-accent font-medium truncate">
+              <p className="text-sm text-professional-accent font-medium break-words">
                 "{fighter.nickname}"
               </p>
             )}
@@ -114,7 +114,7 @@ export function FighterCard({ fighter, onClick }: FighterCardProps) {
             </div>
             <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
               <Building2 className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">
+              <span className="break-words">
                 {(fighter as any).gym?.nombre || fighter.gym_name || 'Independiente'}
               </span>
             </div>
