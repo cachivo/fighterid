@@ -1,64 +1,130 @@
 
-# Correccion: Datos de Peleadores No Sincronizados con el Dashboard
+# Actualizaciones de Peleadores: Subida de Imagenes + Feed Estilo Facebook + Sincronizacion con Gimnasios
 
-## Causa Raiz
+## Resumen
 
-La funcion RPC `check_user_license_status` construye manualmente un objeto JSON del perfil con solo ~17 campos, pero el perfil tiene **40+ campos**. Los campos faltantes incluyen:
-
-- `gender` (genero)
-- `birthplace` (lugar de nacimiento)  
-- `blood_type` (tipo de sangre)
-- `weight_kg` (peso)
-- `fighting_style` (estilo de pelea)
-- `level`, `record_type`, `bio`
-- `emergency_contact_name`, `emergency_contact_phone`, `emergency_contact_relation`
-- `medical_conditions`, `medical_allergies`
-- `insurance_company`, `insurance_policy`
-- `boxrec_url`, `tapology_url`
-- `document_type`, `document_number`, `document_image_url`
-- `martial_arts`
-- `mma_record_wins/losses/draws`, `boxeo_record_wins/losses/draws`
-
-Adicionalmente, el campo `birthdate` se devuelve como `date_of_birth` en el RPC, pero el formulario busca `birthdate` -- por lo que la fecha de nacimiento siempre aparece vacia aunque exista en la base de datos.
-
-**La data NO se perdio.** Esta intacta en la base de datos. El problema es que el RPC no la envia al frontend.
+Transformar el sistema de actualizaciones de peleadores para que funcione como un "post de Facebook": con subida real de imagenes (no URLs), visualizacion tipo feed social en el perfil publico, y sincronizacion automatica con el dashboard del gimnasio al que pertenece el peleador.
 
 ---
 
-## Solucion
+## Cambios por Modulo
 
-### 1. Migracion SQL: Actualizar la funcion RPC `check_user_license_status`
+### 1. Storage: Crear bucket `fighter-update-images`
 
-Reescribir la seccion `v_profile_json` para incluir TODOS los campos relevantes del perfil, ademas del telefono desde `app_user`:
+**Migracion SQL:**
+- Crear bucket de storage `fighter-update-images` (publico, para que las imagenes se vean sin autenticacion)
+- Politica de INSERT: cualquier usuario autenticado puede subir
+- Politica de SELECT: acceso publico (las imagenes se muestran en perfiles publicos)
+- Politica de DELETE: solo el usuario que subio puede borrar
 
+### 2. Formulario de Creacion (`FighterStatusUpdateForm.tsx`)
+
+**Reemplazar el input de URL** por un componente de subida real de imagen:
+- Boton "Agregar Foto" que abre un file input (accept="image/*")
+- Preview de la imagen seleccionada antes de publicar
+- Boton X para quitar la imagen
+- Al hacer submit: subir imagen a Supabase Storage (`fighter-update-images/{fighterId}/{uuid}.jpg`), obtener URL publica, y guardarla en `image_url` del registro
+- Limitar tamano a 5MB con validacion visual
+- Soporte para camara en movil (capture attribute)
+- Indicador de progreso durante la subida
+
+### 3. Hook `useFighterUpdates.tsx`
+
+**Agregar funcion `uploadUpdateImage`:**
+- Recibe `File` + `fighterId`
+- Sube a `fighter-update-images/{fighterId}/{uuid}.{ext}`
+- Retorna la URL publica
+- Integrar en `createUpdate`: si hay archivo, subir primero, luego crear el registro con la URL
+
+**Agregar funcion `fetchGymFighterUpdates`:**
+- Nueva query que busca actualizaciones de TODOS los peleadores de un gimnasio
+- Join: `fighter_updates` -> `fighter_profiles` -> `gym_memberships` WHERE `gym_id = X`
+- Incluye nombre y avatar del peleador en cada update
+- Ordenado por `created_at DESC`
+
+### 4. Feed en Perfil Publico (`FighterUpdatesFeed.tsx`)
+
+**Estilo Facebook post:**
+- Header: avatar + nombre del peleador + timestamp relativo
+- Contenido del texto
+- Imagen a ancho completo (si existe) con aspect ratio preservado, click para ampliar
+- Separador sutil entre posts
+- Animacion de entrada suave
+
+### 5. Dashboard de Gimnasio: Nueva seccion "Novedades de Cantera" (`GymDashboard.tsx`)
+
+**Agregar seccion de actualizaciones recientes:**
+- Titulo: "Novedades de la Cantera" con icono
+- Muestra las ultimas 10 actualizaciones de peleadores vinculados al gimnasio
+- Cada item muestra: avatar mini del peleador, nombre, contenido truncado, imagen thumbnail, y tiempo relativo
+- Link "Ver perfil" que navega al perfil del peleador
+- Si no hay actualizaciones: mensaje vacio elegante "Tus peleadores aun no han publicado novedades"
+- La data se obtiene via la nueva funcion `fetchGymFighterUpdates` del hook
+
+### 6. Componente nuevo: `GymFighterUpdateCard.tsx`
+
+**Card individual para el feed del gimnasio:**
+- Avatar del peleador + nombre + gym badge
+- Texto del update (truncado a 2 lineas con "ver mas")
+- Imagen thumbnail si existe
+- Timestamp relativo
+- Link al perfil completo del peleador
+
+---
+
+## Archivos a Crear/Modificar
+
+| Archivo | Accion | Descripcion |
+|---------|--------|-------------|
+| Migracion SQL | Crear | Bucket `fighter-update-images` con politicas RLS |
+| `src/components/FighterStatusUpdateForm.tsx` | Modificar | Reemplazar input URL por file upload con preview |
+| `src/hooks/useFighterUpdates.tsx` | Modificar | Agregar `uploadUpdateImage` y `fetchGymFighterUpdates` |
+| `src/components/FighterUpdatesFeed.tsx` | Modificar | Redisenar como feed estilo Facebook con avatar, nombre, imagen grande |
+| `src/pages/gym/GymDashboard.tsx` | Modificar | Agregar seccion "Novedades de la Cantera" |
+| `src/components/gym/GymFighterUpdateCard.tsx` | Crear | Card de update para el dashboard del gimnasio |
+
+**Total: 5 archivos modificados + 1 archivo nuevo + 1 migracion SQL**
+
+---
+
+## Detalle Tecnico
+
+### Storage path
 ```text
-Campos a agregar al JSON del perfil:
-- gender, birthdate (no date_of_birth), birthplace, blood_type
-- weight_kg, fighting_style, level, record_type, bio
-- emergency_contact_name, emergency_contact_phone, emergency_contact_relation
-- medical_conditions, medical_allergies
-- insurance_company, insurance_policy  
-- boxrec_url, tapology_url
-- document_type, document_number, document_image_url
-- martial_arts
-- mma_record_wins, mma_record_losses, mma_record_draws
-- boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
-- phone (desde app_user via v_app_user_id)
+fighter-update-images/
+  {fighter_id}/
+    {uuid}.jpg
 ```
 
-Corregir `date_of_birth` a `birthdate` para coincidir con lo que espera el frontend.
+### Query para updates del gimnasio
+```text
+fighter_updates
+  JOIN fighter_profiles ON fighter_updates.fighter_id = fighter_profiles.id
+  JOIN gym_memberships ON fighter_profiles.id = gym_memberships.fighter_id
+WHERE gym_memberships.gym_id = {gymId}
+  AND gym_memberships.status = 'active'
+  AND fighter_updates.active = true
+  AND fighter_updates.review_status IN ('APPROVED', 'PENDING')
+ORDER BY fighter_updates.created_at DESC
+LIMIT 10
+```
 
-### 2. Archivo: `src/hooks/useLicenseAuth.tsx`
+### Flujo de subida de imagen
+```text
+1. Usuario selecciona imagen desde archivo o camara
+2. Preview local usando URL.createObjectURL()
+3. Al hacer click en "Publicar":
+   a. Subir imagen a Supabase Storage
+   b. Obtener URL publica
+   c. Insertar registro en fighter_updates con image_url
+   d. Resetear formulario
+4. La imagen aparece inmediatamente en:
+   - El feed del peleador (perfil publico)
+   - El dashboard del gimnasio (si esta vinculado)
+```
 
-Actualmente hay un campo mapeado como `date_of_birth` en el RPC. Tras la migracion, este campo sera `birthdate`. Verificar que no haya mapeos legacy que referencien `date_of_birth` y que se use `birthdate` consistentemente.
-
----
-
-## Archivos a Modificar
-
-| Recurso | Cambio |
-|---------|--------|
-| Funcion SQL `check_user_license_status` | Agregar ~25 campos faltantes al JSON del perfil. Corregir `date_of_birth` a `birthdate`. Incluir phone desde `app_user` |
-| `src/hooks/useLicenseAuth.tsx` | Verificar/limpiar mapeos de campos legacy si existen |
-
-**1 migracion SQL + 1 archivo de codigo. Los datos existentes en la DB se mostraran correctamente sin necesidad de re-ingresarlos.**
+### Sincronizacion gimnasio-peleador
+- La vinculacion se determina via `gym_memberships` (status = 'active')
+- No se necesita campo adicional en `fighter_updates`
+- El dashboard del gimnasio consulta en tiempo real las actualizaciones de sus peleadores activos
+- Herramienta de trazabilidad: el entrenador/owner del gimnasio puede ver la evolucion cronologica de cada peleador
