@@ -67,7 +67,7 @@ export default function Dashboard() {
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
-                <stat.icon className="h-4 w-4 text-muted-foreground" />
+                <stat.icon className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
@@ -88,22 +88,22 @@ export default function Dashboard() {
               <CardTitle className="text-base">Comandos AI Sugeridos</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-dashed">
-                <Users className="h-5 w-5 text-blue-600" />
+              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
+                <Users className="h-5 w-5 text-fighter-info" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">"Buscar peleadores activos"</p>
                   <p className="text-xs text-muted-foreground">Encontrar peleadores por criterios</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-dashed">
-                <Trophy className="h-5 w-5 text-green-600" />
+              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
+                <Trophy className="h-5 w-5 text-fighter-success" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">"Estadísticas del sistema"</p>
                   <p className="text-xs text-muted-foreground">Ver métricas actuales</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-dashed">
-                <Calendar className="h-5 w-5 text-purple-600" />
+              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
+                <Calendar className="h-5 w-5 text-primary" />
                 <div className="flex-1">
                   <p className="text-sm font-medium">"Crear torneo de MMA"</p>
                   <p className="text-xs text-muted-foreground">Asistencia para nuevos eventos</p>
@@ -117,7 +117,7 @@ export default function Dashboard() {
               <CardTitle className="text-base">Acciones Rápidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center space-x-4 rounded-md border p-4">
+              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
                 <Download className="h-5 w-5" />
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium leading-none">
@@ -131,7 +131,7 @@ export default function Dashboard() {
                   <Link to="/import-event">Importar</Link>
                 </Button>
               </div>
-              <div className="flex items-center space-x-4 rounded-md border p-4">
+              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
                 <Calendar className="h-5 w-5" />
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium leading-none">
@@ -145,7 +145,7 @@ export default function Dashboard() {
                   <Link to="/admin/eventos-pelea">Gestionar</Link>
                 </Button>
               </div>
-              <div className="flex items-center space-x-4 rounded-md border p-4">
+              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
                 <Users className="h-5 w-5" />
                 <div className="flex-1 space-y-1">
                   <p className="text-sm font-medium leading-none">
@@ -180,23 +180,23 @@ export default function Dashboard() {
                 <span className="text-sm">Base de Datos</span>
                 <span className={`text-sm ${
                   dbConnected === null 
-                    ? 'text-yellow-600' 
+                    ? 'text-fighter-warning' 
                     : dbConnected 
-                      ? 'text-green-600' 
-                      : 'text-red-600'
+                      ? 'text-fighter-success' 
+                      : 'text-fighter-danger'
                 }`}>
                   {dbConnected === null ? 'Verificando...' : dbConnected ? 'Conectada' : 'Desconectada'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Autenticación</span>
-                <span className={`text-sm ${authActive ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`text-sm ${authActive ? 'text-fighter-success' : 'text-fighter-danger'}`}>
                   {authActive ? 'Activa' : 'Inactiva'}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Asistente AI</span>
-                <span className="text-sm text-green-600">Activo</span>
+                <span className="text-sm text-fighter-success">Activo</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm">Última actualización</span>
@@ -213,7 +213,7 @@ export default function Dashboard() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <CheckCircle className="h-5 w-5 text-fighter-success" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Asistente AI activado</p>
                     <p className="text-xs text-muted-foreground">Sistema bilingüe disponible</p>
@@ -222,7 +222,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <Clock className="h-5 w-5 text-orange-600" />
+                  <Clock className="h-5 w-5 text-fighter-warning" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Dashboard actualizado</p>
                     <p className="text-xs text-muted-foreground">Integración AI completada</p>
@@ -231,7 +231,7 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex items-center space-x-3">
-                  <Bot className="h-5 w-5 text-purple-600" />
+                  <Bot className="h-5 w-5 text-primary" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Funciones AI disponibles</p>
                     <p className="text-xs text-muted-foreground">Gestión de torneos y Fighter IDs</p>

@@ -252,7 +252,7 @@ export default function ValidacionLicencias() {
       case 'ACTIVE': return 'bg-fighter-success/20 text-fighter-success border-fighter-success/30 font-medium';
       case 'SUSPENDED': return 'bg-fighter-danger/20 text-fighter-danger border-fighter-danger/30 font-medium';
       case 'EXPIRED': return 'bg-fighter-accent/20 text-fighter-accent border-fighter-accent/30 font-medium';
-      case 'PENDING_REVIEW': return 'bg-fighter-warning/20 text-amber-700 border-fighter-warning/30 font-medium';
+      case 'PENDING_REVIEW': return 'bg-fighter-warning/20 text-fighter-warning border-fighter-warning/30 font-medium';
       default: return 'bg-fighter-accent/20 text-fighter-accent border-fighter-accent/30 font-medium';
     }
   };
@@ -300,10 +300,10 @@ export default function ValidacionLicencias() {
       {isAdmin && (
         <>
           {/* Pending License Requests */}
-          <Card className="border-amber-200 bg-amber-50/50 shadow-lg">
+          <Card className="border-fighter-warning/30 bg-fighter-warning/5 shadow-lg">
             <CardHeader>
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-amber-700">
+                <CardTitle className="flex items-center gap-2 text-fighter-warning">
                   <AlertCircle className="h-5 w-5" />
                   Solicitudes de Licencia Pendientes ({pendingLicenses?.length || 0})
                 </CardTitle>

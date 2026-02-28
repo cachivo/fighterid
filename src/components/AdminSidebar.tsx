@@ -91,21 +91,24 @@ export function AdminSidebar() {
   };
 
   const getNavCls = (path: string) => 
-    isActive(path) ? 'bg-muted text-primary font-medium' : 'hover:bg-muted/50';
+    isActive(path) ? 'bg-primary/15 text-primary font-medium border-l-2 border-primary' : 'hover:bg-muted/50';
 
   return (
     <Sidebar className={collapsed ? 'w-14' : 'w-64'} collapsible="icon">
       <SidebarHeader className="p-4">
         {!collapsed && (
-          <div className="text-lg font-bold text-primary">
-            Admin Panel
+          <div>
+            <div className="text-lg ufc-label text-primary">
+              Admin Panel
+            </div>
+            <div className="h-0.5 w-12 bg-primary mt-1 rounded-full" />
           </div>
         )}
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Gestión General</SidebarGroupLabel>
+          <SidebarGroupLabel className="ufc-label text-xs">Gestión General</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminItems.map((item) => (
@@ -127,7 +130,7 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Control de Peleas</SidebarGroupLabel>
+          <SidebarGroupLabel className="ufc-label text-xs">Control de Peleas</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {fightControlItems.map((item) => (
@@ -149,7 +152,7 @@ export function AdminSidebar() {
 
         {isSuperAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel>Cuenta Maestra</SidebarGroupLabel>
+            <SidebarGroupLabel className="ufc-label text-xs">Cuenta Maestra</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {superAdminItems.map((item) => (
@@ -181,7 +184,7 @@ export function AdminSidebar() {
           variant="outline" 
           size={collapsed ? "icon" : "default"}
           onClick={() => signOut()}
-          className="w-full"
+          className="w-full border-primary/30 hover:bg-primary/10"
         >
           <LogOut className="h-4 w-4" />
           {!collapsed && <span className="ml-2">Cerrar Sesión</span>}
