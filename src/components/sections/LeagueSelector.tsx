@@ -26,15 +26,19 @@ import { Swords } from "lucide-react";
      }
    }, [value, organizations]);
  
-   // When discipline changes, select first org of that discipline
-   useEffect(() => {
-     const orgsForDiscipline = selectedDiscipline === 'MMA' ? mmaOrgs : boxeoOrgs;
-     const currentOrg = organizations?.find(org => org.code === value);
-     
-     if (orgsForDiscipline.length > 0 && currentOrg?.discipline !== selectedDiscipline) {
-       onChange(orgsForDiscipline[0].code);
-     }
-   }, [selectedDiscipline, mmaOrgs, boxeoOrgs, value, onChange, organizations]);
+    // When discipline changes, select amateur org first if available
+    useEffect(() => {
+      const orgsForDiscipline = selectedDiscipline === 'MMA' ? mmaOrgs : boxeoOrgs;
+      const currentOrg = organizations?.find(org => org.code === value);
+      
+      if (orgsForDiscipline.length > 0 && currentOrg?.discipline !== selectedDiscipline) {
+        // Priorizar org que incluya Amateur
+        const amateurOrg = orgsForDiscipline.find(org => 
+          org.allowed_levels.includes('Amateur')
+        );
+        onChange(amateurOrg?.code || orgsForDiscipline[0].code);
+      }
+    }, [selectedDiscipline, mmaOrgs, boxeoOrgs, value, onChange, organizations]);
  
    if (isLoading) {
      return (
