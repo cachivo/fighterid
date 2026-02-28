@@ -1,104 +1,102 @@
 
-# Rediseno de la Pagina de Perfil de Peleador -- Estilo UFC Cinematico
 
-## Problema Actual
+# Auditoria Estetica Completa -- Coherencia Cromatica del Sistema
 
-La pagina de perfil del peleador (`/fighter/:id`) tiene un diseno generico con Cards de Radix sobre fondo oscuro plano. No tiene el impacto visual cinematico del Hero de la landing page. Ademas, hay problemas de coherencia cromatica: algunos textos se pierden contra fondos oscuros (ej: "Club" en verde sobre fondo oscuro, badges con bajo contraste).
+## Problema Principal
+
+Los colores `professional-*` (danger, foreground, accent, primary, muted, border) estan definidos como variables CSS en `index.css` pero **NO estan registrados en `tailwind.config.ts`**. Esto significa que todas las clases como `text-professional-danger`, `bg-professional-foreground`, `border-professional-border` **no generan ningun CSS** -- son invisibles. Multiples componentes del sistema usan estas clases rotas.
+
+Adicionalmente, el `ProfileProgressWidget` (la lista de campos faltantes que se ve en el screenshot) usa colores de la paleta generica de Tailwind (`bg-red-50`, `dark:bg-red-950/20`) en lugar del sistema de diseno UFC, lo que rompe la coherencia visual.
 
 ---
 
-## Estructura Propuesta
+## Archivos Afectados y Correcciones
+
+### 1. `tailwind.config.ts` -- Registrar colores professional-*
+
+Agregar los tokens de color faltantes en la seccion `colors` del theme:
 
 ```text
-+----------------------------------------------------------+
-| [Imagen de fondo: arena MMA con overlay oscuro/rojo]     |
-|                                                           |
-|  < Inicio   < Fighters              [Editar Mi Perfil]  |
-|                                                           |
-|  +--AVATAR--+   "Muneco Gonzales"                        |
-|  |          |   MIGUEL ALBERTO GONZALES MENA             |
-|  |  (foto)  |   Honduras  |  Boxeo  |  Profesional      |
-|  |          |   Club: Muneco Gonzales                    |
-|  +----------+                                            |
-|                                                           |
-|  +--- Record Bar (combat-cut) ---+                       |
-|  |  16 Victorias | 12 Derrotas | 0 Empates  |           |
-|  +--------------------------------+                      |
-|                                                           |
-|  Linea roja decorativa                                    |
-+----------------------------------------------------------+
-|                                                           |
-|  [Stats Grid: Altura | Peso | Alcance | Guardia]        |
-|                                                           |
-|  [Ligas Activas]                                         |
-|                                                           |
-|  [Perfil del Peleador: Bio, Artes Marciales, Estilo]    |
-|  [Record + Licencia Digital]                             |
-+----------------------------------------------------------+
+'professional-primary': 'hsl(var(--professional-primary))'
+'professional-primary-foreground': 'hsl(var(--professional-primary-foreground))'
+'professional-secondary': 'hsl(var(--professional-secondary))'
+'professional-secondary-foreground': 'hsl(var(--professional-secondary-foreground))'
+'professional-accent': 'hsl(var(--professional-accent))'
+'professional-accent-foreground': 'hsl(var(--professional-accent-foreground))'
+'professional-muted': 'hsl(var(--professional-muted))'
+'professional-border': 'hsl(var(--professional-border))'
+'professional-danger': 'hsl(var(--professional-danger))'       <-- NUEVO
+'professional-foreground': 'hsl(var(--professional-foreground))' <-- NUEVO
 ```
 
+Notas: `professional-danger` y `professional-foreground` no tienen variable CSS definida. Se crearan en index.css:
+- `--professional-danger`: reutiliza `0 84% 44%` (mismo que --primary, rojo UFC)
+- `--professional-foreground`: reutiliza `0 0% 95%` (mismo que --foreground, blanco)
+
+### 2. `src/index.css` -- Agregar variables CSS faltantes
+
+Agregar en la seccion `Professional License/Profile System`:
+
+```text
+--professional-danger: 0 84% 44%;
+--professional-foreground: 0 0% 95%;
+```
+
+### 3. `src/components/ProfileProgressWidget.tsx` -- Corregir contraste
+
+Reemplazar colores genericos por colores del sistema UFC:
+
+| Antes | Despues |
+|-------|---------|
+| `bg-red-50 dark:bg-red-950/20` | `bg-primary/10 border-primary/30` |
+| `border-red-200 dark:border-red-800` | `border-primary/20` |
+| `text-red-600 dark:text-red-400` (label) | `text-primary` |
+| `text-red-600 dark:text-red-400` (icon) | `text-primary` |
+| `bg-red-600` (badge) | `bg-primary` |
+| `bg-amber-50 dark:bg-amber-950/20` | `bg-fighter-warning/10 border-fighter-warning/20` |
+| `text-amber-600 dark:text-amber-400` | `text-fighter-warning` |
+| `bg-blue-50 dark:bg-blue-950/20` | `bg-fighter-info/10 border-fighter-info/20` |
+| `text-blue-600 dark:text-blue-400` | `text-fighter-info` |
+
+Garantizar que `text-foreground` (blanco 95%) se mantiene en los labels de campo para legibilidad maxima.
+
+### 4. `src/components/ProfileCompletionPrompt.tsx` -- Ya funcional tras fix de tailwind
+
+Con los tokens `professional-*` registrados, las clases existentes (`text-professional-danger`, `bg-professional-danger/5`, etc.) empezaran a funcionar correctamente sin cambios adicionales al componente.
+
+### 5. `src/components/EnhancedFighterID.tsx` -- Ya funcional tras fix de tailwind
+
+Las clases `text-professional-danger`, `text-professional-foreground`, `bg-professional-danger/5` empezaran a funcionar.
+
+### 6. `src/components/FighterCard.tsx` -- Ya funcional tras fix de tailwind
+
+Las clases `bg-professional-danger`, `bg-professional-accent`, `bg-professional-muted` empezaran a funcionar.
+
+### 7. `src/pages/license/LicenseDashboard.tsx` -- Coherencia cromatica menor
+
+Reemplazar colores genericos en la seccion de observaciones administrativas:
+
+| Antes | Despues |
+|-------|---------|
+| `bg-blue-50 dark:bg-blue-950/20` | `bg-fighter-info/10` |
+| `border-blue-200 dark:border-blue-800` | `border-fighter-info/20` |
+| `text-blue-800 dark:text-blue-200` | `text-fighter-info` |
+| `bg-red-50 dark:bg-red-950/20` (suspension) | `bg-primary/10` |
+| `border-red-200 dark:border-red-800` | `border-primary/20` |
+| `text-red-800 dark:text-red-200` | `text-primary` |
+
 ---
 
-## Cambios Concretos
+## Resumen de Cambios
 
-### 1. `src/pages/FighterProfile.tsx` -- Rediseno del header del perfil
+| Archivo | Tipo de Cambio |
+|---------|---------------|
+| `tailwind.config.ts` | Registrar 10 tokens de color professional-* |
+| `src/index.css` | Agregar 2 variables CSS faltantes |
+| `src/components/ProfileProgressWidget.tsx` | Reemplazar colores genericos por sistema UFC |
+| `src/pages/license/LicenseDashboard.tsx` | Reemplazar colores genericos en observaciones |
 
-**Hero cinematico del perfil (lineas 149-322):**
+**4 archivos modificados. 0 archivos nuevos. Sin cambios en backend/base de datos.**
 
-Reemplazar el Card generico del header por una seccion estilo Hero con:
+Los componentes `ProfileCompletionPrompt`, `EnhancedFighterID`, y `FighterCard` se corrigen automaticamente al registrar los tokens en Tailwind -- no requieren edicion de codigo.
 
-- **Fondo cinematico**: Imagen de fondo (`mma-cage-background.png`) con overlay oscuro gradiente, igual que el Hero de la landing
-- **Layout**: Avatar grande a la izquierda, info del peleador a la derecha con tipografia `ufc-label` y `font-barlow-condensed`
-- **Nombre**: Texto grande blanco con `text-4xl md:text-6xl font-extrabold tracking-wider` -- alta visibilidad
-- **Nickname**: En color `text-primary` (rojo UFC) para contraste
-- **Record bar**: Contenedor `combat-cut` con fondo semi-transparente (`bg-white/5 backdrop-blur-md border border-white/10`)
-- **Badges**: Status en colores de alto contraste, disciplina y nivel prominentes
-- **Club/Gym**: Texto blanco con icono, no verde que se pierde
-- **Vignette**: Efecto de bordes oscuros igual al Hero
-
-**Coherencia cromatica -- reglas aplicadas:**
-
-- Textos principales: `text-white` (no `text-foreground` que puede ser gris)
-- Textos secundarios: `text-white/70` o `text-white/80` (legibles sobre fondo oscuro)
-- Labels/subtitulos: `text-white/60` con `uppercase tracking-wider`
-- Badges de status: Colores solidos de alto contraste (verde/rojo/amarillo sobre fondo oscuro)
-- Links: `text-primary` (rojo UFC) con hover underline
-- Separadores: `bg-primary` (rojo) en vez de `bg-border` gris invisible
-
-### 2. Auditoria de Coherencia Cromatica
-
-**Problemas identificados y correcciones:**
-
-| Elemento | Problema | Solucion |
-|----------|----------|----------|
-| "CLUB" label | Verde (`text-blue-400`) poco visible | `text-white/60 uppercase` |
-| Gym name | `text-primary` puede ser bajo contraste en cards | Mantener `text-primary` solo sobre fondos oscuros |
-| Record numbers | Verde/Rojo/Gris sobre fondos claros de card | Sobre Hero: `text-white` con bg colored; en cards: mantener actual |
-| Muted foreground | `55%` luminosidad -- puede ser muy tenue | Verificar legibilidad en context de hero |
-| Breadcrumb nav | `variant="ghost"` puede perderse | Textos blancos sobre el hero background |
-| Stats grid cards | Fondo `bg-card` (8% negro) con texto `text-foreground` | Mantener -- funciona bien fuera del hero |
-
-### 3. `src/pages/FighterProfile.tsx` -- Stats grid y secciones inferiores
-
-Las secciones debajo del Hero (stats grid, ligas activas, biografia, record, licencia digital) se mantienen con el diseno actual de Cards, que funciona bien sobre el fondo `bg-background`. Solo se ajusta el espaciado para fluir naturalmente desde el hero.
-
----
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/FighterProfile.tsx` | Reescritura del header section (lineas 149-322) como hero cinematico con fondo de arena, combat-cut decorations, tipografia UFC. Ajuste de colores para coherencia cromatica |
-
-**Total: 1 archivo principal modificado**
-
----
-
-## Notas Tecnicas
-
-- Reutiliza las clases CSS existentes: `.combat-cut`, `.ufc-label`, `.status-live`
-- Importa `cageBackground` de `@/assets/mma-cage-background.png` (ya usado en Hero.tsx)
-- Responsive: mobile-first con breakpoints sm/md/lg
-- El avatar se muestra mas grande en el hero (h-64 w-48 en desktop, h-48 w-36 en mobile)
-- Breadcrumbs con texto blanco sobre overlay oscuro para visibilidad
-- Sin cambios en backend ni base de datos
