@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { WEIGHT_CLASSES, FIGHTER_LEVELS, COUNTRIES } from '@/lib/constants/disciplines';
+import { useGymsList } from '@/hooks/useGymsList';
 
 const fighterProfileSchema = z.object({
   first_name: z.string().min(1, 'Nombre es requerido').max(50, 'Máximo 50 caracteres'),
@@ -37,6 +38,7 @@ const fighterProfileSchema = z.object({
   stance: z.string().max(50, 'Máximo 50 caracteres').optional().or(z.literal('')),
   fighting_style: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
   gym_name: z.string().max(100, 'Máximo 100 caracteres').optional().or(z.literal('')),
+  gym_id: z.string().optional().or(z.literal('')),
   level: z.string().optional().or(z.literal('')),
   record_wins: z.string().optional().or(z.literal('')),
   record_losses: z.string().optional().or(z.literal('')),
@@ -68,6 +70,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const { data: gymsList } = useGymsList();
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [removeBackground, setRemoveBackground] = useState(false);
@@ -132,6 +135,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
       stance: profile.stance || '',
       fighting_style: profile.fighting_style || '',
       gym_name: profile.gym_name || '',
+      gym_id: (profile as any).gym_id || '',
       level: profile.level || '',
       record_wins: profile.record_wins ? profile.record_wins.toString() : '0',
       record_losses: profile.record_losses ? profile.record_losses.toString() : '0',
@@ -188,6 +192,46 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
     }
   };
 
+  // Gym Select sub-component
+  const GymSelectField = ({ form: f }: { form: any }) => {
+    const gymId = f.watch('gym_id');
+    return (
+      <FormField
+        control={f.control}
+        name="gym_id"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Gimnasio/Academia</FormLabel>
+            <Select
+              value={field.value || '__independiente__'}
+              onValueChange={(value) => {
+                if (value === '__independiente__') {
+                  f.setValue('gym_id', '');
+                  f.setValue('gym_name', 'Independiente');
+                } else {
+                  const selectedGym = gymsList?.find(g => g.id === value);
+                  f.setValue('gym_id', value);
+                  f.setValue('gym_name', selectedGym?.nombre || '');
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona un gimnasio" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__independiente__">Independiente</SelectItem>
+                {gymsList?.map(gym => (
+                  <SelectItem key={gym.id} value={gym.id}>{gym.nombre}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  };
+
   const onSubmit = async (data: FighterProfileFormData) => {
     if (!user || !profile.id) {
       toast({
@@ -213,7 +257,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
         'insurance_company', 'insurance_policy',
         'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation',
         'height_cm', 'weight_kg', 'reach_cm', 'stance',
-        'weight_class', 'fighting_style', 'gym_name', 'level',
+        'weight_class', 'fighting_style', 'gym_name', 'gym_id', 'level',
         'first_name', 'last_name', 'nickname', 'country', 'birthdate', 'birthplace', 'gender',
         'document_type', 'document_number'
       ];
@@ -775,19 +819,7 @@ export function UserFighterProfileEditForm({ profile, onSuccess, onCancel }: Use
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="gym_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gimnasio/Academia</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <GymSelectField form={form} />
               </div>
             </CardContent>
           </Card>

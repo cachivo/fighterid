@@ -236,13 +236,6 @@ export function FighterProfileForm({ existingProfile, onSuccess, onCancel }: Fig
               <p className="text-xs text-muted-foreground mt-1">
                 {gyms ? `${gyms.length} gimnasio(s) disponible(s)` : 'Cargando...'}
               </p>
-              <Input
-                id="gym_name"
-                value={formData.gym_name}
-                onChange={(e) => handleChange('gym_name', e.target.value)}
-                placeholder="O escribe el nombre del gimnasio manualmente"
-                className="mt-2"
-              />
           </div>
 
           <div>
