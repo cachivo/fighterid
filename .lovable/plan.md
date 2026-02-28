@@ -1,73 +1,70 @@
 
-# Auditoria Estetica: Panel de Administracion al Tema Combat UFC
+# Auditoria Visual: Informacion Completa sin Truncar en Todo el Sistema
 
-## Problema Detectado
+## Problema
 
-El panel de administracion mantiene una estetica generica de dashboard "light mode" que no corresponde con el manual de diseno Combat UFC implementado en el resto de la aplicacion. Ejemplos concretos:
+La informacion de los peleadores (nombre, apodo, disciplina, peso, nivel) se corta con `truncate` (CSS `text-overflow: ellipsis`) en multiples componentes del sistema. El usuario exige que toda la informacion sea legible y completa en todos los modulos.
 
-- **ValidacionLicencias**: Usa `bg-amber-50/50`, `border-amber-200`, `text-amber-700`, `bg-white` -- colores claros que chocan con el fondo negro
-- **LicenseCard**: Usa `bg-white` para cards pendientes, `hover:bg-blue-50`, `border-blue-200` -- completamente fuera del tema oscuro
-- **Dashboard**: Usa `text-blue-600`, `text-green-600`, `text-purple-600` directamente en vez de tokens del sistema (`text-primary`, `text-fighter-success`, etc.)
-- **AdminLayout header**: Usa `bg-background` generico sin identidad visual combat
-- **AdminSidebar header**: Solo dice "Admin Panel" en texto, sin branding visual coherente
+## Componentes Afectados y Cambios
 
-## Alcance de Cambios
+### 1. `src/components/gym/GymFighterCard.tsx` (Gym Dashboard - listado principal)
+**Problema**: Nombre y nickname en la misma linea con `truncate`, se cortan en movil.
+**Solucion**:
+- Nombre completo en su propia linea, sin `truncate`, con `break-words`
+- Nickname en linea separada debajo del nombre, texto completo
+- Record, disciplina, peso en linea inferior con `flex-wrap` (ya existe)
+- Level badge a la derecha (ya correcto)
 
-### 1. AdminLayout (`src/components/AdminLayout.tsx`)
-- Header con borde inferior rojo sutil (`border-primary/30`) en vez de `border-b` generico
-- Titulo "Panel de Administracion" con clase `ufc-label` para Barlow Condensed uppercase
-- Fondo del main area: `bg-background` puro (negro) en vez de `bg-muted/10`
+### 2. `src/components/FighterCard.tsx` (Listado publico /fighters)
+**Problema**: Nombre con `truncate` (linea 99), nickname con `truncate` (linea 103), gimnasio con `truncate` (linea 117).
+**Solucion**:
+- Nombre: quitar `truncate`, usar `break-words`
+- Nickname: quitar `truncate`, permitir wrap
+- Gimnasio: quitar `truncate`, permitir wrap
 
-### 2. AdminSidebar (`src/components/AdminSidebar.tsx`)
-- Header: agregar linea decorativa roja debajo del titulo "Admin Panel"
-- Items activos: usar `bg-primary/15 text-primary border-l-2 border-primary` en vez de `bg-muted`
-- Group labels: aplicar `ufc-label` (Barlow Condensed uppercase tracking)
-- Footer: boton "Cerrar Sesion" con estilo `combat-card` (borde izquierdo rojo)
+### 3. `src/pages/admin/FightersProfiles.tsx` (Panel admin - grid de peleadores)
+**Problema**: CardTitle con `truncate` (linea 286), nickname con `truncate` (linea 289). En movil, 4 botones de accion comprimen el espacio del nombre.
+**Solucion**:
+- Quitar `truncate` de nombre y nickname
+- Los botones de accion pueden hacer wrap o reducir a 2 visibles + menu "mas" en pantallas pequenas (pero como solucion minima, quitar truncate y permitir que el nombre ocupe multiples lineas)
 
-### 3. Dashboard (`src/pages/admin/Dashboard.tsx`)
-- Stats cards: agregar clase `combat-card` (borde izquierdo rojo)
-- Iconos: reemplazar colores directos (`text-blue-600`, `text-purple-600`) por tokens del tema (`text-primary`, `text-fighter-success`, `text-fighter-info`)
-- Card de AI: cambiar gradiente a usar `from-primary/10 to-primary/5` sobre fondo oscuro
-- Seccion "Acciones Rapidas": bordes con `border-primary/20` en vez de `border` generico
-- "Estado del Sistema": status colors usando tokens (`text-fighter-success`, `text-fighter-danger`)
+### 4. `src/components/sections/Ranking.tsx` (Ranking publico)
+**Problema**: Nombre con `truncate` (linea 298), nickname con `truncate block` (linea 312), gimnasio con `truncate` (linea 333).
+**Solucion**:
+- Nombre: quitar `truncate`, usar `break-words`
+- Nickname: quitar `truncate`, usar `break-words`  
+- Gimnasio: quitar `truncate`, usar `break-words`
 
-### 4. ValidacionLicencias (`src/pages/admin/ValidacionLicencias.tsx`)
-- Card de pendientes: cambiar `border-amber-200 bg-amber-50/50` por `border-fighter-warning/30 bg-fighter-warning/5`
-- Titulo pendientes: `text-fighter-warning` en vez de `text-amber-700`
-- Card de licencias activas: usar `combat-card` con borde izquierdo
+### 5. `src/pages/GimnasioDetalle.tsx` (Detalle publico del gimnasio)
+**Problema**: Nombre con `truncate` (linea 181), nickname con `truncate` (linea 185).
+**Solucion**:
+- Quitar `truncate` de nombre y nickname
+- Asegurar que el nombre se muestre completo
 
-### 5. LicenseCard (`src/components/admin/LicenseCard.tsx`)
-- Card pendiente: cambiar `border-amber-200 bg-white` por `border-fighter-warning/30 bg-card`
-- Card normal: mantener `bg-card/50` (ya es correcto para tema oscuro)
-- Botones: Revisar `hover:bg-blue-50` -> `hover:bg-primary/10`, Aprobar `bg-green-600` -> `bg-fighter-success`
-- Event card interna: ya usa `bg-primary/5` (correcto)
+### 6. `src/components/FighterMiniature.tsx` (Miniatura/tooltip)
+**Estado**: Ya correcto, no usa `truncate` en nombre ni nickname.
 
-### 6. FightersProfiles (`src/pages/admin/FightersProfiles.tsx`)
-- Verificar que las cards de peleadores usen tokens del tema
-- Badges de status con colores del sistema fighter
+## Regla General Aplicada
 
-### 7. Componentes Admin menores
-- **DeleteFighterDialog, DeleteGymDialog, DeleteCoachDialog**: Ya usan `bg-destructive` (correcto)
-- **RoleEditDialog**: Ya usa componentes shadcn (hereda tema automaticamente)
-- **DeleteUserDialog**: Correcto con destructive tokens
+```text
+ANTES:  className="... truncate"     -> texto cortado con "..."
+DESPUES: className="... break-words"  -> texto completo, puede ocupar 2 lineas
+```
+
+Para cada componente:
+- `truncate` se elimina de nombre, nickname, gimnasio, y peso
+- Se agrega `break-words` o `whitespace-normal` donde sea necesario
+- Se mantiene `flex-shrink-0` en avatares y badges para que no se compriman
+- Se mantiene `min-w-0` en contenedores de texto para que el flex funcione correctamente
 
 ## Archivos a Modificar
 
-| Archivo | Cambio Principal |
-|---------|-----------------|
-| `src/components/AdminLayout.tsx` | Header con identidad combat, main bg puro |
-| `src/components/AdminSidebar.tsx` | Active items rojos, labels UFC, linea decorativa |
-| `src/pages/admin/Dashboard.tsx` | Iconos con tokens, combat-card en stats, colores sistema |
-| `src/pages/admin/ValidacionLicencias.tsx` | Colores pendientes con tokens fighter-warning |
-| `src/components/admin/LicenseCard.tsx` | Eliminar bg-white, usar bg-card, botones con tokens |
+| Archivo | Elementos sin truncar |
+|---------|----------------------|
+| `src/components/gym/GymFighterCard.tsx` | Nombre en linea propia, nickname debajo |
+| `src/components/FighterCard.tsx` | Nombre, nickname, gimnasio |
+| `src/pages/admin/FightersProfiles.tsx` | Nombre, nickname en cards del grid |
+| `src/components/sections/Ranking.tsx` | Nombre, nickname, gimnasio |
+| `src/pages/GimnasioDetalle.tsx` | Nombre, nickname en lista de peleadores |
 
 **5 archivos modificados. Sin migraciones SQL. Sin archivos nuevos.**
-
-## Principios de Diseno Aplicados
-
-- Fondo negro absoluto (`--background: 0 0% 5%`)
-- Color primario rojo UFC (`--primary: 0 84% 44%`)
-- Tipografia Barlow Condensed en uppercase para encabezados (`.ufc-label`)
-- Cards con borde izquierdo rojo (`.combat-card`)
-- Colores de status via tokens: `fighter-success` (verde), `fighter-warning` (amarillo), `fighter-danger` (rojo), `fighter-info` (azul)
-- Zero colores hardcodeados directos (no `text-blue-600`, no `bg-white`, no `bg-amber-50`)
