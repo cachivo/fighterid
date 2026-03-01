@@ -1,108 +1,69 @@
 
-# Correccion: Formulario de Creacion de Perfiles se Traba
+# Correccion: Creacion de Perfiles - Campos y Base de Datos
 
-## Problema Raiz
+## Problemas Encontrados
 
-El formulario `AdminFighterForm.tsx` tiene **campos no inicializados** en el estado `formData` (lineas 55-74). Campos como `gender`, `stance`, `bio`, `fighting_style`, `birthplace`, `gym_name`, `height_cm`, `weight_kg`, `reach_cm` no estan en el estado inicial.
+### 1. RPC `admin_create_fighter_profile` -- Campos faltantes en INSERT
+La funcion SQL de creacion **no incluye** los siguientes campos que el formulario envia:
+- **`gym_id`** -- el formulario permite seleccionar un gimnasio registrado, pero el RPC nunca lo inserta
+- **`mma_record_wins/losses/draws`** -- los records por disciplina MMA se ignoran
+- **`boxeo_record_wins/losses/draws`** -- los records por disciplina Boxeo se ignoran
 
-Cuando un componente `<Select value={undefined}>` (no controlado) recibe un valor por primera vez via `onValueChange`, pasa de **no-controlado a controlado**. Esto es un antipatron de React que causa comportamiento erratico: el Select puede quedar en un loop de reconciliacion y trabar la pagina.
+Resultado: el peleador se crea sin gimnasio asociado y sin records por disciplina, aunque el admin los haya llenado.
 
-Los campos `<Input value={undefined}>` tambien generan warnings de React por la misma razon (uncontrolled to controlled).
+### 2. RPC `admin_update_fighter_profile` -- Falta `gym_id`
+La funcion de actualizacion maneja los records por disciplina correctamente, pero **no actualiza `gym_id`**. Si un admin asigna un gimnasio registrado, el campo se pierde en la base de datos.
+
+### 3. Formulario -- Campos de base de datos que existen pero no estan en el formulario
+La tabla `fighter_profiles` tiene columnas que el formulario no expone:
+- `blood_type` (tipo de sangre)
+- `document_type` / `document_number` (documento de identidad)
+- `emergency_contact_name` / `emergency_contact_relation` / `emergency_contact_phone`
+- `medical_allergies` / `medical_conditions`
+- `insurance_company` / `insurance_policy`
+
+Estos campos estan en el `AdminFighterFormData` type pero no tienen inputs en el formulario. Para el proceso de creacion basica no son obligatorios, pero seria bueno agregarlos en una seccion "Medico/Emergencia" del tab Personal.
 
 ## Solucion
 
-### Archivo: `src/components/admin/AdminFighterForm.tsx`
+### Paso 1: Migrar RPC `admin_create_fighter_profile`
+Agregar al INSERT de la funcion SQL:
+- `gym_id` con valor `NULLIF((p_profile_data->>'gym_id')::uuid, NULL)`
+- `mma_record_wins` con `COALESCE((p_profile_data->>'mma_record_wins')::integer, 0)`
+- `mma_record_losses`, `mma_record_draws` (igual patron)
+- `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws` (igual patron)
 
-**1. Inicializar TODOS los campos en el estado inicial** (lineas 55-74):
+### Paso 2: Migrar RPC `admin_update_fighter_profile`
+Agregar al UPDATE:
+- `gym_id = CASE WHEN p_profile_data ? 'gym_id' AND p_profile_data->>'gym_id' IS NOT NULL THEN (p_profile_data->>'gym_id')::uuid WHEN p_profile_data ? 'gym_id' THEN NULL ELSE gym_id END`
 
-Agregar los campos faltantes con valores por defecto seguros:
-```text
-gender: '',
-height_cm: 0,
-weight_kg: 0,
-reach_cm: 0,
-bio: '',
-fighting_style: '',
-gym_name: '',
-gym_id: undefined,
-birthdate: '',
-birthplace: '',
-stance: '',
-avatar_url: '',
-```
+### Paso 3: Agregar campos medicos al formulario
+En `AdminFighterForm.tsx`, tab "Personal", agregar una seccion "Informacion Medica y Emergencia" con:
+- Tipo de sangre (Select con opciones A+, A-, B+, B-, AB+, AB-, O+, O-)
+- Tipo de documento + Numero de documento (dos inputs en grid)
+- Contacto de emergencia: nombre, relacion, telefono (tres inputs)
+- Alergias y condiciones medicas (textareas)
+- Seguro: compania y poliza (dos inputs)
 
-**2. Proteger los Select contra valor vacio** (lineas 330, 501, 612, 628, 738):
-
-Para los Select que pueden tener valor vacio (`gender`, `stance`, `discipline`), cambiar:
-```text
-ANTES:  <Select value={formData.gender}>
-DESPUES: <Select value={formData.gender || undefined}>
-```
-
-Esto mantiene el Select en modo "no controlado con placeholder" hasta que el usuario elija un valor, evitando el conflicto controlado/no-controlado.
-
-Aplicar a:
-- gender (linea 330)
-- stance (linea 501)
-- discipline (linea 612)
-
-Los demas Select (`country`, `weight_class`, `level`, `record_type`) ya tienen valores iniciales validos, asi que no necesitan cambio.
-
-**3. Proteger Inputs de texto contra `undefined`** (lineas 391, 646, 691, 898):
-
-Cambiar:
-```text
-ANTES:  value={formData.birthplace}
-DESPUES: value={formData.birthplace || ''}
-```
-
-Aplicar a: `birthplace`, `fighting_style`, `gym_name`, `bio`.
-
----
-
-## Detalle Tecnico
-
-### Estado inicial corregido
-```text
-formData inicializa con:
-  first_name: ''         (ya existe)
-  last_name: ''          (ya existe)
-  nickname: ''           (ya existe)
-  country: 'Honduras'    (ya existe)
-  weight_class: 'Peso Ligero' (ya existe)
-  discipline: undefined  (ya existe - OK, se protege en Select)
-  martial_arts: []       (ya existe)
-  record_wins/losses/draws: 0 (ya existe)
-  mma_record_*: 0        (ya existe)
-  boxeo_record_*: 0      (ya existe)
-  record_type: 'Amateur' (ya existe)
-  level: 'Amateur'       (ya existe)
-  --- CAMPOS FALTANTES (agregar) ---
-  gender: ''
-  height_cm: 0
-  weight_kg: 0
-  reach_cm: 0
-  bio: ''
-  fighting_style: ''
-  gym_name: ''
-  gym_id: undefined
-  birthdate: ''
-  birthplace: ''
-  stance: ''
-  avatar_url: ''
-```
-
-### Proteccion Select
-```text
-<Select value={formData.gender || undefined}>  // '' -> undefined = uncontrolled con placeholder
-<Select value={formData.stance || undefined}>
-<Select value={formData.discipline || undefined}>  // ya usa || '' pero debe ser || undefined
-```
+Tambien inicializar estos campos en el estado `formData` con valores vacios.
 
 ## Archivos a Modificar
 
-| Archivo | Cambio |
+| Recurso | Cambio |
 |---------|--------|
-| `src/components/admin/AdminFighterForm.tsx` | Inicializar campos faltantes + proteger Select e Input contra undefined |
+| Migracion SQL | Reemplazar RPCs `admin_create_fighter_profile` y `admin_update_fighter_profile` |
+| `src/components/admin/AdminFighterForm.tsx` | Agregar seccion medica/emergencia, inicializar campos |
 
-**1 archivo modificado. Sin migraciones SQL. Sin archivos nuevos.**
+## Detalle Tecnico de la Migracion SQL
+
+```text
+-- admin_create_fighter_profile: agregar al INSERT columns + VALUES
+gym_id,
+mma_record_wins, mma_record_losses, mma_record_draws,
+boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
+
+-- admin_update_fighter_profile: agregar linea
+gym_id = CASE WHEN p_profile_data ? 'gym_id' ...
+```
+
+**1 migracion SQL + 1 archivo TypeScript modificado.**
