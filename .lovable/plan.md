@@ -1,70 +1,108 @@
 
-# Auditoria Visual: Informacion Completa sin Truncar en Todo el Sistema
+# Correccion: Formulario de Creacion de Perfiles se Traba
 
-## Problema
+## Problema Raiz
 
-La informacion de los peleadores (nombre, apodo, disciplina, peso, nivel) se corta con `truncate` (CSS `text-overflow: ellipsis`) en multiples componentes del sistema. El usuario exige que toda la informacion sea legible y completa en todos los modulos.
+El formulario `AdminFighterForm.tsx` tiene **campos no inicializados** en el estado `formData` (lineas 55-74). Campos como `gender`, `stance`, `bio`, `fighting_style`, `birthplace`, `gym_name`, `height_cm`, `weight_kg`, `reach_cm` no estan en el estado inicial.
 
-## Componentes Afectados y Cambios
+Cuando un componente `<Select value={undefined}>` (no controlado) recibe un valor por primera vez via `onValueChange`, pasa de **no-controlado a controlado**. Esto es un antipatron de React que causa comportamiento erratico: el Select puede quedar en un loop de reconciliacion y trabar la pagina.
 
-### 1. `src/components/gym/GymFighterCard.tsx` (Gym Dashboard - listado principal)
-**Problema**: Nombre y nickname en la misma linea con `truncate`, se cortan en movil.
-**Solucion**:
-- Nombre completo en su propia linea, sin `truncate`, con `break-words`
-- Nickname en linea separada debajo del nombre, texto completo
-- Record, disciplina, peso en linea inferior con `flex-wrap` (ya existe)
-- Level badge a la derecha (ya correcto)
+Los campos `<Input value={undefined}>` tambien generan warnings de React por la misma razon (uncontrolled to controlled).
 
-### 2. `src/components/FighterCard.tsx` (Listado publico /fighters)
-**Problema**: Nombre con `truncate` (linea 99), nickname con `truncate` (linea 103), gimnasio con `truncate` (linea 117).
-**Solucion**:
-- Nombre: quitar `truncate`, usar `break-words`
-- Nickname: quitar `truncate`, permitir wrap
-- Gimnasio: quitar `truncate`, permitir wrap
+## Solucion
 
-### 3. `src/pages/admin/FightersProfiles.tsx` (Panel admin - grid de peleadores)
-**Problema**: CardTitle con `truncate` (linea 286), nickname con `truncate` (linea 289). En movil, 4 botones de accion comprimen el espacio del nombre.
-**Solucion**:
-- Quitar `truncate` de nombre y nickname
-- Los botones de accion pueden hacer wrap o reducir a 2 visibles + menu "mas" en pantallas pequenas (pero como solucion minima, quitar truncate y permitir que el nombre ocupe multiples lineas)
+### Archivo: `src/components/admin/AdminFighterForm.tsx`
 
-### 4. `src/components/sections/Ranking.tsx` (Ranking publico)
-**Problema**: Nombre con `truncate` (linea 298), nickname con `truncate block` (linea 312), gimnasio con `truncate` (linea 333).
-**Solucion**:
-- Nombre: quitar `truncate`, usar `break-words`
-- Nickname: quitar `truncate`, usar `break-words`  
-- Gimnasio: quitar `truncate`, usar `break-words`
+**1. Inicializar TODOS los campos en el estado inicial** (lineas 55-74):
 
-### 5. `src/pages/GimnasioDetalle.tsx` (Detalle publico del gimnasio)
-**Problema**: Nombre con `truncate` (linea 181), nickname con `truncate` (linea 185).
-**Solucion**:
-- Quitar `truncate` de nombre y nickname
-- Asegurar que el nombre se muestre completo
-
-### 6. `src/components/FighterMiniature.tsx` (Miniatura/tooltip)
-**Estado**: Ya correcto, no usa `truncate` en nombre ni nickname.
-
-## Regla General Aplicada
-
+Agregar los campos faltantes con valores por defecto seguros:
 ```text
-ANTES:  className="... truncate"     -> texto cortado con "..."
-DESPUES: className="... break-words"  -> texto completo, puede ocupar 2 lineas
+gender: '',
+height_cm: 0,
+weight_kg: 0,
+reach_cm: 0,
+bio: '',
+fighting_style: '',
+gym_name: '',
+gym_id: undefined,
+birthdate: '',
+birthplace: '',
+stance: '',
+avatar_url: '',
 ```
 
-Para cada componente:
-- `truncate` se elimina de nombre, nickname, gimnasio, y peso
-- Se agrega `break-words` o `whitespace-normal` donde sea necesario
-- Se mantiene `flex-shrink-0` en avatares y badges para que no se compriman
-- Se mantiene `min-w-0` en contenedores de texto para que el flex funcione correctamente
+**2. Proteger los Select contra valor vacio** (lineas 330, 501, 612, 628, 738):
+
+Para los Select que pueden tener valor vacio (`gender`, `stance`, `discipline`), cambiar:
+```text
+ANTES:  <Select value={formData.gender}>
+DESPUES: <Select value={formData.gender || undefined}>
+```
+
+Esto mantiene el Select en modo "no controlado con placeholder" hasta que el usuario elija un valor, evitando el conflicto controlado/no-controlado.
+
+Aplicar a:
+- gender (linea 330)
+- stance (linea 501)
+- discipline (linea 612)
+
+Los demas Select (`country`, `weight_class`, `level`, `record_type`) ya tienen valores iniciales validos, asi que no necesitan cambio.
+
+**3. Proteger Inputs de texto contra `undefined`** (lineas 391, 646, 691, 898):
+
+Cambiar:
+```text
+ANTES:  value={formData.birthplace}
+DESPUES: value={formData.birthplace || ''}
+```
+
+Aplicar a: `birthplace`, `fighting_style`, `gym_name`, `bio`.
+
+---
+
+## Detalle Tecnico
+
+### Estado inicial corregido
+```text
+formData inicializa con:
+  first_name: ''         (ya existe)
+  last_name: ''          (ya existe)
+  nickname: ''           (ya existe)
+  country: 'Honduras'    (ya existe)
+  weight_class: 'Peso Ligero' (ya existe)
+  discipline: undefined  (ya existe - OK, se protege en Select)
+  martial_arts: []       (ya existe)
+  record_wins/losses/draws: 0 (ya existe)
+  mma_record_*: 0        (ya existe)
+  boxeo_record_*: 0      (ya existe)
+  record_type: 'Amateur' (ya existe)
+  level: 'Amateur'       (ya existe)
+  --- CAMPOS FALTANTES (agregar) ---
+  gender: ''
+  height_cm: 0
+  weight_kg: 0
+  reach_cm: 0
+  bio: ''
+  fighting_style: ''
+  gym_name: ''
+  gym_id: undefined
+  birthdate: ''
+  birthplace: ''
+  stance: ''
+  avatar_url: ''
+```
+
+### Proteccion Select
+```text
+<Select value={formData.gender || undefined}>  // '' -> undefined = uncontrolled con placeholder
+<Select value={formData.stance || undefined}>
+<Select value={formData.discipline || undefined}>  // ya usa || '' pero debe ser || undefined
+```
 
 ## Archivos a Modificar
 
-| Archivo | Elementos sin truncar |
-|---------|----------------------|
-| `src/components/gym/GymFighterCard.tsx` | Nombre en linea propia, nickname debajo |
-| `src/components/FighterCard.tsx` | Nombre, nickname, gimnasio |
-| `src/pages/admin/FightersProfiles.tsx` | Nombre, nickname en cards del grid |
-| `src/components/sections/Ranking.tsx` | Nombre, nickname, gimnasio |
-| `src/pages/GimnasioDetalle.tsx` | Nombre, nickname en lista de peleadores |
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/admin/AdminFighterForm.tsx` | Inicializar campos faltantes + proteger Select e Input contra undefined |
 
-**5 archivos modificados. Sin migraciones SQL. Sin archivos nuevos.**
+**1 archivo modificado. Sin migraciones SQL. Sin archivos nuevos.**
