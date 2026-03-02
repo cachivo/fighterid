@@ -265,89 +265,90 @@ export default function FightersProfiles() {
           </CardContent>
         </Card>
       ) : (
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+       <div className="grid grid-cols-1 gap-3">
            {paginatedFighters.map((fighter) => (
-            <Card key={fighter.id} className="hover:shadow-md transition-shadow h-full flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <OptimizedImage
-                      src={fighter.avatar_url || ''}
-                      alt={`${fighter.first_name} ${fighter.last_name}`}
-                      className="w-12 h-12 rounded-full border-2 border-border object-cover aspect-square flex-shrink-0"
-                      fallbackIcon={
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                          <User className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                      }
-                      priority={false}
-                    />
-                    <div className="min-w-0 flex-1 flex flex-col justify-center">
-                      <CardTitle className="text-base font-semibold leading-tight break-words">
-                        {fighter.first_name} {fighter.last_name}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground break-words mt-0.5">
-                        {fighter.nickname ? `"${fighter.nickname}"` : '\u00A0'}
+            <Card key={fighter.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-2 px-3 pt-3">
+                {/* Row 1: Avatar + Name + Nickname */}
+                <div className="flex items-center gap-3">
+                  <OptimizedImage
+                    src={fighter.avatar_url || ''}
+                    alt={`${fighter.first_name} ${fighter.last_name}`}
+                    className="w-14 h-14 rounded-full border-2 border-primary/30 object-cover aspect-square flex-shrink-0"
+                    fallbackIcon={
+                      <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center border-2 border-primary/30">
+                        <User className="h-7 w-7 text-muted-foreground" />
+                      </div>
+                    }
+                    priority={false}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-base font-bold leading-tight break-words font-barlow-condensed uppercase">
+                      {fighter.first_name} {fighter.last_name}
+                    </CardTitle>
+                    {fighter.nickname && (
+                      <p className="text-sm text-primary font-medium break-words mt-0.5">
+                        "{fighter.nickname}"
                       </p>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 sm:gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQuickAssignFighter(fighter);
-                        setQuickAssignGymId('');
-                      }}
-                      className="h-10 w-10 min-h-[44px] min-w-[44px] touch-manipulation"
-                      title="Asignar gimnasio"
-                    >
-                      <Building className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('View button clicked for fighter:', fighter.id);
-                        setViewingFighter(fighter.id);
-                      }}
-                      className="h-10 w-10 min-h-[44px] min-w-[44px] hover:bg-muted touch-manipulation"
-                      title="Ver información completa"
-                    >
-                      <Eye className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setEditingFighter(fighter)}
-                      className="h-10 w-10 min-h-[44px] min-w-[44px] touch-manipulation"
-                      title="Editar peleador"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeletingFighter(fighter)}
-                      className="h-10 w-10 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive touch-manipulation"
-                      title="Eliminar peleador"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
+                    )}
                   </div>
                 </div>
+                {/* Row 2: Action buttons — full width, evenly spaced */}
+                <div className="flex justify-end gap-1 mt-2 border-t border-border/50 pt-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuickAssignFighter(fighter);
+                      setQuickAssignGymId('');
+                    }}
+                    className="h-9 w-9 min-h-[44px] min-w-[44px] touch-manipulation"
+                    title="Asignar gimnasio"
+                  >
+                    <Building className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setViewingFighter(fighter.id);
+                    }}
+                    className="h-9 w-9 min-h-[44px] min-w-[44px] touch-manipulation"
+                    title="Ver información completa"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setEditingFighter(fighter)}
+                    className="h-9 w-9 min-h-[44px] min-w-[44px] touch-manipulation"
+                    title="Editar peleador"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeletingFighter(fighter)}
+                    className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive touch-manipulation"
+                    title="Eliminar peleador"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
-              <CardContent className="pt-0 flex-1">
-                <div className="space-y-3">
+              <CardContent className="pt-0 px-3 pb-3">
+                <div className="space-y-2">
                   {/* Completion Progress */}
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-xs text-muted-foreground">
                       <span>Completitud:</span>
                       <span className="font-medium">{(fighter as any).completion_score || 0}%</span>
                     </div>
-                    <Progress value={(fighter as any).completion_score || 0} className="h-2" />
+                    <Progress value={(fighter as any).completion_score || 0} className="h-1.5" />
                   </div>
                   
                   <div className="flex justify-between items-center">
@@ -379,13 +380,13 @@ export default function FightersProfiles() {
                   )}
                   
                   {/* Gimnasio */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Gimnasio:</span>
+                  <div className="flex justify-between items-start gap-2">
+                    <span className="text-sm text-muted-foreground flex-shrink-0">Gimnasio:</span>
                     {(() => {
                       const membership = (activeMemberships || []).find(m => m.fighter_id === fighter.id);
                       const gymName = (membership?.gyms as any)?.nombre;
                       return gymName ? (
-                        <span className="text-sm font-medium truncate max-w-[60%] text-right">{gymName}</span>
+                        <span className="text-sm font-medium text-right break-words">{gymName}</span>
                       ) : (
                         <span className="text-sm text-muted-foreground italic">Independiente</span>
                       );
