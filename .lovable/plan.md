@@ -1,69 +1,74 @@
 
-# Correccion: Creacion de Perfiles - Campos y Base de Datos
 
-## Problemas Encontrados
+# Auditoria Completa: AdminFighterForm - Mobile-First y Estabilidad
 
-### 1. RPC `admin_create_fighter_profile` -- Campos faltantes en INSERT
-La funcion SQL de creacion **no incluye** los siguientes campos que el formulario envia:
-- **`gym_id`** -- el formulario permite seleccionar un gimnasio registrado, pero el RPC nunca lo inserta
-- **`mma_record_wins/losses/draws`** -- los records por disciplina MMA se ignoran
-- **`boxeo_record_wins/losses/draws`** -- los records por disciplina Boxeo se ignoran
+## Problemas Detectados
 
-Resultado: el peleador se crea sin gimnasio asociado y sin records por disciplina, aunque el admin los haya llenado.
+### 1. Grids no responsivos para movil
+Multiples grids usan `grid-cols-3` y `grid-cols-4` sin breakpoints moviles. En pantallas de 375px esto comprime los campos hasta ser inutilizables:
 
-### 2. RPC `admin_update_fighter_profile` -- Falta `gym_id`
-La funcion de actualizacion maneja los records por disciplina correctamente, pero **no actualiza `gym_id`**. Si un admin asigna un gimnasio registrado, el campo se pierde en la base de datos.
+- **Linea 437**: `grid-cols-3` para sangre/documento/numero -- 3 columnas en movil es ilegible
+- **Linea 476**: `grid-cols-3` para contacto emergencia -- campos cortados
+- **Linea 609**: `grid-cols-3` para altura/peso/alcance -- muy apretado
+- **Linea 851**: `grid-cols-4` para records -- imposible en movil
+- **Linea 911/952**: `grid-cols-3` para records MMA/Boxeo
 
-### 3. Formulario -- Campos de base de datos que existen pero no estan en el formulario
-La tabla `fighter_profiles` tiene columnas que el formulario no expone:
-- `blood_type` (tipo de sangre)
-- `document_type` / `document_number` (documento de identidad)
-- `emergency_contact_name` / `emergency_contact_relation` / `emergency_contact_phone`
-- `medical_allergies` / `medical_conditions`
-- `insurance_company` / `insurance_policy`
+### 2. Campos numericos envian 0 en vez de null
+Cuando `height_cm`, `weight_kg`, `reach_cm` se dejan vacios, envian `0` a la BD. Un peleador con altura 0cm no tiene sentido. Deberian enviarse como `null`.
 
-Estos campos estan en el `AdminFighterFormData` type pero no tienen inputs en el formulario. Para el proceso de creacion basica no son obligatorios, pero seria bueno agregarlos en una seccion "Medico/Emergencia" del tab Personal.
+### 3. El `grid-cols-3` de "Tipo de Sangre + Tipo Doc + Num Doc" no funciona en movil
+Estos 3 campos con Select + Select + Input en una fila de 3 columnas se aplastan completamente.
+
+### 4. Labels cortados en campos comprimidos
+Labels como "Teléfono Emergencia", "Compañía de Seguro", "Número de Documento" se truncan en grid-cols-3.
 
 ## Solucion
 
-### Paso 1: Migrar RPC `admin_create_fighter_profile`
-Agregar al INSERT de la funcion SQL:
-- `gym_id` con valor `NULLIF((p_profile_data->>'gym_id')::uuid, NULL)`
-- `mma_record_wins` con `COALESCE((p_profile_data->>'mma_record_wins')::integer, 0)`
-- `mma_record_losses`, `mma_record_draws` (igual patron)
-- `boxeo_record_wins`, `boxeo_record_losses`, `boxeo_record_draws` (igual patron)
+### Archivo: `src/components/admin/AdminFighterForm.tsx`
 
-### Paso 2: Migrar RPC `admin_update_fighter_profile`
-Agregar al UPDATE:
-- `gym_id = CASE WHEN p_profile_data ? 'gym_id' AND p_profile_data->>'gym_id' IS NOT NULL THEN (p_profile_data->>'gym_id')::uuid WHEN p_profile_data ? 'gym_id' THEN NULL ELSE gym_id END`
+**1. Convertir todos los grids a mobile-first:**
 
-### Paso 3: Agregar campos medicos al formulario
-En `AdminFighterForm.tsx`, tab "Personal", agregar una seccion "Informacion Medica y Emergencia" con:
-- Tipo de sangre (Select con opciones A+, A-, B+, B-, AB+, AB-, O+, O-)
-- Tipo de documento + Numero de documento (dos inputs en grid)
-- Contacto de emergencia: nombre, relacion, telefono (tres inputs)
-- Alergias y condiciones medicas (textareas)
-- Seguro: compania y poliza (dos inputs)
+| Actual | Corregido |
+|--------|-----------|
+| `grid-cols-3` (linea 437) | `grid-cols-1 sm:grid-cols-3` |
+| `grid-cols-3` (linea 476) | `grid-cols-1 sm:grid-cols-3` |
+| `grid-cols-2` (linea 506) | `grid-cols-1 sm:grid-cols-2` |
+| `grid-cols-2` (linea 529) | `grid-cols-1 sm:grid-cols-2` |
+| `grid-cols-3` (linea 609) | `grid-cols-3` (este es OK, son numeros cortos) |
+| `grid-cols-4` (linea 851) | `grid-cols-2 sm:grid-cols-4` |
+| `grid-cols-3` (linea 911) | `grid-cols-3` (numeros, OK) |
+| `grid-cols-3` (linea 952) | `grid-cols-3` (numeros, OK) |
+| `grid-cols-2` (linea 359) | `grid-cols-1 sm:grid-cols-2` |
+| `grid-cols-2` (linea 691) | `grid-cols-1 sm:grid-cols-2` |
 
-Tambien inicializar estos campos en el estado `formData` con valores vacios.
+**2. Proteger campos numericos contra 0 falso:**
+
+Cambiar `value={formData.height_cm || ''}` a un patron que distinga 0 explicito de vacio. En el submit, enviar `null` si el valor es 0 para height/weight/reach.
+
+**3. Enviar campos numericos como null cuando estan vacios:**
+
+En `handleSubmit`, antes de enviar al RPC, limpiar los 0 falsos:
+```text
+const cleanedData = {
+  ...formData,
+  height_cm: formData.height_cm || null,
+  weight_kg: formData.weight_kg || null,
+  reach_cm: formData.reach_cm || null,
+};
+```
+
+### Archivo: `src/pages/admin/FightersProfilesCreate.tsx`
+
+**4. Reducir padding para movil:**
+
+Cambiar `container max-w-5xl mx-auto p-6` a `container max-w-5xl mx-auto p-4 sm:p-6` y reducir el titulo de `text-3xl` a `text-xl sm:text-3xl`.
 
 ## Archivos a Modificar
 
-| Recurso | Cambio |
+| Archivo | Cambio |
 |---------|--------|
-| Migracion SQL | Reemplazar RPCs `admin_create_fighter_profile` y `admin_update_fighter_profile` |
-| `src/components/admin/AdminFighterForm.tsx` | Agregar seccion medica/emergencia, inicializar campos |
+| `src/components/admin/AdminFighterForm.tsx` | Grids responsive + limpieza de 0s falsos |
+| `src/pages/admin/FightersProfilesCreate.tsx` | Padding y titulo mobile-first |
 
-## Detalle Tecnico de la Migracion SQL
+**2 archivos. Sin migraciones SQL.**
 
-```text
--- admin_create_fighter_profile: agregar al INSERT columns + VALUES
-gym_id,
-mma_record_wins, mma_record_losses, mma_record_draws,
-boxeo_record_wins, boxeo_record_losses, boxeo_record_draws
-
--- admin_update_fighter_profile: agregar linea
-gym_id = CASE WHEN p_profile_data ? 'gym_id' ...
-```
-
-**1 migracion SQL + 1 archivo TypeScript modificado.**
