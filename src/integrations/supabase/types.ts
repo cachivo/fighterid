@@ -5361,7 +5361,7 @@ export type Database = {
           ip_address: unknown
           judge_name_provided: string | null
           pin_attempted: string
-          session_duration: unknown
+          session_duration: string | null
           session_id: string | null
           station_number: number
           success: boolean
@@ -5375,7 +5375,7 @@ export type Database = {
           ip_address?: unknown
           judge_name_provided?: string | null
           pin_attempted: string
-          session_duration?: unknown
+          session_duration?: string | null
           session_id?: string | null
           station_number: number
           success: boolean
@@ -5389,7 +5389,7 @@ export type Database = {
           ip_address?: unknown
           judge_name_provided?: string | null
           pin_attempted?: string
-          session_duration?: unknown
+          session_duration?: string | null
           session_id?: string | null
           station_number?: number
           success?: boolean
