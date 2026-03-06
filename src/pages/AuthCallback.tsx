@@ -44,11 +44,8 @@ export default function AuthCallback() {
         if (!session) {
           if (type === 'signup' || type === 'email') {
             setStatus('success');
-            setMessage('¡Email confirmado exitosamente!');
-            // Try metadata first, then localStorage fallback
-            const savedRole = localStorage.getItem('fighter_id_selected_role');
-            const dest = savedRole === 'gym' ? '/gym/onboarding' : savedRole === 'judge' ? '/judge/onboarding' : '/license/onboarding';
-            setTimeout(() => navigate(dest, { replace: true }), 2000);
+            setMessage('¡Email confirmado exitosamente! Inicia sesión para continuar.');
+            setTimeout(() => navigate('/auth', { replace: true }), 2000);
             return;
           }
           throw new Error('No se pudo establecer la sesión');
