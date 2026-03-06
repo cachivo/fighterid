@@ -17,7 +17,6 @@ import { FighterLicense } from './pages/FighterLicense';
 import UserProfile from './pages/UserProfile';
 import FighterProfile from './pages/FighterProfile';
 import ProfileSetup from './pages/profile/ProfileSetup';
-const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFightersProfiles from './pages/admin/FightersProfiles';
@@ -117,6 +116,7 @@ const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
+const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
