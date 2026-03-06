@@ -319,8 +319,8 @@ export default function FighterProfile() {
                 <div className="p-1.5 sm:p-2 rounded-full bg-primary/10 w-fit mx-auto mb-1 sm:mb-2">
                   <stat.icon className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />
                 </div>
-                <p className="text-xs text-muted-foreground uppercase mb-0.5 sm:mb-1 truncate">{stat.label}</p>
-                <p className="text-sm sm:text-base md:text-lg font-semibold truncate">{stat.value}</p>
+                <p className="text-xs text-muted-foreground uppercase mb-0.5 sm:mb-1 break-words leading-tight">{stat.label}</p>
+                <p className="text-sm sm:text-base md:text-lg font-semibold break-words leading-tight">{stat.value}</p>
               </CardContent>
             </Card>
           ))}

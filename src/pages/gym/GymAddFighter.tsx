@@ -97,8 +97,8 @@ export default function GymAddFighter() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0">
-              <h1 className="font-bold text-lg truncate">Agregar Peleador</h1>
-              {gymData?.gym && <p className="text-xs text-muted-foreground truncate">{gymData.gym.nombre}</p>}
+              <h1 className="font-bold text-lg break-words leading-tight">Agregar Peleador</h1>
+              {gymData?.gym && <p className="text-xs text-muted-foreground break-words leading-tight">{gymData.gym.nombre}</p>}
             </div>
           </div>
 

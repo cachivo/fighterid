@@ -123,9 +123,9 @@ export default function CreatePostForm({
           </Avatar>
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-sm sm:text-base text-foreground truncate">{authorName}</span>
+              <span className="font-medium text-sm sm:text-base text-foreground break-words leading-tight">{authorName}</span>
               {authorNickname && (
-                <span className="text-xs sm:text-sm text-muted-foreground truncate">"{authorNickname}"</span>
+                <span className="text-xs sm:text-sm text-muted-foreground break-words leading-tight">"{authorNickname}"</span>
               )}
             </div>
             <div className="flex items-center gap-2">

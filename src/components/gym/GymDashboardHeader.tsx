@@ -59,11 +59,11 @@ export function GymDashboardHeader({ gym, staff }: GymDashboardHeaderProps) {
         </Avatar>
 
         <div className="min-w-0">
-          <h1 className="text-lg font-bold truncate">{gym.nombre}</h1>
+          <h1 className="text-lg font-bold break-words leading-tight">{gym.nombre}</h1>
           {(gym.ciudad || gym.pais) && (
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3 w-3 flex-shrink-0" />
-              <span className="truncate">
+              <span className="break-words leading-tight">
                 {[gym.ciudad, gym.pais].filter(Boolean).join(', ')}
               </span>
             </div>
