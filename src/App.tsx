@@ -116,6 +116,7 @@ const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 
 // Lazy load ContactInbox
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
+const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
