@@ -90,7 +90,7 @@ export function AdminGymCard({ gym, readOnly = false }: AdminGymCardProps) {
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-lg truncate">{gym.nombre}</h3>
+              <h3 className="font-semibold text-lg break-words leading-tight">{gym.nombre}</h3>
               {(gym.ciudad || gym.pais) && (
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <MapPin className="h-3 w-3" />

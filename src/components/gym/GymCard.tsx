@@ -33,13 +33,13 @@ export function GymCard({ gym }: GymCardProps) {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <h3 className="text-base font-bold truncate">
+            <h3 className="text-base font-bold break-words leading-tight">
               {gym.nombre}
             </h3>
             {gym.ciudad && (
               <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                 <MapPin className="h-3 w-3 flex-shrink-0" />
-                <span className="truncate">{gym.ciudad}{gym.pais ? `, ${gym.pais}` : ''}</span>
+                <span className="break-words leading-tight">{gym.ciudad}{gym.pais ? `, ${gym.pais}` : ''}</span>
               </div>
             )}
           </div>
