@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'admin' | 'moderator' | 'user';
+type AppRole = 
+  | 'admin' | 'super_admin' | 'moderator' | 'user'
+  | 'gym_owner' | 'gym_coach' | 'gym_assistant'
+  | 'official_judge' | 'official_referee' | 'official_doctor'
+  | 'official_timekeeper' | 'official_inspector'
+  | 'license_officer' | 'technical_coordinator'
+  | 'auditor' | 'promoter' | 'judge';
 
 interface UserRole {
   id: string;
@@ -15,8 +21,11 @@ interface UserRole {
 interface UseUserRoleReturn {
   roles: AppRole[];
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isModerator: boolean;
   isUser: boolean;
+  isGymOwner: boolean;
+  isJudge: boolean;
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
   loading: boolean;
@@ -81,9 +90,12 @@ export function useUserRole(): UseUserRoleReturn {
 
   return {
     roles,
-    isAdmin: hasRole('admin'),
+    isAdmin: hasRole('admin') || hasRole('super_admin'),
+    isSuperAdmin: hasRole('super_admin'),
     isModerator: hasRole('moderator'),
     isUser: hasRole('user'),
+    isGymOwner: hasRole('gym_owner'),
+    isJudge: hasRole('official_judge') || hasRole('judge'),
     hasRole,
     hasAnyRole,
     loading: loading || authLoading,

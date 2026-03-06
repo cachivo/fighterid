@@ -51,6 +51,8 @@ export default function ProfileSetup() {
         .insert({
           auth_user_id: user.id,
           email: user.email,
+          first_name: data.firstName,
+          last_name: data.lastName,
           phone: data.phone || null,
           country: data.country,
           birthdate: data.birthdate || null,
@@ -63,6 +65,8 @@ export default function ProfileSetup() {
           const { error: updateError } = await supabase
             .from('app_user')
             .update({
+              first_name: data.firstName,
+              last_name: data.lastName,
               phone: data.phone || null,
               country: data.country,
               birthdate: data.birthdate || null,

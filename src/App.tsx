@@ -17,6 +17,7 @@ import { FighterLicense } from './pages/FighterLicense';
 import UserProfile from './pages/UserProfile';
 import FighterProfile from './pages/FighterProfile';
 import ProfileSetup from './pages/profile/ProfileSetup';
+const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
 import VerifyLicense from './pages/VerifyLicense';
 import ValidacionLicencias from './pages/admin/ValidacionLicencias';
 import AdminFightersProfiles from './pages/admin/FightersProfiles';
@@ -183,6 +184,13 @@ const App = () => {
               <Route path="/predicciones" element={<Predicciones />} />
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
               <Route path="/contacto" element={<Contact />} />
+              <Route path="/profile/hub" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <ProfileHub />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
               
               {/* Rutas de Gimnasios */}
               <Route path="/gimnasios" element={<Gimnasios />} />
