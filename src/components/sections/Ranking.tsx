@@ -20,7 +20,7 @@ interface RankingProps {
 }
 
 const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
-  const [selectedLevel, setSelectedLevel] = useState<string>('');
+  const [selectedLevel, setSelectedLevel] = useState<string>('Amateur');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
   const [page, setPage] = useState(1);
