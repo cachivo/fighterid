@@ -21,8 +21,11 @@ interface UserRole {
 interface UseUserRoleReturn {
   roles: AppRole[];
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isModerator: boolean;
   isUser: boolean;
+  isGymOwner: boolean;
+  isJudge: boolean;
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
   loading: boolean;
