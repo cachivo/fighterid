@@ -63,13 +63,13 @@ export default function CommentCard({ comment, onDelete }: CommentCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                <span className="font-medium text-sm truncate">
+                <span className="font-medium text-sm break-words leading-tight">
                   {comment.author_name}
                 </span>
                 
                 {/* Mostrar nickname del peleador */}
                 {comment.author_nickname && (
-                  <span className="text-xs text-muted-foreground truncate">
+                  <span className="text-xs text-muted-foreground break-words leading-tight">
                     @{comment.author_nickname}
                   </span>
                 )}

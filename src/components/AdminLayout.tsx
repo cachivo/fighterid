@@ -24,7 +24,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 className="h-7 w-auto"
               />
             </Link>
-            <h1 className="text-base ufc-label truncate">Panel de Administración</h1>
+            <h1 className="text-base ufc-label break-words leading-tight">Panel de Administración</h1>
           </header>
           <main className="flex-1 p-3 md:p-4 lg:p-5 bg-background overflow-auto">
             <div className="max-w-7xl mx-auto">

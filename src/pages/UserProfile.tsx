@@ -102,13 +102,13 @@ export default function UserProfile() {
             </Avatar>
             
             <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground break-words leading-tight">
                 {userProfile?.first_name && userProfile?.last_name 
                   ? `${userProfile.first_name} ${userProfile.last_name}`
                   : 'Usuario de la Plataforma'
                 }
               </h2>
-              <p className="text-sm sm:text-base md:text-lg text-professional-accent truncate">
+              <p className="text-sm sm:text-base md:text-lg text-professional-accent break-words leading-tight">
                 {user.email}
               </p>
               <div className="flex flex-wrap gap-1 sm:gap-2">
@@ -185,11 +185,11 @@ export default function UserProfile() {
             </Avatar>
             
             <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground break-words leading-tight">
                 {profile?.first_name} {profile?.last_name}
               </h2>
               {profile?.nickname && (
-                <p className="text-sm sm:text-base md:text-lg font-medium text-professional-accent truncate">
+                <p className="text-sm sm:text-base md:text-lg font-medium text-professional-accent break-words leading-tight">
                   "{profile.nickname}"
                 </p>
               )}
