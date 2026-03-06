@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { useOptimizedOnboarding } from '@/hooks/useOptimizedOnboarding';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useGymsList } from '@/hooks/useGymsList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
