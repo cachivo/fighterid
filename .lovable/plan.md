@@ -1,37 +1,29 @@
 
 
-# Fix: Nombres de gimnasios mostrándose verticalmente (1 letra por línea)
+# Fix: Ranking Amateur no precargado al volver al Home
 
 ## Causa raíz
 
-El `CardHeader` tiene un layout `flex` horizontal con 3 elementos compitiendo por espacio:
-1. Logo (48px fijo)
-2. Nombre (`flex-1 min-w-0`)
-3. Badges (Sin Main Coach + contadores) — estos badges ocupan ~200px, dejando casi 0px para el nombre
+En `Ranking.tsx` línea 23, `selectedLevel` inicia como `''` (vacío). El efecto que selecciona 'Amateur' automáticamente (líneas 51-64) depende de que `availableLevels` se cargue primero desde la query de organizaciones. Durante ese gap:
 
-Con `break-words`, el nombre rompe en cada carácter porque no tiene espacio horizontal.
+1. La query de ranking se dispara con `level=undefined` (sin filtro de nivel)
+2. La condición de skeleton en línea 240 muestra esqueletos mientras `!selectedLevel`
+3. El usuario ve un estado vacío/cargando hasta que el efecto finalmente dispara
+
+Si hay algún delay en la carga de organizaciones o si el efecto no alcanza a dispararse antes de que el usuario interactúe, queda sin selección.
 
 ## Solución
 
-Reestructurar el `CardHeader` para que los badges NO estén en la misma fila que el nombre:
+Inicializar `selectedLevel` directamente como `'Amateur'` en vez de `''`. Esto garantiza que:
+- La primera query ya filtra por Amateur inmediatamente
+- El tab de Amateur aparece seleccionado desde el inicio
+- No hay gap visual ni necesidad de esperar el efecto
 
-```
-┌─────────────────────────────┐
-│ [Logo] Nombre del Gimnasio  │
-│         Ciudad, País        │
-│ [Sin Main Coach] [⚔4] [👥0] │
-└─────────────────────────────┘
-```
-
-- Mover los badges debajo del bloque nombre/ciudad
-- El nombre ocupa todo el ancho disponible (menos el logo)
-- Los badges van en una fila separada con `flex-wrap`
-
-## Archivo a modificar
+## Cambio
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/admin/AdminGymCard.tsx` | Reestructurar CardHeader: badges debajo del nombre en vez de al lado |
+| `src/components/sections/Ranking.tsx` | Línea 23: cambiar `useState('')` a `useState('Amateur')` |
 
-**1 archivo.**
+**1 línea en 1 archivo.**
 
