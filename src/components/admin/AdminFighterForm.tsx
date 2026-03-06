@@ -237,7 +237,13 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
      
      try {
        if (mode === 'create') {
-        const newFighterId = await adminCreateFighterProfile(formData);
+        const cleanedData = {
+          ...formData,
+          height_cm: formData.height_cm || null,
+          weight_kg: formData.weight_kg || null,
+          reach_cm: formData.reach_cm || null,
+        };
+        const newFighterId = await adminCreateFighterProfile(cleanedData);
         
         // Upload avatar if selected
         if (newFighterId && avatarFile) {
@@ -281,7 +287,13 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
             : "Perfil creado e inscrito en el ranking correctamente.",
          });
        } else if (mode === 'edit' && existingFighter) {
-         const success = await adminUpdateFighterProfile(existingFighter.id, formData as AdminFighterFormData);
+          const cleanedEditData = {
+            ...formData,
+            height_cm: formData.height_cm || null,
+            weight_kg: formData.weight_kg || null,
+            reach_cm: formData.reach_cm || null,
+          };
+          const success = await adminUpdateFighterProfile(existingFighter.id, cleanedEditData as AdminFighterFormData);
          if (success) {
            toast({
              title: "¡Perfil actualizado!",
@@ -325,9 +337,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                <CardTitle>Información Personal</CardTitle>
              </CardHeader>
              <CardContent className="space-y-4">
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <Label htmlFor="first_name">Nombre *</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="first_name">Nombre *</Label>
                    <Input
                      id="first_name"
                      value={formData.first_name}
@@ -356,9 +368,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                  />
                </div>
  
-               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                   <Label htmlFor="gender">Género</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="gender">Género</Label>
                    <Select value={formData.gender || undefined} onValueChange={(value) => handleChange('gender', value)}>
                      <SelectTrigger>
                        <SelectValue placeholder="Seleccionar género" />
@@ -434,9 +446,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                 <CardTitle>Información Médica y de Emergencia</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="blood_type">Tipo de Sangre</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                   <div>
+                     <Label htmlFor="blood_type">Tipo de Sangre</Label>
                     <Select value={formData.blood_type || undefined} onValueChange={(value) => handleChange('blood_type', value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar" />
@@ -473,9 +485,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="emergency_contact_name">Contacto de Emergencia</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                   <div>
+                     <Label htmlFor="emergency_contact_name">Contacto de Emergencia</Label>
                     <Input
                       id="emergency_contact_name"
                       value={formData.emergency_contact_name || ''}
@@ -503,9 +515,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="medical_allergies">Alergias</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <div>
+                     <Label htmlFor="medical_allergies">Alergias</Label>
                     <Textarea
                       id="medical_allergies"
                       value={formData.medical_allergies || ''}
@@ -526,9 +538,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="insurance_company">Compañía de Seguro</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <div>
+                     <Label htmlFor="insurance_company">Compañía de Seguro</Label>
                     <Input
                       id="insurance_company"
                       value={formData.insurance_company || ''}
@@ -688,9 +700,9 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                   </p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Liga/Organización *</Label>
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                   <div>
+                     <Label>Liga/Organización *</Label>
                     <Select value={initialOrg} onValueChange={setInitialOrg}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar liga" />
@@ -848,7 +860,7 @@ import { useFighterRankingMembership } from '@/hooks/useFighterRankingMembership
                  )}
                </div>
  
-               <div className="grid grid-cols-4 gap-4">
+               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                  <div className="col-span-1">
                    <Label htmlFor="record_wins">Victorias</Label>
                    <Input
