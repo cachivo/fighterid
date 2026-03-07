@@ -186,6 +186,14 @@ export default function GymDashboard() {
             <Users className="h-4 w-4 mr-2" />
             Ver Peleadores
           </Button>
+          <Button
+            variant="outline"
+            className="w-full h-12 touch-manipulation"
+            onClick={() => navigate('/profile/hub')}
+          >
+            <LayoutGrid className="h-4 w-4 mr-2" />
+            Volver al Hub
+          </Button>
         </div>
       </div>
 

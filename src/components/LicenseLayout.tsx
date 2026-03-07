@@ -77,6 +77,16 @@ export default function LicenseLayout() {
                 Inicio
               </Link>
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
+              <Link to="/profile/hub">
+                <LayoutGrid className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Hub</span>
+              </Link>
+            </Button>
             {licenseData && (
               <Badge variant="outline" className={`${getStatusColor(licenseData.status)} text-white border-0`}>
                 {getStatusText(licenseData.status)}
