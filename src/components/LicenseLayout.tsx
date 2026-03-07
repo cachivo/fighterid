@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User, Home } from 'lucide-react';
+import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User, Home, LayoutGrid } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ const navigation = [
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
   { name: 'Próximas Peleas', href: '/license/fights', icon: Calendar },
   { name: 'Historial', href: '/license/history', icon: FileText },
+  { name: 'Cambiar Módulo', href: '/profile/hub', icon: LayoutGrid },
 ];
 
 export default function LicenseLayout() {
@@ -74,6 +75,16 @@ export default function LicenseLayout() {
               <Link to="/">
                 <Home className="h-4 w-4 mr-2" />
                 Inicio
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+            >
+              <Link to="/profile/hub">
+                <LayoutGrid className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Hub</span>
               </Link>
             </Button>
             {licenseData && (
