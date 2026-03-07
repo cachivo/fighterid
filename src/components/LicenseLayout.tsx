@@ -28,6 +28,7 @@ const navigation = [
   { name: 'Código QR', href: '/license/qr', icon: QrCode },
   { name: 'Próximas Peleas', href: '/license/fights', icon: Calendar },
   { name: 'Historial', href: '/license/history', icon: FileText },
+  { name: 'Cambiar Módulo', href: '/profile/hub', icon: LayoutGrid },
 ];
 
 export default function LicenseLayout() {
