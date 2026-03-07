@@ -12,7 +12,7 @@ import { useFighterUpdates } from '@/hooks/useFighterUpdates';
 import { GymEditModal } from '@/components/admin/GymEditModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Users, Settings, ChevronRight, Plus, Pencil, Newspaper, FileText } from 'lucide-react';
+import { Users, Settings, ChevronRight, Plus, Pencil, Newspaper, FileText, LayoutGrid } from 'lucide-react';
 import Header from '@/components/Header';
 import type { Gym } from '@/types/gyms';
 
