@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User, Home } from 'lucide-react';
+import { Shield, QrCode, Calendar, FileText, LogOut, Menu, User, Home, LayoutGrid } from 'lucide-react';
 import { NavLink, Link } from 'react-router-dom';
 import { useLicenseAuth } from '@/hooks/useLicenseAuth';
 import { Button } from '@/components/ui/button';
