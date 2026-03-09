@@ -206,12 +206,16 @@ export default function LiveStreaming() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>URL de YouTube (normal o embed)</Label>
-              <Input
-                placeholder="https://www.youtube.com/watch?v=... o https://youtu.be/..."
+              <Label>URL o Iframe de YouTube</Label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder={'Pega aquí el iframe completo, URL embed, o link normal de YouTube\nEj: <iframe src="https://www.youtube.com/embed/..."></iframe>'}
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Acepta: iframe completo, URL embed, youtube.com/watch?v=, youtu.be/, youtube.com/live/
+              </p>
               {embedUrl && (
                 <p className="text-xs text-muted-foreground">
                   Embed: {convertToEmbedUrl(embedUrl)}
