@@ -1,86 +1,59 @@
 
 
-# Plan: Optimización Mobile del Panel de Administración
+## Audit: Admin Login Flow Issues
 
-## Problema Principal
+### Problems Found
 
-El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
+**1. `LicenseAuthProvider` runs for ALL users on EVERY page (CRITICAL)**
 
-Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+The entire app is wrapped in `LicenseAuthProvider` (App.tsx line 153). This provider runs `checkLicenseStatusOptimized` for every authenticated user on every page load — including admins going to `/admin/dashboard`. This triggers:
+- An RPC call to `check_user_license_status` (which may fail or be slow)
+- A 25-second backup timeout that fires when the RPC is slow
+- The console log confirms this: `[TIMEOUT] [LICENSE AUTH] Backup timeout triggered after 25s`
 
-| Página | Columnas | Severidad |
-|--------|----------|-----------|
-| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
-| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
-| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
-| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
-| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
-| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
-| **Configuracion.tsx** | Tabla de configuración | BAJA |
-| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+An admin user navigating to their dashboard is getting blocked by the License auth check running in the background, potentially causing the page to feel "stuck" while waiting.
 
-## Solución
+**2. `useAdmin` doesn't check for `super_admin` role**
 
-### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
+The `useAdmin` hook (line 39) queries `user_roles` with `.eq('role', 'admin')` only. A user with `super_admin` but not `admin` would be blocked by `AdminProtectedRoute`. Currently the only `super_admin` (cachivo@gmail.com) also has `admin`, so this is a latent bug, not a current blocker — but will break when more super_admins are added.
 
-Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
+**3. Double role-check on login → admin redirect**
+
+When an admin selects "Administrador" and logs in:
+1. `Auth.tsx` `routeAuthenticatedUser` queries `user_roles` and navigates to `/admin/dashboard`
+2. `AdminProtectedRoute` runs `useAdmin` which queries `user_roles` again
+3. Meanwhile `LicenseAuthProvider` also fires `checkLicenseStatusOptimized`
+
+That's 3 Supabase calls racing simultaneously. On slow connections (mobile Honduras), this causes the "stuck" loading spinner.
+
+### Root Cause Summary
 
 ```text
-┌──────────────────────────────┐
-│ 🏆 Batalla de Gimnasios #2   │
-│ MMA · Borrador · Privado     │
-│ 📅 15/03/2026 · 📍 Arena     │
-│ ┌────┐┌────┐┌────┐┌────┐    │
-│ │Brand││Pelead││Peleas││ ⋮ │    │
-│ └────┘└────┘└────┘└────┘    │
-│ Estado: [Borrador ▾]         │
-└──────────────────────────────┘
+User selects Admin → Signs In
+  ├── Auth.tsx: queries user_roles → navigates to /admin/dashboard
+  ├── LicenseAuthProvider: runs checkLicenseStatusOptimized (UNNECESSARY for admins)
+  │     └── 25s timeout fires → shows "Tiempo de espera agotado"
+  └── AdminProtectedRoute: queries user_roles AGAIN → shows spinner
 ```
 
-- Cada evento será un `Card` con la info apilada verticalmente
-- Botones de acción en una fila con `flex-wrap`
-- Select de estado en su propia fila
+### Proposed Fix
 
-### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+**1. Skip license check for non-license routes** — In `LicenseAuthProvider`, check if the current route starts with `/license/` before running `checkLicenseStatusOptimized`. If the user is on `/admin/*`, `/gym/*`, or other non-license routes, skip the heavy RPC call entirely.
 
-Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+**2. Add `super_admin` to `useAdmin` check** — Change the query to use `.in('role', ['admin', 'super_admin'])` instead of `.eq('role', 'admin')`.
 
-- `Betting.tsx`
-- `Comunidad.tsx` (2 tablas)
-- `AliadosEstrategicos.tsx`
-- `OrganizationsManagement.tsx`
-- `Configuracion.tsx`
-- `EmailCampaignDetail.tsx`
+**3. Cache admin status** — After `Auth.tsx` already verifies admin role, pass that context forward so `AdminProtectedRoute` doesn't need to re-query.
 
-### 3. Headers responsivos
+### Files to Change
 
-Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
+| File | Change |
+|------|--------|
+| `src/hooks/useLicenseAuth.tsx` | Add route check — skip license verification when not on `/license/*` paths |
+| `src/hooks/useAdmin.tsx` | Query `.in('role', ['admin', 'super_admin'])` instead of `.eq('role', 'admin')` |
 
-- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
-- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
+### Impact
 
-Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
-
-### 4. Dialogs de pelea - Grids de 3 y 2 columnas
-
-Los diálogos internos de `EventosPelea.tsx` usan:
-- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
-- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
-
-En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
-| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
-| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
-
-**8 archivos. Sin migraciones SQL.**
+- Admins will no longer wait for the license RPC call (eliminates the 25s timeout)
+- `super_admin` users will be properly recognized by `AdminProtectedRoute`
+- No changes to license module behavior — it will continue working as before for fighters
 
