@@ -53,6 +53,7 @@ const getEventBrandingLogo = (event: LiveEvent): string => {
 };
 
 const EnVivo = () => {
+  const { user } = useAuth();
   const [liveEvents, setLiveEvents] = useState<LiveEvent[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
