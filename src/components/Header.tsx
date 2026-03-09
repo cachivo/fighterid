@@ -18,7 +18,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell, Dumbbell } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell, Dumbbell, Radio } from "lucide-react";
 import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 const Header = () => {
@@ -56,6 +56,7 @@ const Header = () => {
   const navigationItems = [
     { name: "Social", href: "/social/feed", icon: Users },
     { name: "Eventos", href: "/eventos", icon: Calendar },
+    { name: "En Vivo", href: "/en-vivo", icon: Radio },
     { name: "Peleadores", href: "/fighters", icon: Trophy },
     { name: "Mi Perfil", href: "/profile", icon: User },
   ];
@@ -149,6 +150,15 @@ const Header = () => {
             <Link to="/eventos">Eventos</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
+            <Link to="/en-vivo" className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+              </span>
+              En Vivo
+            </Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
             <Link to="/fighters">Peleadores</Link>
           </Button>
         </div>
@@ -160,6 +170,15 @@ const Header = () => {
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/eventos">Eventos</Link>
+          </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/en-vivo" className="flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-destructive"></span>
+              </span>
+              En Vivo
+            </Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/fighters">Peleadores</Link>

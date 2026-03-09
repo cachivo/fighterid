@@ -20,7 +20,8 @@ import {
   Send,
   Medal,
   ImageIcon,
-  Building2
+  Building2,
+  Tv
 } from 'lucide-react';
 import {
   Sidebar,
@@ -70,6 +71,7 @@ const fightControlItems = [
   { title: 'Jueces (Legacy)', url: '/admin/judges', icon: Gavel },
   { title: 'Estaciones de Scoring', url: '/admin/scoring/stations', icon: Monitor },
   { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
+  { title: 'Transmisiones En Vivo', url: '/en-vivo', icon: Tv },
   { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
   { title: 'Monitor de IA', url: '/admin/ai-strike-monitor', icon: Activity },
   { title: '🧪 Pruebas IA', url: '/admin/ai-strike-test', icon: TestTube2 },

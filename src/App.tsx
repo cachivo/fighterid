@@ -63,6 +63,7 @@ import Predicciones from "./pages/Predicciones";
 import EventoBetting from "./pages/EventoBetting";
 import Events from "./pages/Events";
 import EventDetail from "./pages/EventDetail";
+import EnVivo from "./pages/EnVivo";
 import Fighters from "./pages/Fighters";
 import SocialProfile from "./pages/social/SocialProfile";
 import Friends from "./pages/social/Friends";
@@ -165,6 +166,7 @@ const App = () => {
               {/* License auth callback - handles confirmation redirects */}
               <Route path="/license/callback" element={<AuthCallback />} />
               <Route path="/eventos" element={<Events />} />
+              <Route path="/en-vivo" element={<EnVivo />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />

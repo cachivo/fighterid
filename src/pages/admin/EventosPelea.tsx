@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search, Wand2, Palette, Check, X, ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, Calendar, MapPin, Clock, Trophy, Eye, EyeOff, Search, Wand2, Palette, Check, X, ImageIcon, Radio, Tv } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -76,6 +76,13 @@ export default function EventosPelea() {
     // Branding modal state
     const [showBrandingModal, setShowBrandingModal] = useState(false);
     const [brandingEvent, setBrandingEvent] = useState<BdgEvent | null>(null);
+    
+    // Streaming dialog state
+    const [showStreamDialog, setShowStreamDialog] = useState(false);
+    const [streamEvent, setStreamEvent] = useState<BdgEvent | null>(null);
+    const [streamEmbedUrl, setStreamEmbedUrl] = useState('');
+    const [streamChatUrl, setStreamChatUrl] = useState('');
+    const [streamIsLive, setStreamIsLive] = useState(false);
    
    const [showCreateDialog, setShowCreateDialog] = useState(false);
    const [showFightersDialog, setShowFightersDialog] = useState(false);
@@ -760,6 +767,37 @@ export default function EventosPelea() {
       }
     };
 
+    // *** Streaming config handlers ***
+    const openStreamDialog = (event: BdgEvent) => {
+      const meta = event.meta as { live_stream?: { embed_url?: string; chat_embed_url?: string; is_streaming?: boolean } } | null;
+      setStreamEvent(event);
+      setStreamEmbedUrl(meta?.live_stream?.embed_url || '');
+      setStreamChatUrl(meta?.live_stream?.chat_embed_url || '');
+      setStreamIsLive(meta?.live_stream?.is_streaming || false);
+      setShowStreamDialog(true);
+    };
+
+    const handleSaveStream = async () => {
+      if (!streamEvent) return;
+      try {
+        const currentMeta = (streamEvent.meta || {}) as Record<string, any>;
+        const newMeta = {
+          ...currentMeta,
+          live_stream: {
+            embed_url: streamEmbedUrl,
+            chat_embed_url: streamChatUrl,
+            is_streaming: streamIsLive,
+          }
+        };
+        await updateEventMeta(streamEvent.id, newMeta);
+        toast({ description: '✅ Configuración de transmisión guardada' });
+        setShowStreamDialog(false);
+        refreshEvents();
+      } catch (error) {
+        toast({ description: 'Error al guardar configuración', variant: 'destructive' });
+      }
+    };
+
     // *** HELPER: Get fighter display name ***
     const getFighterName = (fight: any, corner: 'A' | 'B') => {
       const fighter = corner === 'A' ? fight.fighter_a : fight.fighter_b;
@@ -1213,7 +1251,16 @@ export default function EventosPelea() {
                            className="text-primary border-primary/30"
                          >
                            <Palette className="w-4 h-4 mr-1" />
-                           Branding
+                            Branding
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openStreamDialog(event)}
+                            className={`border-primary/30 ${((event.meta as any)?.live_stream?.is_streaming) ? 'text-destructive' : ''}`}
+                          >
+                            <Tv className="w-4 h-4 mr-1" />
+                            Transmisión
                          </Button>
                          <Button 
                            variant="outline" 
@@ -1326,8 +1373,11 @@ export default function EventosPelea() {
                    <div className="flex flex-wrap gap-2">
                      <Button variant="outline" size="sm" onClick={() => { setBrandingEvent(event); setShowBrandingModal(true); }} className="text-primary border-primary/30">
                        <Palette className="w-4 h-4 mr-1" /> Branding
-                     </Button>
-                     <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setEventFighters([]); setShowFightersDialog(true); }}>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => openStreamDialog(event)} className={((event.meta as any)?.live_stream?.is_streaming) ? 'text-destructive' : ''}>
+                        <Tv className="w-4 h-4 mr-1" /> Transmisión
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setEventFighters([]); setShowFightersDialog(true); }}>
                        <Users className="w-4 h-4 mr-1" /> Peleadores
                      </Button>
                      <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setFightsEventId(event.id); resetFightForm(); setShowFightsDialog(true); }}>
@@ -2004,7 +2054,66 @@ export default function EventosPelea() {
           onOpenChange={setShowBrandingModal}
           event={brandingEvent}
           onSave={updateEventMeta}
-        />
-      </div>
-    );
+         />
+
+         {/* Streaming Config Dialog */}
+         <Dialog open={showStreamDialog} onOpenChange={setShowStreamDialog}>
+           <DialogContent className="sm:max-w-[500px]">
+             <DialogHeader>
+               <DialogTitle className="flex items-center gap-2">
+                 <Tv className="w-5 h-5" />
+                 Configurar Transmisión - {streamEvent?.name}
+               </DialogTitle>
+               <DialogDescription>
+                 Pega la URL del embed de YouTube para transmitir en vivo este evento.
+               </DialogDescription>
+             </DialogHeader>
+             <div className="space-y-4">
+               <div>
+                 <Label>URL de Embed (YouTube)</Label>
+                 <Input
+                   placeholder="https://www.youtube.com/embed/VIDEO_ID"
+                   value={streamEmbedUrl}
+                   onChange={(e) => setStreamEmbedUrl(e.target.value)}
+                 />
+                 <p className="text-xs text-muted-foreground mt-1">
+                   Ejemplo: https://www.youtube.com/embed/dQw4w9WgXcQ
+                 </p>
+               </div>
+               <div>
+                 <Label>URL del Chat en Vivo (opcional)</Label>
+                 <Input
+                   placeholder="https://www.youtube.com/live_chat?v=VIDEO_ID&embed_domain=..."
+                   value={streamChatUrl}
+                   onChange={(e) => setStreamChatUrl(e.target.value)}
+                 />
+               </div>
+               <div className="flex items-center justify-between rounded-lg border p-4">
+                 <div>
+                   <Label className="text-base">Transmitiendo en vivo</Label>
+                   <p className="text-sm text-muted-foreground">
+                     Activa para mostrar el evento en la página En Vivo
+                   </p>
+                 </div>
+                 <Switch checked={streamIsLive} onCheckedChange={setStreamIsLive} />
+               </div>
+               {streamEmbedUrl && (
+                 <div className="rounded-lg overflow-hidden border aspect-video bg-black">
+                   <iframe
+                     src={streamEmbedUrl}
+                     title="Preview"
+                     className="w-full h-full"
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   />
+                 </div>
+               )}
+             </div>
+             <DialogFooter>
+               <Button variant="outline" onClick={() => setShowStreamDialog(false)}>Cancelar</Button>
+               <Button onClick={handleSaveStream}>Guardar Transmisión</Button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+       </div>
+     );
   }
