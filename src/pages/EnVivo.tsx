@@ -194,12 +194,14 @@ const EnVivo = () => {
                       {/* Video + Chat layout */}
                       <div className={`grid ${chatVisible && stream.chat_embed_url ? 'lg:grid-cols-[1fr_350px]' : 'grid-cols-1'} gap-4`}>
                         {/* YouTube Embed */}
-                        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-white/10 shadow-2xl">
+                        <div className="relative w-full bg-black rounded-xl overflow-hidden border border-white/10 shadow-2xl" style={{ paddingBottom: '56.25%' }}>
                           <iframe
                             src={stream.embed_url}
                             title={event.name}
-                            className="absolute inset-0 w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            className="absolute top-0 left-0 w-full h-full"
+                            style={{ width: '100%', height: '100%' }}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            referrerPolicy="strict-origin-when-cross-origin"
                             allowFullScreen
                           />
                         </div>
