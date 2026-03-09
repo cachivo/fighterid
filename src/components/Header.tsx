@@ -56,6 +56,7 @@ const Header = () => {
   const navigationItems = [
     { name: "Social", href: "/social/feed", icon: Users },
     { name: "Eventos", href: "/eventos", icon: Calendar },
+    { name: "En Vivo", href: "/en-vivo", icon: Radio },
     { name: "Peleadores", href: "/fighters", icon: Trophy },
     { name: "Mi Perfil", href: "/profile", icon: User },
   ];

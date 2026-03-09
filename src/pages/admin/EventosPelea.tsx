@@ -2054,7 +2054,66 @@ export default function EventosPelea() {
           onOpenChange={setShowBrandingModal}
           event={brandingEvent}
           onSave={updateEventMeta}
-        />
-      </div>
-    );
+         />
+
+         {/* Streaming Config Dialog */}
+         <Dialog open={showStreamDialog} onOpenChange={setShowStreamDialog}>
+           <DialogContent className="sm:max-w-[500px]">
+             <DialogHeader>
+               <DialogTitle className="flex items-center gap-2">
+                 <Tv className="w-5 h-5" />
+                 Configurar Transmisión - {streamEvent?.name}
+               </DialogTitle>
+               <DialogDescription>
+                 Pega la URL del embed de YouTube para transmitir en vivo este evento.
+               </DialogDescription>
+             </DialogHeader>
+             <div className="space-y-4">
+               <div>
+                 <Label>URL de Embed (YouTube)</Label>
+                 <Input
+                   placeholder="https://www.youtube.com/embed/VIDEO_ID"
+                   value={streamEmbedUrl}
+                   onChange={(e) => setStreamEmbedUrl(e.target.value)}
+                 />
+                 <p className="text-xs text-muted-foreground mt-1">
+                   Ejemplo: https://www.youtube.com/embed/dQw4w9WgXcQ
+                 </p>
+               </div>
+               <div>
+                 <Label>URL del Chat en Vivo (opcional)</Label>
+                 <Input
+                   placeholder="https://www.youtube.com/live_chat?v=VIDEO_ID&embed_domain=..."
+                   value={streamChatUrl}
+                   onChange={(e) => setStreamChatUrl(e.target.value)}
+                 />
+               </div>
+               <div className="flex items-center justify-between rounded-lg border p-4">
+                 <div>
+                   <Label className="text-base">Transmitiendo en vivo</Label>
+                   <p className="text-sm text-muted-foreground">
+                     Activa para mostrar el evento en la página En Vivo
+                   </p>
+                 </div>
+                 <Switch checked={streamIsLive} onCheckedChange={setStreamIsLive} />
+               </div>
+               {streamEmbedUrl && (
+                 <div className="rounded-lg overflow-hidden border aspect-video bg-black">
+                   <iframe
+                     src={streamEmbedUrl}
+                     title="Preview"
+                     className="w-full h-full"
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   />
+                 </div>
+               )}
+             </div>
+             <DialogFooter>
+               <Button variant="outline" onClick={() => setShowStreamDialog(false)}>Cancelar</Button>
+               <Button onClick={handleSaveStream}>Guardar Transmisión</Button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+       </div>
+     );
   }
