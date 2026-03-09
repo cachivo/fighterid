@@ -14,20 +14,23 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 
-function convertToEmbedUrl(url: string): string {
-  if (!url) return '';
+function convertToEmbedUrl(input: string): string {
+  if (!input) return '';
+  // Extract src from <iframe> tag if pasted
+  const iframeMatch = input.match(/src="([^"]+)"/);
+  if (iframeMatch) input = iframeMatch[1];
   // Already an embed URL
-  if (url.includes('/embed/')) return url;
+  if (input.includes('/embed/')) return input.split('"')[0];
   // youtube.com/watch?v=VIDEO_ID
-  const watchMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  const watchMatch = input.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
   if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
   // youtu.be/VIDEO_ID
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
   if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
   // youtube.com/live/VIDEO_ID
-  const liveMatch = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
+  const liveMatch = input.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
   if (liveMatch) return `https://www.youtube.com/embed/${liveMatch[1]}`;
-  return url;
+  return input;
 }
 
 export default function LiveStreaming() {
