@@ -31,12 +31,13 @@ export function useAdmin(): UseAdminReturn {
       setLoading(true);
       setError(null);
 
-      // Check if user has 'admin' role in user_roles table
+      // Check if user has 'admin' or 'super_admin' role in user_roles table
       const { data, error: queryError } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .eq('role', 'admin')
+        .in('role', ['admin', 'super_admin'])
+        .limit(1)
         .maybeSingle();
 
       if (queryError) {
