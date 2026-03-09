@@ -369,6 +369,7 @@ const App = () => {
                         </Suspense>
                       } />
                       <Route path="/live-events" element={<LiveEventsControl />} />
+                      <Route path="/live-streaming" element={<LiveStreaming />} />
                       <Route path="/pending-changes" element={<PendingChangesHub />} />
                       <Route path="/fight-results" element={
                         <Suspense fallback={<LoadingSpinner />}>
