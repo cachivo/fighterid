@@ -1251,7 +1251,16 @@ export default function EventosPelea() {
                            className="text-primary border-primary/30"
                          >
                            <Palette className="w-4 h-4 mr-1" />
-                           Branding
+                            Branding
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => openStreamDialog(event)}
+                            className={`border-primary/30 ${((event.meta as any)?.live_stream?.is_streaming) ? 'text-destructive' : ''}`}
+                          >
+                            <Tv className="w-4 h-4 mr-1" />
+                            Transmisión
                          </Button>
                          <Button 
                            variant="outline" 
