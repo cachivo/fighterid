@@ -94,12 +94,37 @@ const Events = () => {
     );
   }
 
+  const liveStreamingEvents = events.filter(e => {
+    const meta = e.meta as { live_stream?: { is_streaming?: boolean } } | null;
+    return e.state === 'live' && meta?.live_stream?.is_streaming;
+  });
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
+      {/* Live streaming banner */}
+      {liveStreamingEvents.length > 0 && (
+        <section className="bg-destructive/10 border-b border-destructive/20 pt-16">
+          <div className="container mx-auto px-3 sm:px-4 py-3">
+            <Link to="/en-vivo" className="flex items-center gap-3 group">
+              <div className="relative">
+                <Radio className="w-5 h-5 text-destructive" />
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-destructive rounded-full animate-ping" />
+              </div>
+              <span className="font-bold text-destructive">
+                🔴 {liveStreamingEvents.length} evento{liveStreamingEvents.length > 1 ? 's' : ''} en vivo ahora
+              </span>
+              <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                — Ver transmisiones →
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
+
       {/* Optimized Hero Section */}
-      <section className="relative py-12 pt-20 bg-gradient-to-b from-background via-background/95 to-background">
+      <section className={`relative py-12 ${liveStreamingEvents.length === 0 ? 'pt-20' : 'pt-4'} bg-gradient-to-b from-background via-background/95 to-background`}>
         <div className="container mx-auto px-3 sm:px-4">
           <PageHeader
             title="Eventos de Combate"
