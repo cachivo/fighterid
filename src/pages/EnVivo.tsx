@@ -46,7 +46,7 @@ const getEventLiveStream = (event: LiveEvent): LiveStreamData | null => {
 };
 
 const getEventBrandingLogo = (event: LiveEvent): string => {
-  const meta = event?.meta as { branding?: { logo_url?: string; key?: string } } | null;
+  const meta = parseMeta(event?.meta);
   if (meta?.branding?.logo_url) return meta.branding.logo_url;
   return '/lovable-uploads/ucc-logo-transparent.png';
 };
