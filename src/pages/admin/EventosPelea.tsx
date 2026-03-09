@@ -1376,7 +1376,8 @@ export default function EventosPelea() {
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => openStreamDialog(event)} className={((event.meta as any)?.live_stream?.is_streaming) ? 'text-destructive' : ''}>
                         <Tv className="w-4 h-4 mr-1" /> Transmisión
-                     <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setEventFighters([]); setShowFightersDialog(true); }}>
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setEventFighters([]); setShowFightersDialog(true); }}>
                        <Users className="w-4 h-4 mr-1" /> Peleadores
                      </Button>
                      <Button variant="outline" size="sm" onClick={() => { setSelectedEvent(event); setFightsEventId(event.id); resetFightForm(); setShowFightsDialog(true); }}>
