@@ -48,25 +48,21 @@ const EnVivo = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        // Fetch live events
-        const { data: live } = await supabase
+        // Fetch all events and filter by streaming status client-side
+        const { data: allEvents } = await supabase
           .from('bdg_event')
           .select('id, name, description, discipline, venue, state, start_time, meta, organization_id')
-          .eq('state', 'live')
           .order('start_time', { ascending: true });
 
-        const liveStreaming = (live || []).filter(e => getEventLiveStream(e));
+        const all = allEvents || [];
+        const liveStreaming = all.filter(e => getEventLiveStream(e));
         setLiveEvents(liveStreaming);
 
-        // Fetch upcoming published events
-        const { data: upcoming } = await supabase
-          .from('bdg_event')
-          .select('id, name, description, discipline, venue, state, start_time, meta, organization_id')
-          .eq('state', 'published')
-          .order('start_time', { ascending: true })
-          .limit(6);
-
-        setUpcomingEvents(upcoming || []);
+        // Upcoming = published events that are NOT currently streaming
+        const upcoming = all
+          .filter(e => e.state === 'published' && !getEventLiveStream(e))
+          .slice(0, 6);
+        setUpcomingEvents(upcoming);
       } catch (error) {
         console.error('Error fetching live events:', error);
       } finally {

@@ -123,15 +123,15 @@ export default function LiveStreaming() {
 
       {/* Filters */}
       <div className="flex gap-2">
-        {(['all', 'live', 'upcoming'] as const).map(f => (
-          <Button
-            key={f}
-            variant={filter === f ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter(f)}
-          >
-            {f === 'all' ? 'Todos' : f === 'live' ? '🔴 En Vivo' : 'Próximos'}
-          </Button>
+          {(['all', 'live', 'upcoming'] as const).map(f => (
+            <Button
+              key={f}
+              variant={filter === f ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? 'Todos' : f === 'live' ? '🔴 Transmitiendo' : 'Sin Stream'}
+            </Button>
         ))}
       </div>
 
