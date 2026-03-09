@@ -18,7 +18,7 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/optimized-dropdown";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell, Dumbbell } from "lucide-react";
+import { Menu, Trophy, Calendar, Home, Users, DollarSign, Shield, LogOut, User, CreditCard, Compass, Bell, Dumbbell, Radio } from "lucide-react";
 import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 const Header = () => {
