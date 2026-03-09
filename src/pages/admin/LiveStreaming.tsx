@@ -43,8 +43,9 @@ export default function LiveStreaming() {
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
 
   const filteredEvents = events.filter(e => {
-    if (filter === 'live') return e.state === 'live';
-    if (filter === 'upcoming') return e.state === 'scheduled' || e.state === 'draft';
+    const ls = (e.meta as any)?.live_stream || {};
+    if (filter === 'live') return !!ls.is_streaming;
+    if (filter === 'upcoming') return !ls.is_streaming;
     return true;
   });
 
