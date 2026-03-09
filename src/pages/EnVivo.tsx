@@ -156,6 +156,25 @@ const EnVivo = () => {
                   No hay eventos transmitiendo en este momento. Revisa los próximos eventos.
                 </p>
               </div>
+            ) : !user ? (
+              /* Not logged in — show CTA */
+              <div className="text-center py-20">
+                <Lock className="w-16 h-16 mx-auto text-destructive/60 mb-6" />
+                <h2 className="text-2xl font-bold text-white mb-3">
+                  {liveEvents.length} transmisi{liveEvents.length === 1 ? 'ón' : 'ones'} en vivo ahora
+                </h2>
+                <p className="text-gray-400 mb-8 max-w-md mx-auto">
+                  Regístrate o inicia sesión para ver las transmisiones en vivo de los eventos de combate.
+                </p>
+                <div className="flex items-center justify-center gap-4">
+                  <Button asChild size="lg" className="bg-destructive hover:bg-destructive/90 text-white font-bold">
+                    <Link to="/auth">Regístrate Gratis</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                    <Link to="/auth">Iniciar Sesión</Link>
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="space-y-10">
                 {liveEvents.map((event) => {
