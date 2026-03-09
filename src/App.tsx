@@ -74,6 +74,7 @@ import TestNewsFunction from "./pages/TestNewsFunction";
 import ImportEvent from "./pages/ImportEvent";
 import Dashboard from "./pages/admin/Dashboard";
 import EventosPelea from "./pages/admin/EventosPelea";
+import LiveStreaming from "./pages/admin/LiveStreaming";
 import LicenseForgotPassword from "./pages/license/ForgotPassword";
 import LicenseResetPassword from "./pages/license/ResetPassword";
 import HudPublicDisplay from "./pages/HudPublicDisplay";
