@@ -386,11 +386,18 @@ export const LicenseAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('[LICENSE AUTH] Existing user found, calling checkLicenseStatus');
-        retryCountRef.current = 0;
-        setTimeout(() => {
-          checkLicenseStatusOptimized(session.user.id);
-        }, 0);
+        const currentPath = window.location.pathname;
+        const isLicenseRoute = currentPath.startsWith('/license');
+        if (isLicenseRoute) {
+          console.log('[LICENSE AUTH] Existing user found on license route, calling checkLicenseStatus');
+          retryCountRef.current = 0;
+          setTimeout(() => {
+            checkLicenseStatusOptimized(session.user.id);
+          }, 0);
+        } else {
+          console.log('[LICENSE AUTH] Skipping license check — not on /license/* route:', currentPath);
+          setLoading(false);
+        }
       } else {
         console.log('[LICENSE AUTH] No existing session');
         setLoading(false);
