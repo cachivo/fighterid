@@ -14,20 +14,23 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 
-function convertToEmbedUrl(url: string): string {
-  if (!url) return '';
+function convertToEmbedUrl(input: string): string {
+  if (!input) return '';
+  // Extract src from <iframe> tag if pasted
+  const iframeMatch = input.match(/src="([^"]+)"/);
+  if (iframeMatch) input = iframeMatch[1];
   // Already an embed URL
-  if (url.includes('/embed/')) return url;
+  if (input.includes('/embed/')) return input.split('"')[0];
   // youtube.com/watch?v=VIDEO_ID
-  const watchMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  const watchMatch = input.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
   if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
   // youtu.be/VIDEO_ID
-  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  const shortMatch = input.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
   if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
   // youtube.com/live/VIDEO_ID
-  const liveMatch = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
+  const liveMatch = input.match(/youtube\.com\/live\/([a-zA-Z0-9_-]+)/);
   if (liveMatch) return `https://www.youtube.com/embed/${liveMatch[1]}`;
-  return url;
+  return input;
 }
 
 export default function LiveStreaming() {
@@ -40,8 +43,9 @@ export default function LiveStreaming() {
   const [filter, setFilter] = useState<'all' | 'live' | 'upcoming'>('all');
 
   const filteredEvents = events.filter(e => {
-    if (filter === 'live') return e.state === 'live';
-    if (filter === 'upcoming') return e.state === 'scheduled' || e.state === 'draft';
+    const ls = (e.meta as any)?.live_stream || {};
+    if (filter === 'live') return !!ls.is_streaming;
+    if (filter === 'upcoming') return !ls.is_streaming;
     return true;
   });
 
@@ -119,15 +123,15 @@ export default function LiveStreaming() {
 
       {/* Filters */}
       <div className="flex gap-2">
-        {(['all', 'live', 'upcoming'] as const).map(f => (
-          <Button
-            key={f}
-            variant={filter === f ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setFilter(f)}
-          >
-            {f === 'all' ? 'Todos' : f === 'live' ? '🔴 En Vivo' : 'Próximos'}
-          </Button>
+          {(['all', 'live', 'upcoming'] as const).map(f => (
+            <Button
+              key={f}
+              variant={filter === f ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? 'Todos' : f === 'live' ? '🔴 Transmitiendo' : 'Sin Stream'}
+            </Button>
         ))}
       </div>
 
@@ -202,12 +206,16 @@ export default function LiveStreaming() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>URL de YouTube (normal o embed)</Label>
-              <Input
-                placeholder="https://www.youtube.com/watch?v=... o https://youtu.be/..."
+              <Label>URL o Iframe de YouTube</Label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                placeholder={'Pega aquí el iframe completo, URL embed, o link normal de YouTube\nEj: <iframe src="https://www.youtube.com/embed/..."></iframe>'}
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
               />
+              <p className="text-xs text-muted-foreground">
+                Acepta: iframe completo, URL embed, youtube.com/watch?v=, youtu.be/, youtube.com/live/
+              </p>
               {embedUrl && (
                 <p className="text-xs text-muted-foreground">
                   Embed: {convertToEmbedUrl(embedUrl)}
