@@ -1,86 +1,74 @@
 
 
-# Plan: Optimización Mobile del Panel de Administración
+## Plan: Eventos En Vivo (Live Streaming)
 
-## Problema Principal
+### Concepto
 
-El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
+Agregar una página pública `/en-vivo` donde los usuarios ven las transmisiones en vivo de eventos (YouTube embeds) agrupados por liga/organización (UCC, Honduras Hoodfights, etc.). También agregar gestión en admin para configurar el embed URL de cada evento, y un botón "Ver En Vivo" en el detalle del evento cuando esté live.
 
-Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+### Arquitectura
 
-| Página | Columnas | Severidad |
-|--------|----------|-----------|
-| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
-| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
-| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
-| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
-| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
-| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
-| **Configuracion.tsx** | Tabla de configuración | BAJA |
-| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+No se necesitan nuevas tablas. El campo `meta` (JSON) de `bdg_event` ya existe y se usa para branding. Se extenderá para incluir:
 
-## Solución
-
-### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
-
-Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
-
-```text
-┌──────────────────────────────┐
-│ 🏆 Batalla de Gimnasios #2   │
-│ MMA · Borrador · Privado     │
-│ 📅 15/03/2026 · 📍 Arena     │
-│ ┌────┐┌────┐┌────┐┌────┐    │
-│ │Brand││Pelead││Peleas││ ⋮ │    │
-│ └────┘└────┘└────┘└────┘    │
-│ Estado: [Borrador ▾]         │
-└──────────────────────────────┘
+```json
+{
+  "branding": { ... },
+  "live_stream": {
+    "embed_url": "https://www.youtube.com/embed/VIDEO_ID",
+    "chat_embed_url": "https://www.youtube.com/live_chat?v=VIDEO_ID&embed_domain=fighterid.lovable.app",
+    "is_streaming": true
+  }
+}
 ```
 
-- Cada evento será un `Card` con la info apilada verticalmente
-- Botones de acción en una fila con `flex-wrap`
-- Select de estado en su propia fila
+### Cambios
 
-### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+**1. Nueva página: `src/pages/EnVivo.tsx`** — Página pública `/en-vivo`
+- Consulta `bdg_event` donde `state = 'live'` y `meta->live_stream->is_streaming = true`
+- Muestra cada evento con su iframe de YouTube embed
+- Agrupa por organización (logo de la org al lado)
+- Si no hay eventos en vivo, muestra un estado vacío con próximos eventos
+- Diseño oscuro estilo arena, consistente con EventDetail
 
-Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+**2. Actualizar: `src/pages/admin/EventosPelea.tsx`** — Sección admin para configurar stream
+- Agregar campos en el formulario de edición de evento:
+  - "URL de Transmisión (YouTube embed)" — input de texto
+  - "URL del Chat en Vivo" — input opcional
+  - "Transmitiendo en vivo" — toggle switch
+- Estos valores se guardan en `meta.live_stream`
 
-- `Betting.tsx`
-- `Comunidad.tsx` (2 tablas)
-- `AliadosEstrategicos.tsx`
-- `OrganizationsManagement.tsx`
-- `Configuracion.tsx`
-- `EmailCampaignDetail.tsx`
+**3. Actualizar: `src/pages/EventDetail.tsx`** — Botón "Ver En Vivo"
+- Si el evento tiene `state === 'live'` y `meta.live_stream.is_streaming`, mostrar un botón prominente rojo "📺 Ver En Vivo" que lleva a `/en-vivo` o que muestre el embed inline
 
-### 3. Headers responsivos
+**4. Actualizar: `src/pages/Events.tsx`** — Banner de eventos en vivo
+- Agregar un banner superior cuando hay eventos live con streaming, con link a `/en-vivo`
 
-Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
+**5. Actualizar: `src/App.tsx`** — Agregar ruta `/en-vivo`
 
-- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
-- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
+**6. Actualizar: `src/components/Header.tsx`** — Agregar enlace "En Vivo" en la navegación con indicador pulsante rojo cuando hay eventos live
 
-Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
+**7. Actualizar: `src/components/AdminSidebar.tsx`** — Agregar enlace "Transmisiones En Vivo" en la sección de control de peleas
 
-### 4. Dialogs de pelea - Grids de 3 y 2 columnas
+### Flujo de usuario
 
-Los diálogos internos de `EventosPelea.tsx` usan:
-- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
-- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
+```text
+Admin:
+  EventosPelea → Editar evento → Pegar URL de YouTube embed → Activar toggle "En Vivo"
+  
+Usuario:
+  Header (🔴 En Vivo) → /en-vivo → Ve iframe de YouTube con el evento
+  EventDetail → Botón "Ver En Vivo" → /en-vivo o embed inline
+```
 
-En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
+### Archivos a crear/modificar
 
-## Archivos a Modificar
-
-| Archivo | Cambio |
+| Archivo | Acción |
 |---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
-| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
-| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
-
-**8 archivos. Sin migraciones SQL.**
+| `src/pages/EnVivo.tsx` | Crear — página pública de streaming |
+| `src/pages/admin/EventosPelea.tsx` | Modificar — agregar campos de stream en edición |
+| `src/pages/EventDetail.tsx` | Modificar — botón Ver En Vivo |
+| `src/pages/Events.tsx` | Modificar — banner de live |
+| `src/App.tsx` | Modificar — ruta `/en-vivo` |
+| `src/components/Header.tsx` | Modificar — link En Vivo |
+| `src/components/AdminSidebar.tsx` | Modificar — link admin |
 
