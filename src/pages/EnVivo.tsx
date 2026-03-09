@@ -28,9 +28,21 @@ interface LiveStreamData {
   is_streaming: boolean;
 }
 
+const parseMeta = (meta: any): Record<string, any> | null => {
+  if (!meta) return null;
+  if (typeof meta === 'string') {
+    try { return JSON.parse(meta); } catch { return null; }
+  }
+  return meta;
+};
+
 const getEventLiveStream = (event: LiveEvent): LiveStreamData | null => {
-  const meta = event?.meta as { live_stream?: LiveStreamData } | null;
-  return meta?.live_stream?.is_streaming ? meta.live_stream : null;
+  const meta = parseMeta(event?.meta);
+  const liveStream = meta?.live_stream;
+  if (liveStream && liveStream.is_streaming && liveStream.embed_url) {
+    return liveStream as LiveStreamData;
+  }
+  return null;
 };
 
 const getEventBrandingLogo = (event: LiveEvent): string => {
