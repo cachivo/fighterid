@@ -166,6 +166,7 @@ const App = () => {
               {/* License auth callback - handles confirmation redirects */}
               <Route path="/license/callback" element={<AuthCallback />} />
               <Route path="/eventos" element={<Events />} />
+              <Route path="/en-vivo" element={<EnVivo />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />
