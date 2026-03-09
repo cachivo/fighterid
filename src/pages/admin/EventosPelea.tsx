@@ -76,6 +76,13 @@ export default function EventosPelea() {
     // Branding modal state
     const [showBrandingModal, setShowBrandingModal] = useState(false);
     const [brandingEvent, setBrandingEvent] = useState<BdgEvent | null>(null);
+    
+    // Streaming dialog state
+    const [showStreamDialog, setShowStreamDialog] = useState(false);
+    const [streamEvent, setStreamEvent] = useState<BdgEvent | null>(null);
+    const [streamEmbedUrl, setStreamEmbedUrl] = useState('');
+    const [streamChatUrl, setStreamChatUrl] = useState('');
+    const [streamIsLive, setStreamIsLive] = useState(false);
    
    const [showCreateDialog, setShowCreateDialog] = useState(false);
    const [showFightersDialog, setShowFightersDialog] = useState(false);
