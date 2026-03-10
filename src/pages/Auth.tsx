@@ -343,6 +343,7 @@ export default function Auth() {
                     <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-6 h-9 w-9 text-white/50 hover:text-white" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
+                    <PasswordStrength password={password} />
                   </div>
 
                   <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={loading || validatingToken}>
