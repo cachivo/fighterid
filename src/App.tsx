@@ -162,6 +162,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
+            <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               {/* Public Platform Routes */}
               <Route path="/" element={<Index />} />
@@ -170,18 +171,13 @@ const App = () => {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/auth/forgot-password" element={<ForgotPassword />} />
               <Route path="/auth/reset-password" element={<ResetPassword />} />
-              {/* License auth callback - handles confirmation redirects */}
               <Route path="/license/callback" element={<AuthCallback />} />
               <Route path="/eventos" element={<Events />} />
               <Route path="/en-vivo" element={<EnVivo />} />
               <Route path="/evento/:eventId" element={<EventDetail />} />
               <Route path="/fighters" element={<Fighters />} />
               <Route path="/fighter/:id" element={<FighterProfile />} />
-              <Route path="/resultados" element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <PublicFightResults />
-                </Suspense>
-              } />
+              <Route path="/resultados" element={<PublicFightResults />} />
               <Route path="/social/friends" element={<Friends />} />
               <Route path="/social/discover" element={<Discover />} />
               <Route path="/social/notifications" element={<Notifications />} />
@@ -194,168 +190,68 @@ const App = () => {
               <Route path="/evento/:eventId/betting" element={<EventoBetting />} />
               <Route path="/contacto" element={<Contact />} />
               <Route path="/profile/hub" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <ProfileHub />
-                  </Suspense>
-                </ProtectedRoute>
+                <ProtectedRoute><ProfileHub /></ProtectedRoute>
               } />
               
-              {/* Rutas de Gimnasios */}
+              {/* Gimnasios */}
               <Route path="/gimnasios" element={<Gimnasios />} />
               <Route path="/gimnasios/:slug" element={<GimnasioDetalle />} />
 
-              {/* Gym Dashboard (staff privado) */}
-              <Route path="/gym/:gymId/dashboard" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymDashboard />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/gym/:gymId/fighters" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymFightersPage />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/gym/:gymId/staff" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymStaffManagement />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/gym/:gymId/add-fighter" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymAddFighter />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/gym/request-fight" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <RequestFight />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
+              {/* Gym Dashboard */}
+              <Route path="/gym/:gymId/dashboard" element={<ProtectedRoute><GymDashboard /></ProtectedRoute>} />
+              <Route path="/gym/:gymId/fighters" element={<ProtectedRoute><GymFightersPage /></ProtectedRoute>} />
+              <Route path="/gym/:gymId/staff" element={<ProtectedRoute><GymStaffManagement /></ProtectedRoute>} />
+              <Route path="/gym/:gymId/add-fighter" element={<ProtectedRoute><GymAddFighter /></ProtectedRoute>} />
+              <Route path="/gym/request-fight" element={<ProtectedRoute><RequestFight /></ProtectedRoute>} />
 
               <Route path="/entrenadores" element={<Entrenadores />} />
               <Route path="/entrenadores/:slug" element={<EntrenadorDetalle />} />
 
               {/* Gym & Judge Onboarding */}
-              <Route path="/gym/onboarding" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymOnboarding />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/gym/pending-invitation" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <GymPendingInvitation />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/judge/onboarding" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<LoadingSpinner />}>
-                    <JudgeOnboarding />
-                  </Suspense>
-                </ProtectedRoute>
-              } />
+              <Route path="/gym/onboarding" element={<ProtectedRoute><GymOnboarding /></ProtectedRoute>} />
+              <Route path="/gym/pending-invitation" element={<ProtectedRoute><GymPendingInvitation /></ProtectedRoute>} />
+              <Route path="/judge/onboarding" element={<ProtectedRoute><JudgeOnboarding /></ProtectedRoute>} />
               
-              {/* HUD Público de Scoring en Vivo */}
+              {/* HUD & AI Overlay */}
               <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
-              
-              {/* AI Strike Detection Overlay - Público para OBS/Transmisión */}
               <Route path="/ai-overlay" element={<AIStrikeOverlay />} />
               <Route path="/ai-strike-overlay" element={<AIStrikeOverlay />} />
 
-              {/* Rutas de Estaciones con PIN (sin autenticación) */}
+              {/* Stations */}
               <Route path="/estacion/:stationNumber" element={<StationPinLogin />} />
               <Route path="/estacion/:stationNumber/waiting" element={<StationWaiting />} />
               <Route path="/estacion/1/scoring/:fightId" element={<Station1Scoring />} />
               <Route path="/estacion/2/scoring/:fightId" element={<Station2Scoring />} />
               <Route path="/estacion/3/control/:fightId" element={<Station3RoundControl />} />
 
-              {/* Fighter License Portal Routes */}
+              {/* Fighter License Portal */}
               <Route path="/license/welcome" element={<Navigate to="/auth?role=fighter" replace />} />
               <Route path="/license/auth" element={<Navigate to="/auth?role=fighter" replace />} />
-              {/* Redirect old license request route to unified onboarding */}
               <Route path="/license/request" element={<Navigate to="/license/onboarding" replace />} />
               <Route path="/license/forgot-password" element={<LicenseForgotPassword />} />
               <Route path="/license/reset-password" element={<LicenseResetPassword />} />
-              <Route path="/license/onboarding" element={
-                <LicenseProtectedRoute>
-                  <LicenseOnboarding />
-                </LicenseProtectedRoute>
-              } />
-              <Route path="/license/pending" element={
-                <LicenseProtectedRoute>
-                  <LicensePending />
-                </LicenseProtectedRoute>
-              } />
-              <Route path="/license/suspended" element={
-                <LicenseProtectedRoute>
-                  <LicenseSuspended />
-                </LicenseProtectedRoute>
-              } />
+              <Route path="/license/onboarding" element={<LicenseProtectedRoute><LicenseOnboarding /></LicenseProtectedRoute>} />
+              <Route path="/license/pending" element={<LicenseProtectedRoute><LicensePending /></LicenseProtectedRoute>} />
+              <Route path="/license/suspended" element={<LicenseProtectedRoute><LicenseSuspended /></LicenseProtectedRoute>} />
               
-              {/* Protected License Routes with Layout */}
-              <Route path="/license" element={
-                <LicenseProtectedRoute requireActiveLicense>
-                  <LicenseLayout />
-                </LicenseProtectedRoute>
-              }>
+              <Route path="/license" element={<LicenseProtectedRoute requireActiveLicense><LicenseLayout /></LicenseProtectedRoute>}>
                 <Route index element={<Navigate to="/license/dashboard" replace />} />
                 <Route path="dashboard" element={<LicenseDashboard />} />
               </Route>
 
-              {/* Profile Setup Route - For regular users */}
-              <Route path="/profile/setup" element={
-                <ProtectedRoute>
-                  <ProfileSetup />
-                </ProtectedRoute>
-              } />
-
-              {/* Unified Profile Route - Central hub for user and fighter info */}
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
-              
-              {/* Alias for profile (backwards compatibility) */}
+              {/* Profile */}
+              <Route path="/profile/setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/perfil" element={<Navigate to="/profile" replace />} />
-
-              {/* Profile Change Request Route */}
-              <Route path="/profile/request-changes" element={
-                <ProtectedRoute>
-                  <ProfileChangeRequest />
-                </ProtectedRoute>
-              } />
-
-              {/* Legacy Fighter Routes - Redirect to unified profile */}
+              <Route path="/profile/request-changes" element={<ProtectedRoute><ProfileChangeRequest /></ProtectedRoute>} />
               <Route path="/fighter/me" element={<Navigate to="/profile" replace />} />
               <Route path="/fighters/me" element={<Navigate to="/profile" replace />} />
-              <Route path="/fighters/license/:id" element={
-                <ProtectedRoute>
-                  <FighterLicense />
-                </ProtectedRoute>
-              } />
+              <Route path="/fighters/license/:id" element={<ProtectedRoute><FighterLicense /></ProtectedRoute>} />
 
-              {/* Admin Certification Panel Routes */}
-              <Route path="/admin-cert/*" element={
-                <AdminProtectedRoute>
-                  <AdminCertLayout />
-                </AdminProtectedRoute>
-              } />
+              {/* Admin Cert */}
+              <Route path="/admin-cert/*" element={<AdminProtectedRoute><AdminCertLayout /></AdminProtectedRoute>} />
 
-              {/* General Admin Routes */}
+              {/* Admin */}
               <Route path="/admin/*" element={
                 <AdminProtectedRoute>
                   <AdminLayout>
@@ -369,19 +265,11 @@ const App = () => {
                       <Route path="/fighters-profiles/invite" element={<FightersProfilesInvite />} />
                       <Route path="/fighters-profiles/create" element={<FightersProfilesCreate />} />
                       <Route path="/judges" element={<JudgesManagement />} />
-                      <Route path="/scoring/stations" element={
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <JudgeStationsSetup />
-                        </Suspense>
-                      } />
+                      <Route path="/scoring/stations" element={<JudgeStationsSetup />} />
                       <Route path="/live-events" element={<LiveEventsControl />} />
                       <Route path="/live-streaming" element={<LiveStreaming />} />
                       <Route path="/pending-changes" element={<PendingChangesHub />} />
-                      <Route path="/fight-results" element={
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <FightResults />
-                        </Suspense>
-                      } />
+                      <Route path="/fight-results" element={<FightResults />} />
                       <Route path="/betting" element={<Betting />} />
                       <Route path="/email-monitoring" element={<EmailMonitoring />} />
                       <Route path="/email-validation" element={<EmailValidation />} />
@@ -389,90 +277,36 @@ const App = () => {
                       <Route path="/email-campaigns/:id" element={<EmailCampaignDetail />} />
                       <Route path="/email-campaigns/editor" element={<EmailCampaignEditor />} />
                       <Route path="/email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
-                      <Route path="/inbox" element={
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <ContactInbox />
-                        </Suspense>
-                      } />
+                      <Route path="/inbox" element={<ContactInbox />} />
                       <Route path="/comunidad" element={<Comunidad />} />
-                      <Route path="/configuracion" element={
-                        <SuperAdminRoute><Configuracion /></SuperAdminRoute>
-                      } />
+                      <Route path="/configuracion" element={<SuperAdminRoute><Configuracion /></SuperAdminRoute>} />
                       <Route path="/licencias" element={<ValidacionLicencias />} />
-                      {/* Ruta /profile-requests eliminada - consolidada en /pending-changes */}
-                      <Route path="/user-roles" element={
-                        <SuperAdminRoute>
-                          <Suspense fallback={<LoadingSpinner />}>
-                            <UserRoles />
-                          </Suspense>
-                        </SuperAdminRoute>
-                      } />
-                      <Route path="/system-assets" element={
-                        <SuperAdminRoute>
-                          <Suspense fallback={<LoadingSpinner />}>
-                            <SystemAssets />
-                          </Suspense>
-                        </SuperAdminRoute>
-                      } />
+                      <Route path="/user-roles" element={<SuperAdminRoute><UserRoles /></SuperAdminRoute>} />
+                      <Route path="/system-assets" element={<SuperAdminRoute><SystemAssets /></SuperAdminRoute>} />
                       <Route path="/ai-strike-monitor" element={<AIStrikeMonitor />} />
                       <Route path="/ai-strike-test" element={<AIStrikeTestPanel />} />
                       <Route path="/gimnasios" element={<GimnasiosAdmin />} />
                       <Route path="/entrenadores" element={<EntrenadoresAdmin />} />
-                       <Route path="/rankings" element={
-                         <Suspense fallback={<LoadingSpinner />}>
-                           <RankingsManagement />
-                         </Suspense>
-                       } />
-                       <Route path="/officials" element={
-                         <Suspense fallback={<LoadingSpinner />}>
-                           <OfficialsManagement />
-                         </Suspense>
-                       } />
-                       <Route path="/organizations" element={
-                         <Suspense fallback={<LoadingSpinner />}>
-                           <OrganizationsManagement />
-                         </Suspense>
-                       } />
-                       <Route path="/fight-approval" element={
-                         <Suspense fallback={<LoadingSpinner />}>
-                           <FightApproval />
-                         </Suspense>
-                       } />
-                       <Route path="/sanctions" element={
-                         <Suspense fallback={<LoadingSpinner />}>
-                           <Sanctions />
-                         </Suspense>
-                       } />
+                      <Route path="/rankings" element={<RankingsManagement />} />
+                      <Route path="/officials" element={<OfficialsManagement />} />
+                      <Route path="/organizations" element={<OrganizationsManagement />} />
+                      <Route path="/fight-approval" element={<FightApproval />} />
+                      <Route path="/sanctions" element={<Sanctions />} />
                     </Routes>
                   </AdminLayout>
                 </AdminProtectedRoute>
               } />
 
-              {/* Judge and Referee Routes */}
-              <Route path="/judge/scorecard/:fightId" element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <DigitalScorecard />
-                </Suspense>
-              } />
-              
-              {/* Scoring Panel - Redirige al flujo de estaciones móviles */}
-              <Route path="/judge/fight/:fightId" element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <JudgeScoringPanel />
-                </Suspense>
-              } />
-              
-              <Route path="/referee/control/:fightId" element={
-                <Suspense fallback={<LoadingSpinner />}>
-                  <RefereeControlRoom />
-                </Suspense>
-              } />
+              {/* Judge & Referee */}
+              <Route path="/judge/scorecard/:fightId" element={<DigitalScorecard />} />
+              <Route path="/judge/fight/:fightId" element={<JudgeScoringPanel />} />
+              <Route path="/referee/control/:fightId" element={<RefereeControlRoom />} />
 
-              {/* Access Denied Route */}
+              {/* Misc */}
               <Route path="/access-denied" element={<AccessDenied />} />
-
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </TooltipProvider>
         </LicenseAuthProvider>
       </AuthProvider>
