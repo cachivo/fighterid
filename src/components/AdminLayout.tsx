@@ -2,6 +2,9 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar } from './AdminSidebar';
 import { Link } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -24,7 +27,19 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 className="h-7 w-auto"
               />
             </Link>
-            <h1 className="text-base ufc-label break-words leading-tight">Panel de Administración</h1>
+            <h1 className="text-base ufc-label break-words leading-tight flex-1">Panel de Administración</h1>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link to="/">
+                      <Home className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Ir a página principal</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </header>
           <main className="flex-1 p-3 md:p-4 lg:p-5 bg-background overflow-auto">
             <div className="max-w-7xl mx-auto">
