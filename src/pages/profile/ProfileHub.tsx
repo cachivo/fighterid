@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dumbbell, Building2, Scale, Shield, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -136,11 +136,11 @@ export default function ProfileHub() {
   const statusBadge = (status: ModuleStatus) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="h-3 w-3 mr-1" />Activo</Badge>;
+        return <Badge className="bg-fighter-success/20 text-fighter-success border-fighter-success/30"><CheckCircle className="h-3 w-3 mr-1" />Activo</Badge>;
       case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
+        return <Badge className="bg-fighter-warning/20 text-fighter-warning border-fighter-warning/30"><Clock className="h-3 w-3 mr-1" />Pendiente</Badge>;
       case 'suspended':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><AlertCircle className="h-3 w-3 mr-1" />Suspendido</Badge>;
+        return <Badge className="bg-fighter-danger/20 text-fighter-danger border-fighter-danger/30"><AlertCircle className="h-3 w-3 mr-1" />Suspendido</Badge>;
       default:
         return <Badge variant="outline" className="text-muted-foreground">Sin solicitar</Badge>;
     }

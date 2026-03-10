@@ -28,9 +28,9 @@ function getPasswordStrength(pwd: string): StrengthResult {
     return { level: 1, label: 'Débil', color: 'text-destructive', progressColor: '[&>div]:bg-destructive' };
   }
   if (score <= 3) {
-    return { level: 2, label: 'Media', color: 'text-yellow-500', progressColor: '[&>div]:bg-yellow-500' };
+    return { level: 2, label: 'Media', color: 'text-fighter-warning', progressColor: '[&>div]:bg-fighter-warning' };
   }
-  return { level: 3, label: 'Fuerte', color: 'text-green-500', progressColor: '[&>div]:bg-green-500' };
+  return { level: 3, label: 'Fuerte', color: 'text-fighter-success', progressColor: '[&>div]:bg-fighter-success' };
 }
 
 export function PasswordStrength({ password }: PasswordStrengthProps) {

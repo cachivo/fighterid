@@ -194,21 +194,21 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-950 to-black" />
-      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-purple-600/15 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '3s', animationDuration: '10s' }} />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background — Combat red glow */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-secondary to-background" />
+      <div className="absolute top-0 left-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '3s', animationDuration: '10s' }} />
 
-      <Card className="w-full max-w-md bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
+      <Card className="w-full max-w-md bg-card/95 border-primary/30 backdrop-blur-xl shadow-[0_0_50px_hsl(var(--primary)/0.15)] relative z-10 animate-fade-in">
         <CardHeader className="text-center pb-2">
           <img src={fighterIdLogo} alt="Fighter ID" className="w-24 mx-auto mb-2" />
-          <CardTitle className="text-xl font-bold text-white">
+          <CardTitle className="text-xl font-bold text-foreground">
             {step === 'email' && 'Bienvenido a Fighter ID'}
             {step === 'login' && 'Ingresa tu contraseña'}
             {step === 'register' && (registrationSuccess ? '¡Revisa tu correo!' : 'Crea tu cuenta')}
           </CardTitle>
-          <CardDescription className="text-white/60">
+          <CardDescription className="text-muted-foreground">
             {step === 'email' && 'Ingresa tu email para iniciar sesión o crear una cuenta'}
             {step === 'login' && email}
             {step === 'register' && !registrationSuccess && 'Elige una contraseña para tu cuenta'}
@@ -220,7 +220,7 @@ export default function Auth() {
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit} className="space-y-4 animate-fade-in">
               <div>
-                <label className="text-sm font-medium text-white/90" htmlFor="auth-email">Email</label>
+                <label className="text-sm font-medium text-foreground/90" htmlFor="auth-email">Email</label>
                 <Input
                   id="auth-email"
                   type="email"
@@ -230,10 +230,10 @@ export default function Auth() {
                   required
                   autoFocus
                   disabled={!!invitation}
-                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500"
+                  className="bg-secondary border-border focus:border-primary"
                 />
               </div>
-              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={checkingEmail}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={checkingEmail}>
                 {checkingEmail ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verificando email...</>
                 ) : (
@@ -242,7 +242,7 @@ export default function Auth() {
               </Button>
 
               <div className="flex flex-col gap-2">
-                <Link to="/auth/forgot-password" className="inline-flex items-center justify-center gap-1 text-sm text-white/50 hover:text-white transition-colors">
+                <Link to="/auth/forgot-password" className="inline-flex items-center justify-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <HelpCircle className="h-3.5 w-3.5" />
                   ¿Olvidaste tu contraseña?
                 </Link>
@@ -253,13 +253,13 @@ export default function Auth() {
           {/* STEP 2A: Login */}
           {step === 'login' && (
             <form onSubmit={handleSignIn} className="space-y-4 animate-fade-in">
-              <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20">
-                <p className="text-sm text-white/60">Email:</p>
-                <p className="text-white font-medium">{email}</p>
+              <div className="bg-secondary rounded-lg p-3 border border-border">
+                <p className="text-sm text-muted-foreground">Email:</p>
+                <p className="text-foreground font-medium">{email}</p>
               </div>
 
               <div className="relative">
-                <label className="text-sm font-medium text-white/90" htmlFor="auth-password">Contraseña</label>
+                <label className="text-sm font-medium text-foreground/90" htmlFor="auth-password">Contraseña</label>
                 <Input
                   id="auth-password"
                   type={showPassword ? 'text' : 'password'}
@@ -269,24 +269,24 @@ export default function Auth() {
                   required
                   autoFocus
                   minLength={6}
-                  className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 pr-10"
+                  className="bg-secondary border-border focus:border-primary pr-10"
                 />
-                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-6 h-9 w-9 text-white/50 hover:text-white" onClick={() => setShowPassword(!showPassword)}>
+                <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-6 h-9 w-9 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
 
-              <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={loading}>
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Iniciar Sesión
               </Button>
 
-              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
-                <Link to="/auth/forgot-password" className="inline-flex items-center justify-center text-sm font-medium text-amber-400 hover:text-amber-300 underline underline-offset-4">
+              <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                <Link to="/auth/forgot-password" className="inline-flex items-center justify-center text-sm font-medium text-primary hover:text-primary/80 underline underline-offset-4">
                   <HelpCircle className="w-4 h-4 mr-1.5" />
                   ¿Olvidaste tu contraseña?
                 </Link>
-                <Button type="button" variant="ghost" onClick={handleBackToEmail} className="text-sm text-white/50 hover:text-white">
+                <Button type="button" variant="ghost" onClick={handleBackToEmail} className="text-sm text-muted-foreground hover:text-foreground">
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Usar otro email
                 </Button>
@@ -300,35 +300,35 @@ export default function Auth() {
               {registrationSuccess ? (
                 <div className="space-y-4 py-2">
                   <div className="flex flex-col items-center text-center space-y-3">
-                    <div className="bg-green-500/20 rounded-full p-4">
-                      <CheckCircle className="h-10 w-10 text-green-500" />
+                    <div className="bg-fighter-success/20 rounded-full p-4">
+                      <CheckCircle className="h-10 w-10 text-fighter-success" />
                     </div>
-                    <p className="text-white/90">Hemos enviado un email de confirmación a</p>
-                    <p className="text-amber-400 font-semibold">{registeredEmail}</p>
-                    <div className="bg-slate-900/60 rounded-lg p-3 w-full border border-purple-500/20 text-left text-sm text-white/70 space-y-1">
-                      <p>⚠️ Revisa tu carpeta de <strong className="text-amber-400">spam</strong></p>
+                    <p className="text-foreground/90">Hemos enviado un email de confirmación a</p>
+                    <p className="text-primary font-semibold">{registeredEmail}</p>
+                    <div className="bg-secondary rounded-lg p-3 w-full border border-border text-left text-sm text-muted-foreground space-y-1">
+                      <p>⚠️ Revisa tu carpeta de <strong className="text-primary">spam</strong></p>
                       <p>🕒 El enlace es válido por <strong>24 horas</strong></p>
                     </div>
-                    <Button variant="outline" size="sm" className="w-full border-purple-500/30" onClick={handleResendEmail} disabled={resendCooldown > 0 || isResending}>
+                    <Button variant="outline" size="sm" className="w-full border-border" onClick={handleResendEmail} disabled={resendCooldown > 0 || isResending}>
                       {isResending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Reenviando...</> : resendCooldown > 0 ? <><Mail className="mr-2 h-4 w-4" />Reenviar en {resendCooldown}s</> : <><Mail className="mr-2 h-4 w-4" />Reenviar correo</>}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20">
-                    <p className="text-sm text-white/60">Nuevo registro para:</p>
-                    <p className="text-white font-medium">{email}</p>
+                  <div className="bg-secondary rounded-lg p-3 border border-border">
+                    <p className="text-sm text-muted-foreground">Nuevo registro para:</p>
+                    <p className="text-foreground font-medium">{email}</p>
                   </div>
 
                   {invitation && (
                     <div className="p-3 bg-primary/10 border border-primary/20 rounded-lg">
-                      <p className="text-sm text-white/90">Invitado como: <strong>{invitation.first_name} {invitation.last_name}</strong></p>
+                      <p className="text-sm text-foreground/90">Invitado como: <strong>{invitation.first_name} {invitation.last_name}</strong></p>
                     </div>
                   )}
 
                   <div className="relative">
-                    <label className="text-sm font-medium text-white/90" htmlFor="signup-password">Contraseña</label>
+                    <label className="text-sm font-medium text-foreground/90" htmlFor="signup-password">Contraseña</label>
                     <Input
                       id="signup-password"
                       type={showPassword ? 'text' : 'password'}
@@ -338,20 +338,20 @@ export default function Auth() {
                       required
                       autoFocus
                       minLength={6}
-                      className="bg-slate-900/50 border-purple-500/30 focus:border-purple-500 pr-10"
+                      className="bg-secondary border-border focus:border-primary pr-10"
                     />
-                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-6 h-9 w-9 text-white/50 hover:text-white" onClick={() => setShowPassword(!showPassword)}>
+                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-6 h-9 w-9 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                     <PasswordStrength password={password} />
                   </div>
 
-                  <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={loading || validatingToken}>
+                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading || validatingToken}>
                     {(loading || validatingToken) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {invitation ? 'Completar Registro' : 'Crear Cuenta'}
                   </Button>
 
-                  <Button type="button" variant="ghost" onClick={handleBackToEmail} className="w-full text-sm text-white/50 hover:text-white">
+                  <Button type="button" variant="ghost" onClick={handleBackToEmail} className="w-full text-sm text-muted-foreground hover:text-foreground">
                     <ArrowLeft className="w-4 h-4 mr-1.5" />
                     Usar otro email
                   </Button>
