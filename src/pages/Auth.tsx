@@ -234,8 +234,11 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700" disabled={checkingEmail}>
-                {checkingEmail && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Continuar
+                {checkingEmail ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Verificando email...</>
+                ) : (
+                  'Continuar'
+                )}
               </Button>
 
               <div className="flex flex-col gap-2">
