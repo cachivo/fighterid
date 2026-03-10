@@ -26,7 +26,7 @@ export default function FightersProfilesCreate() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl sm:text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-xl sm:text-3xl font-barlow-condensed uppercase font-bold flex items-center gap-2 text-foreground">
             <UserPlus className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
             Crear Nuevo Perfil
           </h1>
@@ -36,9 +36,9 @@ export default function FightersProfilesCreate() {
         </div>
       </div>
 
-      <Card>
+      <Card className="border-primary/20">
         <CardHeader>
-          <CardTitle>Información del Peleador</CardTitle>
+          <CardTitle className="font-barlow-condensed uppercase">Información del Peleador</CardTitle>
           <CardDescription>
             Completa todos los campos obligatorios (*) para crear el perfil.
             Este perfil podrá ser usado posteriormente para emitir una licencia Fighter ID.

@@ -169,11 +169,11 @@ export default function AuthCallback() {
   const errorContent = getErrorContent(errorType);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="text-center max-w-md">
         {status === 'loading' && (
           <>
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400 mx-auto mb-4" />
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
             <p className="text-foreground/80 text-lg">{message}</p>
             <p className="text-muted-foreground text-sm mt-2">Por favor espera...</p>
           </>
@@ -181,8 +181,8 @@ export default function AuthCallback() {
 
         {status === 'success' && (
           <div className="animate-fade-in">
-            <div className="bg-green-500/20 rounded-full p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
-              <CheckCircle className="w-12 h-12 text-green-500" />
+            <div className="bg-fighter-success/20 rounded-full p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-fighter-success" />
             </div>
             <h2 className="text-2xl font-bold text-foreground mb-2">{message}</h2>
             <p className="text-muted-foreground">Serás redirigido automáticamente...</p>
@@ -199,7 +199,7 @@ export default function AuthCallback() {
 
             <div className="space-y-3">
               {errorType === 'already_confirmed' ? (
-                <Button onClick={() => navigate('/auth', { replace: true })} className="w-full bg-primary hover:bg-primary/90">
+                <Button onClick={() => navigate('/auth', { replace: true })} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
                   <LogIn className="mr-2 h-4 w-4" />
                   Ir a Iniciar Sesión
                 </Button>
@@ -209,7 +209,7 @@ export default function AuthCallback() {
                     <Button
                       onClick={handleResendEmail}
                       disabled={resendCooldown > 0 || isResending}
-                      className="w-full bg-primary hover:bg-primary/90"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
                       {isResending ? (
                         <><RefreshCw className="mr-2 h-4 w-4 animate-spin" />Reenviando...</>
