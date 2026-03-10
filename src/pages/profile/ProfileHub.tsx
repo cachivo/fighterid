@@ -6,8 +6,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Dumbbell, Building2, Scale, Shield, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Dumbbell, Building2, Scale, Shield, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import fighterIdLogo from '@/assets/fighter-id-logo-auth.png';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
 
 type ModuleStatus = 'none' | 'pending' | 'active' | 'suspended';
 
