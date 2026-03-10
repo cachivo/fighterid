@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Mail, HelpCircle, ArrowLeft, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { PasswordStrength } from '@/components/ui/password-strength';
+import { PageSkeleton } from '@/components/ui/page-skeleton';
 import fighterIdLogo from '@/assets/fighter-id-logo-auth.png';
 import { useFighterInvitations } from '@/hooks/useFighterInvitations';
 import { supabase } from '@/integrations/supabase/client';
