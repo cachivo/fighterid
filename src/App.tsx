@@ -11,114 +11,120 @@ import LicenseProtectedRoute from '@/components/LicenseProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
 import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
-
-import { JudgeProtectedRoute } from '@/components/JudgeProtectedRoute';
-import { FighterLicense } from './pages/FighterLicense';
-import UserProfile from './pages/UserProfile';
-import FighterProfile from './pages/FighterProfile';
-import ProfileSetup from './pages/profile/ProfileSetup';
-import VerifyLicense from './pages/VerifyLicense';
-import ValidacionLicencias from './pages/admin/ValidacionLicencias';
-import AdminFightersProfiles from './pages/admin/FightersProfiles';
-import FightersProfilesInvite from './pages/admin/FightersProfilesInvite';
-import FightersProfilesCreate from './pages/admin/FightersProfilesCreate';
-import JudgesManagement from './pages/admin/JudgesManagement';
-import LiveEventsControl from './pages/admin/LiveEventsControl';
-// ProfileChangeRequests eliminado - consolidado en PendingChangesHub
-import PendingChangesHub from './pages/admin/PendingChangesHub';
-import ProfileChangeRequest from './pages/ProfileChangeRequest';
-import AIStrikeMonitor from './pages/admin/AIStrikeMonitor';
 import SuperAdminRoute from './components/SuperAdminRoute';
-import AIStrikeTestPanel from './pages/admin/AIStrikeTestPanel';
-import AIStrikeOverlay from './pages/AIStrikeOverlay';
 import { lazy, Suspense, useEffect } from 'react';
 import React from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { StationPinLogin } from '@/components/station/StationPinLogin';
-import StationWaiting from '@/pages/station/StationWaiting';
-import Station1Scoring from '@/pages/station/Station1Scoring';
-import Station2Scoring from '@/pages/station/Station2Scoring';
-import Station3RoundControl from '@/pages/station/Station3RoundControl';
 
-// Lazy loaded components
-const FightResults = lazy(() => import('./pages/admin/FightResults'));
+// === ALL pages lazy-loaded for optimal code splitting ===
+
+// Auth & Profile
+const Auth = lazy(() => import("./pages/Auth"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
+const ProfileSetup = lazy(() => import('./pages/profile/ProfileSetup'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
+const ProfileChangeRequest = lazy(() => import('./pages/ProfileChangeRequest'));
+
+// Public pages
+const Index = lazy(() => import("./pages/Index"));
+const SocialFeed = lazy(() => import("./pages/SocialFeed"));
+const Events = lazy(() => import("./pages/Events"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const EnVivo = lazy(() => import("./pages/EnVivo"));
+const Fighters = lazy(() => import("./pages/Fighters"));
+const FighterProfile = lazy(() => import('./pages/FighterProfile'));
+const Contact = lazy(() => import("./pages/Contact"));
+const Gimnasios = lazy(() => import("./pages/Gimnasios"));
+const GimnasioDetalle = lazy(() => import("./pages/GimnasioDetalle"));
+const Entrenadores = lazy(() => import("./pages/Entrenadores"));
+const EntrenadorDetalle = lazy(() => import("./pages/EntrenadorDetalle"));
+const Predicciones = lazy(() => import("./pages/Predicciones"));
+const EventoBetting = lazy(() => import("./pages/EventoBetting"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AccessDenied = lazy(() => import("./pages/AccessDenied"));
+const VerifyLicense = lazy(() => import('./pages/VerifyLicense'));
+const HudPublicDisplay = lazy(() => import("./pages/HudPublicDisplay"));
+const ImportEvent = lazy(() => import("./pages/ImportEvent"));
+const TestNewsFunction = lazy(() => import("./pages/TestNewsFunction"));
 const PublicFightResults = lazy(() => import('./pages/FightResults'));
+const AIStrikeOverlay = lazy(() => import('./pages/AIStrikeOverlay'));
+
+// Social
+const SocialProfile = lazy(() => import("./pages/social/SocialProfile"));
+const Friends = lazy(() => import("./pages/social/Friends"));
+const Discover = lazy(() => import("./pages/social/Discover"));
+const Notifications = lazy(() => import("./pages/social/Notifications"));
+const SocialUserProfile = lazy(() => import("./pages/social/UserProfile"));
+
+// Fighter License portal
+const FighterLicense = lazy(() => import('./pages/FighterLicense').then(m => ({ default: m.FighterLicense })));
+const LicenseDashboard = lazy(() => import('./pages/license/LicenseDashboard'));
+const LicensePending = lazy(() => import('./pages/license/LicensePending'));
+const LicenseSuspended = lazy(() => import('./pages/license/LicenseSuspended'));
+const LicenseOnboarding = lazy(() => import('./pages/license/LicenseOnboarding'));
+const LicenseForgotPassword = lazy(() => import("./pages/license/ForgotPassword"));
+const LicenseResetPassword = lazy(() => import("./pages/license/ResetPassword"));
+
+// Judge & Referee
+const JudgeProtectedRoute = lazy(() => import('@/components/JudgeProtectedRoute').then(m => ({ default: m.JudgeProtectedRoute })));
 const DigitalScorecard = lazy(() => import('./pages/judge/DigitalScorecard'));
 const RefereeControlRoom = lazy(() => import('./pages/referee/RefereeControlRoom'));
-const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
 const JudgeScoringPanel = lazy(() => import('./pages/judge/JudgeScoringPanel'));
+const JudgeOnboarding = lazy(() => import("./pages/judge/JudgeOnboarding"));
+
+// Stations
+const StationPinLogin = lazy(() => import('@/components/station/StationPinLogin').then(m => ({ default: m.StationPinLogin })));
+const StationWaiting = lazy(() => import('@/pages/station/StationWaiting'));
+const Station1Scoring = lazy(() => import('@/pages/station/Station1Scoring'));
+const Station2Scoring = lazy(() => import('@/pages/station/Station2Scoring'));
+const Station3RoundControl = lazy(() => import('@/pages/station/Station3RoundControl'));
+
+// Admin pages
+const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
+const EventosPelea = lazy(() => import("./pages/admin/EventosPelea"));
+const LiveStreaming = lazy(() => import("./pages/admin/LiveStreaming"));
+const LiveEventsControl = lazy(() => import('./pages/admin/LiveEventsControl'));
+const AdminFightersProfiles = lazy(() => import('./pages/admin/FightersProfiles'));
+const FightersProfilesInvite = lazy(() => import('./pages/admin/FightersProfilesInvite'));
+const FightersProfilesCreate = lazy(() => import('./pages/admin/FightersProfilesCreate'));
+const JudgesManagement = lazy(() => import('./pages/admin/JudgesManagement'));
+const PendingChangesHub = lazy(() => import('./pages/admin/PendingChangesHub'));
+const AIStrikeMonitor = lazy(() => import('./pages/admin/AIStrikeMonitor'));
+const AIStrikeTestPanel = lazy(() => import('./pages/admin/AIStrikeTestPanel'));
+const ValidacionLicencias = lazy(() => import('./pages/admin/ValidacionLicencias'));
+const AliadosEstrategicos = lazy(() => import("./pages/admin/AliadosEstrategicos"));
+const Comunidad = lazy(() => import("./pages/admin/Comunidad"));
+const Configuracion = lazy(() => import("./pages/admin/Configuracion"));
+const Betting = lazy(() => import("./pages/admin/Betting"));
+const EmailMonitoring = lazy(() => import("./pages/admin/EmailMonitoring"));
+const EmailValidation = lazy(() => import("./pages/admin/EmailValidation"));
+const EmailCampaigns = lazy(() => import("./pages/admin/EmailCampaigns"));
+const EmailCampaignDetail = lazy(() => import("./pages/admin/EmailCampaignDetail"));
+const EmailCampaignEditor = lazy(() => import("./pages/admin/EmailCampaignEditor"));
+const GimnasiosAdmin = lazy(() => import("./pages/admin/GimnasiosAdmin"));
+const EntrenadoresAdmin = lazy(() => import("./pages/admin/EntrenadoresAdmin"));
+const FightResults = lazy(() => import('./pages/admin/FightResults'));
+const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
 const JudgeStationsSetup = lazy(() => import('./pages/admin/JudgeStationsSetup'));
-// LicenseAuth removed - unified into Auth.tsx
-import LicenseDashboard from './pages/license/LicenseDashboard';
-import LicensePending from './pages/license/LicensePending';
-import LicenseSuspended from './pages/license/LicenseSuspended';
-import LicenseOnboarding from './pages/license/LicenseOnboarding';
-import Index from "./pages/Index";
-import SocialFeed from "./pages/SocialFeed";
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import Predicciones from "./pages/Predicciones";
-import EventoBetting from "./pages/EventoBetting";
-import Events from "./pages/Events";
-import EventDetail from "./pages/EventDetail";
-import EnVivo from "./pages/EnVivo";
-import Fighters from "./pages/Fighters";
-import SocialProfile from "./pages/social/SocialProfile";
-import Friends from "./pages/social/Friends";
-import Discover from "./pages/social/Discover";
-import Notifications from "./pages/social/Notifications";
-import SocialUserProfile from "./pages/social/UserProfile";
-import TestNewsFunction from "./pages/TestNewsFunction";
-import ImportEvent from "./pages/ImportEvent";
-import Dashboard from "./pages/admin/Dashboard";
-import EventosPelea from "./pages/admin/EventosPelea";
-import LiveStreaming from "./pages/admin/LiveStreaming";
-import LicenseForgotPassword from "./pages/license/ForgotPassword";
-import LicenseResetPassword from "./pages/license/ResetPassword";
-import HudPublicDisplay from "./pages/HudPublicDisplay";
+const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
+const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
+const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement"));
+const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
+const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
+const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
+const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 
-import AliadosEstrategicos from "./pages/admin/AliadosEstrategicos";
-import Comunidad from "./pages/admin/Comunidad";
-import Configuracion from "./pages/admin/Configuracion";
-import Betting from "./pages/admin/Betting";
-import EmailMonitoring from "./pages/admin/EmailMonitoring";
-import EmailValidation from "./pages/admin/EmailValidation";
-import EmailCampaigns from "./pages/admin/EmailCampaigns";
-import EmailCampaignDetail from "./pages/admin/EmailCampaignDetail";
-import EmailCampaignEditor from "./pages/admin/EmailCampaignEditor";
-import NotFound from "./pages/NotFound";
-import AccessDenied from "./pages/AccessDenied";
-import Contact from "./pages/Contact";
-import Gimnasios from "./pages/Gimnasios";
-import GimnasioDetalle from "./pages/GimnasioDetalle";
-import Entrenadores from "./pages/Entrenadores";
-import EntrenadorDetalle from "./pages/EntrenadorDetalle";
-import GimnasiosAdmin from "./pages/admin/GimnasiosAdmin";
-import EntrenadoresAdmin from "./pages/admin/EntrenadoresAdmin";
-
-// Gym domain pages (lazy)
+// Gym pages
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
 const GymFightersPage = lazy(() => import("./pages/gym/GymFighters"));
 const GymStaffManagement = lazy(() => import("./pages/gym/GymStaffManagement"));
 const GymAddFighter = lazy(() => import("./pages/gym/GymAddFighter"));
 const GymOnboarding = lazy(() => import("./pages/gym/GymOnboarding"));
 const GymPendingInvitation = lazy(() => import("./pages/gym/GymPendingInvitation"));
-const JudgeOnboarding = lazy(() => import("./pages/judge/JudgeOnboarding"));
-
-// Lazy load RankingsManagement
-const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
-const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
-const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement"));
-const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
-const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
 const RequestFight = lazy(() => import("./pages/gym/RequestFight"));
-const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
-
-// Lazy load ContactInbox
-const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
-const ProfileHub = lazy(() => import('./pages/profile/ProfileHub'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
