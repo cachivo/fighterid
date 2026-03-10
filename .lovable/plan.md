@@ -1,86 +1,55 @@
 
 
-# Plan: Optimización Mobile del Panel de Administración
+## Plan: Phase 1 — Quick Wins de UX (Auth, Loading States, Navigation)
 
-## Problema Principal
+This plan covers the Phase 1 items from the audit: password strength indicator, skeleton screens, improved error recovery, and visual feedback improvements. Phases 2 and 3 can follow in subsequent iterations.
 
-El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
+### 1. Password Strength Indicator — `src/pages/Auth.tsx`
 
-Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+Add a real-time strength meter below the password input in the register step:
+- Function `getPasswordStrength(pwd)` evaluates length, uppercase, numbers, special chars
+- Visual bar with 3 levels: Debil (red), Media (yellow), Fuerte (green)
+- Only shown in register step, not login
 
-| Página | Columnas | Severidad |
-|--------|----------|-----------|
-| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
-| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
-| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
-| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
-| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
-| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
-| **Configuracion.tsx** | Tabla de configuración | BAJA |
-| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+### 2. Email Check Visual Feedback — `src/pages/Auth.tsx`
 
-## Solución
+Replace the simple `Loader2` during email check with a more descriptive state:
+- Show "Verificando email..." text alongside the spinner
+- Disable the email input during check to prevent double-submission
 
-### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
+### 3. Skeleton Screens — New `src/components/ui/page-skeleton.tsx`
 
-Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
+Create a reusable skeleton component for dashboard/page loading states:
+- Replace `<Loader2>` spinners in `Auth.tsx` (loading state), `ProfileHub.tsx`, and `Header.tsx` module checks
+- Content-shaped skeletons (card outlines, text lines) instead of generic spinners
 
-```text
-┌──────────────────────────────┐
-│ 🏆 Batalla de Gimnasios #2   │
-│ MMA · Borrador · Privado     │
-│ 📅 15/03/2026 · 📍 Arena     │
-│ ┌────┐┌────┐┌────┐┌────┐    │
-│ │Brand││Pelead││Peleas││ ⋮ │    │
-│ └────┘└────┘└────┘└────┘    │
-│ Estado: [Borrador ▾]         │
-└──────────────────────────────┘
-```
+### 4. Smart Error Recovery — `src/pages/AuthCallback.tsx`
 
-- Cada evento será un `Card` con la info apilada verticalmente
-- Botones de acción en una fila con `flex-wrap`
-- Select de estado en su propia fila
+Improve error states with contextual messages:
+- Detect "expired" links → show "Tu enlace ha expirado. Solicita uno nuevo."
+- Detect "already confirmed" → show "Tu cuenta ya fue confirmada. Inicia sesion." with direct button
+- Add "Solicitar nuevo enlace" button that calls `resendConfirmation`
 
-### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+### 5. Reduced Motion Support — `src/pages/Auth.tsx`
 
-Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+Respect `prefers-reduced-motion` for the background pulse animations:
+- Add CSS media query or inline check to disable/reduce animations
 
-- `Betting.tsx`
-- `Comunidad.tsx` (2 tablas)
-- `AliadosEstrategicos.tsx`
-- `OrganizationsManagement.tsx`
-- `Configuracion.tsx`
-- `EmailCampaignDetail.tsx`
+### Files to modify
 
-### 3. Headers responsivos
+| File | Changes |
+|------|---------|
+| `src/pages/Auth.tsx` | Password strength meter, email check feedback, reduced motion |
+| `src/pages/AuthCallback.tsx` | Contextual error messages with recovery actions |
+| `src/components/ui/page-skeleton.tsx` | New reusable skeleton component |
+| `src/pages/profile/ProfileHub.tsx` | Replace Loader2 with skeleton |
+| `src/index.css` | Add `prefers-reduced-motion` media query for pulse animations |
 
-Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
-
-- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
-- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
-
-Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
-
-### 4. Dialogs de pelea - Grids de 3 y 2 columnas
-
-Los diálogos internos de `EventosPelea.tsx` usan:
-- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
-- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
-
-En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
-| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
-| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
-
-**8 archivos. Sin migraciones SQL.**
+### What is NOT in this phase
+- Social login (Google/Apple OAuth) — requires Supabase dashboard config, separate effort
+- Magic links — separate feature
+- Dashboard widgets redesign — Phase 2
+- Command palette / module switcher — Phase 2
+- Real-time subscriptions — Phase 3
+- Offline support — Phase 3
 
