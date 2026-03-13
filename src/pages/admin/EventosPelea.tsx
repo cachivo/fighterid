@@ -1344,7 +1344,7 @@ export default function EventosPelea() {
                        variant="ghost"
                        size="sm"
                        onClick={() => handleTogglePublish(event.id, event.published)}
-                       className={event.published ? 'text-green-600 shrink-0' : 'text-muted-foreground shrink-0'}
+                       className={event.published ? 'text-fighter-success shrink-0' : 'text-muted-foreground shrink-0'}
                      >
                        {event.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                      </Button>
