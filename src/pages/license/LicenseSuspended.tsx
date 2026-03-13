@@ -26,7 +26,7 @@ export default function LicenseSuspended() {
             <Button
               variant="outline"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="flex items-center gap-2 hover:bg-muted"
             >
               <Home className="h-4 w-4" />
               Pantalla Principal
