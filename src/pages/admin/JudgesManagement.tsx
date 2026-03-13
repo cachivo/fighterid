@@ -383,10 +383,10 @@ export default function JudgesManagement() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Peleas Totales</CardTitle>
-            <Award className="h-4 w-4 text-blue-600" />
+            <Award className="h-4 w-4 text-fighter-info" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-fighter-info">
               {judges.reduce((sum, j) => sum + j.total_fights_judged, 0)}
             </div>
           </CardContent>
