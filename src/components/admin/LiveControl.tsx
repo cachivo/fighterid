@@ -245,11 +245,11 @@ export function LiveControl() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'open': return 'bg-green-100 text-green-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'preopen': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'open': return 'bg-fighter-success/20 text-fighter-success';
+      case 'suspended': return 'bg-fighter-warning/20 text-fighter-warning';
+      case 'preopen': return 'bg-fighter-info/20 text-fighter-info';
+      case 'closed': return 'bg-muted text-muted-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
