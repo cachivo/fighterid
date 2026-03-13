@@ -271,7 +271,7 @@ export default function FighterProfile() {
               {/* Record Bar */}
               <div className="combat-cut inline-flex items-center gap-3 sm:gap-5 bg-white/5 backdrop-blur-md border border-white/10 px-4 sm:px-6 py-3 mt-2">
                 <div className="text-center">
-                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-green-400">{currentRecord.wins}</p>
+                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-fighter-success">{currentRecord.wins}</p>
                   <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Victorias</p>
                 </div>
                 <div className="w-px h-8 bg-white/15" />
