@@ -276,7 +276,7 @@ export default function FighterProfile() {
                 </div>
                 <div className="w-px h-8 bg-white/15" />
                 <div className="text-center">
-                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-red-400">{currentRecord.losses}</p>
+                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-fighter-danger">{currentRecord.losses}</p>
                   <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Derrotas</p>
                 </div>
                 <div className="w-px h-8 bg-white/15" />
