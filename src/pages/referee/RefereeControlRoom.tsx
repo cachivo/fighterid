@@ -222,9 +222,9 @@ export default function RefereeControlRoom() {
 
       {/* Fighter Information */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-l-4 border-l-red-500">
+        <Card className="border-l-4 border-l-fighter-danger">
           <CardHeader>
-            <CardTitle className="text-red-600">
+            <CardTitle className="text-fighter-danger">
               Corner Rojo
             </CardTitle>
           </CardHeader>
