@@ -1204,7 +1204,7 @@ export default function EventosPelea() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleTogglePublish(event.id, event.published)}
-                        className={event.published ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground'}
+                        className={event.published ? 'text-fighter-success hover:text-fighter-success/80' : 'text-muted-foreground hover:text-foreground'}
                       >
                         {event.published ? (
                           <>
