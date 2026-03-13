@@ -254,40 +254,40 @@ export default function PendingChangesHub() {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-yellow-500 transition-colors ${statusFilter === 'PENDING' ? 'border-yellow-500 bg-yellow-500/5' : ''}`} onClick={() => applyStatusFilter('PENDING')}>
+        <Card className={`cursor-pointer hover:border-fighter-warning transition-colors ${statusFilter === 'PENDING' ? 'border-fighter-warning bg-fighter-warning/5' : ''}`} onClick={() => applyStatusFilter('PENDING')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Pendientes</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <Clock className="h-4 w-4 text-fighter-warning" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+            <div className="text-2xl font-bold text-fighter-warning">{stats.pending}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-green-500 transition-colors ${statusFilter === 'APPROVED' ? 'border-green-500 bg-green-500/5' : ''}`} onClick={() => applyStatusFilter('APPROVED')}>
+        <Card className={`cursor-pointer hover:border-fighter-success transition-colors ${statusFilter === 'APPROVED' ? 'border-fighter-success bg-fighter-success/5' : ''}`} onClick={() => applyStatusFilter('APPROVED')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Aprobados</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-fighter-success" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+            <div className="text-2xl font-bold text-fighter-success">{stats.approved}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-red-500 transition-colors ${statusFilter === 'REJECTED' ? 'border-red-500 bg-red-500/5' : ''}`} onClick={() => applyStatusFilter('REJECTED')}>
+        <Card className={`cursor-pointer hover:border-fighter-danger transition-colors ${statusFilter === 'REJECTED' ? 'border-fighter-danger bg-fighter-danger/5' : ''}`} onClick={() => applyStatusFilter('REJECTED')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Rechazados</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
+            <XCircle className="h-4 w-4 text-fighter-danger" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+            <div className="text-2xl font-bold text-fighter-danger">{stats.rejected}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-blue-500 transition-colors ${statusFilter === 'REQUIRES_INFO' ? 'border-blue-500 bg-blue-500/5' : ''}`} onClick={() => applyStatusFilter('REQUIRES_INFO')}>
+        <Card className={`cursor-pointer hover:border-fighter-info transition-colors ${statusFilter === 'REQUIRES_INFO' ? 'border-fighter-info bg-fighter-info/5' : ''}`} onClick={() => applyStatusFilter('REQUIRES_INFO')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Requiere Info</CardTitle>
-            <MessageSquare className="h-4 w-4 text-blue-500" />
+            <MessageSquare className="h-4 w-4 text-fighter-info" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.requiresInfo}</div>
+            <div className="text-2xl font-bold text-fighter-info">{stats.requiresInfo}</div>
           </CardContent>
         </Card>
       </div>
