@@ -237,7 +237,7 @@ export default function LicensePending() {
                     Número de Referencia: {licenseData.license_number}
                   </CardDescription>
                 </div>
-                <Badge variant="outline" className="bg-orange-500 text-white border-0">
+                <Badge variant="outline" className="bg-fighter-warning text-white border-0">
                   {licenseData.status === 'APPLIED' ? 'Enviada' : 'En Revisión'}
                 </Badge>
               </div>
