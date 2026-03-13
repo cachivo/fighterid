@@ -333,7 +333,7 @@ export default function LicensePending() {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Documentación Requerida:</strong> Asegúrate de tener tu 
                   certificado médico actualizado una vez que tu Fighter ID sea aprobado.
