@@ -274,7 +274,7 @@ export function LiveControl() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className={`h-5 w-5 ${connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500'}`} />
+                <Activity className={`h-5 w-5 ${connectionStatus === 'connected' ? 'text-fighter-success' : 'text-fighter-danger'}`} />
                 Control en Vivo
                 <Badge variant={connectionStatus === 'connected' ? 'default' : 'destructive'}>
                   {connectionStatus}
