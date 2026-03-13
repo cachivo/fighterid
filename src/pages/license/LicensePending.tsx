@@ -186,8 +186,8 @@ export default function LicensePending() {
       <div className="max-w-4xl mx-auto pt-12">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4 p-3 rounded-full bg-orange-500/10 w-fit">
-            <Clock className="h-8 w-8 text-orange-500" />
+          <div className="mx-auto mb-4 p-3 rounded-full bg-fighter-warning/10 w-fit">
+            <Clock className="h-8 w-8 text-fighter-warning" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Licencia en Proceso</h1>
           <p className="text-muted-foreground">
