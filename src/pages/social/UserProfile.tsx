@@ -456,7 +456,7 @@ const UserProfile = () => {
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-3 mb-2">
                                     {wonFight ? (
-                                      <Badge variant="default" className="bg-green-600">Victoria</Badge>
+                                      <Badge variant="default" className="bg-fighter-success">Victoria</Badge>
                                     ) : drawFight ? (
                                       <Badge variant="secondary">Empate</Badge>
                                     ) : (

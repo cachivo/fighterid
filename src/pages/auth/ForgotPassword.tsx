@@ -124,9 +124,9 @@ export default function ForgotPassword() {
           )}
 
           {cooldownSeconds > 0 && (
-            <Alert className="bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
+            <Alert className="bg-fighter-warning/10 border-fighter-warning/30">
+              <AlertCircle className="h-4 w-4 text-fighter-warning" />
+              <AlertDescription className="text-fighter-warning">
                 <p className="font-semibold mb-1">Espera antes de reintentar</p>
                 <p>Debes esperar <strong>{cooldownSeconds} segundos</strong> antes de solicitar otro correo.</p>
                 {attemptsRemaining > 0 && (

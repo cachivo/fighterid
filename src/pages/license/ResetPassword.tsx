@@ -215,7 +215,7 @@ export default function LicenseResetPassword() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               disabled={loading}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

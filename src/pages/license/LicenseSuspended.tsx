@@ -177,8 +177,8 @@ export default function LicenseSuspended() {
 
             <Separator className="my-4" />
 
-            <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="bg-fighter-warning/10 p-4 rounded-lg border border-fighter-warning/30">
+              <p className="text-sm text-fighter-warning">
                 <strong>Importante:</strong> Al contactar al equipo administrativo, 
                 incluye tu número de licencia ({licenseData?.license_number}) 
                 para agilizar el proceso de revisión.

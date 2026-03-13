@@ -253,7 +253,7 @@ export default function FightApproval() {
                       <div className="space-y-1">
                         {(eligibilityResult.checks || []).map((check: any, i: number) => (
                           <div key={i} className="flex items-center gap-2 text-xs">
-                            {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-green-400" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                            {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-fighter-success" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                             <span className={check.passed ? 'text-muted-foreground' : 'text-destructive'}>{check.label}: {check.detail}</span>
                           </div>
                         ))}

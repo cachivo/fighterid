@@ -177,7 +177,7 @@ export default function LicenseForgotPassword() {
           <div className="text-center">
             <Link
               to="/license/auth?mode=signin"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al inicio de sesión

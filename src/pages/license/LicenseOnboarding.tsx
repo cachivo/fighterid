@@ -599,7 +599,7 @@ export default function LicenseOnboarding() {
                 </div>
 
                 <div>
-                  <Label htmlFor="fighterPhoto">Foto del Peleador <span className="text-sm text-gray-500">(Opcional - para tu perfil)</span></Label>
+                  <Label htmlFor="fighterPhoto">Foto del Peleador <span className="text-sm text-muted-foreground">(Opcional - para tu perfil)</span></Label>
                   <FileUpload
                     onFileSelect={(file) => {
                       setFighterPhoto(file);

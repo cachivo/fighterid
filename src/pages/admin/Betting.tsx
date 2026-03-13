@@ -332,12 +332,12 @@ export default function AdminBetting() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'live': case 'open': return 'bg-green-100 text-green-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'finished': case 'closed': return 'bg-blue-100 text-blue-800';
-      case 'settled': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'draft': return 'bg-muted text-muted-foreground';
+      case 'live': case 'open': return 'bg-fighter-success/20 text-fighter-success';
+      case 'suspended': return 'bg-fighter-warning/20 text-fighter-warning';
+      case 'finished': case 'closed': return 'bg-fighter-info/20 text-fighter-info';
+      case 'settled': return 'bg-primary/20 text-primary';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
