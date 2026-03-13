@@ -300,7 +300,7 @@ export default function LicensePending() {
                         {step.description}
                       </p>
                       {step.current && (
-                        <Badge variant="outline" className="mt-2 bg-orange-100 text-orange-700 border-orange-300">
+                        <Badge variant="outline" className="mt-2 bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30">
                           Paso Actual
                         </Badge>
                       )}
