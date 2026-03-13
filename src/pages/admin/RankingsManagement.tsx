@@ -249,9 +249,9 @@ export default function RankingsManagement() {
                         <TableRow key={ranking.id}>
                           <TableCell>
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold relative ${
-                              index === 0 ? 'bg-yellow-500 text-yellow-950' :
-                              index === 1 ? 'bg-gray-300 text-gray-800' :
-                              index === 2 ? 'bg-amber-600 text-amber-50' :
+                              index === 0 ? 'bg-fighter-warning text-background' :
+                              index === 1 ? 'bg-muted-foreground text-background' :
+                              index === 2 ? 'bg-fighter-warning/70 text-background' :
                               'bg-muted text-muted-foreground'
                             }`}>
                               {index + 1}
