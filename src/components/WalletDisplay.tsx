@@ -53,13 +53,13 @@ export default function WalletDisplay({ compact = false, showTransactions = true
   const getTxIcon = (kind: string) => {
     switch (kind) {
       case 'BET_STAKE':
-        return <TrendingDown className="h-4 w-4 text-red-500" />;
+        return <TrendingDown className="h-4 w-4 text-fighter-danger" />;
       case 'BET_PAYOUT':
-        return <TrendingUp className="h-4 w-4 text-green-500" />;
+        return <TrendingUp className="h-4 w-4 text-fighter-success" />;
       case 'BET_REFUND':
-        return <RefreshCw className="h-4 w-4 text-blue-500" />;
+        return <RefreshCw className="h-4 w-4 text-fighter-info" />;
       default:
-        return <DollarSign className="h-4 w-4 text-gray-500" />;
+        return <DollarSign className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -74,11 +74,11 @@ export default function WalletDisplay({ compact = false, showTransactions = true
 
   if (loading && !bdgWallet) {
     return (
-      <Card className={`bg-gray-900 border-gray-800 ${compact ? 'p-4' : ''}`}>
+      <Card className={`bg-card border-border ${compact ? 'p-4' : ''}`}>
         <CardContent className="p-6">
           <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-gray-700 rounded w-24"></div>
-            <div className="h-8 bg-gray-700 rounded w-32"></div>
+            <div className="h-4 bg-muted rounded w-24"></div>
+            <div className="h-8 bg-muted rounded w-32"></div>
           </div>
         </CardContent>
       </Card>
@@ -87,10 +87,10 @@ export default function WalletDisplay({ compact = false, showTransactions = true
 
   if (!bdgWallet) {
     return (
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="bg-card border-border">
         <CardContent className="p-6 text-center">
-          <Wallet className="h-12 w-12 mx-auto mb-3 text-gray-600" />
-          <p className="text-gray-400">No BDG wallet found</p>
+          <Wallet className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No BDG wallet found</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={handleRefresh}>
             Retry
           </Button>
@@ -101,19 +101,19 @@ export default function WalletDisplay({ compact = false, showTransactions = true
 
   if (compact) {
     return (
-      <div className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-800">
+      <div className="flex items-center justify-between p-3 bg-card rounded-lg border border-border">
         <div className="flex items-center gap-3">
-          <Wallet className="h-5 w-5 text-orange-400" />
+          <Wallet className="h-5 w-5 text-primary" />
           <div>
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-medium text-foreground">
               {showBalance ? formatAmount(availableBalance) : '••••••'}
             </div>
-            <div className="text-xs text-gray-400">Available</div>
+            <div className="text-xs text-muted-foreground">Available</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {bdgWallet.hold > 0 && (
-            <div className="text-xs text-yellow-400">
+            <div className="text-xs text-fighter-warning">
               ${bdgWallet.hold.toFixed(2)} on hold
             </div>
           )}
@@ -130,12 +130,12 @@ export default function WalletDisplay({ compact = false, showTransactions = true
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-card border-border">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-orange-400" />
+              <Wallet className="h-5 w-5 text-primary" />
               BDG Wallet
             </CardTitle>
             <CardDescription>Your betting credits</CardDescription>
@@ -158,22 +158,22 @@ export default function WalletDisplay({ compact = false, showTransactions = true
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <div className="text-sm text-gray-400">Available Balance</div>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-sm text-muted-foreground">Available Balance</div>
+            <div className="text-2xl font-bold text-foreground">
               {showBalance ? formatAmount(availableBalance) : '••••••'}
             </div>
           </div>
           <div className="space-y-1">
-            <div className="text-sm text-gray-400">On Hold</div>
-            <div className="text-xl font-medium text-yellow-400">
+            <div className="text-sm text-muted-foreground">On Hold</div>
+            <div className="text-xl font-medium text-fighter-warning">
               {showBalance ? formatAmount(bdgWallet.hold) : '••••••'}
             </div>
           </div>
         </div>
 
         {bdgWallet.hold > 0 && (
-          <div className="p-3 bg-yellow-900/30 border border-yellow-700 rounded-lg">
-            <div className="flex items-center gap-2 text-yellow-400 text-sm">
+          <div className="p-3 bg-fighter-warning/10 border border-fighter-warning/30 rounded-lg">
+            <div className="flex items-center gap-2 text-fighter-warning text-sm">
               <Clock className="h-4 w-4" />
               <span>You have pending bets worth ${bdgWallet.hold.toFixed(2)}</span>
             </div>
@@ -182,7 +182,7 @@ export default function WalletDisplay({ compact = false, showTransactions = true
 
         {showTransactions && (
           <>
-            <Separator className="bg-gray-700" />
+            <Separator className="bg-border" />
             
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -200,23 +200,23 @@ export default function WalletDisplay({ compact = false, showTransactions = true
                 <ScrollArea className="h-48">
                   <div className="space-y-2">
                     {transactions.length === 0 ? (
-                      <div className="text-center py-6 text-gray-500 text-sm">
+                      <div className="text-center py-6 text-muted-foreground text-sm">
                         No transactions yet
                       </div>
                     ) : (
                       transactions.slice(0, 10).map((tx) => (
-                        <div key={tx.id} className="flex items-center justify-between p-2 bg-gray-800 rounded">
+                        <div key={tx.id} className="flex items-center justify-between p-2 bg-secondary rounded">
                           <div className="flex items-center gap-3">
                             {getTxIcon(tx.kind)}
                             <div>
                               <div className="text-sm font-medium">{getTxLabel(tx.kind)}</div>
-                              <div className="text-xs text-gray-400">
+                              <div className="text-xs text-muted-foreground">
                                 {new Date(tx.created_at).toLocaleDateString()}
                               </div>
                             </div>
                           </div>
                           <div className={`text-sm font-medium ${
-                            tx.amount > 0 ? 'text-green-400' : 'text-red-400'
+                            tx.amount > 0 ? 'text-fighter-success' : 'text-fighter-danger'
                           }`}>
                             {formatAmount(tx.amount, true)}
                           </div>

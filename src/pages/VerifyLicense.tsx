@@ -111,11 +111,11 @@ export default function VerifyLicense() {
   if (error) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="max-w-xl w-full border-red-200">
+        <Card className="max-w-xl w-full border-fighter-danger/30">
           <CardContent className="text-center py-12">
-            <XCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-            <h2 className="text-xl font-semibold text-red-700 mb-2">Error de Verificación</h2>
-            <p className="text-red-600">{error}</p>
+            <XCircle className="h-12 w-12 mx-auto text-fighter-danger mb-4" />
+            <h2 className="text-xl font-semibold text-fighter-danger mb-2">Error de Verificación</h2>
+            <p className="text-fighter-danger/80">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -125,11 +125,11 @@ export default function VerifyLicense() {
   if (!licenseData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
-        <Card className="max-w-xl w-full border-yellow-200">
+        <Card className="max-w-xl w-full border-fighter-warning/30">
           <CardContent className="text-center py-12">
-            <AlertTriangle className="h-12 w-12 mx-auto text-yellow-500 mb-4" />
-            <h2 className="text-xl font-semibold text-yellow-700 mb-2">Licencia No Encontrada</h2>
-            <p className="text-yellow-600 mb-4">
+            <AlertTriangle className="h-12 w-12 mx-auto text-fighter-warning mb-4" />
+            <h2 className="text-xl font-semibold text-fighter-warning mb-2">Licencia No Encontrada</h2>
+            <p className="text-fighter-warning/80 mb-4">
               La licencia <strong>{licenseNumber}</strong> no existe en nuestros registros.
             </p>
             <p className="text-sm text-muted-foreground">

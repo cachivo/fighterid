@@ -49,241 +49,181 @@ interface Market {
 interface Outcome {
   id: string;
   label: string;
-  description?: string;
   pool: number;
   active: boolean;
-  sort_order: number;
 }
 
-interface BetTicket {
-  id: string;
-  market_id: string;
-  outcome_id: string;
+interface SelectedBet {
+  marketId: string;
+  marketTitle: string;
+  outcomeId: string;
+  outcomeLabel: string;
+  quote: number;
   stake: number;
-  status: string;
-  potential_payout?: number;
-  created_at: string;
-  outcome?: { label: string };
-  market?: { title: string };
 }
 
 export default function EventoBetting() {
   const { eventId } = useParams<{ eventId: string }>();
-  const { user } = useAuth();
   const { toast } = useToast();
-  const { placeBet, getAvailableBalance } = useWallet();
-  const { getPoolForOutcome, getMarketState, isConnected } = useRealtimeBetting(eventId);
-  
+  const { user } = useAuth();
+  const { getAvailableBalance } = useWallet();
+  const { 
+    getPoolForOutcome, 
+    getMarketState, 
+    isConnected 
+  } = useRealtimeBetting(eventId || '');
+
   const [event, setEvent] = useState<BDGEvent | null>(null);
   const [markets, setMarkets] = useState<Market[]>([]);
-  const [userTickets, setUserTickets] = useState<BetTicket[]>([]);
+  const [selectedBets, setSelectedBets] = useState<SelectedBet[]>([]);
+  const [userTickets, setUserTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [betting, setBetting] = useState(false);
-  
-  // Betting slip state
-  const [selectedBets, setSelectedBets] = useState<{
-    marketId: string;
-    outcomeId: string;
-    outcomeLabel: string;
-    marketTitle: string;
-    stake: number;
-    quote: number;
-  }[]>([]);
 
-  useEffect(() => {
-    if (eventId) {
-      fetchEventData();
-      if (user) {
-        fetchUserTickets();
-      }
-    }
-  }, [eventId, user]);
-
-  // Real-time updates for markets
+  // Fetch event + markets
   useEffect(() => {
     if (!eventId) return;
-
-    const channel = supabase
-      .channel('market-updates')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'outcome',
-        filter: `market_id=in.(${markets.map(m => m.id).join(',')})`
-      }, (payload) => {
-        // Update market pools in real-time
-        setMarkets(prev => prev.map(market => ({
-          ...market,
-          outcomes: market.outcomes.map(outcome => 
-            outcome.id === payload.new.id 
-              ? { ...outcome, pool: payload.new.pool }
-              : outcome
-          )
-        })));
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [markets, eventId]);
-
-  const fetchEventData = async () => {
-    try {
+    
+    const fetchData = async () => {
       setLoading(true);
-      
-      // Fetch event
-      const { data: eventData, error: eventError } = await supabase
-        .from('bdg_event')
-        .select('*')
-        .eq('id', eventId)
-        .single();
+      try {
+        // Fetch event
+        const { data: eventData, error: eventError } = await supabase
+          .from('bdg_event')
+          .select('*')
+          .eq('id', eventId)
+          .single();
 
-      if (eventError) throw eventError;
-      setEvent(eventData);
+        if (eventError) throw eventError;
+        setEvent(eventData);
 
-      // Fetch markets with outcomes
-      const { data: marketsData, error: marketsError } = await supabase
-        .from('market')
-        .select(`
-          *,
-          outcome (*)
-        `)
-        .eq('event_id', eventId)
-        .order('created_at');
+        // Fetch markets with outcomes
+        const { data: marketsData, error: marketsError } = await supabase
+          .from('market')
+          .select(`
+            id, title, description, kind, state, rake, min_stake, max_stake,
+            outcome(id, label, pool, active)
+          `)
+          .eq('event_id', eventId)
+          .order('created_at');
 
-      if (marketsError) throw marketsError;
-      
-      const processedMarkets = marketsData?.map(market => ({
-        ...market,
-        outcomes: (market.outcome as any[])?.sort((a, b) => a.sort_order - b.sort_order) || []
-      })) || [];
+        if (marketsError) throw marketsError;
+        setMarkets(
+          (marketsData || []).map((m: any) => ({
+            ...m,
+            outcomes: m.outcome || [],
+          }))
+        );
 
-      setMarkets(processedMarkets);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'No se pudo cargar el evento',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+        // Fetch user tickets
+        if (user) {
+          const { data: tickets } = await supabase
+            .from('bet_ticket')
+            .select(`
+              id, stake, status, price_locked, potential_payout,
+              market:market_id(title),
+              outcome:outcome_id(label)
+            `)
+            .eq('user_id', user.id)
+            .in('market_id', (marketsData || []).map((m: any) => m.id));
+          
+          setUserTickets(tickets || []);
+        }
+      } catch (err: any) {
+        toast({
+          title: 'Error',
+          description: err.message,
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchUserTickets = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('bet_ticket')
-        .select(`
-          *,
-          outcome (label),
-          market (title)
-        `)
-        .eq('user_id', user.id)
-        .in('market_id', markets.map(m => m.id));
-
-      if (error) throw error;
-      setUserTickets(data || []);
-    } catch (error) {
-      console.error('Error fetching user tickets:', error);
-    }
-  };
+    fetchData();
+  }, [eventId, user]);
 
   const calculateQuote = useCallback((market: Market, outcome: Outcome) => {
-    // Use real-time pool data if available
-    const realtimePool = getPoolForOutcome(outcome.id);
-    const currentPool = realtimePool > 0 ? realtimePool : outcome.pool;
-    
     const totalPool = market.outcomes.reduce((sum, o) => {
-      const oPool = getPoolForOutcome(o.id);
-      return sum + (oPool > 0 ? oPool : o.pool);
+      const currentPool = getPoolForOutcome(o.id) || o.pool;
+      return sum + currentPool;
     }, 0);
+    const currentPool = getPoolForOutcome(outcome.id) || outcome.pool;
     
-    const epsilon = 1; // Liquidity seed
-    const effectivePool = currentPool + epsilon;
-    const netPool = totalPool * (1 - market.rake);
+    if (currentPool === 0 || totalPool === 0) return 2.0;
     
-    if (effectivePool === 0) return 1.00;
-    return Math.max(1.00, netPool / effectivePool);
+    const rawQuote = totalPool / currentPool;
+    return rawQuote * (1 - market.rake);
   }, [getPoolForOutcome]);
 
   const addToBettingSlip = (market: Market, outcome: Outcome) => {
-    if (!user) {
-      toast({
-        title: 'Inicia Sesión',
-        description: 'Debes iniciar sesión para apostar',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    // Check available balance
-    const availableBalance = getAvailableBalance('BDG');
-    if (availableBalance < market.min_stake) {
-      toast({
-        title: 'Saldo Insuficiente',
-        description: `Necesitas al menos $${market.min_stake} para apostar`,
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const existingBet = selectedBets.find(bet => 
-      bet.marketId === market.id && bet.outcomeId === outcome.id
+    const exists = selectedBets.find(
+      bet => bet.marketId === market.id && bet.outcomeId === outcome.id
     );
 
-    if (existingBet) {
-      // Remove from slip
-      setSelectedBets(prev => prev.filter(bet => 
-        !(bet.marketId === market.id && bet.outcomeId === outcome.id)
+    if (exists) {
+      setSelectedBets(selectedBets.filter(
+        bet => !(bet.marketId === market.id && bet.outcomeId === outcome.id)
       ));
-    } else {
-      // Add to slip
-      const quote = calculateQuote(market, outcome);
-      setSelectedBets(prev => [...prev, {
-        marketId: market.id,
-        outcomeId: outcome.id,
-        outcomeLabel: outcome.label,
-        marketTitle: market.title,
-        stake: market.min_stake,
-        quote
-      }]);
+      return;
     }
+
+    // Remove other bets on same market
+    const filtered = selectedBets.filter(bet => bet.marketId !== market.id);
+    
+    setSelectedBets([...filtered, {
+      marketId: market.id,
+      marketTitle: market.title,
+      outcomeId: outcome.id,
+      outcomeLabel: outcome.label,
+      quote: calculateQuote(market, outcome),
+      stake: market.min_stake,
+    }]);
   };
 
   const updateBetStake = (marketId: string, outcomeId: string, stake: number) => {
-    setSelectedBets(prev => prev.map(bet => 
-      bet.marketId === marketId && bet.outcomeId === outcomeId 
+    setSelectedBets(selectedBets.map(bet => 
+      bet.marketId === marketId && bet.outcomeId === outcomeId
         ? { ...bet, stake }
         : bet
     ));
   };
 
   const placeBets = async () => {
-    if (!user || selectedBets.length === 0) return;
+    if (!user) {
+      toast({
+        title: 'Inicia Sesión',
+        description: 'Necesitas una cuenta para apostar',
+        variant: 'destructive',
+      });
+      return;
+    }
 
+    setBetting(true);
     try {
-      setBetting(true);
-      
       for (const bet of selectedBets) {
-        const ticketId = await placeBet(bet.marketId, bet.outcomeId, bet.stake);
-        
-        if (!ticketId) {
-          // Error already shown by placeBet hook
-          continue;
-        }
+        const { error } = await supabase.from('bet_ticket').insert({
+          user_id: user.id,
+          market_id: bet.marketId,
+          outcome_id: bet.outcomeId,
+          stake: bet.stake,
+          price_locked: bet.quote,
+          potential_payout: bet.stake * bet.quote,
+          ip_address: '0.0.0.0',
+        });
+
+        if (error) throw error;
       }
 
+      toast({
+        title: '¡Apuestas Colocadas!',
+        description: `${selectedBets.length} apuesta(s) registrada(s)`,
+      });
       setSelectedBets([]);
-      fetchUserTickets();
-      fetchEventData(); // Refresh pools
-    } catch (error) {
+    } catch (err: any) {
       toast({
         title: 'Error',
-        description: 'No se pudieron colocar las apuestas',
+        description: err.message,
         variant: 'destructive',
       });
     } finally {
@@ -293,11 +233,11 @@ export default function EventoBetting() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'live': case 'open': return 'bg-green-100 text-green-800 border-green-200';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'closed': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'settled': return 'bg-purple-100 text-purple-800 border-purple-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'live': case 'open': return 'bg-fighter-success/20 text-fighter-success border-fighter-success/30';
+      case 'suspended': return 'bg-fighter-warning/20 text-fighter-warning border-fighter-warning/30';
+      case 'closed': return 'bg-fighter-info/20 text-fighter-info border-fighter-info/30';
+      case 'settled': return 'bg-primary/20 text-primary border-primary/30';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -318,18 +258,18 @@ export default function EventoBetting() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black">
+      <div className="min-h-screen bg-background">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="animate-pulse space-y-6">
-            <div className="h-8 bg-gray-800 rounded w-64"></div>
+            <div className="h-8 bg-muted rounded w-64"></div>
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 space-y-4">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="h-64 bg-gray-800 rounded-lg"></div>
+                  <div key={i} className="h-64 bg-muted rounded-lg"></div>
                 ))}
               </div>
-              <div className="h-96 bg-gray-800 rounded-lg"></div>
+              <div className="h-96 bg-muted rounded-lg"></div>
             </div>
           </div>
         </div>
@@ -346,12 +286,12 @@ export default function EventoBetting() {
   const totalPotentialPayout = selectedBets.reduce((sum, bet) => sum + (bet.stake * bet.quote), 0);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
       
       <div className="container mx-auto px-4 py-8">
         {/* Back Navigation */}
-        <Link to="/predicciones" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6">
+        <Link to="/predicciones" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="h-4 w-4" />
           Volver a Predicciones
         </Link>
@@ -362,21 +302,21 @@ export default function EventoBetting() {
               <div className="flex items-center gap-4">
                 {getDisciplineIcon(event.discipline)}
                 <div>
-                <h1 className="text-3xl font-bold text-white">{event.name}</h1>
-                <p className="text-gray-400">{event.discipline} • {event.venue}</p>
+                <h1 className="text-3xl font-bold text-foreground">{event.name}</h1>
+                <p className="text-muted-foreground">{event.discipline} • {event.venue}</p>
               </div>
             </div>
             <Badge className={getStateColor(event.state)}>
-              {event.state === 'live' && <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>}
+              {event.state === 'live' && <div className="w-2 h-2 rounded-full bg-fighter-success mr-2"></div>}
               {event.state.toUpperCase()}
             </Badge>
           </div>
           
           {event.description && (
-            <p className="text-gray-300 mb-4">{event.description}</p>
+            <p className="text-muted-foreground mb-4">{event.description}</p>
           )}
           
-          <div className="flex gap-6 text-sm text-gray-400">
+          <div className="flex gap-6 text-sm text-muted-foreground">
             {event.start_time && (
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -403,18 +343,18 @@ export default function EventoBetting() {
           {/* Markets */}
           <div className="lg:col-span-2 space-y-6">
             {markets.map((market) => (
-              <Card key={market.id} className="bg-gray-900 border-gray-800">
+              <Card key={market.id} className="bg-card border-border">
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-xl text-white">{market.title}</CardTitle>
+                      <CardTitle className="text-xl text-foreground">{market.title}</CardTitle>
                       {market.description && (
-                        <CardDescription className="text-gray-400">
+                        <CardDescription className="text-muted-foreground">
                           {market.description}
                         </CardDescription>
                       )}
                     </div>
-                    <div className="text-right text-sm text-gray-400">
+                    <div className="text-right text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Badge className={getStateColor(market.state)}>
                           {market.state}
@@ -431,7 +371,6 @@ export default function EventoBetting() {
                   <div className="grid gap-3">
                     {market.outcomes.map((outcome) => {
                       const quote = calculateQuote(market, outcome);
-                      // Use real-time pool if available
                       const currentPool = getPoolForOutcome(outcome.id) || outcome.pool;
                       const realtimeState = getMarketState(market.id) || market.state;
                       
@@ -445,8 +384,8 @@ export default function EventoBetting() {
                           variant={isSelected ? "default" : "outline"}
                           className={`justify-between h-auto p-4 ${
                             isSelected 
-                              ? 'bg-orange-600 hover:bg-orange-700 border-orange-500' 
-                              : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                              ? 'bg-primary hover:bg-primary/90 border-primary' 
+                              : 'bg-secondary border-border hover:bg-muted'
                           } ${realtimeState !== 'open' ? 'opacity-50 cursor-not-allowed' : ''}`}
                           onClick={() => addToBettingSlip(market, outcome)}
                           disabled={realtimeState !== 'open' || !outcome.active}
@@ -456,7 +395,7 @@ export default function EventoBetting() {
                             <div className="text-sm opacity-75 flex items-center gap-2">
                               Pool: ${currentPool.toFixed(2)}
                               {getPoolForOutcome(outcome.id) !== outcome.pool && (
-                                <span className="text-xs bg-green-600 px-1 rounded">LIVE</span>
+                                <span className="text-xs bg-fighter-success px-1 rounded">LIVE</span>
                               )}
                             </div>
                           </div>
@@ -469,8 +408,8 @@ export default function EventoBetting() {
                   </div>
                   
                   {(getMarketState(market.id) || market.state) === 'suspended' && (
-                    <div className="mt-4 p-3 bg-yellow-900/30 border border-yellow-700 rounded-lg">
-                      <div className="flex items-center gap-2 text-yellow-400">
+                    <div className="mt-4 p-3 bg-fighter-warning/10 border border-fighter-warning/30 rounded-lg">
+                      <div className="flex items-center gap-2 text-fighter-warning">
                         <AlertTriangle className="h-4 w-4" />
                         <span className="text-sm">Mercado suspendido temporalmente</span>
                       </div>
@@ -488,15 +427,15 @@ export default function EventoBetting() {
             
             {/* Real-time Connection Status */}
             {!isConnected && (
-              <div className="p-3 bg-yellow-900/30 border border-yellow-700 rounded-lg">
-                <div className="flex items-center gap-2 text-yellow-400 text-sm">
+              <div className="p-3 bg-fighter-warning/10 border border-fighter-warning/30 rounded-lg">
+                <div className="flex items-center gap-2 text-fighter-warning text-sm">
                   <AlertTriangle className="h-4 w-4" />
                   <span>Conectando a actualizaciones en tiempo real...</span>
                 </div>
               </div>
             )}
 
-            <Card className="bg-gray-900 border-gray-800 sticky top-6">
+            <Card className="bg-card border-border sticky top-6">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
@@ -512,7 +451,7 @@ export default function EventoBetting() {
               
               <CardContent className="space-y-4">
                 {selectedBets.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <Target className="h-12 w-12 mx-auto mb-3 opacity-30" />
                     <p>Haz click en las cuotas para añadir apuestas</p>
                   </div>
@@ -521,15 +460,15 @@ export default function EventoBetting() {
                     <ScrollArea className="max-h-64">
                       <div className="space-y-3">
                         {selectedBets.map((bet, index) => (
-                          <div key={`${bet.marketId}-${bet.outcomeId}`} className="p-3 bg-gray-800 rounded border border-gray-700">
-                            <div className="text-sm font-medium text-white mb-1">
+                          <div key={`${bet.marketId}-${bet.outcomeId}`} className="p-3 bg-secondary rounded border border-border">
+                            <div className="text-sm font-medium text-foreground mb-1">
                               {bet.outcomeLabel}
                             </div>
-                            <div className="text-xs text-gray-400 mb-2">
+                            <div className="text-xs text-muted-foreground mb-2">
                               {bet.marketTitle}
                             </div>
                             <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-orange-400">
+                              <span className="text-sm font-bold text-primary">
                                 {bet.quote.toFixed(2)}x
                               </span>
                               <Input
@@ -538,10 +477,10 @@ export default function EventoBetting() {
                                 step="0.1"
                                 value={bet.stake}
                                 onChange={(e) => updateBetStake(bet.marketId, bet.outcomeId, parseFloat(e.target.value) || 0)}
-                                className="w-20 h-8 text-xs bg-black border-gray-600"
+                                className="w-20 h-8 text-xs bg-background border-border"
                               />
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               Payout potencial: ${(bet.stake * bet.quote).toFixed(2)}
                             </div>
                           </div>
@@ -549,7 +488,7 @@ export default function EventoBetting() {
                       </div>
                     </ScrollArea>
                     
-                    <Separator className="bg-gray-700" />
+                    <Separator className="bg-border" />
                     
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
@@ -558,12 +497,12 @@ export default function EventoBetting() {
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Payout Potencial:</span>
-                        <span className="font-medium text-green-400">${totalPotentialPayout.toFixed(2)}</span>
+                        <span className="font-medium text-fighter-success">${totalPotentialPayout.toFixed(2)}</span>
                       </div>
                     </div>
                     
                     <Button 
-                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+                      className="w-full bg-gradient-to-r from-primary to-destructive hover:from-primary/90 hover:to-destructive/90"
                       onClick={placeBets}
                       disabled={betting || !user || getAvailableBalance('BDG') < totalSelectedStake}
                     >
@@ -579,7 +518,7 @@ export default function EventoBetting() {
 
             {/* User Tickets */}
             {user && userTickets.length > 0 && (
-              <Card className="bg-gray-900 border-gray-800">
+              <Card className="bg-card border-border">
                 <CardHeader>
                   <CardTitle className="text-lg">Mis Apuestas</CardTitle>
                 </CardHeader>
@@ -587,9 +526,9 @@ export default function EventoBetting() {
                   <ScrollArea className="max-h-64">
                     <div className="space-y-2">
                       {userTickets.map((ticket) => (
-                        <div key={ticket.id} className="p-2 bg-gray-800 rounded text-sm">
+                        <div key={ticket.id} className="p-2 bg-secondary rounded text-sm">
                           <div className="font-medium">{ticket.outcome?.label}</div>
-                          <div className="text-gray-400 text-xs">{ticket.market?.title}</div>
+                          <div className="text-muted-foreground text-xs">{ticket.market?.title}</div>
                           <div className="flex justify-between mt-1">
                             <span>${ticket.stake}</span>
                             <Badge variant="outline" className="text-xs">
