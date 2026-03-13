@@ -219,7 +219,7 @@ export default function LicenseOnboarding() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-800" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-foreground" />
               <p className="text-muted-foreground">Verificando perfil existente...</p>
             </div>
           </CardContent>
@@ -293,9 +293,9 @@ export default function LicenseOnboarding() {
           
           <div className="flex items-center justify-center mb-4">
             {step === 1 ? (
-              <User className="h-12 w-12 text-gray-800" />
+              <User className="h-12 w-12 text-foreground" />
             ) : (
-              <Award className="h-12 w-12 text-gray-800" />
+              <Award className="h-12 w-12 text-foreground" />
             )}
           </div>
           <CardTitle className="text-2xl">Configurar Tu Perfil de Peleador</CardTitle>
@@ -599,7 +599,7 @@ export default function LicenseOnboarding() {
                 </div>
 
                 <div>
-                  <Label htmlFor="fighterPhoto">Foto del Peleador <span className="text-sm text-gray-500">(Opcional - para tu perfil)</span></Label>
+                  <Label htmlFor="fighterPhoto">Foto del Peleador <span className="text-sm text-muted-foreground">(Opcional - para tu perfil)</span></Label>
                   <FileUpload
                     onFileSelect={(file) => {
                       setFighterPhoto(file);

@@ -26,7 +26,7 @@ export default function LicenseSuspended() {
             <Button
               variant="outline"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="flex items-center gap-2 hover:bg-muted"
             >
               <Home className="h-4 w-4" />
               Pantalla Principal
@@ -43,7 +43,7 @@ export default function LicenseSuspended() {
 
         {/* License Info Card */}
         {licenseData && (
-          <Card className="mb-8 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20">
+          <Card className="mb-8 border-destructive/30 bg-destructive/5">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -75,15 +75,15 @@ export default function LicenseSuspended() {
               </div>
 
               {licenseData.suspension_reason && (
-                <div className="bg-red-50 dark:bg-red-950/50 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                  <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
+                <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/30">
+                  <h4 className="font-medium text-destructive mb-2">
                     Razón de la Suspensión:
                   </h4>
-                  <p className="text-red-800 dark:text-red-200 text-sm">
+                  <p className="text-destructive/80 text-sm">
                     {licenseData.suspension_reason}
                   </p>
                   {licenseData.suspension_until && (
-                    <p className="text-red-700 dark:text-red-300 text-xs mt-2">
+                    <p className="text-destructive/70 text-xs mt-2">
                       Suspendido hasta: {new Date(licenseData.suspension_until).toLocaleDateString()}
                     </p>
                   )}
@@ -104,28 +104,28 @@ export default function LicenseSuspended() {
           <CardContent className="space-y-4">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Estado Temporal:</strong> Tu Fighter ID ha sido suspendido temporalmente 
                   y no puedes participar en eventos oficiales mientras permanezca en este estado.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Acceso Limitado:</strong> Durante la suspensión, tu acceso a ciertas 
                   funciones del sistema puede estar restringido.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Proceso de Apelación:</strong> Si consideras que la suspensión es 
                   incorrecta, puedes contactar al equipo administrativo para iniciar un proceso de revisión.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Reactivación:</strong> Una vez resueltos los motivos de la suspensión, 
                   tu Fighter ID podrá ser reactivado por un administrador.
@@ -139,7 +139,7 @@ export default function LicenseSuspended() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-blue-500" />
+              <Mail className="h-5 w-5 text-fighter-info" />
               Contacto Administrativo
             </CardTitle>
           </CardHeader>
@@ -150,25 +150,25 @@ export default function LicenseSuspended() {
             </p>
             
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <Mail className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-fighter-info/10 rounded-lg border border-fighter-info/30">
+                <Mail className="h-4 w-4 text-fighter-info flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                  <p className="font-medium text-foreground">
                     Correo Electrónico
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-sm text-muted-foreground">
                     admin@batallagimnasios.com
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <Phone className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-fighter-info/10 rounded-lg border border-fighter-info/30">
+                <Phone className="h-4 w-4 text-fighter-info flex-shrink-0" />
                 <div>
-                  <p className="font-medium text-blue-900 dark:text-blue-100">
+                  <p className="font-medium text-foreground">
                     Soporte Administrativo
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-sm text-muted-foreground">
                     Disponible en horario de oficina
                   </p>
                 </div>
@@ -177,8 +177,8 @@ export default function LicenseSuspended() {
 
             <Separator className="my-4" />
 
-            <div className="bg-amber-50 dark:bg-amber-950/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="bg-fighter-warning/10 p-4 rounded-lg border border-fighter-warning/30">
+              <p className="text-sm text-fighter-warning">
                 <strong>Importante:</strong> Al contactar al equipo administrativo, 
                 incluye tu número de licencia ({licenseData?.license_number}) 
                 para agilizar el proceso de revisión.

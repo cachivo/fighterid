@@ -127,7 +127,7 @@ export default function Station2Scoring() {
         <div className="flex items-center gap-3">
           <div className={cn(
             'w-3 h-3 rounded-full',
-            isConnected ? 'bg-green-500' : 'bg-yellow-500'
+            isConnected ? 'bg-fighter-success' : 'bg-fighter-warning'
           )} />
           {isConnected ? (
             <Wifi className="w-6 h-6" />

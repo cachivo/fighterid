@@ -114,9 +114,9 @@ export default function LicenseForgotPassword() {
           )}
 
           {success && (
-            <Alert className="bg-green-50 border-green-200">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
+            <Alert className="bg-fighter-success/10 border-fighter-success/30">
+              <CheckCircle2 className="h-4 w-4 text-fighter-success" />
+              <AlertDescription className="text-fighter-success">
                 <p className="font-semibold mb-2">¡Correo enviado!</p>
                 <p className="mb-2">Te hemos enviado un correo desde <strong>Fighter ID</strong> con instrucciones para restablecer tu contraseña.</p>
                 <p className="text-sm">
@@ -127,9 +127,9 @@ export default function LicenseForgotPassword() {
           )}
 
           {cooldownSeconds > 0 && (
-            <Alert className="bg-amber-50 border-amber-200">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
+            <Alert className="bg-fighter-warning/10 border-fighter-warning/30">
+              <AlertCircle className="h-4 w-4 text-fighter-warning" />
+              <AlertDescription className="text-fighter-warning">
                 <p className="font-semibold mb-1">Espera antes de reintentar</p>
                 <p>Debes esperar <strong>{cooldownSeconds} segundos</strong> antes de solicitar otro correo.</p>
                 {attemptsRemaining > 0 && (
@@ -156,7 +156,7 @@ export default function LicenseForgotPassword() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               disabled={loading || cooldownSeconds > 0}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -167,7 +167,7 @@ export default function LicenseForgotPassword() {
           </form>
 
           {success && (
-            <div className="text-sm text-gray-600 text-center space-y-1">
+            <div className="text-sm text-muted-foreground text-center space-y-1">
               <p>¿No recibiste el correo?</p>
               <p>• Revisa tu carpeta de <strong>spam/correo no deseado</strong></p>
               <p>• Espera 60 segundos para reenviar</p>
@@ -177,7 +177,7 @@ export default function LicenseForgotPassword() {
           <div className="text-center">
             <Link
               to="/license/auth?mode=signin"
-              className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al inicio de sesión

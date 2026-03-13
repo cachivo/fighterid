@@ -16,9 +16,9 @@ import { toast } from 'sonner';
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   draft: { label: 'Borrador', color: 'bg-muted text-muted-foreground', icon: Clock },
-  submitted: { label: 'Pendiente', color: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
-  under_review: { label: 'En Revisión', color: 'bg-blue-500/20 text-blue-400', icon: Search },
-  approved: { label: 'Aprobada', color: 'bg-green-500/20 text-green-400', icon: CheckCircle },
+  submitted: { label: 'Pendiente', color: 'bg-fighter-warning/20 text-fighter-warning', icon: Clock },
+  under_review: { label: 'En Revisión', color: 'bg-fighter-info/20 text-fighter-info', icon: Search },
+  approved: { label: 'Aprobada', color: 'bg-fighter-success/20 text-fighter-success', icon: CheckCircle },
   rejected: { label: 'Rechazada', color: 'bg-destructive/20 text-destructive', icon: XCircle },
   cancelled: { label: 'Cancelada', color: 'bg-muted text-muted-foreground', icon: XCircle },
 };
@@ -93,14 +93,14 @@ export default function FightApproval() {
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-1 text-yellow-400" />
+            <Clock className="h-6 w-6 mx-auto mb-1 text-fighter-warning" />
             <p className="text-2xl font-bold">{pendingCount}</p>
             <p className="text-xs text-muted-foreground">Pendientes</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <CheckCircle className="h-6 w-6 mx-auto mb-1 text-green-400" />
+            <CheckCircle className="h-6 w-6 mx-auto mb-1 text-fighter-success" />
             <p className="text-2xl font-bold">{requests.filter(r => r.status === 'approved').length}</p>
             <p className="text-xs text-muted-foreground">Aprobadas</p>
           </CardContent>
@@ -151,7 +151,7 @@ export default function FightApproval() {
                             </Badge>
                             <Badge variant="outline">{req.discipline}</Badge>
                             <Badge variant="outline">{req.weight_class}</Badge>
-                            {req.is_championship && <Badge className="bg-yellow-500/20 text-yellow-400">🏆 Campeonato</Badge>}
+                            {req.is_championship && <Badge className="bg-fighter-warning/20 text-fighter-warning">🏆 Campeonato</Badge>}
                           </div>
                           <p className="font-semibold">
                             {getFighterName(req, 'a')} <span className="text-muted-foreground">vs</span> {getFighterName(req, 'b')}
@@ -164,7 +164,7 @@ export default function FightApproval() {
                         </div>
                         {req.status === 'submitted' && (
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="text-green-400 border-green-400/30" onClick={(e) => { e.stopPropagation(); handleApprove(req); }}>
+                            <Button size="sm" variant="outline" className="text-fighter-success border-fighter-success/30" onClick={(e) => { e.stopPropagation(); handleApprove(req); }}>
                               <CheckCircle className="h-4 w-4 mr-1" /> Aprobar
                             </Button>
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={(e) => { e.stopPropagation(); setSelectedRequest(req); setShowRejectDialog(true); }}>
@@ -247,13 +247,13 @@ export default function FightApproval() {
 
                   {eligibilityResult && (
                     <div className="mt-3 space-y-2">
-                      <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-green-500/10 text-green-400' : 'bg-destructive/10 text-destructive'}`}>
+                      <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-fighter-success/10 text-fighter-success' : 'bg-destructive/10 text-destructive'}`}>
                         {eligibilityResult.eligible ? '✅ Ambos peleadores son elegibles' : '❌ No cumplen todos los requisitos'}
                       </div>
                       <div className="space-y-1">
                         {(eligibilityResult.checks || []).map((check: any, i: number) => (
                           <div key={i} className="flex items-center gap-2 text-xs">
-                            {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-green-400" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                            {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-fighter-success" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                             <span className={check.passed ? 'text-muted-foreground' : 'text-destructive'}>{check.label}: {check.detail}</span>
                           </div>
                         ))}
