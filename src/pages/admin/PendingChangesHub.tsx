@@ -365,7 +365,7 @@ export default function PendingChangesHub() {
                     <div className="flex flex-col items-end gap-1">
                       {getStatusBadge(change.status)}
                       {change.requested_changes?.record_wins !== undefined && (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs flex items-center gap-1">
+                        <Badge variant="outline" className="bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30 text-xs flex items-center gap-1">
                           Récord
                         </Badge>
                       )}
