@@ -46,10 +46,10 @@ export default function LiveEventsControl() {
     
     const getStatusColor = (status: string) => {
       switch (status) {
-        case 'ACTIVE': return 'bg-green-500 text-white';
-        case 'PAUSED': return 'bg-yellow-500 text-white';
-        case 'FINISHED': return 'bg-gray-500 text-white';
-        default: return 'bg-blue-500 text-white';
+        case 'ACTIVE': return 'bg-fighter-success text-white';
+        case 'PAUSED': return 'bg-fighter-warning text-white';
+        case 'FINISHED': return 'bg-muted text-white';
+        default: return 'bg-fighter-info text-white';
       }
     };
 
