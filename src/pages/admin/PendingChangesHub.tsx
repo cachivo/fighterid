@@ -143,16 +143,16 @@ export default function PendingChangesHub() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="outline" className="gap-1 bg-yellow-500/10 text-yellow-600 border-yellow-500/30"><Clock className="h-3 w-3" />Pendiente</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30"><Clock className="h-3 w-3" />Pendiente</Badge>;
       case 'APPROVED':
       case 'APPLIED':
       case 'CLEAN':
-        return <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-600 border-green-500/30"><CheckCircle className="h-3 w-3" />Aprobado</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-success/10 text-fighter-success border-fighter-success/30"><CheckCircle className="h-3 w-3" />Aprobado</Badge>;
       case 'REJECTED':
       case 'POSITIVE':
-        return <Badge variant="outline" className="gap-1 bg-red-500/10 text-red-600 border-red-500/30"><XCircle className="h-3 w-3" />Rechazado</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-danger/10 text-fighter-danger border-fighter-danger/30"><XCircle className="h-3 w-3" />Rechazado</Badge>;
       case 'REQUIRES_INFO':
-        return <Badge variant="outline" className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/30"><MessageSquare className="h-3 w-3" />Requiere Info</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-info/10 text-fighter-info border-fighter-info/30"><MessageSquare className="h-3 w-3" />Requiere Info</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -167,15 +167,15 @@ export default function PendingChangesHub() {
     // Special section for record changes
     if (hasRecordChanges) {
       changes.push(
-        <Alert key="record-alert" className="bg-amber-50 border-amber-200 mb-4">
-          <Trophy className="h-4 w-4 text-amber-600" />
+        <Alert key="record-alert" className="bg-fighter-warning/10 border-fighter-warning/30 mb-4">
+          <Trophy className="h-4 w-4 text-fighter-warning" />
           <AlertTitle>Cambio de Récord de Peleas</AlertTitle>
           <AlertDescription>
             Verificar resultado oficial de pelea antes de aprobar
           </AlertDescription>
         </Alert>,
-        <div key="record-comparison" className="border rounded-lg p-4 bg-amber-50/50 mb-4">
-          <h4 className="font-medium mb-4 text-amber-700">Récord de Peleas</h4>
+        <div key="record-comparison" className="border rounded-lg p-4 bg-fighter-warning/5 mb-4">
+          <h4 className="font-medium mb-4 text-fighter-warning">Récord de Peleas</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="font-semibold">Récord Actual</Label>
@@ -185,7 +185,7 @@ export default function PendingChangesHub() {
             </div>
             <div>
               <Label className="font-semibold">Récord Solicitado</Label>
-              <p className="text-lg text-amber-600 font-semibold mt-1">
+              <p className="text-lg text-fighter-warning font-semibold mt-1">
                 {(requested.record_wins ?? current?.record_wins) || 0}-
                 {(requested.record_losses ?? current?.record_losses) || 0}-
                 {(requested.record_draws ?? current?.record_draws) || 0} ({(requested.record_type ?? current?.record_type) || 'N/A'})
@@ -254,40 +254,40 @@ export default function PendingChangesHub() {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-yellow-500 transition-colors ${statusFilter === 'PENDING' ? 'border-yellow-500 bg-yellow-500/5' : ''}`} onClick={() => applyStatusFilter('PENDING')}>
+        <Card className={`cursor-pointer hover:border-fighter-warning transition-colors ${statusFilter === 'PENDING' ? 'border-fighter-warning bg-fighter-warning/5' : ''}`} onClick={() => applyStatusFilter('PENDING')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Pendientes</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <Clock className="h-4 w-4 text-fighter-warning" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+            <div className="text-2xl font-bold text-fighter-warning">{stats.pending}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-green-500 transition-colors ${statusFilter === 'APPROVED' ? 'border-green-500 bg-green-500/5' : ''}`} onClick={() => applyStatusFilter('APPROVED')}>
+        <Card className={`cursor-pointer hover:border-fighter-success transition-colors ${statusFilter === 'APPROVED' ? 'border-fighter-success bg-fighter-success/5' : ''}`} onClick={() => applyStatusFilter('APPROVED')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Aprobados</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-fighter-success" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+            <div className="text-2xl font-bold text-fighter-success">{stats.approved}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-red-500 transition-colors ${statusFilter === 'REJECTED' ? 'border-red-500 bg-red-500/5' : ''}`} onClick={() => applyStatusFilter('REJECTED')}>
+        <Card className={`cursor-pointer hover:border-fighter-danger transition-colors ${statusFilter === 'REJECTED' ? 'border-fighter-danger bg-fighter-danger/5' : ''}`} onClick={() => applyStatusFilter('REJECTED')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Rechazados</CardTitle>
-            <XCircle className="h-4 w-4 text-red-500" />
+            <XCircle className="h-4 w-4 text-fighter-danger" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+            <div className="text-2xl font-bold text-fighter-danger">{stats.rejected}</div>
           </CardContent>
         </Card>
-        <Card className={`cursor-pointer hover:border-blue-500 transition-colors ${statusFilter === 'REQUIRES_INFO' ? 'border-blue-500 bg-blue-500/5' : ''}`} onClick={() => applyStatusFilter('REQUIRES_INFO')}>
+        <Card className={`cursor-pointer hover:border-fighter-info transition-colors ${statusFilter === 'REQUIRES_INFO' ? 'border-fighter-info bg-fighter-info/5' : ''}`} onClick={() => applyStatusFilter('REQUIRES_INFO')}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
             <CardTitle className="text-xs font-medium">Requiere Info</CardTitle>
-            <MessageSquare className="h-4 w-4 text-blue-500" />
+            <MessageSquare className="h-4 w-4 text-fighter-info" />
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.requiresInfo}</div>
+            <div className="text-2xl font-bold text-fighter-info">{stats.requiresInfo}</div>
           </CardContent>
         </Card>
       </div>
@@ -365,7 +365,7 @@ export default function PendingChangesHub() {
                     <div className="flex flex-col items-end gap-1">
                       {getStatusBadge(change.status)}
                       {change.requested_changes?.record_wins !== undefined && (
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 text-xs flex items-center gap-1">
+                        <Badge variant="outline" className="bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30 text-xs flex items-center gap-1">
                           Récord
                         </Badge>
                       )}
@@ -696,7 +696,7 @@ export default function PendingChangesHub() {
                 <Button
                   onClick={() => handleVerifyDopingTest('CLEAN')}
                   disabled={isProcessing}
-                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  className="gap-2 bg-fighter-success hover:bg-fighter-success/90"
                 >
                   <CheckCircle className="h-4 w-4" />
                   Limpio

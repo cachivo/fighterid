@@ -74,10 +74,10 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
 
   const getPostTypeColor = () => {
     switch (post.post_type) {
-      case 'news': return 'bg-blue-500';
-      case 'image': return 'bg-green-500';
-      case 'video': return 'bg-purple-500';
-      default: return 'bg-gray-500';
+      case 'news': return 'bg-fighter-info';
+      case 'image': return 'bg-fighter-success';
+      case 'video': return 'bg-primary';
+      default: return 'bg-muted-foreground';
     }
   };
 
@@ -191,7 +191,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
                 )}
                 
                 {post.author_type === 'fighter' && showFriendBadge && post.is_friend && (
-                  <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                  <Badge variant="secondary" className="text-xs bg-fighter-success/10 text-fighter-success border-fighter-success/20">
                     👥 Amigo
                   </Badge>
                 )}
@@ -311,7 +311,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
                 onClick={() => onLike(post.id)}
                 className={`flex items-center space-x-2 h-8 px-2 ${
                   post.is_liked 
-                    ? 'text-red-500 hover:text-red-600' 
+                    ? 'text-fighter-danger hover:text-fighter-danger/80' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >

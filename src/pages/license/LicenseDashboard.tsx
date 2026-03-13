@@ -159,7 +159,7 @@ export default function LicenseDashboard() {
     switch (level) {
       case 'AMATEUR': return 'bg-fighter-info text-white';
       case 'SEMI_PRO': return 'bg-fighter-secondary text-white';
-      case 'PROFESSIONAL': return 'bg-amber-600 text-white';
+      case 'PROFESSIONAL': return 'bg-fighter-warning text-white';
       default: return 'bg-fighter-accent text-white';
     }
   };
@@ -657,9 +657,9 @@ export default function LicenseDashboard() {
                 <div className="p-3 rounded-lg border bg-muted/20">
                   <div className="flex items-center gap-2 mb-2">
                     {licenseData.medical_cleared ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-fighter-success" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle className="h-4 w-4 text-fighter-warning" />
                     )}
                     <span className="text-sm font-medium">Médico</span>
                   </div>
@@ -670,9 +670,9 @@ export default function LicenseDashboard() {
                 <div className="p-3 rounded-lg border bg-muted/20">
                   <div className="flex items-center gap-2 mb-2">
                     {licenseData.physical_cleared ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-fighter-success" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle className="h-4 w-4 text-fighter-warning" />
                     )}
                     <span className="text-sm font-medium">Físico</span>
                   </div>
@@ -691,7 +691,7 @@ export default function LicenseDashboard() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Expira:</span>
-                  <span className={new Date(licenseData.expires_at) < new Date() ? 'text-red-600 font-medium' : ''}>
+                  <span className={new Date(licenseData.expires_at) < new Date() ? 'text-fighter-danger font-medium' : ''}>
                     {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
                   </span>
                 </div>

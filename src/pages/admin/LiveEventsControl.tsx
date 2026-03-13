@@ -46,10 +46,10 @@ export default function LiveEventsControl() {
     
     const getStatusColor = (status: string) => {
       switch (status) {
-        case 'ACTIVE': return 'bg-green-500 text-white';
-        case 'PAUSED': return 'bg-yellow-500 text-white';
-        case 'FINISHED': return 'bg-gray-500 text-white';
-        default: return 'bg-blue-500 text-white';
+        case 'ACTIVE': return 'bg-fighter-success text-white';
+        case 'PAUSED': return 'bg-fighter-warning text-white';
+        case 'FINISHED': return 'bg-muted text-white';
+        default: return 'bg-fighter-info text-white';
       }
     };
 
@@ -249,7 +249,7 @@ export default function LiveEventsControl() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-purple-neon-primary" />
+              <Zap className="h-5 w-5 text-primary" />
               Estadísticas IA en Tiempo Real
             </DialogTitle>
             <DialogDescription>
@@ -299,12 +299,12 @@ export default function LiveEventsControl() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Conectados</span>
-                    <span className="font-mono font-semibold text-green-500">{statsA.connected_count}</span>
+                    <span className="font-mono font-semibold text-fighter-success">{statsA.connected_count}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Precisión</span>
-                    <span className="font-mono font-bold text-purple-neon-primary">{statsA.accuracy}%</span>
+                    <span className="font-mono font-bold text-primary">{statsA.accuracy}%</span>
                   </div>
                 </CardContent>
               </Card>
@@ -323,12 +323,12 @@ export default function LiveEventsControl() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Conectados</span>
-                    <span className="font-mono font-semibold text-green-500">{statsB.connected_count}</span>
+                    <span className="font-mono font-semibold text-fighter-success">{statsB.connected_count}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Precisión</span>
-                    <span className="font-mono font-bold text-purple-neon-primary">{statsB.accuracy}%</span>
+                    <span className="font-mono font-bold text-primary">{statsB.accuracy}%</span>
                   </div>
                 </CardContent>
               </Card>
@@ -351,7 +351,7 @@ export default function LiveEventsControl() {
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-300"
                         style={{ 
                           width: `${statsA.connected_count > 0 ? (statsA.connected_count / Math.max(statsA.connected_count + statsB.connected_count, 1)) * 100 : 0}%` 
                         }}
@@ -366,7 +366,7 @@ export default function LiveEventsControl() {
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-fighter-info to-fighter-info/80 transition-all duration-300"
                         style={{ 
                           width: `${statsB.connected_count > 0 ? (statsB.connected_count / Math.max(statsA.connected_count + statsB.connected_count, 1)) * 100 : 0}%` 
                         }}
@@ -389,7 +389,7 @@ export default function LiveEventsControl() {
                       {recentEvents.map((event, idx) => (
                         <div 
                           key={event.id} 
-                          className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs border-l-2 border-purple-neon-primary/50"
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs border-l-2 border-primary/50"
                         >
                           <div className="flex items-center gap-2">
                             <Badge variant={event.fighter === 'A' ? 'destructive' : 'default'} className="text-xs">
@@ -578,10 +578,10 @@ export default function LiveEventsControl() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">En Vivo</CardTitle>
-              <Play className="h-4 w-4 text-green-600" />
+              <Play className="h-4 w-4 text-fighter-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-fighter-success">
                 {fights.filter(f => f.status === 'in_progress').length}
               </div>
             </CardContent>
@@ -590,10 +590,10 @@ export default function LiveEventsControl() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Programadas</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
+              <Clock className="h-4 w-4 text-fighter-info" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-fighter-info">
                 {fights.filter(f => f.status === 'scheduled').length}
               </div>
             </CardContent>
@@ -602,10 +602,10 @@ export default function LiveEventsControl() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Finalizadas</CardTitle>
-              <Square className="h-4 w-4 text-gray-600" />
+              <Square className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-600">
+              <div className="text-2xl font-bold text-muted-foreground">
                 {fights.filter(f => f.status === 'finished').length}
               </div>
             </CardContent>

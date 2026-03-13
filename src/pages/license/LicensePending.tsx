@@ -182,12 +182,12 @@ export default function LicensePending() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-urban-light p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background p-4">
       <div className="max-w-4xl mx-auto pt-12">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto mb-4 p-3 rounded-full bg-orange-500/10 w-fit">
-            <Clock className="h-8 w-8 text-orange-500" />
+          <div className="mx-auto mb-4 p-3 rounded-full bg-fighter-warning/10 w-fit">
+            <Clock className="h-8 w-8 text-fighter-warning" />
           </div>
           <h1 className="text-3xl font-bold mb-2">Licencia en Proceso</h1>
           <p className="text-muted-foreground">
@@ -197,7 +197,7 @@ export default function LicensePending() {
             <Button
               variant="outline"
               onClick={() => navigate('/')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-muted"
             >
               <Home className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Pantalla Principal</span>
@@ -225,7 +225,7 @@ export default function LicensePending() {
 
         {/* License Info Card */}
         {licenseData && (
-          <Card className="mb-8 border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/20">
+          <Card className="mb-8 border-fighter-warning/30 bg-fighter-warning/5">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -237,7 +237,7 @@ export default function LicensePending() {
                     Número de Referencia: {licenseData.license_number}
                   </CardDescription>
                 </div>
-                <Badge variant="outline" className="bg-orange-500 text-white border-0">
+                <Badge variant="outline" className="bg-fighter-warning text-white border-0">
                   {licenseData.status === 'APPLIED' ? 'Enviada' : 'En Revisión'}
                 </Badge>
               </div>
@@ -282,9 +282,9 @@ export default function LicensePending() {
                     <div className={`
                       flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
                       ${step.completed 
-                        ? 'bg-green-500 text-white' 
+                        ? 'bg-fighter-success text-white' 
                         : step.current 
-                          ? 'bg-orange-500 text-white animate-pulse' 
+                          ? 'bg-fighter-warning text-white animate-pulse' 
                           : 'bg-muted text-muted-foreground'
                       }
                     `}>
@@ -292,7 +292,7 @@ export default function LicensePending() {
                     </div>
                     <div className="flex-1">
                       <h3 className={`font-medium ${
-                        step.current ? 'text-orange-600 dark:text-orange-400' : ''
+                        step.current ? 'text-fighter-warning' : ''
                       }`}>
                         {step.title}
                       </h3>
@@ -300,7 +300,7 @@ export default function LicensePending() {
                         {step.description}
                       </p>
                       {step.current && (
-                        <Badge variant="outline" className="mt-2 bg-orange-100 text-orange-700 border-orange-300">
+                        <Badge variant="outline" className="mt-2 bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30">
                           Paso Actual
                         </Badge>
                       )}
@@ -319,35 +319,35 @@ export default function LicensePending() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-blue-500" />
+              <AlertTriangle className="h-5 w-5 text-primary" />
               Información Importante
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Tiempo de Procesamiento:</strong> Las solicitudes de licencia 
                   suelen procesarse en 2-5 días hábiles.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Documentación Requerida:</strong> Asegúrate de tener tu 
                   certificado médico actualizado una vez que tu Fighter ID sea aprobado.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Notificaciones:</strong> Recibirás un correo electrónico 
                   cuando el estado de tu Fighter ID cambie.
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Preguntas:</strong> Si tienes dudas sobre tu solicitud, 
                   contacta al equipo de administración.

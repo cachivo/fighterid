@@ -21,12 +21,12 @@ const iconMap = {
 };
 
 const colorMap = {
-  friend_request: 'text-blue-500',
-  friend_accepted: 'text-green-500',
-  post_like: 'text-red-500',
-  post_comment: 'text-purple-500',
-  news: 'text-orange-500',
-  system: 'text-gray-500',
+  friend_request: 'text-fighter-info',
+  friend_accepted: 'text-fighter-success',
+  post_like: 'text-fighter-danger',
+  post_comment: 'text-primary',
+  news: 'text-fighter-warning',
+  system: 'text-muted-foreground',
 };
 
 export const NotificationCard = ({ notification, onMarkAsRead, onDelete }: NotificationCardProps) => {

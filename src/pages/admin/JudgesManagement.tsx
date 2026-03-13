@@ -110,10 +110,10 @@ export default function JudgesManagement() {
 
   const getCertificationBadgeColor = (level: string) => {
     switch (level) {
-      case 'INTERNATIONAL': return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white';
-      case 'NATIONAL': return 'bg-gradient-to-r from-blue-400 to-blue-600 text-white';
-      case 'REGIONAL': return 'bg-gradient-to-r from-green-400 to-green-600 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'INTERNATIONAL': return 'bg-gradient-to-r from-fighter-warning to-fighter-warning/80 text-white';
+      case 'NATIONAL': return 'bg-gradient-to-r from-fighter-info to-fighter-info/80 text-white';
+      case 'REGIONAL': return 'bg-gradient-to-r from-fighter-success to-fighter-success/80 text-white';
+      default: return 'bg-muted-foreground text-white';
     }
   };
 
@@ -359,10 +359,10 @@ export default function JudgesManagement() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Activos</CardTitle>
-            <ToggleRight className="h-4 w-4 text-green-600" />
+            <ToggleRight className="h-4 w-4 text-fighter-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold text-fighter-success">
               {judges.filter(j => j.active).length}
             </div>
           </CardContent>
@@ -371,10 +371,10 @@ export default function JudgesManagement() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Internacionales</CardTitle>
-            <Award className="h-4 w-4 text-yellow-600" />
+            <Award className="h-4 w-4 text-fighter-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
+            <div className="text-2xl font-bold text-fighter-warning">
               {judges.filter(j => j.certification_level === 'INTERNATIONAL').length}
             </div>
           </CardContent>
@@ -383,10 +383,10 @@ export default function JudgesManagement() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Peleas Totales</CardTitle>
-            <Award className="h-4 w-4 text-blue-600" />
+            <Award className="h-4 w-4 text-fighter-info" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-fighter-info">
               {judges.reduce((sum, j) => sum + j.total_fights_judged, 0)}
             </div>
           </CardContent>
@@ -418,9 +418,9 @@ export default function JudgesManagement() {
                     className="flex items-center"
                   >
                     {judge.active ? (
-                      <ToggleRight className="h-5 w-5 text-green-600" />
+                      <ToggleRight className="h-5 w-5 text-fighter-success" />
                     ) : (
-                      <ToggleLeft className="h-5 w-5 text-gray-400" />
+                      <ToggleLeft className="h-5 w-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>

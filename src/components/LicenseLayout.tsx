@@ -57,7 +57,7 @@ export default function LicenseLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-urban-light overflow-x-hidden">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-background to-background overflow-x-hidden">
         {/* Header with trigger */}
         <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-sm border-b border-border flex items-center px-4 pt-[env(safe-area-inset-top)] min-w-0">
           <SidebarTrigger className="text-primary shrink-0" />

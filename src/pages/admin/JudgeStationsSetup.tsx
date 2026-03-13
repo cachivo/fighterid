@@ -339,7 +339,7 @@ export default function JudgeStationsSetup() {
                     {/* Connection Info */}
                     {station.is_connected && station.connected_judge_name && (
                       <div className="pt-4 border-t space-y-2">
-                        <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                        <p className="text-sm font-medium text-fighter-success">
                           ✓ Juez Conectado
                         </p>
                         <p className="text-sm text-muted-foreground">

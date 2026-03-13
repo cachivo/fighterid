@@ -1,87 +1,86 @@
 
 
-## Plan: Ajuste Cromático Global — Fase 2: Migrar Páginas Admin, License, Social al Tema Combat UFC
+# Plan: Optimización Mobile del Panel de Administración
 
-### Problema
+## Problema Principal
 
-652 instancias de colores hardcoded (green-500, blue-500, gray-50, bg-white, etc.) en 29 archivos. Los screenshots muestran fondos blancos/claros, badges verdes/azules que rompen la estética negra UFC. El peor caso es `LicenseLayout.tsx` que usa `to-urban-light` (96% blanco) como fondo.
+El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
 
-### Alcance: Los 15 archivos más visibles
+Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
 
-**Grupo A — Layouts (impacto global):**
-1. `src/components/LicenseLayout.tsx` — `to-urban-light` → `to-muted/10`
+| Página | Columnas | Severidad |
+|--------|----------|-----------|
+| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
+| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
+| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
+| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
+| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
+| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
+| **Configuracion.tsx** | Tabla de configuración | BAJA |
+| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
 
-**Grupo B — Admin pages (10 archivos):**
-2. `src/pages/admin/ValidacionLicencias.tsx` — `bg-green-50`, `text-green-600`, `bg-gray-50` → tokens fighter-*
-3. `src/pages/admin/JudgeStationsSetup.tsx` — `text-green-600` → `text-fighter-success`
-4. `src/pages/admin/LiveEventsControl.tsx` — `bg-green-500`, `bg-yellow-500`, `bg-blue-500` → fighter-* tokens
-5. `src/pages/admin/PendingChangesHub.tsx` — `bg-green-500/10`, `text-green-600`, `bg-red-500/10` → fighter-* tokens
-6. `src/pages/admin/JudgesManagement.tsx` — `from-blue-400`, `from-green-400`, `bg-gray-500` → fighter-* tokens
-7. `src/pages/admin/OfficialsManagement.tsx` — `text-green-500`, `bg-yellow-500/20`, `bg-blue-500/20` → fighter-* tokens
+## Solución
 
-**Grupo C — License pages (3 archivos):**
-8. `src/pages/license/LicenseWelcome.tsx` — `text-green-500` → `text-fighter-success`
-9. `src/pages/license/LicensePending.tsx` — `bg-green-500`, `text-blue-500`, `bg-gray-100` → fighter-* tokens
-10. `src/pages/license/LicenseDashboard.tsx` — `bg-amber-600` → `text-fighter-warning`
+### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
 
-**Grupo D — Social components (3 archivos):**
-11. `src/components/social/PostCard.tsx` — `bg-blue-500`, `bg-green-500`, `bg-purple-500` → fighter-* tokens
-12. `src/components/social/NotificationCard.tsx` — hardcoded color map → fighter-* tokens
-13. `src/components/social/FighterBadges.tsx` — `bg-slate-500/10`, discipline colors → themed palette
+Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
 
-**Grupo E — Social feed:**
-14. `src/pages/SocialFeed.tsx` — `bg-green-500` dot → `bg-fighter-success`
+```text
+┌──────────────────────────────┐
+│ 🏆 Batalla de Gimnasios #2   │
+│ MMA · Borrador · Privado     │
+│ 📅 15/03/2026 · 📍 Arena     │
+│ ┌────┐┌────┐┌────┐┌────┐    │
+│ │Brand││Pelead││Peleas││ ⋮ │    │
+│ └────┘└────┘└────┘└────┘    │
+│ Estado: [Borrador ▾]         │
+└──────────────────────────────┘
+```
 
-**Grupo F — Button variants cleanup:**
-15. `src/components/ui/button.tsx` — Rename `purple-neon-*` references to use cleaner token names (functionally OK since CSS vars are already red, but the code reads confusingly)
+- Cada evento será un `Card` con la info apilada verticalmente
+- Botones de acción en una fila con `flex-wrap`
+- Select de estado en su propia fila
 
-### Regla de migración
+### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
 
-| Hardcoded color | Token semántico |
-|---|---|
-| `green-*` (success/active/connected) | `fighter-success` |
-| `red-*` (danger/error/loss) | `fighter-danger` o `destructive` |
-| `yellow-*` / `amber-*` (warning/pending) | `fighter-warning` |
-| `blue-*` (info/national) | `fighter-info` |
-| `gray-*` / `slate-*` (neutral) | `muted` / `muted-foreground` |
-| `bg-green-50`, `bg-gray-50` (light bg) | `bg-fighter-success/10`, `bg-muted/50` |
-| `bg-white` (content preview) | Keep for HTML email preview only |
+Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
 
-### Cambios principales por archivo
+- `Betting.tsx`
+- `Comunidad.tsx` (2 tablas)
+- `AliadosEstrategicos.tsx`
+- `OrganizationsManagement.tsx`
+- `Configuracion.tsx`
+- `EmailCampaignDetail.tsx`
 
-**LicenseLayout.tsx**: `from-background to-urban-light` → `from-background to-background`
+### 3. Headers responsivos
 
-**ValidacionLicencias.tsx** (review modal): 
-- `bg-green-50` → `bg-fighter-success/10`
-- `text-green-600` → `text-fighter-success`
-- `bg-gray-50` → `bg-muted/50`
-- `text-gray-600` → `text-muted-foreground`
+Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
 
-**LiveEventsControl.tsx**:
-- Status badges: `bg-green-500` → `bg-fighter-success`, `bg-yellow-500` → `bg-fighter-warning`
-- Connected counts: `text-green-500` → `text-fighter-success`
-- Red/blue fighter bars: Keep differentiated but use `from-primary to-primary/80` and `from-fighter-info to-fighter-info/80`
+- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
+- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
 
-**PendingChangesHub.tsx**:
-- Approved: `bg-green-500/10 text-green-600` → `bg-fighter-success/10 text-fighter-success`
-- Rejected: `bg-red-500/10 text-red-600` → `bg-fighter-danger/10 text-fighter-danger`
-- Info: `bg-blue-500/10 text-blue-600` → `bg-fighter-info/10 text-fighter-info`
+Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
 
-**LicensePending.tsx**:
-- Step completed: `bg-green-500` → `bg-fighter-success`
-- Info dots: `bg-blue-500` → `bg-primary`
-- Hover: `hover:bg-gray-100 dark:hover:bg-gray-800` → `hover:bg-muted`
+### 4. Dialogs de pelea - Grids de 3 y 2 columnas
 
-**Social PostCard/NotificationCard**:
-- Post type dots: `bg-blue-500` → `bg-fighter-info`, `bg-green-500` → `bg-fighter-success`, `bg-purple-500` → `bg-primary`
-- Notification colors: Map to fighter-* tokens
+Los diálogos internos de `EventosPelea.tsx` usan:
+- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
+- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
 
-### Files NOT in this phase
-- `EmailCampaignDetail.tsx` (`bg-white` for HTML preview is intentional)
-- `SettlementConsole.tsx`, `RoundControlPanel.tsx` — specialized scoring UIs, separate phase
-- Station scoring pages — separate phase
-- ~15 remaining files with fewer instances
+En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
 
-### Expected result
-All admin, license, and social pages will use exclusively the dark Combat theme with semantic fighter-* tokens. Zero light-mode colors (green-50, gray-50) visible.
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
+| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
+| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
+
+**8 archivos. Sin migraciones SQL.**
 

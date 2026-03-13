@@ -25,7 +25,7 @@ const DISCIPLINE_CONFIG: Record<string, { label: string; icon: typeof Activity; 
 };
 
 const LEVEL_CONFIG = {
-  AMATEUR: { label: 'Amateur', color: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
+  AMATEUR: { label: 'Amateur', color: 'bg-muted/50 text-muted-foreground border-border' },
   PROFESSIONAL: { label: 'Pro', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
 };
 
