@@ -104,7 +104,7 @@ export default function LicenseSuspended() {
           <CardContent className="space-y-4">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Estado Temporal:</strong> Tu Fighter ID ha sido suspendido temporalmente 
                   y no puedes participar en eventos oficiales mientras permanezca en este estado.
