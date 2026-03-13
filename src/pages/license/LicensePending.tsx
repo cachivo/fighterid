@@ -282,9 +282,9 @@ export default function LicensePending() {
                     <div className={`
                       flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
                       ${step.completed 
-                        ? 'bg-green-500 text-white' 
+                        ? 'bg-fighter-success text-white' 
                         : step.current 
-                          ? 'bg-orange-500 text-white animate-pulse' 
+                          ? 'bg-fighter-warning text-white animate-pulse' 
                           : 'bg-muted text-muted-foreground'
                       }
                     `}>
