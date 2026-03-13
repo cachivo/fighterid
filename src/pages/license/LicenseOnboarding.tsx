@@ -293,9 +293,9 @@ export default function LicenseOnboarding() {
           
           <div className="flex items-center justify-center mb-4">
             {step === 1 ? (
-              <User className="h-12 w-12 text-gray-800" />
+              <User className="h-12 w-12 text-foreground" />
             ) : (
-              <Award className="h-12 w-12 text-gray-800" />
+              <Award className="h-12 w-12 text-foreground" />
             )}
           </div>
           <CardTitle className="text-2xl">Configurar Tu Perfil de Peleador</CardTitle>
