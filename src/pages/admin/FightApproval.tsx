@@ -100,7 +100,7 @@ export default function FightApproval() {
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <CheckCircle className="h-6 w-6 mx-auto mb-1 text-green-400" />
+            <CheckCircle className="h-6 w-6 mx-auto mb-1 text-fighter-success" />
             <p className="text-2xl font-bold">{requests.filter(r => r.status === 'approved').length}</p>
             <p className="text-xs text-muted-foreground">Aprobadas</p>
           </CardContent>
