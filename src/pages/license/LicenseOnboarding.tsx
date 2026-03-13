@@ -219,7 +219,7 @@ export default function LicenseOnboarding() {
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-800" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-foreground" />
               <p className="text-muted-foreground">Verificando perfil existente...</p>
             </div>
           </CardContent>
