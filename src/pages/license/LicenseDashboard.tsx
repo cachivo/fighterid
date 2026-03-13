@@ -657,7 +657,7 @@ export default function LicenseDashboard() {
                 <div className="p-3 rounded-lg border bg-muted/20">
                   <div className="flex items-center gap-2 mb-2">
                     {licenseData.medical_cleared ? (
-                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <CheckCircle className="h-4 w-4 text-fighter-success" />
                     ) : (
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                     )}
