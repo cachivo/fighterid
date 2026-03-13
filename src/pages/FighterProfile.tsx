@@ -125,11 +125,11 @@ export default function FighterProfile() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500 text-white';
-      case 'suspended': return 'bg-red-500 text-white';
-      case 'expired': return 'bg-blue-500 text-white';
-      case 'pending': return 'bg-yellow-500 text-black';
-      default: return 'bg-gray-500 text-white';
+      case 'active': return 'bg-fighter-success text-white';
+      case 'suspended': return 'bg-fighter-danger text-white';
+      case 'expired': return 'bg-fighter-info text-white';
+      case 'pending': return 'bg-fighter-warning text-black';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
