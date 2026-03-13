@@ -185,7 +185,7 @@ export default function PendingChangesHub() {
             </div>
             <div>
               <Label className="font-semibold">Récord Solicitado</Label>
-              <p className="text-lg text-amber-600 font-semibold mt-1">
+              <p className="text-lg text-fighter-warning font-semibold mt-1">
                 {(requested.record_wins ?? current?.record_wins) || 0}-
                 {(requested.record_losses ?? current?.record_losses) || 0}-
                 {(requested.record_draws ?? current?.record_draws) || 0} ({(requested.record_type ?? current?.record_type) || 'N/A'})
