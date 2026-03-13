@@ -328,10 +328,10 @@ export default function FighterProfile() {
 
         {/* Active Leagues - Separate Card */}
         {activeLeagues && activeLeagues.length > 0 && (
-          <Card className="border-l-4 border-l-yellow-500">
+          <Card className="border-l-4 border-l-fighter-warning">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Trophy className="h-5 w-5 text-yellow-500" />
+                <Trophy className="h-5 w-5 text-fighter-warning" />
                 Ligas Activas
               </CardTitle>
               <p className="text-sm text-muted-foreground">Organizaciones donde compite</p>
