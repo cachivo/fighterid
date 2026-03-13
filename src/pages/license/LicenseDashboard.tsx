@@ -691,7 +691,7 @@ export default function LicenseDashboard() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Expira:</span>
-                  <span className={new Date(licenseData.expires_at) < new Date() ? 'text-red-600 font-medium' : ''}>
+                  <span className={new Date(licenseData.expires_at) < new Date() ? 'text-fighter-danger font-medium' : ''}>
                     {format(new Date(licenseData.expires_at), 'PP', { locale: es })}
                   </span>
                 </div>

@@ -264,7 +264,7 @@ export default function SocialFeed() {
                     {userFighter ? 'Noticias automáticas cada 30 min' : 
                      isAdmin ? 'Sistema de noticias inteligente activo' : 'Feed con noticias en tiempo real'}
                   </span>
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0"></div>
+                  <div className="w-1.5 h-1.5 bg-fighter-success rounded-full animate-pulse flex-shrink-0"></div>
                 </div>
               </div>
             </div>

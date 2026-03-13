@@ -311,7 +311,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
                 onClick={() => onLike(post.id)}
                 className={`flex items-center space-x-2 h-8 px-2 ${
                   post.is_liked 
-                    ? 'text-red-500 hover:text-red-600' 
+                    ? 'text-fighter-danger hover:text-fighter-danger/80' 
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
