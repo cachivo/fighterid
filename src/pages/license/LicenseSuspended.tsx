@@ -43,7 +43,7 @@ export default function LicenseSuspended() {
 
         {/* License Info Card */}
         {licenseData && (
-          <Card className="mb-8 border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/20">
+          <Card className="mb-8 border-destructive/30 bg-destructive/5">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
