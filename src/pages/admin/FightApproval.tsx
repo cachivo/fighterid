@@ -247,7 +247,7 @@ export default function FightApproval() {
 
                   {eligibilityResult && (
                     <div className="mt-3 space-y-2">
-                      <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-green-500/10 text-green-400' : 'bg-destructive/10 text-destructive'}`}>
+                      <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-fighter-success/10 text-fighter-success' : 'bg-destructive/10 text-destructive'}`}>
                         {eligibilityResult.eligible ? '✅ Ambos peleadores son elegibles' : '❌ No cumplen todos los requisitos'}
                       </div>
                       <div className="space-y-1">
