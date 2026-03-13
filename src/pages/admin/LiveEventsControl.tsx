@@ -590,7 +590,7 @@ export default function LiveEventsControl() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Programadas</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
+              <Clock className="h-4 w-4 text-fighter-info" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
