@@ -788,7 +788,7 @@ export default function ValidacionLicencias() {
                             closeReviewModal();
                           }}
                           disabled={loadingStates[reviewingLicense.id] || !isAdmin}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-fighter-success hover:bg-fighter-success/90"
                         >
                           <Shield className="h-4 w-4 mr-2" />
                           Aprobar Licencia

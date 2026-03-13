@@ -121,7 +121,7 @@ function OfficialCard({ official, onEdit, onToggle, onDelete }: {
           </Button>
           <button onClick={() => onToggle(official.id, !official.active)}>
             {official.active
-              ? <ToggleRight className="h-5 w-5 text-green-500" />
+              ? <ToggleRight className="h-5 w-5 text-fighter-success" />
               : <ToggleLeft className="h-5 w-5 text-muted-foreground" />
             }
           </button>

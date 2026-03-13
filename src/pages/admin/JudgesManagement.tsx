@@ -418,9 +418,9 @@ export default function JudgesManagement() {
                     className="flex items-center"
                   >
                     {judge.active ? (
-                      <ToggleRight className="h-5 w-5 text-green-600" />
+                      <ToggleRight className="h-5 w-5 text-fighter-success" />
                     ) : (
-                      <ToggleLeft className="h-5 w-5 text-gray-400" />
+                      <ToggleLeft className="h-5 w-5 text-muted-foreground" />
                     )}
                   </button>
                 </div>

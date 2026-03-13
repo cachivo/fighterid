@@ -696,7 +696,7 @@ export default function PendingChangesHub() {
                 <Button
                   onClick={() => handleVerifyDopingTest('CLEAN')}
                   disabled={isProcessing}
-                  className="gap-2 bg-green-600 hover:bg-green-700"
+                  className="gap-2 bg-fighter-success hover:bg-fighter-success/90"
                 >
                   <CheckCircle className="h-4 w-4" />
                   Limpio
