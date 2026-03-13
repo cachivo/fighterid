@@ -164,7 +164,7 @@ export default function FightApproval() {
                         </div>
                         {req.status === 'submitted' && (
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="text-green-400 border-green-400/30" onClick={(e) => { e.stopPropagation(); handleApprove(req); }}>
+                            <Button size="sm" variant="outline" className="text-fighter-success border-fighter-success/30" onClick={(e) => { e.stopPropagation(); handleApprove(req); }}>
                               <CheckCircle className="h-4 w-4 mr-1" /> Aprobar
                             </Button>
                             <Button size="sm" variant="outline" className="text-destructive border-destructive/30" onClick={(e) => { e.stopPropagation(); setSelectedRequest(req); setShowRejectDialog(true); }}>
