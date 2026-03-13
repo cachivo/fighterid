@@ -299,12 +299,12 @@ export default function LiveEventsControl() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Conectados</span>
-                    <span className="font-mono font-semibold text-green-500">{statsA.connected_count}</span>
+                    <span className="font-mono font-semibold text-fighter-success">{statsA.connected_count}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Precisión</span>
-                    <span className="font-mono font-bold text-purple-neon-primary">{statsA.accuracy}%</span>
+                    <span className="font-mono font-bold text-primary">{statsA.accuracy}%</span>
                   </div>
                 </CardContent>
               </Card>
