@@ -110,10 +110,10 @@ export default function JudgesManagement() {
 
   const getCertificationBadgeColor = (level: string) => {
     switch (level) {
-      case 'INTERNATIONAL': return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white';
-      case 'NATIONAL': return 'bg-gradient-to-r from-blue-400 to-blue-600 text-white';
-      case 'REGIONAL': return 'bg-gradient-to-r from-green-400 to-green-600 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'INTERNATIONAL': return 'bg-gradient-to-r from-fighter-warning to-fighter-warning/80 text-white';
+      case 'NATIONAL': return 'bg-gradient-to-r from-fighter-info to-fighter-info/80 text-white';
+      case 'REGIONAL': return 'bg-gradient-to-r from-fighter-success to-fighter-success/80 text-white';
+      default: return 'bg-muted-foreground text-white';
     }
   };
 
