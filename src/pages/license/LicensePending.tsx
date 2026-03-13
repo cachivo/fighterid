@@ -326,7 +326,7 @@ export default function LicensePending() {
           <CardContent className="space-y-4">
             <div className="space-y-3 text-sm">
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                 <p>
                   <strong>Tiempo de Procesamiento:</strong> Las solicitudes de licencia 
                   suelen procesarse en 2-5 días hábiles.
