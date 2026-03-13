@@ -125,7 +125,7 @@ export default function LicenseSuspended() {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-destructive mt-2 flex-shrink-0" />
                 <p>
                   <strong>Reactivación:</strong> Una vez resueltos los motivos de la suspensión, 
                   tu Fighter ID podrá ser reactivado por un administrador.

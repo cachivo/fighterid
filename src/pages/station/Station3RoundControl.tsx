@@ -261,14 +261,14 @@ export default function Station3RoundControl() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 {/* Peleador Rojo */}
-                <div className="bg-red-500/10 border-2 border-red-500 rounded-lg p-4">
-                  <div className="text-red-600 font-bold text-lg mb-2 flex items-center gap-2">
+                <div className="bg-fighter-danger/10 border-2 border-fighter-danger rounded-lg p-4">
+                  <div className="text-fighter-danger font-bold text-lg mb-2 flex items-center gap-2">
                     <CircleDot className="h-5 w-5" />
                     Esquina Roja
                   </div>
                   <div className="font-semibold text-lg mb-3">{fighters.red}</div>
                   <div className="text-sm text-muted-foreground">IAg (10s):</div>
-                  <div className="text-3xl font-mono font-bold text-red-600">
+                  <div className="text-3xl font-mono font-bold text-fighter-danger">
                     {redCounter.iag}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
@@ -277,14 +277,14 @@ export default function Station3RoundControl() {
                 </div>
 
                 {/* Peleador Azul */}
-                <div className="bg-blue-500/10 border-2 border-blue-500 rounded-lg p-4">
-                  <div className="text-blue-600 font-bold text-lg mb-2 flex items-center gap-2">
+                <div className="bg-fighter-info/10 border-2 border-fighter-info rounded-lg p-4">
+                  <div className="text-fighter-info font-bold text-lg mb-2 flex items-center gap-2">
                     <CircleDot className="h-5 w-5" />
                     Esquina Azul
                   </div>
                   <div className="font-semibold text-lg mb-3">{fighters.blue}</div>
                   <div className="text-sm text-muted-foreground">IAg (10s):</div>
-                  <div className="text-3xl font-mono font-bold text-blue-600">
+                  <div className="text-3xl font-mono font-bold text-fighter-info">
                     {blueCounter.iag}
                   </div>
                   <div className="text-sm text-muted-foreground mt-2">
