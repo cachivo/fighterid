@@ -344,8 +344,8 @@ export default function FighterProfile() {
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-yellow-500/10">
-                        <Trophy className="h-4 w-4 text-yellow-500" />
+                      <div className="p-2 rounded-full bg-fighter-warning/10">
+                        <Trophy className="h-4 w-4 text-fighter-warning" />
                       </div>
                       <div>
                         <div className="font-medium flex items-center gap-2">
