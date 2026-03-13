@@ -540,7 +540,7 @@ export function LiveControl() {
               <div key={update.id} className="flex items-center justify-between text-sm border-b pb-1">
                 <span>
                   {update.status === 'ACCEPTED' ? (
-                    <CheckCircle className="h-4 w-4 inline mr-1 text-green-500" />
+                    <CheckCircle className="h-4 w-4 inline mr-1 text-fighter-success" />
                   ) : (
                     <Clock className="h-4 w-4 inline mr-1 text-yellow-500" />
                   )}
