@@ -143,16 +143,16 @@ export default function PendingChangesHub() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'PENDING':
-        return <Badge variant="outline" className="gap-1 bg-yellow-500/10 text-yellow-600 border-yellow-500/30"><Clock className="h-3 w-3" />Pendiente</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-warning/10 text-fighter-warning border-fighter-warning/30"><Clock className="h-3 w-3" />Pendiente</Badge>;
       case 'APPROVED':
       case 'APPLIED':
       case 'CLEAN':
-        return <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-600 border-green-500/30"><CheckCircle className="h-3 w-3" />Aprobado</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-success/10 text-fighter-success border-fighter-success/30"><CheckCircle className="h-3 w-3" />Aprobado</Badge>;
       case 'REJECTED':
       case 'POSITIVE':
-        return <Badge variant="outline" className="gap-1 bg-red-500/10 text-red-600 border-red-500/30"><XCircle className="h-3 w-3" />Rechazado</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-danger/10 text-fighter-danger border-fighter-danger/30"><XCircle className="h-3 w-3" />Rechazado</Badge>;
       case 'REQUIRES_INFO':
-        return <Badge variant="outline" className="gap-1 bg-blue-500/10 text-blue-600 border-blue-500/30"><MessageSquare className="h-3 w-3" />Requiere Info</Badge>;
+        return <Badge variant="outline" className="gap-1 bg-fighter-info/10 text-fighter-info border-fighter-info/30"><MessageSquare className="h-3 w-3" />Requiere Info</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
