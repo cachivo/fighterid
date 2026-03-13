@@ -389,7 +389,7 @@ export default function LiveEventsControl() {
                       {recentEvents.map((event, idx) => (
                         <div 
                           key={event.id} 
-                          className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs border-l-2 border-purple-neon-primary/50"
+                          className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs border-l-2 border-primary/50"
                         >
                           <div className="flex items-center gap-2">
                             <Badge variant={event.fighter === 'A' ? 'destructive' : 'default'} className="text-xs">
