@@ -93,7 +93,7 @@ export default function FightApproval() {
         </Card>
         <Card>
           <CardContent className="pt-4 text-center">
-            <Clock className="h-6 w-6 mx-auto mb-1 text-yellow-400" />
+            <Clock className="h-6 w-6 mx-auto mb-1 text-fighter-warning" />
             <p className="text-2xl font-bold">{pendingCount}</p>
             <p className="text-xs text-muted-foreground">Pendientes</p>
           </CardContent>
