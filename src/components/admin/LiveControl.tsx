@@ -542,7 +542,7 @@ export function LiveControl() {
                   {update.status === 'ACCEPTED' ? (
                     <CheckCircle className="h-4 w-4 inline mr-1 text-fighter-success" />
                   ) : (
-                    <Clock className="h-4 w-4 inline mr-1 text-yellow-500" />
+                    <Clock className="h-4 w-4 inline mr-1 text-fighter-warning" />
                   )}
                   Apuesta {update.status.toLowerCase()}
                 </span>
