@@ -74,10 +74,10 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
 
   const getPostTypeColor = () => {
     switch (post.post_type) {
-      case 'news': return 'bg-blue-500';
-      case 'image': return 'bg-green-500';
-      case 'video': return 'bg-purple-500';
-      default: return 'bg-gray-500';
+      case 'news': return 'bg-fighter-info';
+      case 'image': return 'bg-fighter-success';
+      case 'video': return 'bg-primary';
+      default: return 'bg-muted-foreground';
     }
   };
 
