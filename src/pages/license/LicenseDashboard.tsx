@@ -672,7 +672,7 @@ export default function LicenseDashboard() {
                     {licenseData.physical_cleared ? (
                       <CheckCircle className="h-4 w-4 text-fighter-success" />
                     ) : (
-                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      <AlertTriangle className="h-4 w-4 text-fighter-warning" />
                     )}
                     <span className="text-sm font-medium">Físico</span>
                   </div>
