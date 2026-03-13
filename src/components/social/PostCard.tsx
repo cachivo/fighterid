@@ -191,7 +191,7 @@ export default function PostCard({ post, onLike, onDelete, isOwner, showFriendBa
                 )}
                 
                 {post.author_type === 'fighter' && showFriendBadge && post.is_friend && (
-                  <Badge variant="secondary" className="text-xs bg-green-500/10 text-green-600 border-green-500/20">
+                  <Badge variant="secondary" className="text-xs bg-fighter-success/10 text-fighter-success border-fighter-success/20">
                     👥 Amigo
                   </Badge>
                 )}
