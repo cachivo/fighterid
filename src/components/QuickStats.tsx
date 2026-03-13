@@ -46,8 +46,8 @@ export function QuickStats() {
               <div className="flex items-center gap-1.5 xs:gap-2 px-2 xs:px-3 py-1.5 xs:py-2 bg-purple-neon-primary/10 rounded-lg border border-purple-neon-primary/20">
                 <stat.icon className="h-3.5 w-3.5 xs:h-4 xs:w-4 sm:h-5 sm:w-5 text-purple-neon-primary flex-shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm xs:text-base sm:text-lg font-bold text-white leading-none truncate">{stat.value}</p>
-                  <p className="text-[9px] xs:text-[10px] sm:text-xs text-gray-400 mt-0.5 truncate">{stat.title}</p>
+                  <p className="text-sm xs:text-base sm:text-lg font-bold text-foreground leading-none truncate">{stat.value}</p>
+                  <p className="text-[9px] xs:text-[10px] sm:text-xs text-muted-foreground mt-0.5 truncate">{stat.title}</p>
                 </div>
               </div>
             </div>

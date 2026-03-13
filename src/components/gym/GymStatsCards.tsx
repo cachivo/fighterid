@@ -12,10 +12,10 @@ interface GymStatsCardsProps {
 
 export function GymStatsCards({ stats, disciplines }: GymStatsCardsProps) {
   const cards = [
-    { label: 'Activos', value: stats.active_fighters, icon: Users, color: 'text-blue-500' },
-    { label: 'Victorias', value: stats.total_wins, icon: Trophy, color: 'text-green-500' },
-    { label: 'Derrotas', value: stats.total_losses, icon: TrendingDown, color: 'text-red-500' },
-    { label: 'Empates', value: stats.total_draws, icon: Minus, color: 'text-yellow-500' },
+    { label: 'Activos', value: stats.active_fighters, icon: Users, color: 'text-fighter-info' },
+    { label: 'Victorias', value: stats.total_wins, icon: Trophy, color: 'text-fighter-success' },
+    { label: 'Derrotas', value: stats.total_losses, icon: TrendingDown, color: 'text-fighter-danger' },
+    { label: 'Empates', value: stats.total_draws, icon: Minus, color: 'text-fighter-warning' },
   ];
 
   return (
