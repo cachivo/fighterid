@@ -320,7 +320,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('WARNING')}
               variant="outline"
-              className="flex items-center gap-2 text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+              className="flex items-center gap-2 text-fighter-warning border-fighter-warning hover:bg-fighter-warning/10"
             >
               <Flag className="h-4 w-4" />
               Advertencia
