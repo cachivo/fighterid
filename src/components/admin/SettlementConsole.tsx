@@ -272,11 +272,11 @@ export function SettlementConsole() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'DUAL_CONFIRMED': return 'bg-blue-100 text-blue-800';
-      case 'SETTLED': return 'bg-green-100 text-green-800';
-      case 'DISPUTED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'PENDING': return 'bg-fighter-warning/20 text-fighter-warning';
+      case 'DUAL_CONFIRMED': return 'bg-fighter-info/20 text-fighter-info';
+      case 'SETTLED': return 'bg-fighter-success/20 text-fighter-success';
+      case 'DISPUTED': return 'bg-fighter-danger/20 text-fighter-danger';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
