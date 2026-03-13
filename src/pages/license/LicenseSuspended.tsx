@@ -139,7 +139,7 @@ export default function LicenseSuspended() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5 text-blue-500" />
+              <Mail className="h-5 w-5 text-fighter-info" />
               Contacto Administrativo
             </CardTitle>
           </CardHeader>
