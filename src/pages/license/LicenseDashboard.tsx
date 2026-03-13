@@ -159,7 +159,7 @@ export default function LicenseDashboard() {
     switch (level) {
       case 'AMATEUR': return 'bg-fighter-info text-white';
       case 'SEMI_PRO': return 'bg-fighter-secondary text-white';
-      case 'PROFESSIONAL': return 'bg-amber-600 text-white';
+      case 'PROFESSIONAL': return 'bg-fighter-warning text-white';
       default: return 'bg-fighter-accent text-white';
     }
   };
