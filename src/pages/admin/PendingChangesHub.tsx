@@ -167,8 +167,8 @@ export default function PendingChangesHub() {
     // Special section for record changes
     if (hasRecordChanges) {
       changes.push(
-        <Alert key="record-alert" className="bg-amber-50 border-amber-200 mb-4">
-          <Trophy className="h-4 w-4 text-amber-600" />
+        <Alert key="record-alert" className="bg-fighter-warning/10 border-fighter-warning/30 mb-4">
+          <Trophy className="h-4 w-4 text-fighter-warning" />
           <AlertTitle>Cambio de Récord de Peleas</AlertTitle>
           <AlertDescription>
             Verificar resultado oficial de pelea antes de aprobar
