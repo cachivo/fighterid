@@ -182,7 +182,7 @@ export default function LicensePending() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-urban-light p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background p-4">
       <div className="max-w-4xl mx-auto pt-12">
         {/* Header */}
         <div className="text-center mb-8">
