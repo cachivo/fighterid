@@ -292,7 +292,7 @@ export default function LicensePending() {
                     </div>
                     <div className="flex-1">
                       <h3 className={`font-medium ${
-                        step.current ? 'text-orange-600 dark:text-orange-400' : ''
+                        step.current ? 'text-fighter-warning' : ''
                       }`}>
                         {step.title}
                       </h3>
