@@ -174,8 +174,8 @@ export default function PendingChangesHub() {
             Verificar resultado oficial de pelea antes de aprobar
           </AlertDescription>
         </Alert>,
-        <div key="record-comparison" className="border rounded-lg p-4 bg-amber-50/50 mb-4">
-          <h4 className="font-medium mb-4 text-amber-700">Récord de Peleas</h4>
+        <div key="record-comparison" className="border rounded-lg p-4 bg-fighter-warning/5 mb-4">
+          <h4 className="font-medium mb-4 text-fighter-warning">Récord de Peleas</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="font-semibold">Récord Actual</Label>
