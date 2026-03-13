@@ -1865,9 +1865,9 @@ export default function EventosPelea() {
                               className="h-full w-auto mx-auto object-contain"
                             />
                             {processedImageA && (
-                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
-                                <Check className="w-3 h-3 mr-1" />
-                                Procesado
+                               <Badge className="absolute top-1 right-1 bg-fighter-success text-xs">
+                                 <Check className="w-3 h-3 mr-1" />
+                                 Procesado
                               </Badge>
                             )}
                           </div>
