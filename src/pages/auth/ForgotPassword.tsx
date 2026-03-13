@@ -111,9 +111,9 @@ export default function ForgotPassword() {
           )}
 
           {success && (
-            <Alert className="bg-green-50 border-green-200">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
+            <Alert className="bg-fighter-success/10 border-fighter-success/30">
+              <CheckCircle2 className="h-4 w-4 text-fighter-success" />
+              <AlertDescription className="text-fighter-success">
                 <p className="font-semibold mb-2">¡Correo enviado!</p>
                 <p className="mb-2">Te hemos enviado un correo desde <strong>Fighter ID</strong> con instrucciones para restablecer tu contraseña.</p>
                 <p className="text-sm">
