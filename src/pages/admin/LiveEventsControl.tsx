@@ -593,7 +593,7 @@ export default function LiveEventsControl() {
               <Clock className="h-4 w-4 text-fighter-info" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-fighter-info">
                 {fights.filter(f => f.status === 'scheduled').length}
               </div>
             </CardContent>
