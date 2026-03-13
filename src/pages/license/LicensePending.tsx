@@ -197,7 +197,7 @@ export default function LicensePending() {
             <Button
               variant="outline"
               onClick={() => navigate('/')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 min-h-[44px] touch-manipulation hover:bg-muted"
             >
               <Home className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Pantalla Principal</span>
