@@ -329,7 +329,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('POINT_DEDUCTION')}
               variant="outline"
-              className="flex items-center gap-2 text-orange-600 border-orange-600 hover:bg-orange-50"
+              className="flex items-center gap-2 text-fighter-warning border-fighter-warning hover:bg-fighter-warning/10"
             >
               <AlertTriangle className="h-4 w-4" />
               Deducir Punto
