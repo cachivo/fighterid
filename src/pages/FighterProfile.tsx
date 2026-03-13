@@ -351,7 +351,7 @@ export default function FighterProfile() {
                         <div className="font-medium flex items-center gap-2">
                           {league.organization_name}
                           {league.is_champion && (
-                            <Crown className="h-4 w-4 text-yellow-500" />
+                            <Crown className="h-4 w-4 text-fighter-warning" />
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground">
