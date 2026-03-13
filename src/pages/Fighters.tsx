@@ -353,8 +353,8 @@ export default function Fighters() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 rounded-full bg-green-500/10">
-                      <Target className="h-4 w-4 text-green-600" />
+                    <div className="p-2 rounded-full bg-fighter-success/10">
+                      <Target className="h-4 w-4 text-fighter-success" />
                     </div>
                     <div>
                       <span className="text-sm font-medium">Solo listos para pelear</span>
