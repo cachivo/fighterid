@@ -1,72 +1,86 @@
 
 
-## Plan: Ajuste Cromático Global — Fase 3: Páginas Públicas, Componentes de Fighter y Páginas Restantes
+# Plan: Optimización Mobile del Panel de Administración
 
-### Problema
+## Problema Principal
 
-Quedan ~1200 instancias de colores hardcoded en ~40 archivos. Los más visibles para el usuario son las páginas públicas (FighterProfile, Fighters, Predicciones), el componente DigitalFighterToken (tarjeta de peleador), LicenseAuth (aún tiene el tema púrpura completo), GymPendingInvitation, GymShowcase, y el RefereeControlRoom.
+El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
 
-### Alcance: 15 archivos de mayor impacto visual
+Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
 
-**Grupo A — Auth pendientes (2 archivos):**
-1. `src/pages/license/LicenseAuth.tsx` — Copia exacta del viejo Auth púrpura (blobs, inputs, botones). Migrar al mismo patrón Combat ya aplicado en `Auth.tsx`.
-2. `src/pages/gym/GymPendingInvitation.tsx` — `bg-purple-600/15`, `border-purple-500/30`, `text-purple-400`. Migrar a `bg-primary/15`, `border-primary/30`, `text-primary`.
+| Página | Columnas | Severidad |
+|--------|----------|-----------|
+| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
+| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
+| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
+| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
+| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
+| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
+| **Configuracion.tsx** | Tabla de configuración | BAJA |
+| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
 
-**Grupo B — Componentes de Fighter (2 archivos):**
-3. `src/components/DigitalFighterToken.tsx` — 30+ instancias de `purple-*`, `slate-*`, `green-400`, `yellow-400`. Migrar a `primary`, `muted`, `fighter-success`, `fighter-warning`.
-4. `src/pages/FighterProfile.tsx` — `getStatusColor` con `bg-green-500`, `bg-blue-500`, `bg-yellow-500`. Record bar con `text-green-400`. Ligas con `text-yellow-500`. Migrar a tokens fighter-*.
+## Solución
 
-**Grupo C — Páginas públicas (3 archivos):**
-5. `src/pages/Fighters.tsx` — `bg-green-500/10`, `text-green-600`, `border-green-500/50`. Migrar a `fighter-success`.
-6. `src/pages/Predicciones.tsx` — `getStateColor` con `bg-green-100 text-green-800`, `bg-blue-100 text-blue-800`, `bg-gray-100`. Migrar a tokens fighter-* sobre fondo oscuro.
-7. `src/components/sections/GymShowcase.tsx` — `text-gray-400`, `text-gray-500`, `border-purple-neon-primary/30` (OK pero `text-gray-*` debe ser `text-muted-foreground`).
+### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
 
-**Grupo D — Scoring/Referee (3 archivos):**
-8. `src/pages/referee/RefereeControlRoom.tsx` — `text-purple-600 border-purple-600 hover:bg-purple-50`, `hover:bg-red-50`. Migrar a `text-primary border-primary hover:bg-primary/10`.
-9. `src/components/station/RoundTimerDisplay.tsx` — `text-red-500`, `text-yellow-500`, `text-green-500`, `bg-red-500`, `bg-yellow-500`, `bg-green-500`. Migrar a `fighter-danger`, `fighter-warning`, `fighter-success`.
-10. `src/components/admin/RoundControlPanel.tsx` — `bg-green-50`, `bg-yellow-50`, `bg-blue-50`, `bg-green-950`, `bg-yellow-950`, `bg-blue-950`, `bg-green-500`, `bg-yellow-500`, `bg-blue-500`. Migrar a tokens fighter-* con fondos dark.
+Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
 
-**Grupo E — Admin restantes (3 archivos):**
-11. `src/components/admin/SettlementConsole.tsx` — Múltiples colores hardcoded en status badges y tablas.
-12. `src/pages/admin/EventosPelea.tsx` — `text-green-600`, `bg-green-600`, `bg-blue-500/5`. Migrar instancias restantes.
-13. `src/components/admin/LiveControl.tsx` — Status indicators con colores hardcoded.
+```text
+┌──────────────────────────────┐
+│ 🏆 Batalla de Gimnasios #2   │
+│ MMA · Borrador · Privado     │
+│ 📅 15/03/2026 · 📍 Arena     │
+│ ┌────┐┌────┐┌────┐┌────┐    │
+│ │Brand││Pelead││Peleas││ ⋮ │    │
+│ └────┘└────┘└────┘└────┘    │
+│ Estado: [Borrador ▾]         │
+└──────────────────────────────┘
+```
 
-**Grupo F — Gym pages (2 archivos):**
-14. `src/pages/gym/RequestFight.tsx` — `bg-green-500/10 text-green-400`, `text-green-400`. Migrar a `fighter-success`.
-15. `src/pages/FightResults.tsx` — Colores de resultado con hardcoded green/red.
+- Cada evento será un `Card` con la info apilada verticalmente
+- Botones de acción en una fila con `flex-wrap`
+- Select de estado en su propia fila
 
-### Regla de migración (misma que Fase 2)
+### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
 
-| Hardcoded | Token |
-|---|---|
-| `green-*` (success/win/active) | `fighter-success` |
-| `red-*` (danger/loss) | `fighter-danger` / `destructive` |
-| `yellow-*`/`amber-*` (warning/draw/pending) | `fighter-warning` |
-| `blue-*` (info/corner azul) | `fighter-info` |
-| `gray-*`/`slate-*` (neutral) | `muted` / `muted-foreground` |
-| `purple-600/15` (blobs) | `bg-primary/15` |
-| `border-purple-500/30` | `border-primary/30` |
-| `text-purple-400` | `text-primary` |
-| `bg-slate-950/95` | `bg-card` |
-| `bg-slate-900/50` | `bg-secondary` |
-| `hover:bg-purple-50` | `hover:bg-primary/10` |
+Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
 
-### Cambios clave por archivo
+- `Betting.tsx`
+- `Comunidad.tsx` (2 tablas)
+- `AliadosEstrategicos.tsx`
+- `OrganizationsManagement.tsx`
+- `Configuracion.tsx`
+- `EmailCampaignDetail.tsx`
 
-**LicenseAuth.tsx**: Replicar exactamente los mismos cambios ya hechos en `Auth.tsx` — blobs rojos, card `bg-card`, inputs `bg-secondary`, botones `bg-primary`, steps `bg-primary` en vez de `bg-purple-600`.
+### 3. Headers responsivos
 
-**DigitalFighterToken.tsx**: Avatar ring `ring-primary/20`, fallback `bg-muted text-muted-foreground`, nickname `text-primary/70`, record W/L/D `text-fighter-success`/`text-fighter-danger`/`text-fighter-warning`, license `text-primary`, glow `from-primary/20 to-primary/10`, QR `from-primary to-primary/80`.
+Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
 
-**FighterProfile.tsx**: `getStatusColor` → tokens fighter-*. Record bar: `text-fighter-success` (wins), `text-fighter-danger` (losses). Ligas: `text-fighter-warning` en vez de `text-yellow-500`.
+- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
+- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
 
-**RoundTimerDisplay.tsx / RoundControlPanel.tsx**: Timer colors a fighter-* tokens. Panel backgrounds: `bg-fighter-success/10 dark:bg-fighter-success/5` en vez de `bg-green-50 dark:bg-green-950`.
+Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
 
-### Archivos NO incluidos (Fase 4)
-- `AIStrikeOverlay.tsx` — Red/Blue corner colors son intencionales para diferenciación
-- `AggressionButton.tsx` — Red/Blue variant buttons son funcionales
-- Station scoring pages — UI especializada de jueces
-- ~25 archivos con menos de 5 instancias cada uno
+### 4. Dialogs de pelea - Grids de 3 y 2 columnas
 
-### Resultado esperado
-Todas las páginas públicas, de auth, de fighter y de referee usarán exclusivamente el tema Combat UFC con tokens semánticos. Se eliminan las últimas referencias prominentes a púrpura, slate y colores light-mode.
+Los diálogos internos de `EventosPelea.tsx` usan:
+- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
+- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
+
+En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
+| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
+| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
+
+**8 archivos. Sin migraciones SQL.**
 

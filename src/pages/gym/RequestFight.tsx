@@ -263,12 +263,12 @@ export default function RequestFight() {
 
               {eligibilityResult && (
                 <div className="space-y-2">
-                  <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-green-500/10 text-green-400' : 'bg-destructive/10 text-destructive'}`}>
+                  <div className={`p-2 rounded text-sm font-medium ${eligibilityResult.eligible ? 'bg-fighter-success/10 text-fighter-success' : 'bg-destructive/10 text-destructive'}`}>
                     {eligibilityResult.eligible ? '✅ Ambos peleadores son elegibles' : '⚠️ No cumplen todos los requisitos'}
                   </div>
                   {(eligibilityResult.checks || []).map((check: any, i: number) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
-                      {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-green-400" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
+                      {check.passed ? <CheckCircle className="h-3.5 w-3.5 text-fighter-success" /> : <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
                       <span>{check.label}: {check.detail}</span>
                     </div>
                   ))}

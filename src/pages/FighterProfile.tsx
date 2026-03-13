@@ -125,11 +125,11 @@ export default function FighterProfile() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500 text-white';
-      case 'suspended': return 'bg-red-500 text-white';
-      case 'expired': return 'bg-blue-500 text-white';
-      case 'pending': return 'bg-yellow-500 text-black';
-      default: return 'bg-gray-500 text-white';
+      case 'active': return 'bg-fighter-success text-white';
+      case 'suspended': return 'bg-fighter-danger text-white';
+      case 'expired': return 'bg-fighter-info text-white';
+      case 'pending': return 'bg-fighter-warning text-black';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -271,12 +271,12 @@ export default function FighterProfile() {
               {/* Record Bar */}
               <div className="combat-cut inline-flex items-center gap-3 sm:gap-5 bg-white/5 backdrop-blur-md border border-white/10 px-4 sm:px-6 py-3 mt-2">
                 <div className="text-center">
-                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-green-400">{currentRecord.wins}</p>
+                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-fighter-success">{currentRecord.wins}</p>
                   <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Victorias</p>
                 </div>
                 <div className="w-px h-8 bg-white/15" />
                 <div className="text-center">
-                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-red-400">{currentRecord.losses}</p>
+                  <p className="ufc-label text-xl sm:text-2xl md:text-3xl font-bold text-fighter-danger">{currentRecord.losses}</p>
                   <p className="ufc-label text-[10px] sm:text-xs text-white/60 tracking-wider">Derrotas</p>
                 </div>
                 <div className="w-px h-8 bg-white/15" />
@@ -328,10 +328,10 @@ export default function FighterProfile() {
 
         {/* Active Leagues - Separate Card */}
         {activeLeagues && activeLeagues.length > 0 && (
-          <Card className="border-l-4 border-l-yellow-500">
+          <Card className="border-l-4 border-l-fighter-warning">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Trophy className="h-5 w-5 text-yellow-500" />
+                <Trophy className="h-5 w-5 text-fighter-warning" />
                 Ligas Activas
               </CardTitle>
               <p className="text-sm text-muted-foreground">Organizaciones donde compite</p>
@@ -344,14 +344,14 @@ export default function FighterProfile() {
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-full bg-yellow-500/10">
-                        <Trophy className="h-4 w-4 text-yellow-500" />
+                      <div className="p-2 rounded-full bg-fighter-warning/10">
+                        <Trophy className="h-4 w-4 text-fighter-warning" />
                       </div>
                       <div>
                         <div className="font-medium flex items-center gap-2">
                           {league.organization_name}
                           {league.is_champion && (
-                            <Crown className="h-4 w-4 text-yellow-500" />
+                            <Crown className="h-4 w-4 text-fighter-warning" />
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground">
@@ -360,7 +360,7 @@ export default function FighterProfile() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-yellow-500">{league.points} pts</div>
+                      <div className="font-bold text-fighter-warning">{league.points} pts</div>
                       {league.ranking_position && (
                         <div className="text-xs text-muted-foreground">
                           Posición #{league.ranking_position}

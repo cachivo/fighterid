@@ -222,9 +222,9 @@ export default function RefereeControlRoom() {
 
       {/* Fighter Information */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-l-4 border-l-red-500">
+        <Card className="border-l-4 border-l-fighter-danger">
           <CardHeader>
-            <CardTitle className="text-red-600">
+            <CardTitle className="text-fighter-danger">
               Corner Rojo
             </CardTitle>
           </CardHeader>
@@ -241,9 +241,9 @@ export default function RefereeControlRoom() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-fighter-info">
           <CardHeader>
-            <CardTitle className="text-blue-600">
+            <CardTitle className="text-fighter-info">
               Corner Azul
             </CardTitle>
           </CardHeader>
@@ -320,7 +320,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('WARNING')}
               variant="outline"
-              className="flex items-center gap-2 text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+              className="flex items-center gap-2 text-fighter-warning border-fighter-warning hover:bg-fighter-warning/10"
             >
               <Flag className="h-4 w-4" />
               Advertencia
@@ -329,7 +329,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('POINT_DEDUCTION')}
               variant="outline"
-              className="flex items-center gap-2 text-orange-600 border-orange-600 hover:bg-orange-50"
+              className="flex items-center gap-2 text-fighter-warning border-fighter-warning hover:bg-fighter-warning/10"
             >
               <AlertTriangle className="h-4 w-4" />
               Deducir Punto
@@ -338,7 +338,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('FOUL')}
               variant="outline"
-              className="flex items-center gap-2 text-red-600 border-red-600 hover:bg-red-50"
+              className="flex items-center gap-2 text-fighter-danger border-fighter-danger hover:bg-fighter-danger/10"
             >
               <AlertCircle className="h-4 w-4" />
               Falta
@@ -347,7 +347,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('KNOCKDOWN')}
               variant="outline"
-              className="flex items-center gap-2 text-purple-600 border-purple-600 hover:bg-purple-50"
+              className="flex items-center gap-2 text-primary border-primary hover:bg-primary/10"
             >
               <Zap className="h-4 w-4" />
               Knockdown

@@ -22,15 +22,15 @@ export function RoundTimerDisplay({
   // Determinar color según tiempo restante
   const getColor = () => {
     if (!isRunning) return 'text-muted-foreground';
-    if (remainingMs <= 10000) return 'text-red-500';
-    if (remainingMs <= 60000) return 'text-yellow-500';
-    return 'text-green-500';
+    if (remainingMs <= 10000) return 'text-fighter-danger';
+    if (remainingMs <= 60000) return 'text-fighter-warning';
+    return 'text-fighter-success';
   };
 
   const getProgressColor = () => {
-    if (remainingMs <= 10000) return 'bg-red-500';
-    if (remainingMs <= 60000) return 'bg-yellow-500';
-    return 'bg-green-500';
+    if (remainingMs <= 10000) return 'bg-fighter-danger';
+    if (remainingMs <= 60000) return 'bg-fighter-warning';
+    return 'bg-fighter-success';
   };
 
   return (

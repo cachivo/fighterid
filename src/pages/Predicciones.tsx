@@ -94,9 +94,9 @@ export default function Predicciones() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'live': return 'bg-green-100 text-green-800 border-green-200';
-      case 'finished': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'live': return 'bg-fighter-success/20 text-fighter-success border-fighter-success/30';
+      case 'finished': return 'bg-fighter-info/20 text-fighter-info border-fighter-info/30';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 

@@ -245,11 +245,11 @@ export function LiveControl() {
 
   const getStateColor = (state: string) => {
     switch (state) {
-      case 'open': return 'bg-green-100 text-green-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'preopen': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'open': return 'bg-fighter-success/20 text-fighter-success';
+      case 'suspended': return 'bg-fighter-warning/20 text-fighter-warning';
+      case 'preopen': return 'bg-fighter-info/20 text-fighter-info';
+      case 'closed': return 'bg-muted text-muted-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -274,7 +274,7 @@ export function LiveControl() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Activity className={`h-5 w-5 ${connectionStatus === 'connected' ? 'text-green-500' : 'text-red-500'}`} />
+                <Activity className={`h-5 w-5 ${connectionStatus === 'connected' ? 'text-fighter-success' : 'text-fighter-danger'}`} />
                 Control en Vivo
                 <Badge variant={connectionStatus === 'connected' ? 'default' : 'destructive'}>
                   {connectionStatus}
@@ -303,7 +303,7 @@ export function LiveControl() {
 
       {/* Emergency Controls */}
       {emergencyMode && (
-        <Alert className="border-red-500 bg-red-50">
+        <Alert className="border-fighter-danger bg-fighter-danger/10">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
             <span>Modo de emergencia activado</span>
@@ -512,7 +512,7 @@ export function LiveControl() {
                       {getRealtimePool(outcome.id, outcome.pool).toFixed(2)} BDG
                     </span>
                     {getRealtimePool(outcome.id, outcome.pool) !== outcome.pool && (
-                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <Zap className="h-4 w-4 text-fighter-warning" />
                     )}
                   </div>
                   <Progress 
@@ -540,9 +540,9 @@ export function LiveControl() {
               <div key={update.id} className="flex items-center justify-between text-sm border-b pb-1">
                 <span>
                   {update.status === 'ACCEPTED' ? (
-                    <CheckCircle className="h-4 w-4 inline mr-1 text-green-500" />
+                    <CheckCircle className="h-4 w-4 inline mr-1 text-fighter-success" />
                   ) : (
-                    <Clock className="h-4 w-4 inline mr-1 text-yellow-500" />
+                    <Clock className="h-4 w-4 inline mr-1 text-fighter-warning" />
                   )}
                   Apuesta {update.status.toLowerCase()}
                 </span>

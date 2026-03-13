@@ -1204,7 +1204,7 @@ export default function EventosPelea() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleTogglePublish(event.id, event.published)}
-                        className={event.published ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground'}
+                        className={event.published ? 'text-fighter-success hover:text-fighter-success/80' : 'text-muted-foreground hover:text-foreground'}
                       >
                         {event.published ? (
                           <>
@@ -1344,7 +1344,7 @@ export default function EventosPelea() {
                        variant="ghost"
                        size="sm"
                        onClick={() => handleTogglePublish(event.id, event.published)}
-                       className={event.published ? 'text-green-600 shrink-0' : 'text-muted-foreground shrink-0'}
+                       className={event.published ? 'text-fighter-success shrink-0' : 'text-muted-foreground shrink-0'}
                      >
                        {event.published ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                      </Button>
@@ -1865,9 +1865,9 @@ export default function EventosPelea() {
                               className="h-full w-auto mx-auto object-contain"
                             />
                             {processedImageA && (
-                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
-                                <Check className="w-3 h-3 mr-1" />
-                                Procesado
+                               <Badge className="absolute top-1 right-1 bg-fighter-success text-xs">
+                                 <Check className="w-3 h-3 mr-1" />
+                                 Procesado
                               </Badge>
                             )}
                           </div>
@@ -1988,10 +1988,10 @@ export default function EventosPelea() {
                               alt="Preview B"
                               className="h-full w-auto mx-auto object-contain"
                             />
-                            {processedImageB && (
-                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
-                                <Check className="w-3 h-3 mr-1" />
-                                Procesado
+                             {processedImageB && (
+                               <Badge className="absolute top-1 right-1 bg-fighter-success text-xs">
+                                 <Check className="w-3 h-3 mr-1" />
+                                 Procesado
                               </Badge>
                             )}
                           </div>

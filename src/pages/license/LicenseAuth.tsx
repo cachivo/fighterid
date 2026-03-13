@@ -283,42 +283,42 @@ export default function LicenseAuth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-red-950/20 to-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gold-400 mx-auto mb-4"></div>
-          <p className="text-gold-200">Cargando...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Cargando...</p>
         </div>
       </div>
     );
   }
 
-  const inputClasses = "bg-slate-900/50 border-purple-500/30 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300";
-  const labelClasses = "text-white/90 group-focus-within:text-purple-400 transition-colors duration-300";
-  const buttonClasses = "w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300";
+  const inputClasses = "bg-secondary border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-300";
+  const labelClasses = "text-foreground/90 group-focus-within:text-primary transition-colors duration-300";
+  const buttonClasses = "w-full bg-primary hover:bg-primary/90 shadow-[0_0_20px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.5)] transition-all duration-300";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Background nebulas */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-slate-950 to-black" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-background" />
       <div className="absolute inset-0 bg-[url('/lovable-uploads/octagon-background.png')] opacity-[0.02] bg-cover bg-center" />
-      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-purple-600/15 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }} />
-      <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-indigo-600/12 rounded-full blur-[110px] animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/8 rounded-full blur-[130px] animate-pulse" style={{ animationDelay: '6s', animationDuration: '14s' }} />
-      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-cyan-600/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s', animationDuration: '9s' }} />
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/15 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s', animationDuration: '10s' }} />
+      <div className="absolute bottom-0 left-1/4 w-[450px] h-[450px] bg-primary/12 rounded-full blur-[110px] animate-pulse" style={{ animationDelay: '4s', animationDuration: '12s' }} />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[130px] animate-pulse" style={{ animationDelay: '6s', animationDuration: '14s' }} />
+      <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-primary/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s', animationDuration: '9s' }} />
 
-      <Card className="w-full max-w-md bg-slate-950/95 border-purple-500/30 backdrop-blur-xl shadow-[0_0_50px_rgba(168,85,247,0.15)] relative z-10 animate-fade-in">
+      <Card className="w-full max-w-md bg-card border-primary/30 backdrop-blur-xl shadow-[0_0_50px_hsl(var(--primary)/0.15)] relative z-10 animate-fade-in">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4 animate-scale-in">
             <div className="relative">
-              <Shield className="w-12 h-12 text-gold-400 relative z-10" />
-              <div className="absolute inset-0 bg-gold-400/30 blur-xl animate-pulse" />
+              <Shield className="w-12 h-12 text-primary relative z-10" />
+              <div className="absolute inset-0 bg-primary/30 blur-xl animate-pulse" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-white bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text">
+          <CardTitle className="text-2xl font-bold text-foreground">
             Fighter ID Portal
           </CardTitle>
-          <CardDescription className="text-white/80">
+          <CardDescription className="text-muted-foreground">
             {step === 'email' && 'Ingresa tu email para continuar'}
             {step === 'login' && 'Ingresa tu contraseña'}
             {step === 'register' && (emailSuccess ? '¡Revisa tu correo!' : 'Crea tu cuenta')}
@@ -359,9 +359,9 @@ export default function LicenseAuth() {
           {/* STEP 2A: Login (email exists) */}
           {step === 'login' && (
             <form onSubmit={handleLogin} className="space-y-4 animate-fade-in">
-              <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20">
-                <p className="text-sm text-white/70">Email:</p>
-                <p className="text-white font-medium">{email}</p>
+              <div className="bg-secondary rounded-lg p-3 border border-primary/20">
+                <p className="text-sm text-muted-foreground">Email:</p>
+                <p className="text-foreground font-medium">{email}</p>
               </div>
 
               <div className="relative group">
@@ -381,7 +381,7 @@ export default function LicenseAuth() {
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
+                  className="absolute right-0 top-6 h-9 w-9 hover:text-primary transition-colors duration-300"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -404,7 +404,7 @@ export default function LicenseAuth() {
                   type="button"
                   variant="link"
                   onClick={() => navigate('/license/forgot-password')}
-                  className="text-gold-400 hover:text-gold-300 font-medium underline underline-offset-4"
+                  className="text-primary hover:text-primary/80 font-medium underline underline-offset-4"
                 >
                   <HelpCircle className="w-4 h-4 mr-1.5" />
                   ¿Olvidaste tu contraseña?
@@ -414,7 +414,7 @@ export default function LicenseAuth() {
                   type="button"
                   variant="ghost"
                   onClick={handleBackToEmail}
-                  className="text-white/60 hover:text-white"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Usar otro email
@@ -429,41 +429,41 @@ export default function LicenseAuth() {
               {emailSuccess ? (
                 <div className="space-y-6 py-4">
                   <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="bg-green-500/20 rounded-full p-4 animate-bounce">
-                      <CheckCircle className="h-12 w-12 text-green-500" />
+                    <div className="bg-fighter-success/20 rounded-full p-4 animate-bounce">
+                      <CheckCircle className="h-12 w-12 text-fighter-success" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-2">¡Revisa tu correo!</h3>
-                      <p className="text-white/90">Hemos enviado un email de confirmación a</p>
-                      <p className="text-gold-400 font-semibold mt-1">{email}</p>
+                      <h3 className="text-2xl font-bold text-foreground mb-2">¡Revisa tu correo!</h3>
+                      <p className="text-muted-foreground">Hemos enviado un email de confirmación a</p>
+                      <p className="text-primary font-semibold mt-1">{email}</p>
                     </div>
 
-                    <div className="bg-slate-900/60 rounded-lg p-4 w-full max-w-sm border border-purple-500/20">
-                      <p className="text-sm font-medium text-white mb-3">Sigue estos pasos:</p>
-                      <ol className="text-left text-sm text-white/80 space-y-2">
+                    <div className="bg-secondary rounded-lg p-4 w-full max-w-sm border border-primary/20">
+                      <p className="text-sm font-medium text-foreground mb-3">Sigue estos pasos:</p>
+                      <ol className="text-left text-sm text-muted-foreground space-y-2">
                         <li className="flex items-start gap-2">
-                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                          <span>Busca un email de <strong className="text-gold-400">Fighter ID</strong></span>
+                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">1</span>
+                          <span>Busca un email de <strong className="text-primary">Fighter ID</strong></span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                          <span>Revisa <strong className="text-gold-400">spam</strong> o <strong className="text-gold-400">promociones</strong></span>
+                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                          <span>Revisa <strong className="text-primary">spam</strong> o <strong className="text-primary">promociones</strong></span>
                         </li>
                         <li className="flex items-start gap-2">
-                          <span className="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                          <span>Haz clic en <strong className="text-gold-400">"Confirmar mi cuenta"</strong></span>
+                          <span className="bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold shrink-0">3</span>
+                          <span>Haz clic en <strong className="text-primary">"Confirmar mi cuenta"</strong></span>
                         </li>
                       </ol>
                     </div>
 
-                    <p className="text-xs text-white/50">⏱️ El email puede tardar 2-3 minutos</p>
+                    <p className="text-xs text-muted-foreground">⏱️ El email puede tardar 2-3 minutos</p>
 
                     <div className="flex flex-col sm:flex-row gap-3 w-full px-4">
                       <Button
                         variant="outline"
                         onClick={handleResendEmail}
                         disabled={resendCooldown > 0}
-                        className="flex-1 border-purple-500/30 hover:bg-purple-500/10"
+                        className="flex-1 border-primary/30 hover:bg-primary/10"
                       >
                         <Mail className="w-4 h-4 mr-2" />
                         {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar email'}
@@ -474,7 +474,7 @@ export default function LicenseAuth() {
                           setEmailSuccess(false);
                           handleBackToEmail();
                         }}
-                        className="flex-1 border border-gold-500/30 hover:bg-gold-500/10"
+                        className="flex-1 border border-primary/30 hover:bg-primary/10"
                       >
                         Cambiar correo
                       </Button>
@@ -483,9 +483,9 @@ export default function LicenseAuth() {
                 </div>
               ) : (
                 <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="bg-slate-900/60 rounded-lg p-3 border border-purple-500/20 mb-2">
-                    <p className="text-sm text-white/70">Nuevo registro para:</p>
-                    <p className="text-white font-medium">{email}</p>
+                  <div className="bg-secondary rounded-lg p-3 border border-primary/20 mb-2">
+                    <p className="text-sm text-muted-foreground">Nuevo registro para:</p>
+                    <p className="text-foreground font-medium">{email}</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -515,7 +515,7 @@ export default function LicenseAuth() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-6 h-9 w-9 hover:text-purple-400 transition-colors duration-300"
+                      className="absolute right-0 top-6 h-9 w-9 hover:text-primary transition-colors duration-300"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -537,7 +537,7 @@ export default function LicenseAuth() {
                     <Label htmlFor="avatar" className={labelClasses}>Foto de Perfil (Opcional)</Label>
                     <Input id="avatar" type="file" accept="image/*" onChange={handleAvatarChange} className={inputClasses} />
                     {avatarPreview && (
-                      <img src={avatarPreview} alt="Preview" className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)] animate-scale-in" />
+                      <img src={avatarPreview} alt="Preview" className="mt-2 w-24 h-24 object-cover rounded-full border-2 border-primary shadow-[0_0_20px_hsl(var(--primary)/0.5)] animate-scale-in" />
                     )}
                   </div>
 
@@ -556,13 +556,13 @@ export default function LicenseAuth() {
                     type="button"
                     variant="ghost"
                     onClick={handleBackToEmail}
-                    className="w-full text-white/60 hover:text-white"
+                    className="w-full text-muted-foreground hover:text-foreground"
                   >
                     <ArrowLeft className="w-4 h-4 mr-1.5" />
                     Usar otro email
                   </Button>
 
-                  <p className="text-sm text-center text-gold-400/90 mt-2 font-medium">
+                  <p className="text-sm text-center text-primary/90 mt-2 font-medium">
                     ¿Eres peleador? Podrás solicitar tu Fighter ID después del registro.
                   </p>
                 </form>
