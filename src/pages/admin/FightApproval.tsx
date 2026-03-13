@@ -16,9 +16,9 @@ import { toast } from 'sonner';
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   draft: { label: 'Borrador', color: 'bg-muted text-muted-foreground', icon: Clock },
-  submitted: { label: 'Pendiente', color: 'bg-yellow-500/20 text-yellow-400', icon: Clock },
-  under_review: { label: 'En Revisión', color: 'bg-blue-500/20 text-blue-400', icon: Search },
-  approved: { label: 'Aprobada', color: 'bg-green-500/20 text-green-400', icon: CheckCircle },
+  submitted: { label: 'Pendiente', color: 'bg-fighter-warning/20 text-fighter-warning', icon: Clock },
+  under_review: { label: 'En Revisión', color: 'bg-fighter-info/20 text-fighter-info', icon: Search },
+  approved: { label: 'Aprobada', color: 'bg-fighter-success/20 text-fighter-success', icon: CheckCircle },
   rejected: { label: 'Rechazada', color: 'bg-destructive/20 text-destructive', icon: XCircle },
   cancelled: { label: 'Cancelada', color: 'bg-muted text-muted-foreground', icon: XCircle },
 };
