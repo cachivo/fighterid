@@ -366,7 +366,7 @@ export default function LiveEventsControl() {
                     </div>
                     <div className="h-3 bg-muted rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-fighter-info to-fighter-info/80 transition-all duration-300"
                         style={{ 
                           width: `${statsB.connected_count > 0 ? (statsB.connected_count / Math.max(statsA.connected_count + statsB.connected_count, 1)) * 100 : 0}%` 
                         }}
