@@ -98,11 +98,11 @@ export default function Station3RoundControl() {
   const getRoundStatusBadge = (status: string) => {
     switch (status) {
       case 'live':
-        return <Badge className="bg-green-500 flex items-center gap-1"><Play className="h-3 w-3" /> En Curso</Badge>;
+        return <Badge className="bg-fighter-success flex items-center gap-1"><Play className="h-3 w-3" /> En Curso</Badge>;
       case 'paused':
-        return <Badge className="bg-yellow-500 flex items-center gap-1"><Pause className="h-3 w-3" /> Pausado</Badge>;
+        return <Badge className="bg-fighter-warning flex items-center gap-1"><Pause className="h-3 w-3" /> Pausado</Badge>;
       case 'ended':
-        return <Badge className="bg-gray-500 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Finalizado</Badge>;
+        return <Badge className="bg-muted-foreground flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Finalizado</Badge>;
       case 'scheduled':
         return <Badge variant="outline" className="flex items-center gap-1"><Clock className="h-3 w-3" /> Pendiente</Badge>;
       default:
