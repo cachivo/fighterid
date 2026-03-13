@@ -75,15 +75,15 @@ export default function LicenseSuspended() {
               </div>
 
               {licenseData.suspension_reason && (
-                <div className="bg-red-50 dark:bg-red-950/50 p-4 rounded-lg border border-red-200 dark:border-red-800">
-                  <h4 className="font-medium text-red-900 dark:text-red-100 mb-2">
+                <div className="bg-destructive/10 p-4 rounded-lg border border-destructive/30">
+                  <h4 className="font-medium text-destructive mb-2">
                     Razón de la Suspensión:
                   </h4>
-                  <p className="text-red-800 dark:text-red-200 text-sm">
+                  <p className="text-destructive/80 text-sm">
                     {licenseData.suspension_reason}
                   </p>
                   {licenseData.suspension_until && (
-                    <p className="text-red-700 dark:text-red-300 text-xs mt-2">
+                    <p className="text-destructive/70 text-xs mt-2">
                       Suspendido hasta: {new Date(licenseData.suspension_until).toLocaleDateString()}
                     </p>
                   )}
