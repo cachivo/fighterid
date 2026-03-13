@@ -167,7 +167,7 @@ export default function LicenseForgotPassword() {
           </form>
 
           {success && (
-            <div className="text-sm text-gray-600 text-center space-y-1">
+            <div className="text-sm text-muted-foreground text-center space-y-1">
               <p>¿No recibiste el correo?</p>
               <p>• Revisa tu carpeta de <strong>spam/correo no deseado</strong></p>
               <p>• Espera 60 segundos para reenviar</p>
