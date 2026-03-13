@@ -512,7 +512,7 @@ export function LiveControl() {
                       {getRealtimePool(outcome.id, outcome.pool).toFixed(2)} BDG
                     </span>
                     {getRealtimePool(outcome.id, outcome.pool) !== outcome.pool && (
-                      <Zap className="h-4 w-4 text-yellow-500" />
+                      <Zap className="h-4 w-4 text-fighter-warning" />
                     )}
                   </div>
                   <Progress 

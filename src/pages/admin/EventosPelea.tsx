@@ -1988,10 +1988,10 @@ export default function EventosPelea() {
                               alt="Preview B"
                               className="h-full w-auto mx-auto object-contain"
                             />
-                            {processedImageB && (
-                              <Badge className="absolute top-1 right-1 bg-green-600 text-xs">
-                                <Check className="w-3 h-3 mr-1" />
-                                Procesado
+                             {processedImageB && (
+                               <Badge className="absolute top-1 right-1 bg-fighter-success text-xs">
+                                 <Check className="w-3 h-3 mr-1" />
+                                 Procesado
                               </Badge>
                             )}
                           </div>

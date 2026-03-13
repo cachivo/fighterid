@@ -347,7 +347,7 @@ export default function RefereeControlRoom() {
             <Button
               onClick={() => handleQuickAction('KNOCKDOWN')}
               variant="outline"
-              className="flex items-center gap-2 text-purple-600 border-purple-600 hover:bg-purple-50"
+              className="flex items-center gap-2 text-primary border-primary hover:bg-primary/10"
             >
               <Zap className="h-4 w-4" />
               Knockdown

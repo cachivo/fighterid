@@ -359,7 +359,7 @@ export function SettlementConsole() {
                       {canConfirm(request) && (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                            <Button size="sm" className="bg-fighter-success hover:bg-fighter-success/90">
                               <CheckCircle2 className="h-4 w-4 mr-1" />
                               Confirmar
                             </Button>

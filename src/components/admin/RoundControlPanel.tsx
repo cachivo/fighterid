@@ -36,11 +36,11 @@ export function RoundControlPanel({ fightId }: { fightId: string }) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'live': return 'bg-green-500 text-white';
-      case 'paused': return 'bg-yellow-500 text-white';
-      case 'ended': return 'bg-gray-500 text-white';
-      case 'cancelled': return 'bg-red-500 text-white';
-      default: return 'bg-blue-500 text-white';
+      case 'live': return 'bg-fighter-success text-white';
+      case 'paused': return 'bg-fighter-warning text-white';
+      case 'ended': return 'bg-muted text-muted-foreground';
+      case 'cancelled': return 'bg-fighter-danger text-white';
+      default: return 'bg-fighter-info text-white';
     }
   };
 
@@ -56,11 +56,11 @@ export function RoundControlPanel({ fightId }: { fightId: string }) {
       <CardContent className="space-y-4">
         {/* Current Round Display */}
         {currentRound && (
-          <div className="bg-green-50 dark:bg-green-950 border-2 border-green-500 rounded-lg p-4">
+          <div className="bg-fighter-success/10 border-2 border-fighter-success rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-green-500 text-white">
+                  <Badge className="bg-fighter-success text-white">
                     <Play className="h-3 w-3 mr-1" />
                     EN VIVO
                   </Badge>
@@ -97,11 +97,11 @@ export function RoundControlPanel({ fightId }: { fightId: string }) {
 
         {/* Paused Round */}
         {pausedRound && !currentRound && (
-          <div className="bg-yellow-50 dark:bg-yellow-950 border-2 border-yellow-500 rounded-lg p-4">
+          <div className="bg-fighter-warning/10 border-2 border-fighter-warning rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <Badge className="bg-yellow-500 text-white">
+                  <Badge className="bg-fighter-warning text-white">
                     <Pause className="h-3 w-3 mr-1" />
                     PAUSADO
                   </Badge>
@@ -135,11 +135,11 @@ export function RoundControlPanel({ fightId }: { fightId: string }) {
 
         {/* Next Round */}
         {!currentRound && !pausedRound && nextRound && (
-          <div className="bg-blue-50 dark:bg-blue-950 border-2 border-blue-500 rounded-lg p-4">
+          <div className="bg-fighter-info/10 border-2 border-fighter-info rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Badge className="bg-blue-500 text-white">LISTO</Badge>
+                  <Badge className="bg-fighter-info text-white">LISTO</Badge>
                   <span className="text-lg font-bold">Round {nextRound.number}</span>
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -156,7 +156,7 @@ export function RoundControlPanel({ fightId }: { fightId: string }) {
 
         {/* No more rounds */}
         {!currentRound && !pausedRound && !nextRound && rounds.length > 0 && (
-          <div className="bg-gray-50 dark:bg-gray-900 border-2 border-gray-300 rounded-lg p-4">
+          <div className="bg-muted/50 border-2 border-border rounded-lg p-4">
             <div className="flex items-center gap-2 text-muted-foreground">
               <AlertCircle className="h-5 w-5" />
               <span className="font-medium">Todos los rounds completados</span>

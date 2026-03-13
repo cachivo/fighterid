@@ -360,7 +360,7 @@ export default function FighterProfile() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-yellow-500">{league.points} pts</div>
+                      <div className="font-bold text-fighter-warning">{league.points} pts</div>
                       {league.ranking_position && (
                         <div className="text-xs text-muted-foreground">
                           Posición #{league.ranking_position}

@@ -458,7 +458,7 @@ export default function Fighters() {
               </Badge>
             )}
             {readyToFightOnly && (
-              <Badge variant="outline" className="text-xs border-green-500/50 text-green-600">
+              <Badge variant="outline" className="text-xs border-fighter-success/50 text-fighter-success">
                 Solo listos para pelear
               </Badge>
             )}
