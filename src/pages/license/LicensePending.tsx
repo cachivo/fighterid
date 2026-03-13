@@ -225,7 +225,7 @@ export default function LicensePending() {
 
         {/* License Info Card */}
         {licenseData && (
-          <Card className="mb-8 border-orange-200 bg-orange-50/50 dark:border-orange-800 dark:bg-orange-950/20">
+          <Card className="mb-8 border-fighter-warning/30 bg-fighter-warning/5">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
