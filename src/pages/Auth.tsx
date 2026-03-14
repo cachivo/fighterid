@@ -99,6 +99,20 @@ export default function Auth() {
     navigate('/', { replace: true });
   }, [user, authLoading]);
 
+  const handleOAuthLogin = async (provider: 'google' | 'facebook') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) toast.error(error.message);
+    } catch {
+      toast.error('Error al conectar con el proveedor');
+    }
+  };
+
   const checkEmailExists = async (emailToCheck: string): Promise<boolean> => {
     try {
       const { data, error } = await supabase.functions.invoke('check-email-exists', {
