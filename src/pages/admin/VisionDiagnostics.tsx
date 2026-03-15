@@ -50,11 +50,31 @@ function heartbeatAge(ts: string | null): string {
   return `${Math.round(diff / 60)}m ago`;
 }
 
+const FAKE_FIGHT_ID = '00000000-0000-0000-0000-000000000001';
+const STRIKE_TYPES = ['jab', 'cross', 'hook', 'uppercut', 'body_shot', 'knee', 'elbow'];
+const CORNERS: ('red' | 'blue')[] = ['red', 'blue'];
+
+function randomStrike(sessionId: string) {
+  const corner = CORNERS[Math.floor(Math.random() * 2)];
+  const type = STRIKE_TYPES[Math.floor(Math.random() * STRIKE_TYPES.length)];
+  return {
+    session_id: sessionId,
+    fighter_corner: corner,
+    strike_type: type,
+    confidence: +(0.6 + Math.random() * 0.4).toFixed(2),
+    round: Math.ceil(Math.random() * 3),
+    body_hit: Math.random() > 0.5,
+    face_hit: Math.random() > 0.7,
+    speed_ms: +(5 + Math.random() * 25).toFixed(1),
+  };
+}
+
 export default function VisionDiagnostics() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastPoll, setLastPoll] = useState<Date>(new Date());
+  const [simLoading, setSimLoading] = useState(false);
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const detectedProjectId = supabaseUrl.split('//')[1]?.split('.')[0] || '???';
