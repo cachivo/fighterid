@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy } from 'lucide-react';
+import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy, Eye, Zap } from 'lucide-react';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
