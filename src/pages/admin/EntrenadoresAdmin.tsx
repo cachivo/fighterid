@@ -180,7 +180,10 @@ export default function EntrenadoresAdmin() {
         <p>Cargando...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allStaff?.map(staff => {
+          {(hasFullAccess ? allStaff : allStaff?.filter(s => {
+            const gym = gyms?.find(g => g.id === (s as any).gym_id);
+            return gym?.disciplinas?.some(d => allowedDisciplines.includes(d as any));
+          }))?.map(staff => {
             const roleInfo = ROLE_LABELS[staff.role] || ROLE_LABELS.ASSISTANT_COACH;
             const gymName = (staff as any).gyms?.nombre || 'Sin gimnasio';
             return (
