@@ -38,11 +38,12 @@ export default function AIStrikeMonitor() {
   const [selectedFightId, setSelectedFightId] = useState<string>('');
   const [selectedRound, setSelectedRound] = useState<number | undefined>();
   
+  const { sessions, activeSessions, totalActiveSessions } = useAIInferenceSessions();
+  const liveFightId = selectedFightId || activeSessions[0]?.fight_id || '';
   const { events, stats, loading: eventsLoading } = useAIStrikeEvents(
-    selectedFightId || 'demo-fight',
+    liveFightId,
     selectedRound
   );
-  const { sessions, activeSessions, totalActiveSessions } = useAIInferenceSessions();
   const { 
     configItems, 
     updateConfig, 

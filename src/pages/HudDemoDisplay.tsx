@@ -160,6 +160,15 @@ export default function HudDemoDisplay() {
         </div>
       </div>
 
+      <div className="px-6 py-2 border-b border-white/10 bg-black/50">
+        <VisionSyncStatus
+          status={visionStatus}
+          hudConnected={hudConnected}
+          visionConnected={visionConnected}
+          shortSession={shortSession}
+        />
+      </div>
+
       {/* Main content */}
       <div className="grid grid-cols-2 gap-0 min-h-[calc(100vh-60px)]">
         <FighterPanel name="Carlos «El Toro» Méndez" nickname="El Toro" stats={statsA} color="red" />
