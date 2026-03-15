@@ -111,6 +111,83 @@ export default function VisionDiagnostics() {
     }
   }, []);
 
+  const handleCreateSession = async () => {
+    setSimLoading(true);
+    try {
+      const token = crypto.randomUUID();
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .insert({
+          fight_id: FAKE_FIGHT_ID,
+          session_token: token,
+          status: 'active',
+          hud_connected: true,
+          vision_connected: true,
+          last_heartbeat: new Date().toISOString(),
+        });
+      if (error) throw error;
+      toast({ title: '✅ Sesión creada', description: `Token: ${token.slice(0, 8)}…` });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleSimulateStrike = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_events')
+        .insert(randomStrike(session.id));
+      if (error) throw error;
+      toast({ title: '🥊 Golpe simulado' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleBurst = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const strikes = Array.from({ length: 10 }, () => randomStrike(session.id));
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_events')
+        .insert(strikes);
+      if (error) throw error;
+      toast({ title: '🔥 Ráfaga enviada', description: '10 golpes insertados' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleEndSession = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .update({ status: 'ended', vision_connected: false, hud_connected: false })
+        .eq('id', session.id);
+      if (error) throw error;
+      toast({ title: '🛑 Sesión cerrada' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
   useEffect(() => {
     poll();
     const id = setInterval(poll, POLL_MS);
