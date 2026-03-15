@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Radio, Calendar, MapPin, Trophy, Tv, MessageSquare, Lock } from 'lucide-react';
+import { Radio, Calendar, MapPin, Trophy, Tv, MessageSquare, Lock, Share2, Copy, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
 import LiveFightStatsWidget from '@/components/LiveFightStatsWidget';
+import { toast } from 'sonner';
 
 interface LiveEvent {
   id: string;
@@ -59,6 +60,8 @@ const EnVivo = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState<Record<string, boolean>>({});
+  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -101,6 +104,31 @@ const EnVivo = () => {
   const toggleChat = (eventId: string) => {
     setShowChat(prev => ({ ...prev, [eventId]: !prev[eventId] }));
   };
+
+  const shareEvent = async (event: LiveEvent) => {
+    const url = `${window.location.origin}/en-vivo`;
+    const text = `🔴 EN VIVO: ${event.name} — ¡Míralo ahora en Fighter ID!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.name, text, url });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setCopiedId(event.id);
+      toast.success('Enlace copiado al portapapeles');
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  // Auto-expand first live event, or if only one
+  useEffect(() => {
+    if (liveEvents.length === 1) {
+      setExpandedEvent(liveEvents[0].id);
+    }
+  }, [liveEvents]);
 
   if (loading) {
     return (
@@ -177,106 +205,160 @@ const EnVivo = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-10">
-                {liveEvents.map((event) => {
-                  const stream = getEventLiveStream(event)!;
-                  const chatVisible = showChat[event.id];
-
-                  return (
-                    <div key={event.id} className="space-y-4">
-                      {/* Event header */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-4">
-                          <img
-                            src={getEventBrandingLogo(event)}
-                            alt="Logo"
-                            className="h-10 w-auto opacity-90"
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-destructive text-destructive-foreground animate-pulse">
-                                🔴 EN VIVO
-                              </Badge>
-                              <Badge variant="outline" className="text-white border-white/20">
-                                {event.discipline}
+              <div className="space-y-6">
+                {/* Thumbnail grid for multiple lives */}
+                {liveEvents.length > 1 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {liveEvents.map((event) => {
+                      const isExpanded = expandedEvent === event.id;
+                      return (
+                        <button
+                          key={`thumb-${event.id}`}
+                          onClick={() => setExpandedEvent(event.id)}
+                          className={`relative rounded-lg overflow-hidden border-2 transition-all duration-200 text-left group ${
+                            isExpanded
+                              ? 'border-destructive shadow-[0_0_20px_hsl(var(--destructive)/0.3)]'
+                              : 'border-white/10 hover:border-white/30'
+                          }`}
+                        >
+                          {/* Thumbnail via embed preview */}
+                          <div className="relative aspect-video bg-gray-900">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <img
+                                src={getEventBrandingLogo(event)}
+                                alt=""
+                                className="h-8 w-auto opacity-60"
+                              />
+                            </div>
+                            <div className="absolute top-2 left-2">
+                              <Badge className="bg-destructive text-destructive-foreground text-[10px] px-1.5 py-0.5 animate-pulse">
+                                🔴 LIVE
                               </Badge>
                             </div>
-                            <h2 className="text-xl md:text-2xl font-bold text-white mt-1">{event.name}</h2>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {stream.chat_embed_url && (
+                          <div className="p-2 bg-gray-950/80">
+                            <p className="text-white text-xs font-semibold truncate">{event.name}</p>
+                            <p className="text-gray-500 text-[10px] truncate">{event.discipline}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Expanded live player */}
+                {liveEvents
+                  .filter(e => expandedEvent === e.id || liveEvents.length === 1)
+                  .map((event) => {
+                    const stream = getEventLiveStream(event)!;
+                    const chatVisible = showChat[event.id];
+
+                    return (
+                      <div key={event.id} className="space-y-4">
+                        {/* Event header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={getEventBrandingLogo(event)}
+                              alt="Logo"
+                              className="h-10 w-auto opacity-90"
+                            />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-destructive text-destructive-foreground animate-pulse">
+                                  🔴 EN VIVO
+                                </Badge>
+                                <Badge variant="outline" className="text-white border-white/20">
+                                  {event.discipline}
+                                </Badge>
+                              </div>
+                              <h2 className="text-xl md:text-2xl font-bold text-white mt-1">{event.name}</h2>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {/* Share button */}
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => toggleChat(event.id)}
+                              onClick={() => shareEvent(event)}
                               className="border-white/20 text-white hover:bg-white/10"
                             >
-                              <MessageSquare className="w-4 h-4 mr-1" />
-                              {chatVisible ? 'Ocultar Chat' : 'Ver Chat'}
+                              {copiedId === event.id ? (
+                                <Check className="w-4 h-4 mr-1 text-green-400" />
+                              ) : (
+                                <Share2 className="w-4 h-4 mr-1" />
+                              )}
+                              Compartir
                             </Button>
-                          )}
-                          <Button asChild size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
-                            <Link to={`/evento/${event.id}`}>
-                              <Trophy className="w-4 h-4 mr-1" />
-                              Ver Fight Card
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Video + Chat layout */}
-                      <div className={`grid ${chatVisible && stream.chat_embed_url ? 'lg:grid-cols-[1fr_350px]' : 'grid-cols-1'} gap-4`}>
-                        {/* YouTube Embed */}
-                        <div className="relative w-full bg-black rounded-xl overflow-hidden border border-white/10 shadow-2xl" style={{ paddingBottom: '56.25%' }}>
-                          <iframe
-                            src={stream.embed_url}
-                            title={event.name}
-                            className="absolute top-0 left-0 w-full h-full"
-                            style={{ width: '100%', height: '100%' }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            referrerPolicy="strict-origin-when-cross-origin"
-                            allowFullScreen
-                          />
+                            {stream.chat_embed_url && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => toggleChat(event.id)}
+                                className="border-white/20 text-white hover:bg-white/10"
+                              >
+                                <MessageSquare className="w-4 h-4 mr-1" />
+                                {chatVisible ? 'Ocultar Chat' : 'Ver Chat'}
+                              </Button>
+                            )}
+                            <Button asChild size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                              <Link to={`/evento/${event.id}`}>
+                                <Trophy className="w-4 h-4 mr-1" />
+                                Ver Fight Card
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
 
-                        {/* Chat */}
-                        {chatVisible && stream.chat_embed_url && (
-                          <div className="hidden lg:block rounded-xl overflow-hidden border border-white/10 bg-gray-950">
+                        {/* Video + Chat layout */}
+                        <div className={`grid ${chatVisible && stream.chat_embed_url ? 'lg:grid-cols-[1fr_350px]' : 'grid-cols-1'} gap-4`}>
+                          <div className="relative w-full bg-black rounded-xl overflow-hidden border border-white/10 shadow-2xl" style={{ paddingBottom: '56.25%' }}>
                             <iframe
-                              src={stream.chat_embed_url}
-                              title={`Chat - ${event.name}`}
-                              className="w-full h-full min-h-[400px]"
+                              src={stream.embed_url}
+                              title={event.name}
+                              className="absolute top-0 left-0 w-full h-full"
+                              style={{ width: '100%', height: '100%' }}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              referrerPolicy="strict-origin-when-cross-origin"
+                              allowFullScreen
                             />
                           </div>
-                        )}
-                      </div>
+                          {chatVisible && stream.chat_embed_url && (
+                            <div className="hidden lg:block rounded-xl overflow-hidden border border-white/10 bg-gray-950">
+                              <iframe
+                                src={stream.chat_embed_url}
+                                title={`Chat - ${event.name}`}
+                                className="w-full h-full min-h-[400px]"
+                              />
+                            </div>
+                          )}
+                        </div>
 
-                      {/* AI Vision Stats Widget */}
-                      {(() => {
-                        const meta = parseMeta(event?.meta);
-                        const activeFightId = meta?.active_fight_id;
-                        return activeFightId ? <LiveFightStatsWidget fightId={activeFightId} /> : null;
-                      })()}
+                        {/* AI Vision Stats Widget */}
+                        {(() => {
+                          const meta = parseMeta(event?.meta);
+                          const activeFightId = meta?.active_fight_id;
+                          return activeFightId ? <LiveFightStatsWidget fightId={activeFightId} /> : null;
+                        })()}
 
-                      {/* Event info */}
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                        {event.venue && (
-                          <div className="flex items-center gap-1.5">
-                            <MapPin className="w-4 h-4" />
-                            {event.venue}
-                          </div>
-                        )}
-                        {event.start_time && (
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4" />
-                            {format(new Date(event.start_time), 'PPP', { locale: es })}
-                          </div>
-                        )}
+                        {/* Event info */}
+                        <div className="flex flex-wrap gap-4 text-sm text-gray-400">
+                          {event.venue && (
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-4 h-4" />
+                              {event.venue}
+                            </div>
+                          )}
+                          {event.start_time && (
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-4 h-4" />
+                              {format(new Date(event.start_time), 'PPP', { locale: es })}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             )}
           </div>
