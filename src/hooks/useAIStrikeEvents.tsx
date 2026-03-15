@@ -24,13 +24,24 @@ export interface FightStats {
   last_strike_ms: number;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const isValidUuid = (value: string) => UUID_REGEX.test(value);
+
 export function useAIStrikeEvents(fightId: string, roundNumber?: number) {
   const [events, setEvents] = useState<AIStrikeEvent[]>([]);
   const [stats, setStats] = useState<FightStats[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const shouldQuery = isValidUuid(fightId);
 
   const fetchEvents = useCallback(async () => {
+    if (!shouldQuery) {
+      setEvents([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       let query = supabase
@@ -57,9 +68,14 @@ export function useAIStrikeEvents(fightId: string, roundNumber?: number) {
     } finally {
       setLoading(false);
     }
-  }, [fightId, roundNumber, toast]);
+  }, [fightId, roundNumber, shouldQuery, toast]);
 
   const fetchStats = useCallback(async () => {
+    if (!shouldQuery) {
+      setStats([]);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .rpc('get_ai_fight_stats', {
@@ -72,10 +88,17 @@ export function useAIStrikeEvents(fightId: string, roundNumber?: number) {
     } catch (err) {
       console.error('Error fetching AI fight stats:', err);
     }
-  }, [fightId, roundNumber]);
+  }, [fightId, roundNumber, shouldQuery]);
 
   // Realtime subscription
   useEffect(() => {
+    if (!shouldQuery) {
+      setEvents([]);
+      setStats([]);
+      setLoading(false);
+      return;
+    }
+
     fetchEvents();
     fetchStats();
 
@@ -91,13 +114,11 @@ export function useAIStrikeEvents(fightId: string, roundNumber?: number) {
         },
         (payload) => {
           const newEvent = payload.new as AIStrikeEvent;
-          
-          // Solo agregar si es del round correcto (o si no hay filtro de round)
+
           if (roundNumber === undefined || newEvent.round_number === roundNumber) {
             setEvents((prev) => [newEvent, ...prev].slice(0, 500));
           }
-          
-          // Actualizar stats
+
           fetchStats();
         }
       )
@@ -106,7 +127,7 @@ export function useAIStrikeEvents(fightId: string, roundNumber?: number) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [fightId, roundNumber, fetchEvents, fetchStats]);
+  }, [fightId, roundNumber, shouldQuery, fetchEvents, fetchStats]);
 
   const getEventsByFighter = (fighter: 'A' | 'B') => {
     return events.filter(e => e.fighter === fighter);

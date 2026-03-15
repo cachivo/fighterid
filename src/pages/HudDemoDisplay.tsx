@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
 import { useHudDemoMode } from '@/hooks/useHudDemoMode';
+import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
+import VisionSyncStatus from '@/components/VisionSyncStatus';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, RotateCcw } from 'lucide-react';
@@ -104,6 +106,7 @@ export default function HudDemoDisplay() {
   const { logoUrl } = useSystemAssets();
   const { events, round, isRunning, reset, togglePause } = useHudDemoMode();
   const [tick, setTick] = useState(0);
+  const { status: visionStatus, hudConnected, visionConnected, shortSession } = useVisionSyncSession();
 
   // Clock ticker for time display
   useEffect(() => {
@@ -155,6 +158,15 @@ export default function HudDemoDisplay() {
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
+      </div>
+
+      <div className="px-6 py-2 border-b border-white/10 bg-black/50">
+        <VisionSyncStatus
+          status={visionStatus}
+          hudConnected={hudConnected}
+          visionConnected={visionConnected}
+          shortSession={shortSession}
+        />
       </div>
 
       {/* Main content */}

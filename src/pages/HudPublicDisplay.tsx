@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
+import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
+import VisionSyncStatus from '@/components/VisionSyncStatus';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
@@ -29,6 +31,7 @@ export default function HudPublicDisplay() {
   const { logoUrl } = useSystemAssets();
 
   const { events, loading } = useAIStrikeEvents(fightId || '', round?.number);
+  const { status: visionStatus, hudConnected, visionConnected, shortSession } = useVisionSyncSession(fightId);
 
   // Load fight + active round
   useEffect(() => {
@@ -113,6 +116,14 @@ export default function HudPublicDisplay() {
           <h1 className="text-4xl font-black tracking-tight">FIGHTER ID — LIVE</h1>
           <p className="text-gray-500 text-lg">Esperando datos de la pelea...</p>
           {loading && <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />}
+          <div className="pt-2 flex justify-center">
+            <VisionSyncStatus
+              status={visionStatus}
+              hudConnected={hudConnected}
+              visionConnected={visionConnected}
+              shortSession={shortSession}
+            />
+          </div>
         </div>
       </div>
     );
@@ -145,6 +156,15 @@ export default function HudPublicDisplay() {
           )}
         </div>
         <div className="text-xs text-gray-600 font-mono">AI Vision v2.0</div>
+      </div>
+
+      <div className="px-6 py-2 border-b border-white/10 bg-black/50">
+        <VisionSyncStatus
+          status={visionStatus}
+          hudConnected={hudConnected}
+          visionConnected={visionConnected}
+          shortSession={shortSession}
+        />
       </div>
 
       {/* Main content */}

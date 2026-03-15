@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.send-gym-invitation]
 verify_jwt = false
+
+[functions.vision-start-session]
+verify_jwt = false
