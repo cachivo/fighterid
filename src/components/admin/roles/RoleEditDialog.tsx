@@ -223,10 +223,13 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
 
           {/* Discipline access section - shown when gym roles are selected */}
           {hasGymRole && (
-            <div className="border-t pt-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Acceso por Disciplina
-              </p>
+            <div ref={disciplineRef} className="border-t border-l-4 border-l-yellow-500 pt-4 pl-3 rounded-sm bg-yellow-500/5">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Acceso por Disciplina
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground mb-3">
                 Selecciona las disciplinas que este usuario puede gestionar
               </p>
