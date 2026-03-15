@@ -362,7 +362,7 @@ export default function AdminBetting() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="events">BDG Events</TabsTrigger>
           <TabsTrigger value="markets">Markets</TabsTrigger>
           <TabsTrigger value="live">Live Control</TabsTrigger>
@@ -397,7 +397,7 @@ export default function AdminBetting() {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={eventForm.handleSubmit(editingEvent ? handleUpdateEvent : handleCreateEvent)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="name">Nombre del Evento</Label>
                       <Input
@@ -430,7 +430,7 @@ export default function AdminBetting() {
                       placeholder="Descripción del evento..."
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="venue">Venue</Label>
                       <Input
@@ -439,7 +439,7 @@ export default function AdminBetting() {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="start_time">Inicio</Label>
                       <Input
@@ -577,7 +577,7 @@ export default function AdminBetting() {
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={marketForm.handleSubmit(handleCreateMarket)} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="title">Título del Mercado</Label>
                       <Input
@@ -608,7 +608,7 @@ export default function AdminBetting() {
                       placeholder="Descripción del mercado..."
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="kind">Tipo</Label>
                       <Select onValueChange={(value) => marketForm.setValue('kind', value as any)}>

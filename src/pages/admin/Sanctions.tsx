@@ -100,7 +100,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
           <DialogTitle>Crear Sanción</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Objetivo</Label>
               <Select value={form.target_type} onValueChange={v => setForm(f => ({ ...f, target_type: v as any }))}>
@@ -117,7 +117,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
               <Input value={form.target_id} onChange={e => setForm(f => ({ ...f, target_id: e.target.value }))} placeholder="UUID del objetivo" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Sanción</Label>
               <Select value={form.sanction_type} onValueChange={v => setForm(f => ({ ...f, sanction_type: v as any }))}>
@@ -142,7 +142,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
             <Label>Descripción adicional</Label>
             <Textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Fecha inicio</Label>
               <Input type="date" value={form.start_date || ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />

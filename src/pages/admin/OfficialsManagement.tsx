@@ -253,7 +253,7 @@ export default function OfficialsManagement() {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="official_type" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Oficial</FormLabel>
@@ -284,7 +284,7 @@ export default function OfficialsManagement() {
                   )} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="first_name" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nombre</FormLabel>
@@ -301,7 +301,7 @@ export default function OfficialsManagement() {
                   )} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="license_number" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Nº Licencia</FormLabel>
@@ -318,7 +318,7 @@ export default function OfficialsManagement() {
                   )} />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="phone" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Teléfono</FormLabel>
@@ -338,7 +338,7 @@ export default function OfficialsManagement() {
                 <FormField control={form.control} name="specialization" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Disciplinas</FormLabel>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {SPECIALIZATIONS.map(spec => (
                         <label key={spec} className="flex items-center space-x-2 cursor-pointer">
                           <Checkbox

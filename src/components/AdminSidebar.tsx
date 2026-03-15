@@ -39,6 +39,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
@@ -78,12 +79,17 @@ const fightControlItems = [
 ];
 
 export function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
+  const isMobile = useIsMobile();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
+
+  const handleNavClick = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   const isActive = (path: string) => {
     if (path === '/admin') {
@@ -120,6 +126,7 @@ export function AdminSidebar() {
                       to={item.url} 
                       end={item.url === '/admin'}
                       className={`min-h-[44px] ${getNavCls(item.url)}`}
+                      onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -141,6 +148,7 @@ export function AdminSidebar() {
                     <NavLink 
                       to={item.url} 
                       className={`min-h-[44px] ${getNavCls(item.url)}`}
+                      onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -163,6 +171,7 @@ export function AdminSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={`min-h-[44px] ${getNavCls(item.url)}`}
+                        onClick={handleNavClick}
                       >
                         <item.icon className="h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}

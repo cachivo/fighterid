@@ -448,7 +448,7 @@ export default function FightResults() {
           
           <div className="space-y-6">
             {/* Winner and Result Type */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label>Ganador</Label>
                 <Select value={resultForm.winner_id} onValueChange={(value) => setResultForm(prev => ({ ...prev, winner_id: value }))}>
@@ -491,7 +491,7 @@ export default function FightResults() {
             </div>
 
             {/* Finish Details */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Método</Label>
                 <Input

@@ -129,7 +129,7 @@ export default function LiveEventsControl() {
 
         <CardContent className="space-y-4">
           {/* Officials Status */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium mb-2 flex items-center">
                 <Users className="mr-2 h-3 w-3" />
@@ -183,7 +183,7 @@ export default function LiveEventsControl() {
                 <Activity className="mr-2 h-3 w-3" />
                 Scoring en Vivo
               </p>
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                 {Array.from({length: 3}, (_, i) => {
                   const judgeScores = realtimeData.scorecards.filter(sc => sc.judge_id === assignedJudges[i]?.judges?.id);
                   const totalA = judgeScores.reduce((sum, sc) => sum + sc.fighter_a_score, 0);
@@ -263,7 +263,7 @@ export default function LiveEventsControl() {
             {session && (
               <Card variant="cyber">
                 <CardContent className="pt-4">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <p className="text-muted-foreground">Estado</p>
                       <Badge variant={session.status === 'running' ? 'neon' : 'secondary'}>
@@ -284,7 +284,7 @@ export default function LiveEventsControl() {
             )}
             
             {/* Fighter Stats Comparison */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card variant="neon">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
