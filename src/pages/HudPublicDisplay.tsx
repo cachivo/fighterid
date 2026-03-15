@@ -58,7 +58,7 @@ export default function HudPublicDisplay() {
         setFightData(result);
       }
 
-      const { data: rounds } = await supabase
+      const { data: rounds } = await (supabase as any)
         .from('rounds')
         .select('id, number, starts_at, status, duration_seconds')
         .eq('fight_id', fightId)
