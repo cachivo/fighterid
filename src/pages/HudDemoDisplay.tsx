@@ -1,11 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
 import { useHudDemoMode } from '@/hooks/useHudDemoMode';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 
-// Re-use the same stats computation and panel from the main HUD
 interface StrikeStats {
   attempted: number;
   connected: number;
@@ -104,9 +103,16 @@ function FighterPanel({ name, nickname, stats, color }: {
 export default function HudDemoDisplay() {
   const { logoUrl } = useSystemAssets();
   const { events, round, isRunning, reset, togglePause } = useHudDemoMode();
+  const [tick, setTick] = useState(0);
 
-  const statsA = useMemo(() => computeStats(events, 'A'), [events]);
-  const statsB = useMemo(() => computeStats(events, 'B'), [events]);
+  // Clock ticker for time display
+  useEffect(() => {
+    const id = setInterval(() => setTick(t => t + 1), 100);
+    return () => clearInterval(id);
+  }, []);
+
+  const statsA = useMemo(() => computeStats(events, 'A'), [events, tick]);
+  const statsB = useMemo(() => computeStats(events, 'B'), [events, tick]);
 
   const formatTime = (startIso: string, durationSec: number) => {
     const elapsed = Date.now() - new Date(startIso).getTime();
@@ -116,15 +122,6 @@ export default function HudDemoDisplay() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Force re-render every 100ms for clock
-  const [, setTick] = useMemo(() => {
-    // noop - we use interval below
-    return [0, () => {}];
-  }, []);
-
-  // Clock ticker
-  import { useState, useEffect } from 'react'; // already imported via useMemo
-  
   return (
     <div className="min-h-screen bg-black text-white select-none overflow-hidden">
       {/* Top bar */}
