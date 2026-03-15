@@ -252,6 +252,13 @@ const EnVivo = () => {
                         )}
                       </div>
 
+                      {/* AI Vision Stats Widget */}
+                      {(() => {
+                        const meta = parseMeta(event?.meta);
+                        const activeFightId = meta?.active_fight_id;
+                        return activeFightId ? <LiveFightStatsWidget fightId={activeFightId} /> : null;
+                      })()}
+
                       {/* Event info */}
                       <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                         {event.venue && (
