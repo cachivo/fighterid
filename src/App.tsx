@@ -47,6 +47,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const AccessDenied = lazy(() => import("./pages/AccessDenied"));
 const VerifyLicense = lazy(() => import('./pages/VerifyLicense'));
 const HudPublicDisplay = lazy(() => import("./pages/HudPublicDisplay"));
+const HudDemoDisplay = lazy(() => import("./pages/HudDemoDisplay"));
 const ImportEvent = lazy(() => import("./pages/ImportEvent"));
 const TestNewsFunction = lazy(() => import("./pages/TestNewsFunction"));
 const PublicFightResults = lazy(() => import('./pages/FightResults'));
