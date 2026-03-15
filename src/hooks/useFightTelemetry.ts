@@ -69,28 +69,54 @@ export function useFightTelemetry(fightId?: string) {
         };
         setFightMeta(meta);
 
-        // 3. Create telemetry session
-        const token = crypto.randomUUID();
-        const { data: session, error } = await (supabase as any)
-          .from('fight_telemetry_sessions')
-          .insert({
-            fight_id: fightId,
-            event_id: fight.event_id ?? null,
-            fighter_red_id: fight.fighter_a_id ?? null,
-            fighter_blue_id: fight.fighter_b_id ?? null,
-            session_token: token,
-            hud_connected: true,
-            status: 'active',
-          })
-          .select('id, session_token, started_at')
-          .single();
+        // 3. Reuse existing active session or create new one
+        let session: any = null;
 
-        if (error) throw error;
-        if (!isMounted) return;
+        const { data: existing } = await (supabase as any)
+          .from('fight_telemetry_sessions')
+          .select('id, session_token, started_at')
+          .eq('fight_id', fightId)
+          .eq('status', 'active')
+          .order('started_at', { ascending: false })
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          session = existing[0];
+        } else {
+          const token = crypto.randomUUID();
+          const { data: newSession, error } = await (supabase as any)
+            .from('fight_telemetry_sessions')
+            .insert({
+              fight_id: fightId,
+              event_id: fight.event_id ?? null,
+              fighter_red_id: fight.fighter_a_id ?? null,
+              fighter_blue_id: fight.fighter_b_id ?? null,
+              session_token: token,
+              hud_connected: true,
+              status: 'active',
+            })
+            .select('id, session_token, started_at')
+            .single();
+          if (error) throw error;
+          session = newSession;
+        }
+
+        if (!session || !isMounted) return;
 
         setSessionToken(session.session_token);
         setSessionId(session.id);
         setStatus('active');
+
+        // 3b. Load existing events for this session
+        const { data: existingEvents } = await (supabase as any)
+          .from('fight_telemetry_events')
+          .select('*')
+          .eq('session_id', session.id)
+          .order('created_at', { ascending: true });
+
+        if (existingEvents && isMounted) {
+          setTelemetryEvents(existingEvents);
+        }
 
         // 4. Realtime subscription for telemetry events
         channel = supabase
