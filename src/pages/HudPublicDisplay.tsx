@@ -4,7 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
 import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
+import { useFightTelemetry } from '@/hooks/useFightTelemetry';
 import VisionSyncStatus from '@/components/VisionSyncStatus';
+import FightTelemetryPanel from '@/components/FightTelemetryPanel';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
@@ -31,7 +33,15 @@ export default function HudPublicDisplay() {
   const { logoUrl } = useSystemAssets();
 
   const { events, loading } = useAIStrikeEvents(fightId || '', round?.number);
-  const { status: visionStatus, hudConnected, visionConnected, shortSession } = useVisionSyncSession(fightId);
+  const { status: visionStatus, hudConnected, visionConnected, shortSession: visionShortSession } = useVisionSyncSession(fightId);
+
+  // Fight Telemetry
+  const {
+    shortSession: telemetryShortSession,
+    fightMeta,
+    status: telemetryStatus,
+    strikesByCorner,
+  } = useFightTelemetry(fightId);
 
   // Load fight + active round
   useEffect(() => {
@@ -73,7 +83,6 @@ export default function HudPublicDisplay() {
 
     load();
 
-    // Realtime round changes
     const channel = supabase
       .channel(`hud-rounds-${fightId}`)
       .on('postgres_changes', {
@@ -96,7 +105,6 @@ export default function HudPublicDisplay() {
     return () => clearInterval(id);
   }, [round?.starts_at]);
 
-  // Compute stats from AI events
   const statsA = useMemo(() => computeStats(events, 'A'), [events]);
   const statsB = useMemo(() => computeStats(events, 'B'), [events]);
 
@@ -107,6 +115,8 @@ export default function HudPublicDisplay() {
     const secs = Math.floor((remaining % 60000) / 1000);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const clockDisplay = round ? formatTime(clockMs, round.duration_seconds) : undefined;
 
   if (!fightData) {
     return (
@@ -121,7 +131,7 @@ export default function HudPublicDisplay() {
               status={visionStatus}
               hudConnected={hudConnected}
               visionConnected={visionConnected}
-              shortSession={shortSession}
+              shortSession={visionShortSession}
             />
           </div>
         </div>
@@ -136,8 +146,6 @@ export default function HudPublicDisplay() {
     ? `${fightData.blue_fighter.first_name} ${fightData.blue_fighter.last_name}`
     : 'Peleador B';
 
-  const maxStrikes = Math.max(statsA.connected + statsB.connected, 1);
-
   return (
     <div className="min-h-screen bg-black text-white select-none overflow-hidden">
       {/* Top bar */}
@@ -146,7 +154,7 @@ export default function HudPublicDisplay() {
         <div className="flex items-center gap-3">
           {round && (
             <Badge className="bg-red-600 text-white text-lg px-4 py-1 font-mono animate-pulse">
-              🔴 R{round.number} — {formatTime(clockMs, round.duration_seconds)}
+              🔴 R{round.number} — {clockDisplay}
             </Badge>
           )}
           {!round && (
@@ -158,33 +166,39 @@ export default function HudPublicDisplay() {
         <div className="text-xs text-gray-600 font-mono">AI Vision v2.0</div>
       </div>
 
-      <div className="px-6 py-2 border-b border-white/10 bg-black/50">
+      {/* Vision + Telemetry status */}
+      <div className="px-6 py-2 border-b border-white/10 bg-black/50 flex flex-wrap gap-4">
         <VisionSyncStatus
           status={visionStatus}
           hudConnected={hudConnected}
           visionConnected={visionConnected}
-          shortSession={shortSession}
+          shortSession={visionShortSession}
+        />
+        <FightTelemetryPanel
+          meta={fightMeta}
+          shortSession={telemetryShortSession}
+          status={telemetryStatus}
+          roundNumber={round?.number}
+          clockDisplay={clockDisplay}
+          strikesByCorner={strikesByCorner}
         />
       </div>
 
       {/* Main content */}
       <div className="grid grid-cols-2 gap-0 min-h-[calc(100vh-60px)]">
-        {/* Fighter A (RED) */}
         <FighterPanel
           name={nameA}
           nickname={fightData.red_fighter?.nickname}
           stats={statsA}
           color="red"
-          maxStrikes={maxStrikes}
+          maxStrikes={Math.max(statsA.connected + statsB.connected, 1)}
         />
-
-        {/* Fighter B (BLUE) */}
         <FighterPanel
           name={nameB}
           nickname={fightData.blue_fighter?.nickname}
           stats={statsB}
           color="blue"
-          maxStrikes={maxStrikes}
+          maxStrikes={Math.max(statsA.connected + statsB.connected, 1)}
         />
       </div>
 
@@ -203,7 +217,7 @@ interface StrikeStats {
   connected: number;
   accuracy: number;
   byType: Record<string, { attempted: number; connected: number }>;
-  recentActivity: number; // events in last 30s
+  recentActivity: number;
 }
 
 function computeStats(events: any[], fighter: string): StrikeStats {
@@ -219,7 +233,6 @@ function computeStats(events: any[], fighter: string): StrikeStats {
     if (e.event_type === 'strike_connected') byType[t].connected++;
   }
 
-  // Recent activity: events in last 30 seconds
   const now = Date.now();
   const recentActivity = mine.filter(e => {
     const eventTime = new Date(e.created_at).getTime();
@@ -258,21 +271,18 @@ function FighterPanel({
 
   return (
     <div className={`${bg} border-r ${border} p-6 md:p-10 flex flex-col justify-between`}>
-      {/* Name */}
       <div className="space-y-1">
         <div className={`text-sm font-medium ${accent} uppercase tracking-widest`}>{dot} {isRed ? 'Esquina Roja' : 'Esquina Azul'}</div>
         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">{name}</h2>
         {nickname && <div className="text-lg text-gray-500 italic">"{nickname}"</div>}
       </div>
 
-      {/* Main stat */}
       <div className="space-y-6 my-8">
         <div className="text-center">
           <div className={`text-8xl md:text-9xl font-black ${accent} leading-none`}>{stats.connected}</div>
           <div className="text-gray-500 text-sm mt-1">Golpes Conectados</div>
         </div>
 
-        {/* Precision bar */}
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Precisión</span>
@@ -281,7 +291,6 @@ function FighterPanel({
           <Progress value={stats.accuracy} className={`h-3 bg-white/10 ${progressColor}`} />
         </div>
 
-        {/* Attempted vs Connected */}
         <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-3 rounded-lg bg-white/5">
             <div className="text-3xl font-bold text-white">{stats.attempted}</div>
@@ -294,7 +303,6 @@ function FighterPanel({
         </div>
       </div>
 
-      {/* Strike types */}
       {topTypes.length > 0 && (
         <div className="space-y-2">
           <div className="text-xs text-gray-600 uppercase tracking-wider">Tipos de Golpe</div>
