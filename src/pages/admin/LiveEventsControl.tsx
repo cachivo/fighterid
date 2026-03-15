@@ -183,7 +183,7 @@ export default function LiveEventsControl() {
                 <Activity className="mr-2 h-3 w-3" />
                 Scoring en Vivo
               </p>
-              <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                 {Array.from({length: 3}, (_, i) => {
                   const judgeScores = realtimeData.scorecards.filter(sc => sc.judge_id === assignedJudges[i]?.judges?.id);
                   const totalA = judgeScores.reduce((sum, sc) => sum + sc.fighter_a_score, 0);
