@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { AlertCircle, Eye, Play, Pause, Square, Users, Clock, Trophy, Activity, Settings, Zap, TrendingUp, Target } from 'lucide-react';
+import { AlertCircle, Eye, Play, Pause, Square, Users, Clock, Trophy, Activity, Settings, Zap, TrendingUp, Target, Monitor } from 'lucide-react';
 import { useEvents } from '@/hooks/useEvents';
 import { useFights } from '@/hooks/useEvents';
 import { useFightOfficials, useFightControl } from '@/hooks/useFightControl';
@@ -102,6 +102,14 @@ export default function LiveEventsControl() {
                 />
               )}
               
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.open(`/hud/fight/${fight.id}`, '_blank')}
+              >
+                <Monitor className="mr-2 h-3 w-3" />
+                HUD
+              </Button>
               <Button 
                 size="sm" 
                 variant="outline"
