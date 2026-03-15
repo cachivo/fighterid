@@ -234,7 +234,7 @@ export default function OrganizationsManagement() {
             <DialogDescription>Complete los datos de la organización</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>Código *</Label>
                 <Input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} placeholder="UCC" />
