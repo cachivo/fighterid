@@ -102,7 +102,7 @@ export default function EntrenadoresAdmin() {
                   <SelectTrigger><SelectValue placeholder="Selecciona un gimnasio" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Seleccionar...</SelectItem>
-                    {gyms?.map(gym => (
+                    {(hasFullAccess ? gyms : gyms?.filter(g => g.disciplinas?.some(d => allowedDisciplines.includes(d as any))))?.map(gym => (
                       <SelectItem key={gym.id} value={gym.id}>{gym.nombre}</SelectItem>
                     ))}
                   </SelectContent>
