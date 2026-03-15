@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Interface para eventos del microservicio Python
@@ -42,47 +42,67 @@ interface LogEntry {
   metadata?: any;
 }
 
+interface FightEndRequest {
+  fightId: string;
+  model_version?: string;
+}
+
+// Helper: calcular stats de un peleador desde eventos
+function computeFighterStats(events: any[], fighter: string) {
+  const fighterEvents = events.filter((e: any) => e.fighter === fighter);
+  const attempted = fighterEvents.filter((e: any) => e.event_type === 'strike_attempted').length;
+  const connected = fighterEvents.filter((e: any) => e.event_type === 'strike_connected').length;
+
+  const strikeTypes: Record<string, { attempted: number; connected: number }> = {};
+  for (const e of fighterEvents) {
+    const st = e.strike_type || 'other';
+    if (!strikeTypes[st]) strikeTypes[st] = { attempted: 0, connected: 0 };
+    if (e.event_type === 'strike_attempted') strikeTypes[st].attempted++;
+    if (e.event_type === 'strike_connected') strikeTypes[st].connected++;
+  }
+
+  return {
+    total_attempted: attempted,
+    total_connected: connected,
+    accuracy: attempted > 0 ? Math.round((connected / attempted) * 10000) / 100 : 0,
+    strike_breakdown: strikeTypes,
+    total_events: fighterEvents.length,
+  };
+}
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Crear cliente Supabase con service_role para bypass RLS
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
 
     // ==========================================
-    // POST /ai-strike-ingest/event - Recibir evento de golpe
+    // POST /ai-strike-ingest/event
     // ==========================================
     if (path === 'event' && req.method === 'POST') {
       const event: StrikeEvent = await req.json();
       
-      // Validar evento
       if (!event.fightId || !event.round || !event.fighter || !event.event || !event.model_version) {
-        console.error('Invalid event:', event);
         return new Response(
           JSON.stringify({ error: 'Invalid event format' }), 
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Validar confianza
       if (event.confidence < 0 || event.confidence > 1) {
-        console.error('Invalid confidence:', event.confidence);
         return new Response(
           JSON.stringify({ error: 'Confidence must be between 0 and 1' }), 
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      // Insertar evento
       const { data, error } = await supabase
         .from('ai_strike_events')
         .insert({
@@ -106,7 +126,6 @@ serve(async (req) => {
         );
       }
 
-      console.log('Strike event inserted:', data);
       return new Response(
         JSON.stringify({ success: true, id: data.id }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -114,7 +133,7 @@ serve(async (req) => {
     }
 
     // ==========================================
-    // POST /ai-strike-ingest/session/start - Iniciar sesión de inferencia
+    // POST /ai-strike-ingest/session/start
     // ==========================================
     if (path === 'start' && req.method === 'POST') {
       const session: SessionStart = await req.json();
@@ -146,7 +165,6 @@ serve(async (req) => {
         );
       }
 
-      console.log('Inference session started:', data);
       return new Response(
         JSON.stringify({ success: true, sessionId: data.id }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -154,7 +172,7 @@ serve(async (req) => {
     }
 
     // ==========================================
-    // POST /ai-strike-ingest/session/stop - Detener sesión
+    // POST /ai-strike-ingest/session/stop
     // ==========================================
     if (path === 'stop' && req.method === 'POST') {
       const stopData: SessionStop = await req.json();
@@ -192,7 +210,6 @@ serve(async (req) => {
         );
       }
 
-      console.log('Inference session stopped:', data);
       return new Response(
         JSON.stringify({ success: true }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -200,12 +217,108 @@ serve(async (req) => {
     }
 
     // ==========================================
-    // POST /ai-strike-ingest/log - Recibir log del microservicio
+    // POST /ai-strike-ingest/end - Finalizar pelea y calcular stats
+    // ==========================================
+    if (path === 'end' && req.method === 'POST') {
+      const body: FightEndRequest = await req.json();
+
+      if (!body.fightId) {
+        return new Response(
+          JSON.stringify({ error: 'fightId is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Obtener todos los eventos de la pelea
+      const { data: allEvents, error: eventsError } = await supabase
+        .from('ai_strike_events')
+        .select('*')
+        .eq('fight_id', body.fightId)
+        .order('timestamp_ms', { ascending: true });
+
+      if (eventsError) {
+        console.error('Error fetching events for fight end:', eventsError);
+        return new Response(
+          JSON.stringify({ error: eventsError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const events = allEvents || [];
+      const fighterAStats = computeFighterStats(events, 'A');
+      const fighterBStats = computeFighterStats(events, 'B');
+
+      // Determinar model_version
+      const modelVersion = body.model_version || (events.length > 0 ? events[0].model_version : 'unknown');
+
+      // Calcular duración aproximada
+      let durationSeconds: number | null = null;
+      if (events.length >= 2) {
+        const firstMs = events[0].timestamp_ms;
+        const lastMs = events[events.length - 1].timestamp_ms;
+        durationSeconds = Math.round((lastMs - firstMs) / 1000);
+      }
+
+      // Guardar en ai_fight_results (upsert por fight_id único)
+      const { data: resultData, error: resultError } = await supabase
+        .from('ai_fight_results')
+        .upsert({
+          fight_id: body.fightId,
+          model_version: modelVersion,
+          fighter_a_stats: fighterAStats,
+          fighter_b_stats: fighterBStats,
+          total_events: events.length,
+          duration_seconds: durationSeconds,
+          metadata: {
+            rounds_detected: [...new Set(events.map((e: any) => e.round_number))].sort(),
+            computed_at: new Date().toISOString(),
+          },
+        }, { onConflict: 'fight_id' })
+        .select()
+        .single();
+
+      if (resultError) {
+        console.error('Error saving ai_fight_results:', resultError);
+        return new Response(
+          JSON.stringify({ error: resultError.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Actualizar fights.ai_result
+      const aiResultSummary = {
+        result_id: resultData.id,
+        model_version: modelVersion,
+        fighter_a: fighterAStats,
+        fighter_b: fighterBStats,
+        total_events: events.length,
+        computed_at: new Date().toISOString(),
+      };
+
+      const { error: updateError } = await supabase
+        .from('fights')
+        .update({ ai_result: aiResultSummary })
+        .eq('id', body.fightId);
+
+      if (updateError) {
+        console.error('Error updating fights.ai_result:', updateError);
+        // No fallar — el resultado ya se guardó
+      }
+
+      console.log('Fight ended, results computed:', resultData.id);
+      return new Response(
+        JSON.stringify({ success: true, resultId: resultData.id, stats: { fighter_a: fighterAStats, fighter_b: fighterBStats } }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ==========================================
+    // POST /ai-strike-ingest/log
     // ==========================================
     if (path === 'log' && req.method === 'POST') {
       const logEntry: LogEntry = await req.json();
       
-      const { error } = await supabase
+      await supabase
         .from('ai_inference_logs')
         .insert({
           session_id: logEntry.sessionId || null,
@@ -215,11 +328,6 @@ serve(async (req) => {
           metadata: logEntry.metadata || {},
         });
 
-      if (error) {
-        console.error('Error inserting log:', error);
-        // No fallar por logs
-      }
-
       return new Response(
         JSON.stringify({ success: true }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -227,17 +335,17 @@ serve(async (req) => {
     }
 
     // ==========================================
-    // GET /ai-strike-ingest/health - Health check
+    // GET /ai-strike-ingest/health
     // ==========================================
     if (path === 'health' && req.method === 'GET') {
       return new Response(
-        JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), 
+        JSON.stringify({ status: 'ok', version: '2.0', timestamp: new Date().toISOString() }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // ==========================================
-    // GET /ai-strike-ingest/metrics - Obtener métricas de sesiones activas
+    // GET /ai-strike-ingest/metrics
     // ==========================================
     if (path === 'metrics' && req.method === 'GET') {
       const { data: sessions, error } = await supabase
@@ -247,20 +355,14 @@ serve(async (req) => {
         .order('started_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching metrics:', error);
         return new Response(
           JSON.stringify({ error: error.message }), 
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const metrics = {
-        active_sessions: sessions?.length || 0,
-        sessions: sessions || [],
-      };
-
       return new Response(
-        JSON.stringify(metrics), 
+        JSON.stringify({ active_sessions: sessions?.length || 0, sessions: sessions || [] }), 
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -273,6 +375,7 @@ serve(async (req) => {
           'POST /event - Recibir evento de golpe',
           'POST /start - Iniciar sesión de inferencia',
           'POST /stop - Detener sesión',
+          'POST /end - Finalizar pelea y calcular stats',
           'POST /log - Registrar log',
           'GET /health - Health check',
           'GET /metrics - Métricas de sesiones activas',
