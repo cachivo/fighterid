@@ -246,6 +246,58 @@ export default function VisionDiagnostics() {
             )}
           </CardContent>
         </Card>
+
+        {/* Simulation Panel */}
+        <Card className="border-dashed border-2 border-muted-foreground/30">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Zap className="h-4 w-4 text-accent-foreground" />
+              Simulación — Verificar Esquema DB
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Inserta datos de prueba directamente en Supabase para validar que las tablas aceptan la información correcta.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={simLoading || !!session}
+                onClick={handleCreateSession}
+              >
+                <Play className="h-3 w-3 mr-1" /> Crear Sesión
+              </Button>
+              <Button
+                size="sm"
+                variant="neon"
+                disabled={simLoading || !session}
+                onClick={handleSimulateStrike}
+              >
+                <Zap className="h-3 w-3 mr-1" /> Simular Golpe
+              </Button>
+              <Button
+                size="sm"
+                variant="cyber"
+                disabled={simLoading || !session}
+                onClick={handleBurst}
+              >
+                <FlameKindling className="h-3 w-3 mr-1" /> Ráfaga ×10
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={simLoading || !session}
+                onClick={handleEndSession}
+              >
+                <RotateCcw className="h-3 w-3 mr-1" /> Cerrar Sesión
+              </Button>
+            </div>
+            {session && (
+              <p className="text-xs text-muted-foreground mt-3">
+                Sesión activa: <span className="font-mono">{session.id.slice(0, 8)}…</span> · {events.length} eventos
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AdminLayoutWithAI>
   );
