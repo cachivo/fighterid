@@ -79,12 +79,17 @@ const fightControlItems = [
 ];
 
 export function AdminSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
+  const isMobile = useIsMobile();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
+
+  const handleNavClick = () => {
+    if (isMobile) setOpenMobile(false);
+  };
 
   const isActive = (path: string) => {
     if (path === '/admin') {
