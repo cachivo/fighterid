@@ -126,6 +126,7 @@ export function AdminSidebar() {
                       to={item.url} 
                       end={item.url === '/admin'}
                       className={`min-h-[44px] ${getNavCls(item.url)}`}
+                      onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
