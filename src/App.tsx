@@ -215,6 +215,7 @@ const App = () => {
               
               {/* HUD & AI Overlay */}
               <Route path="/hud/fight/:fightId" element={<HudPublicDisplay />} />
+              <Route path="/hud/demo" element={<HudDemoDisplay />} />
               <Route path="/ai-overlay" element={<AIStrikeOverlay />} />
               <Route path="/ai-strike-overlay" element={<AIStrikeOverlay />} />
 
