@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
 import { useHudDemoMode } from '@/hooks/useHudDemoMode';
+import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
+import VisionSyncStatus from '@/components/VisionSyncStatus';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, RotateCcw } from 'lucide-react';

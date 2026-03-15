@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { useSystemAssets } from '@/hooks/useSystemAssets';
+import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
+import VisionSyncStatus from '@/components/VisionSyncStatus';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 
