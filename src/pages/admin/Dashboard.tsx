@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy } from 'lucide-react';
+import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy, Eye, Zap } from 'lucide-react';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
@@ -161,7 +161,35 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
+              </div>
+              <div className="flex items-center space-x-4 rounded-md border border-primary/30 bg-primary/5 p-4">
+                <Eye className="h-5 w-5 text-primary" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    Motor de Visión AI (Demo)
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Ver estadísticas de golpes en tiempo real (simulación)
+                  </p>
+                </div>
+                <Button asChild size="sm">
+                  <Link to="/hud/demo">Ver Demo</Link>
+                </Button>
+              </div>
+              <div className="flex items-center space-x-4 rounded-md border border-primary/30 bg-primary/5 p-4">
+                <Zap className="h-5 w-5 text-primary" />
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    Monitor de Golpes AI
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Panel de control del motor de visión
+                  </p>
+                </div>
+                <Button asChild size="sm">
+                  <Link to="/admin/ai-strike-monitor">Monitor</Link>
+                </Button>
+              </div>
 
         {/* Advanced Analytics Section */}
         <AdminAnalytics />
