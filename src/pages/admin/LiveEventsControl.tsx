@@ -105,7 +105,7 @@ export default function LiveEventsControl() {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => window.open(`/hud/fight/${fight.id}`, '_blank')}
+                onClick={() => window.open('https://www.fighter-id.org/vision3d', '_blank')}
               >
                 <Monitor className="mr-2 h-3 w-3" />
                 HUD
