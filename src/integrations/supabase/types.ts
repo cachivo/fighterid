@@ -5543,6 +5543,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_discipline_access: {
+        Row: {
+          created_at: string
+          discipline: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          discipline: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          discipline?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_follows: {
         Row: {
           created_at: string | null

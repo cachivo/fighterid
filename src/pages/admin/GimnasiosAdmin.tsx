@@ -3,6 +3,7 @@ import { useGyms, useCreateGym, useCheckGymDuplicate } from '@/hooks/useGyms';
 import { useAllDisciplines } from '@/hooks/gyms';
 import { AdminGymCard } from '@/components/admin/AdminGymCard';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
+import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -22,6 +23,7 @@ export default function GimnasiosAdmin() {
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
+  const { disciplines: allowedDisciplines, hasFullAccess } = useUserDisciplineAccess();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [sendingInvitation, setSendingInvitation] = useState(false);
@@ -33,15 +35,25 @@ export default function GimnasiosAdmin() {
 
   const filteredGyms = useMemo(() => {
     if (!gyms) return [];
-    if (!searchQuery.trim()) return gyms;
+    // First filter by discipline access
+    let result = gyms;
+    if (!hasFullAccess && allowedDisciplines.length > 0) {
+      result = result.filter(g =>
+        g.disciplinas?.some(d => allowedDisciplines.includes(d as any))
+      );
+    } else if (!hasFullAccess && allowedDisciplines.length === 0) {
+      result = [];
+    }
+    // Then filter by search query
+    if (!searchQuery.trim()) return result;
     const q = searchQuery.toLowerCase();
-    return gyms.filter(g =>
+    return result.filter(g =>
       g.nombre.toLowerCase().includes(q) ||
       g.ciudad?.toLowerCase().includes(q) ||
       g.pais?.toLowerCase().includes(q) ||
       g.disciplinas?.some(d => d.toLowerCase().includes(q))
     );
-  }, [gyms, searchQuery]);
+  }, [gyms, searchQuery, hasFullAccess, allowedDisciplines]);
 
   const toggleDiscipline = (id: string) => {
     setSelectedDisciplines(prev =>

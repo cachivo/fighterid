@@ -37,7 +37,7 @@ export function useMyGymStaff() {
       // 2. Buscar gym_staff activo para este usuario
       const { data: staffRecord, error: staffError } = await supabase
         .from('gym_staff')
-        .select('id, gym_id, role, gyms(id, nombre, slug, logo_url)')
+        .select('id, gym_id, role, gyms(id, nombre, slug, logo_url, disciplinas)')
         .eq('user_id', appUser.id)
         .eq('active', true)
         .maybeSingle();
@@ -46,6 +46,21 @@ export function useMyGymStaff() {
 
       const gym = staffRecord.gyms as any;
       if (!gym) return null;
+
+      // Check discipline access
+      const { data: disciplineAccess } = await supabase
+        .from('user_discipline_access')
+        .select('discipline')
+        .eq('user_id', user.id);
+
+      const allowedDisciplines = (disciplineAccess || []).map(d => d.discipline);
+
+      // If user has discipline restrictions, check if this gym matches
+      if (allowedDisciplines.length > 0) {
+        const gymDisciplines: string[] = gym.disciplinas || [];
+        const hasAccess = gymDisciplines.some(d => allowedDisciplines.includes(d));
+        if (!hasAccess) return null;
+      }
 
       return {
         gymId: gym.id,
