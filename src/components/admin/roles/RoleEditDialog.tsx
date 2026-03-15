@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { UserCog, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserDisciplineAccessById, type Discipline } from '@/hooks/useUserDisciplineAccess';
 
 type AppRole = 'admin' | 'moderator' | 'user' | 'judge' | 'super_admin' | 'license_officer' | 'technical_coordinator' | 'auditor' | 'promoter' | 'official_judge' | 'official_referee' | 'official_doctor' | 'official_timekeeper' | 'official_inspector' | 'gym_owner' | 'gym_coach' | 'gym_assistant';
 
