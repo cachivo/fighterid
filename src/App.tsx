@@ -95,6 +95,7 @@ const JudgesManagement = lazy(() => import('./pages/admin/JudgesManagement'));
 const PendingChangesHub = lazy(() => import('./pages/admin/PendingChangesHub'));
 const AIStrikeMonitor = lazy(() => import('./pages/admin/AIStrikeMonitor'));
 const AIStrikeTestPanel = lazy(() => import('./pages/admin/AIStrikeTestPanel'));
+const VisionDiagnostics = lazy(() => import('./pages/admin/VisionDiagnostics'));
 const ValidacionLicencias = lazy(() => import('./pages/admin/ValidacionLicencias'));
 const AliadosEstrategicos = lazy(() => import("./pages/admin/AliadosEstrategicos"));
 const Comunidad = lazy(() => import("./pages/admin/Comunidad"));
