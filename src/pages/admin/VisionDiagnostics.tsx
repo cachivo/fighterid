@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Zap, Play, RotateCcw, FlameKindling } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const EXPECTED_PROJECT_ID = 'eeshomcqztvjkvycdfwi';
 const POLL_MS = 5000;
