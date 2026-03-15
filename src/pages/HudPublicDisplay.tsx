@@ -98,7 +98,7 @@ export default function HudPublicDisplay() {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center space-y-4">
-          <img src="/lovable-uploads/fighter-id-logo-white.png" alt="Fighter ID" className="h-16 mx-auto opacity-60" />
+          <img src={logoUrl} alt="Fighter ID" className="h-16 mx-auto opacity-60" />
           <h1 className="text-4xl font-black tracking-tight">FIGHTER ID — LIVE</h1>
           <p className="text-gray-500 text-lg">Esperando datos de la pelea...</p>
           {loading && <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />}
