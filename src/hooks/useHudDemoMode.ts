@@ -36,10 +36,8 @@ export function useHudDemoMode() {
   const idCounter = useRef(1);
   const roundStartRef = useRef(Date.now());
 
-  const generateEvent = useCallback((): DemoEvent => {
+  const generateStrikeAction = useCallback((): DemoEvent[] => {
     const fighter = FIGHTERS[Math.random() > 0.5 ? 1 : 0];
-    // ~60% connected rate for realism
-    const eventType = Math.random() < 0.6 ? 'strike_connected' : 'strike_attempted';
     // Weight strike types: jab/cross most common
     const weights = [0.25, 0.2, 0.15, 0.1, 0.1, 0.07, 0.06, 0.04, 0.03];
     let r = Math.random(), cumulative = 0;
@@ -49,18 +47,41 @@ export function useHudDemoMode() {
       if (r <= cumulative) { strikeIdx = i; break; }
     }
 
-    return {
+    const now = new Date().toISOString();
+    const tsMs = Date.now() - roundStartRef.current;
+    const strikeType = STRIKE_TYPES[strikeIdx];
+    const confidence = 0.75 + Math.random() * 0.24;
+
+    // Every action is an attempt; ~60% also connect
+    const events: DemoEvent[] = [{
       id: idCounter.current++,
       fight_id: 'demo',
       round_number: round.number,
-      timestamp_ms: Date.now() - roundStartRef.current,
+      timestamp_ms: tsMs,
       fighter,
-      event_type: eventType,
-      strike_type: STRIKE_TYPES[strikeIdx],
-      confidence: 0.75 + Math.random() * 0.24,
+      event_type: 'strike_attempted',
+      strike_type: strikeType,
+      confidence,
       model_version: 'demo-v1',
-      created_at: new Date().toISOString(),
-    };
+      created_at: now,
+    }];
+
+    if (Math.random() < 0.6) {
+      events.push({
+        id: idCounter.current++,
+        fight_id: 'demo',
+        round_number: round.number,
+        timestamp_ms: tsMs,
+        fighter,
+        event_type: 'strike_connected',
+        strike_type: strikeType,
+        confidence,
+        model_version: 'demo-v1',
+        created_at: now,
+      });
+    }
+
+    return events;
   }, [round.number]);
 
   // Generate events at random intervals (0.4–1.8s)
@@ -70,11 +91,11 @@ export function useHudDemoMode() {
     const scheduleNext = () => {
       const delay = 400 + Math.random() * 1400;
       return setTimeout(() => {
-        // Sometimes generate a burst (2-3 events)
+        // Sometimes generate a burst (2-3 actions)
         const burst = Math.random() < 0.15 ? Math.floor(Math.random() * 2) + 2 : 1;
         const newEvents: DemoEvent[] = [];
         for (let i = 0; i < burst; i++) {
-          newEvents.push(generateEvent());
+          newEvents.push(...generateStrikeAction());
         }
         setEvents(prev => [...newEvents, ...prev].slice(0, 500));
         timerRef.current = scheduleNext();
@@ -83,7 +104,7 @@ export function useHudDemoMode() {
 
     const timerRef = { current: scheduleNext() };
     return () => clearTimeout(timerRef.current);
-  }, [isRunning, round.status, generateEvent]);
+  }, [isRunning, round.status, generateStrikeAction]);
 
   // Round transitions: 3min round → 1min rest → next round
   useEffect(() => {
