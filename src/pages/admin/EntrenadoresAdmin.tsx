@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAllGymStaff } from '@/hooks/gyms';
 import { useGyms } from '@/hooks/useGyms';
+import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
