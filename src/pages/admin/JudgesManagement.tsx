@@ -237,7 +237,7 @@ export default function JudgesManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Especializaciones</FormLabel>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {specializationOptions.map((spec) => (
                           <label key={spec} className="flex items-center space-x-2 cursor-pointer">
                             <Checkbox
