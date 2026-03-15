@@ -491,7 +491,7 @@ export default function FightResults() {
             </div>
 
             {/* Finish Details */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <Label>Método</Label>
                 <Input

@@ -284,7 +284,7 @@ export default function LiveEventsControl() {
             )}
             
             {/* Fighter Stats Comparison */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card variant="neon">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">

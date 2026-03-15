@@ -142,7 +142,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
             <Label>Descripción adicional</Label>
             <Textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Fecha inicio</Label>
               <Input type="date" value={form.start_date || ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />

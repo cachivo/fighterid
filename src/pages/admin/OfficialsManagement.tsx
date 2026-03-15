@@ -338,7 +338,7 @@ export default function OfficialsManagement() {
                 <FormField control={form.control} name="specialization" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Disciplinas</FormLabel>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {SPECIALIZATIONS.map(spec => (
                         <label key={spec} className="flex items-center space-x-2 cursor-pointer">
                           <Checkbox

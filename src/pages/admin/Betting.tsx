@@ -608,7 +608,7 @@ export default function AdminBetting() {
                       placeholder="Descripción del mercado..."
                     />
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label htmlFor="kind">Tipo</Label>
                       <Select onValueChange={(value) => marketForm.setValue('kind', value as any)}>

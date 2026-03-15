@@ -148,6 +148,7 @@ export function AdminSidebar() {
                     <NavLink 
                       to={item.url} 
                       className={`min-h-[44px] ${getNavCls(item.url)}`}
+                      onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
@@ -170,6 +171,7 @@ export function AdminSidebar() {
                       <NavLink 
                         to={item.url} 
                         className={`min-h-[44px] ${getNavCls(item.url)}`}
+                        onClick={handleNavClick}
                       >
                         <item.icon className="h-4 w-4" />
                         {!collapsed && <span>{item.title}</span>}

@@ -189,7 +189,7 @@ export default function LiveStreaming() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table></div>
           )}
         </CardContent>
       </Card>
