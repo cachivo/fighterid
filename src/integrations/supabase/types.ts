@@ -2136,6 +2136,92 @@ export type Database = {
           },
         ]
       }
+      fight_telemetry_events: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          fighter_corner: string | null
+          fighter_id: string | null
+          id: number
+          round: number | null
+          session_id: string | null
+          strike_type: string | null
+          timestamp_video: number | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          fighter_corner?: string | null
+          fighter_id?: string | null
+          id?: never
+          round?: number | null
+          session_id?: string | null
+          strike_type?: string | null
+          timestamp_video?: number | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          fighter_corner?: string | null
+          fighter_id?: string | null
+          id?: never
+          round?: number | null
+          session_id?: string | null
+          strike_type?: string | null
+          timestamp_video?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fight_telemetry_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "fight_telemetry_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fight_telemetry_sessions: {
+        Row: {
+          event_id: string | null
+          fight_id: string | null
+          fighter_blue_id: string | null
+          fighter_red_id: string | null
+          hud_connected: boolean | null
+          id: string
+          last_heartbeat: string | null
+          session_token: string
+          started_at: string | null
+          status: string | null
+          vision_connected: boolean | null
+        }
+        Insert: {
+          event_id?: string | null
+          fight_id?: string | null
+          fighter_blue_id?: string | null
+          fighter_red_id?: string | null
+          hud_connected?: boolean | null
+          id?: string
+          last_heartbeat?: string | null
+          session_token: string
+          started_at?: string | null
+          status?: string | null
+          vision_connected?: boolean | null
+        }
+        Update: {
+          event_id?: string | null
+          fight_id?: string | null
+          fighter_blue_id?: string | null
+          fighter_red_id?: string | null
+          hud_connected?: boolean | null
+          id?: string
+          last_heartbeat?: string | null
+          session_token?: string
+          started_at?: string | null
+          status?: string | null
+          vision_connected?: boolean | null
+        }
+        Relationships: []
+      }
       fighter_gym_membership_logs: {
         Row: {
           action: string

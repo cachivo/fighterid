@@ -3,6 +3,8 @@ import { useSystemAssets } from '@/hooks/useSystemAssets';
 import { useHudDemoMode } from '@/hooks/useHudDemoMode';
 import { useVisionSyncSession } from '@/hooks/useVisionSyncSession';
 import VisionSyncStatus from '@/components/VisionSyncStatus';
+import FightTelemetryPanel from '@/components/FightTelemetryPanel';
+import type { FightMeta } from '@/hooks/useFightTelemetry';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Play, Pause, RotateCcw } from 'lucide-react';
@@ -102,13 +104,21 @@ function FighterPanel({ name, nickname, stats, color }: {
   );
 }
 
+// Demo mock telemetry meta
+const DEMO_META: FightMeta = {
+  eventName: 'Batalla Nacional 2026 (Demo)',
+  fightNumber: 4,
+  redName: 'Carlos «El Toro» Méndez',
+  blueName: 'Miguel «Relámpago» Cruz',
+  startedAt: new Date().toISOString(),
+};
+
 export default function HudDemoDisplay() {
   const { logoUrl } = useSystemAssets();
   const { events, round, isRunning, reset, togglePause } = useHudDemoMode();
   const [tick, setTick] = useState(0);
   const { status: visionStatus, hudConnected, visionConnected, shortSession } = useVisionSyncSession();
 
-  // Clock ticker for time display
   useEffect(() => {
     const id = setInterval(() => setTick(t => t + 1), 100);
     return () => clearInterval(id);
@@ -125,18 +135,30 @@ export default function HudDemoDisplay() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const clockDisplay = round.status === 'live' ? formatTime(round.startsAt, round.durationSeconds) : undefined;
+
+  // Build demo strikes for telemetry panel
+  const demoStrikes = useMemo(() => {
+    const result: Record<string, Record<string, number>> = { red: {}, blue: {} };
+    for (const e of events) {
+      if (e.event_type !== 'strike_connected') continue;
+      const corner = e.fighter === 'A' ? 'red' : 'blue';
+      const type = e.strike_type || 'other';
+      result[corner][type] = (result[corner][type] || 0) + 1;
+    }
+    return result;
+  }, [events]);
+
   return (
     <div className="min-h-screen bg-black text-white select-none overflow-hidden">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-red-950/80 via-black to-blue-950/80 border-b border-white/10">
         <img src={logoUrl} alt="Fighter ID" className="h-8 opacity-70" />
         <div className="flex items-center gap-3">
-          <Badge className="bg-amber-600 text-white text-xs px-2 py-0.5 font-mono">
-            DEMO
-          </Badge>
+          <Badge className="bg-amber-600 text-white text-xs px-2 py-0.5 font-mono">DEMO</Badge>
           {round.status === 'live' && (
             <Badge className="bg-red-600 text-white text-lg px-4 py-1 font-mono animate-pulse">
-              🔴 R{round.number} — {formatTime(round.startsAt, round.durationSeconds)}
+              🔴 R{round.number} — {clockDisplay}
             </Badge>
           )}
           {round.status === 'rest' && (
@@ -160,12 +182,21 @@ export default function HudDemoDisplay() {
         </div>
       </div>
 
-      <div className="px-6 py-2 border-b border-white/10 bg-black/50">
+      {/* Vision + Telemetry status */}
+      <div className="px-6 py-2 border-b border-white/10 bg-black/50 flex flex-wrap gap-4">
         <VisionSyncStatus
           status={visionStatus}
           hudConnected={hudConnected}
           visionConnected={visionConnected}
           shortSession={shortSession}
+        />
+        <FightTelemetryPanel
+          meta={DEMO_META}
+          shortSession="demo-sim"
+          status="active"
+          roundNumber={round.number}
+          clockDisplay={clockDisplay}
+          strikesByCorner={demoStrikes}
         />
       </div>
 
