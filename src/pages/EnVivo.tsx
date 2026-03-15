@@ -10,6 +10,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import LiveFightStatsWidget from '@/components/LiveFightStatsWidget';
 
 interface LiveEvent {
   id: string;
@@ -250,6 +251,13 @@ const EnVivo = () => {
                           </div>
                         )}
                       </div>
+
+                      {/* AI Vision Stats Widget */}
+                      {(() => {
+                        const meta = parseMeta(event?.meta);
+                        const activeFightId = meta?.active_fight_id;
+                        return activeFightId ? <LiveFightStatsWidget fightId={activeFightId} /> : null;
+                      })()}
 
                       {/* Event info */}
                       <div className="flex flex-wrap gap-4 text-sm text-gray-400">
