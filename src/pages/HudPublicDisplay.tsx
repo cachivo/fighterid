@@ -31,6 +31,7 @@ export default function HudPublicDisplay() {
   const { logoUrl } = useSystemAssets();
 
   const { events, loading } = useAIStrikeEvents(fightId || '', round?.number);
+  const { status: visionStatus, hudConnected, visionConnected, shortSession } = useVisionSyncSession(fightId);
 
   // Load fight + active round
   useEffect(() => {
