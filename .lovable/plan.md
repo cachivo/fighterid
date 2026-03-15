@@ -1,86 +1,76 @@
 
 
-# Plan: Optimización Mobile del Panel de Administración
+# Auditoría Mobile del Panel Admin + Auto-cierre del Sidebar
 
-## Problema Principal
+## Problema 1: Sidebar no se cierra al navegar (móvil)
+En móvil, el sidebar se muestra como un panel overlay (Sheet). Al tocar un enlace, el sidebar se queda abierto cubriendo la pantalla en negro, confundiendo al usuario que no sabe cómo volver al contenido.
 
-El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
+**Solución**: En `AdminSidebar.tsx`, usar el hook `useSidebar()` para llamar `setOpenMobile(false)` al hacer click en cualquier NavLink cuando `isMobile` es true.
 
-Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+## Problema 2: Módulos admin sin optimización mobile
 
-| Página | Columnas | Severidad |
-|--------|----------|-----------|
-| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
-| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
-| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
-| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
-| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
-| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
-| **Configuracion.tsx** | Tabla de configuración | BAJA |
-| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+Tras auditar los 26+ archivos en `src/pages/admin/`, estos son los módulos con problemas de responsividad en viewport ~390px:
 
-## Solución
+### Tablas sin wrapper scrollable (se desbordan)
+| Archivo | Problema |
+|---------|----------|
+| `LiveStreaming.tsx` | `<Table>` sin `overflow-x-auto`, 6 columnas fijas |
+| `RankingsManagement.tsx` | Tabla de ranking sin wrapper scroll |
+| `Betting.tsx` | Tabs `grid-cols-4` se comprimen; tablas sin scroll |
 
-### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
+### Formularios con `grid-cols-2/3` sin breakpoint mobile
+| Archivo | Problema |
+|---------|----------|
+| `OfficialsManagement.tsx` | 4 bloques `grid-cols-2` y 1 `grid-cols-3` sin `md:` prefix |
+| `Sanctions.tsx` | 3 bloques `grid-cols-2` sin responsive |
+| `FightResults.tsx` | `grid-cols-2` y `grid-cols-3` en formulario de resultado sin `md:` |
+| `LiveEventsControl.tsx` | `grid-cols-2`, `grid-cols-3` fijos en fight cards |
+| `Betting.tsx` | Formularios con `grid-cols-2` fijos |
 
-Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
+### Tabs comprimidos
+| Archivo | Problema |
+|---------|----------|
+| `Betting.tsx` | `grid-cols-4` en TabsList — texto ilegible en 390px |
 
-```text
-┌──────────────────────────────┐
-│ 🏆 Batalla de Gimnasios #2   │
-│ MMA · Borrador · Privado     │
-│ 📅 15/03/2026 · 📍 Arena     │
-│ ┌────┐┌────┐┌────┐┌────┐    │
-│ │Brand││Pelead││Peleas││ ⋮ │    │
-│ └────┘└────┘└────┘└────┘    │
-│ Estado: [Borrador ▾]         │
-└──────────────────────────────┘
-```
+## Plan de cambios
 
-- Cada evento será un `Card` con la info apilada verticalmente
-- Botones de acción en una fila con `flex-wrap`
-- Select de estado en su propia fila
+### 1. `AdminSidebar.tsx` — Auto-cierre en mobile
+- Importar `useSidebar` (ya importado), usar `isMobile` y `setOpenMobile`
+- Envolver cada `NavLink` con `onClick={() => isMobile && setOpenMobile(false)}`
 
-### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+### 2. `LiveStreaming.tsx` — Tabla responsive
+- Envolver `<Table>` con `<div className="overflow-x-auto -mx-4 px-4">`
 
-Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+### 3. `RankingsManagement.tsx` — Tabla responsive
+- Envolver tabla de ranking con wrapper scrollable
 
-- `Betting.tsx`
-- `Comunidad.tsx` (2 tablas)
-- `AliadosEstrategicos.tsx`
-- `OrganizationsManagement.tsx`
-- `Configuracion.tsx`
-- `EmailCampaignDetail.tsx`
+### 4. `Betting.tsx` — Tabs + tablas + formularios
+- Cambiar `grid-cols-4` en TabsList a `grid-cols-2` en mobile
+- Envolver tablas con wrapper scrollable
+- Cambiar formularios `grid-cols-2` a `grid-cols-1 md:grid-cols-2`
 
-### 3. Headers responsivos
+### 5. `OfficialsManagement.tsx` — Formularios responsive
+- Todos los `grid-cols-2` → `grid-cols-1 md:grid-cols-2`
+- `grid-cols-3` → `grid-cols-2 md:grid-cols-3`
 
-Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
+### 6. `Sanctions.tsx` — Formularios responsive
+- Todos los `grid-cols-2` → `grid-cols-1 md:grid-cols-2`
 
-- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
-- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
+### 7. `FightResults.tsx` — Formularios responsive
+- `grid-cols-2` → `grid-cols-1 md:grid-cols-2`
+- `grid-cols-3` → `grid-cols-1 md:grid-cols-3`
 
-Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
+### 8. `LiveEventsControl.tsx` — Grids responsive
+- `grid-cols-2` → `grid-cols-1 md:grid-cols-2` en fight cards
+- `grid-cols-3` → `grid-cols-1 md:grid-cols-3` en scoring
 
-### 4. Dialogs de pelea - Grids de 3 y 2 columnas
-
-Los diálogos internos de `EventosPelea.tsx` usan:
-- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
-- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
-
-En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
-| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
-| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
-
-**8 archivos. Sin migraciones SQL.**
+### Archivos a modificar (8 archivos)
+1. `src/components/AdminSidebar.tsx`
+2. `src/pages/admin/LiveStreaming.tsx`
+3. `src/pages/admin/RankingsManagement.tsx`
+4. `src/pages/admin/Betting.tsx`
+5. `src/pages/admin/OfficialsManagement.tsx`
+6. `src/pages/admin/Sanctions.tsx`
+7. `src/pages/admin/FightResults.tsx`
+8. `src/pages/admin/LiveEventsControl.tsx`
 
