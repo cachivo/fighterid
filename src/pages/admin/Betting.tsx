@@ -362,7 +362,7 @@ export default function AdminBetting() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
           <TabsTrigger value="events">BDG Events</TabsTrigger>
           <TabsTrigger value="markets">Markets</TabsTrigger>
           <TabsTrigger value="live">Live Control</TabsTrigger>
