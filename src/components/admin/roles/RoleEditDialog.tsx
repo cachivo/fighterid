@@ -199,7 +199,7 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
         <DialogHeader>
           <DialogTitle>Editar roles de {user.first_name} {user.last_name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
+        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
           {ROLE_GROUPS.map(({ group, roles }) => (
             <div key={group}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{group}</p>
