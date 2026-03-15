@@ -2142,6 +2142,7 @@ export type Database = {
           confidence: number | null
           created_at: string | null
           elbow_angle: number | null
+          event_type: string
           extension_m: number | null
           face_hit: boolean | null
           fighter_corner: string | null
@@ -2159,6 +2160,7 @@ export type Database = {
           confidence?: number | null
           created_at?: string | null
           elbow_angle?: number | null
+          event_type?: string
           extension_m?: number | null
           face_hit?: boolean | null
           fighter_corner?: string | null
@@ -2176,6 +2178,7 @@ export type Database = {
           confidence?: number | null
           created_at?: string | null
           elbow_angle?: number | null
+          event_type?: string
           extension_m?: number | null
           face_hit?: boolean | null
           fighter_corner?: string | null
