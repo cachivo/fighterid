@@ -253,7 +253,7 @@ export default function OfficialsManagement() {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField control={form.control} name="official_type" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tipo de Oficial</FormLabel>
