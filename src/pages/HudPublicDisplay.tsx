@@ -120,7 +120,7 @@ export default function HudPublicDisplay() {
     <div className="min-h-screen bg-black text-white select-none overflow-hidden">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-red-950/80 via-black to-blue-950/80 border-b border-white/10">
-        <img src="/lovable-uploads/fighter-id-logo-white.png" alt="Fighter ID" className="h-8 opacity-70" />
+        <img src={logoUrl} alt="Fighter ID" className="h-8 opacity-70" />
         <div className="flex items-center gap-3">
           {round && (
             <Badge className="bg-red-600 text-white text-lg px-4 py-1 font-mono animate-pulse">
