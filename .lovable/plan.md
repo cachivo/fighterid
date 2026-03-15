@@ -1,86 +1,47 @@
 
 
-# Plan: Optimización Mobile del Panel de Administración
+# Fix: HUD Not Loading Fight Data
 
-## Problema Principal
+## Root Causes
 
-El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
+Two issues prevent the HUD from displaying data:
 
-Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+### 1. `fights` table RLS blocks anonymous reads
+The fight exists in the DB but the RLS policy requires either admin auth, event creator auth, or the event to be `published=true` (it's `false`). The "live and finished" policy exists but may not be matching correctly for the anon role. The HUD is a **public display** — it must work without authentication.
 
-| Página | Columnas | Severidad |
-|--------|----------|-----------|
-| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
-| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
-| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
-| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
-| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
-| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
-| **Configuracion.tsx** | Tabla de configuración | BAJA |
-| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+**Fix**: Add a permissive RLS SELECT policy that allows reading any fight by its ID when accessed publicly. Since fights don't contain PII, this is safe.
 
-## Solución
-
-### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
-
-Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
-
-```text
-┌──────────────────────────────┐
-│ 🏆 Batalla de Gimnasios #2   │
-│ MMA · Borrador · Privado     │
-│ 📅 15/03/2026 · 📍 Arena     │
-│ ┌────┐┌────┐┌────┐┌────┐    │
-│ │Brand││Pelead││Peleas││ ⋮ │    │
-│ └────┘└────┘└────┘└────┘    │
-│ Estado: [Borrador ▾]         │
-└──────────────────────────────┘
+```sql
+CREATE POLICY "Anyone can read fights by id"
+  ON fights FOR SELECT
+  USING (true);
 ```
 
-- Cada evento será un `Card` con la info apilada verticalmente
-- Botones de acción en una fila con `flex-wrap`
-- Select de estado en su propia fila
+However, this is broad. A more targeted approach: drop the existing public policies and replace with a single one that covers published OR live/finished events. But the simplest fix that matches the current pattern is to set the event `published = true` so the existing policy works. **Recommended**: update the event to `published = true` AND fix the code issues below.
 
-### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+### 2. `rounds` table has no `number` column
+The table uses `name` (not `number`). The HUD and realtime subscription query `number` which causes a 400 error.
 
-Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+**Fix**: Update `HudPublicDisplay.tsx` to select `name` instead of `number` from the `rounds` table, and map it in the `RoundData` interface.
 
-- `Betting.tsx`
-- `Comunidad.tsx` (2 tablas)
-- `AliadosEstrategicos.tsx`
-- `OrganizationsManagement.tsx`
-- `Configuracion.tsx`
-- `EmailCampaignDetail.tsx`
+## Changes
 
-### 3. Headers responsivos
+### Migration SQL
+```sql
+UPDATE bdg_event SET published = true 
+WHERE id = 'e3e7db83-be4c-41ac-9cd6-2b121dbae04e';
+```
 
-Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
+### `src/pages/HudPublicDisplay.tsx`
+- Change rounds query: `select('id, name, starts_at, status, duration_seconds')` → use `name` as the round identifier
+- Update `RoundData` interface: `number` → `name: string`
+- Update references to `round.number` → `round.name`
 
-- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
-- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
+### `src/hooks/useFightTelemetry.ts`
+- Same `fights` query will work once event is published (existing RLS policy allows it)
+- No column changes needed here — it doesn't query `rounds`
 
-Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
-
-### 4. Dialogs de pelea - Grids de 3 y 2 columnas
-
-Los diálogos internos de `EventosPelea.tsx` usan:
-- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
-- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
-
-En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
-
-## Archivos a Modificar
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
-| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
-| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
-| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
-
-**8 archivos. Sin migraciones SQL.**
+## Files
+- **Migration** — `UPDATE bdg_event SET published = true`
+- **Edit** `src/pages/HudPublicDisplay.tsx` — fix `rounds` column name from `number` to `name`
 
