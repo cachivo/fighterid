@@ -91,9 +91,19 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
     }
   }, [open, user.roles]);
 
+  const disciplineRef = useRef<HTMLDivElement>(null);
   const isCurrentUser = user.id === currentUserId;
   const isRemovingOwnAdmin = isCurrentUser && user.roles.includes('admin') && !selectedRoles.includes('admin');
   const hasGymRole = selectedRoles.some(r => GYM_ROLES.includes(r));
+
+  // Auto-scroll to discipline section when gym role is selected
+  useEffect(() => {
+    if (hasGymRole && disciplineRef.current) {
+      setTimeout(() => {
+        disciplineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [hasGymRole]);
 
   const handleRoleToggle = (role: AppRole, checked: boolean) => {
     setSelectedRoles(prev => checked ? [...prev, role] : prev.filter(r => r !== role));
