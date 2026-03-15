@@ -5777,6 +5777,41 @@ export type Database = {
           },
         ]
       }
+      vision_sync_sessions: {
+        Row: {
+          created_at: string
+          fight_id: string | null
+          hud_connected: boolean
+          id: string
+          session_token: string
+          vision_connected: boolean
+        }
+        Insert: {
+          created_at?: string
+          fight_id?: string | null
+          hud_connected?: boolean
+          id?: string
+          session_token: string
+          vision_connected?: boolean
+        }
+        Update: {
+          created_at?: string
+          fight_id?: string | null
+          hud_connected?: boolean
+          id?: string
+          session_token?: string
+          vision_connected?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vision_sync_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           created_at: string
