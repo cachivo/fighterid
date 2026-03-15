@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { UserCog, Loader2 } from 'lucide-react';
+import { UserCog, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useUserDisciplineAccessById, type Discipline } from '@/hooks/useUserDisciplineAccess';
@@ -91,9 +91,19 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
     }
   }, [open, user.roles]);
 
+  const disciplineRef = useRef<HTMLDivElement>(null);
   const isCurrentUser = user.id === currentUserId;
   const isRemovingOwnAdmin = isCurrentUser && user.roles.includes('admin') && !selectedRoles.includes('admin');
   const hasGymRole = selectedRoles.some(r => GYM_ROLES.includes(r));
+
+  // Auto-scroll to discipline section when gym role is selected
+  useEffect(() => {
+    if (hasGymRole && disciplineRef.current) {
+      setTimeout(() => {
+        disciplineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+    }
+  }, [hasGymRole]);
 
   const handleRoleToggle = (role: AppRole, checked: boolean) => {
     setSelectedRoles(prev => checked ? [...prev, role] : prev.filter(r => r !== role));
@@ -189,7 +199,7 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
         <DialogHeader>
           <DialogTitle>Editar roles de {user.first_name} {user.last_name}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4 max-h-[50vh] overflow-y-auto">
+        <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
           {ROLE_GROUPS.map(({ group, roles }) => (
             <div key={group}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{group}</p>
@@ -213,10 +223,13 @@ export function RoleEditDialog({ user, currentUserId, onRolesUpdated }: RoleEdit
 
           {/* Discipline access section - shown when gym roles are selected */}
           {hasGymRole && (
-            <div className="border-t pt-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                Acceso por Disciplina
-              </p>
+            <div ref={disciplineRef} className="border-t border-l-4 border-l-yellow-500 pt-4 pl-3 rounded-sm bg-yellow-500/5">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                <p className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  Acceso por Disciplina
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground mb-3">
                 Selecciona las disciplinas que este usuario puede gestionar
               </p>
