@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<string, { label: string; variant: 'default' | 'seconda
 export default function EntrenadoresAdmin() {
   const { data: allStaff, isLoading } = useAllGymStaff();
   const { data: gyms } = useGyms();
+  const { disciplines: allowedDisciplines, hasFullAccess } = useUserDisciplineAccess();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGym, setSelectedGym] = useState('');
