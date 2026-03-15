@@ -100,7 +100,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
           <DialogTitle>Crear Sanción</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Tipo de Objetivo</Label>
               <Select value={form.target_type} onValueChange={v => setForm(f => ({ ...f, target_type: v as any }))}>
