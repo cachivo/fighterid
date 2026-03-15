@@ -105,6 +105,31 @@ const EnVivo = () => {
     setShowChat(prev => ({ ...prev, [eventId]: !prev[eventId] }));
   };
 
+  const shareEvent = async (event: LiveEvent) => {
+    const url = `${window.location.origin}/en-vivo`;
+    const text = `🔴 EN VIVO: ${event.name} — ¡Míralo ahora en Fighter ID!`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.name, text, url });
+      } catch {
+        // user cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(`${text}\n${url}`);
+      setCopiedId(event.id);
+      toast.success('Enlace copiado al portapapeles');
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  // Auto-expand first live event, or if only one
+  useEffect(() => {
+    if (liveEvents.length === 1) {
+      setExpandedEvent(liveEvents[0].id);
+    }
+  }, [liveEvents]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
