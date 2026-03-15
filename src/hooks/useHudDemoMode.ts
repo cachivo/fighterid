@@ -91,11 +91,11 @@ export function useHudDemoMode() {
     const scheduleNext = () => {
       const delay = 400 + Math.random() * 1400;
       return setTimeout(() => {
-        // Sometimes generate a burst (2-3 events)
+        // Sometimes generate a burst (2-3 actions)
         const burst = Math.random() < 0.15 ? Math.floor(Math.random() * 2) + 2 : 1;
         const newEvents: DemoEvent[] = [];
         for (let i = 0; i < burst; i++) {
-          newEvents.push(generateEvent());
+          newEvents.push(...generateStrikeAction());
         }
         setEvents(prev => [...newEvents, ...prev].slice(0, 500));
         timerRef.current = scheduleNext();
@@ -104,7 +104,7 @@ export function useHudDemoMode() {
 
     const timerRef = { current: scheduleNext() };
     return () => clearTimeout(timerRef.current);
-  }, [isRunning, round.status, generateEvent]);
+  }, [isRunning, round.status, generateStrikeAction]);
 
   // Round transitions: 3min round → 1min rest → next round
   useEffect(() => {
