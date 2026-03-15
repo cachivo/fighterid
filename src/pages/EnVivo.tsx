@@ -60,6 +60,8 @@ const EnVivo = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<LiveEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showChat, setShowChat] = useState<Record<string, boolean>>({});
+  const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
