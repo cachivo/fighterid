@@ -17,6 +17,7 @@ import {
   Trophy,
   Activity,
   TestTube2,
+  Eye,
   Mail,
   Send,
   Medal,
