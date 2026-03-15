@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Zap, Play, RotateCcw, FlameKindling } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const EXPECTED_PROJECT_ID = 'eeshomcqztvjkvycdfwi';
 const POLL_MS = 5000;
@@ -48,11 +50,31 @@ function heartbeatAge(ts: string | null): string {
   return `${Math.round(diff / 60)}m ago`;
 }
 
+const FAKE_FIGHT_ID = '00000000-0000-0000-0000-000000000001';
+const STRIKE_TYPES = ['jab', 'cross', 'hook', 'uppercut', 'body_shot', 'knee', 'elbow'];
+const CORNERS: ('red' | 'blue')[] = ['red', 'blue'];
+
+function randomStrike(sessionId: string) {
+  const corner = CORNERS[Math.floor(Math.random() * 2)];
+  const type = STRIKE_TYPES[Math.floor(Math.random() * STRIKE_TYPES.length)];
+  return {
+    session_id: sessionId,
+    fighter_corner: corner,
+    strike_type: type,
+    confidence: +(0.6 + Math.random() * 0.4).toFixed(2),
+    round: Math.ceil(Math.random() * 3),
+    body_hit: Math.random() > 0.5,
+    face_hit: Math.random() > 0.7,
+    speed_ms: +(5 + Math.random() * 25).toFixed(1),
+  };
+}
+
 export default function VisionDiagnostics() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastPoll, setLastPoll] = useState<Date>(new Date());
+  const [simLoading, setSimLoading] = useState(false);
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const detectedProjectId = supabaseUrl.split('//')[1]?.split('.')[0] || '???';
@@ -88,6 +110,83 @@ export default function VisionDiagnostics() {
       setLastPoll(new Date());
     }
   }, []);
+
+  const handleCreateSession = async () => {
+    setSimLoading(true);
+    try {
+      const token = crypto.randomUUID();
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .insert({
+          fight_id: FAKE_FIGHT_ID,
+          session_token: token,
+          status: 'active',
+          hud_connected: true,
+          vision_connected: true,
+          last_heartbeat: new Date().toISOString(),
+        });
+      if (error) throw error;
+      toast({ title: '✅ Sesión creada', description: `Token: ${token.slice(0, 8)}…` });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleSimulateStrike = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_events')
+        .insert(randomStrike(session.id));
+      if (error) throw error;
+      toast({ title: '🥊 Golpe simulado' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleBurst = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const strikes = Array.from({ length: 10 }, () => randomStrike(session.id));
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_events')
+        .insert(strikes);
+      if (error) throw error;
+      toast({ title: '🔥 Ráfaga enviada', description: '10 golpes insertados' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
+
+  const handleEndSession = async () => {
+    if (!session) return;
+    setSimLoading(true);
+    try {
+      const { error } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .update({ status: 'ended', vision_connected: false, hud_connected: false })
+        .eq('id', session.id);
+      if (error) throw error;
+      toast({ title: '🛑 Sesión cerrada' });
+      await poll();
+    } catch (e: any) {
+      toast({ title: '❌ Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setSimLoading(false);
+    }
+  };
 
   useEffect(() => {
     poll();
@@ -221,6 +320,58 @@ export default function VisionDiagnostics() {
                   </TableBody>
                 </Table>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Simulation Panel */}
+        <Card className="border-dashed border-2 border-muted-foreground/30">
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Zap className="h-4 w-4 text-accent-foreground" />
+              Simulación — Verificar Esquema DB
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Inserta datos de prueba directamente en Supabase para validar que las tablas aceptan la información correcta.</p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={simLoading || !!session}
+                onClick={handleCreateSession}
+              >
+                <Play className="h-3 w-3 mr-1" /> Crear Sesión
+              </Button>
+              <Button
+                size="sm"
+                variant="neon"
+                disabled={simLoading || !session}
+                onClick={handleSimulateStrike}
+              >
+                <Zap className="h-3 w-3 mr-1" /> Simular Golpe
+              </Button>
+              <Button
+                size="sm"
+                variant="cyber"
+                disabled={simLoading || !session}
+                onClick={handleBurst}
+              >
+                <FlameKindling className="h-3 w-3 mr-1" /> Ráfaga ×10
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={simLoading || !session}
+                onClick={handleEndSession}
+              >
+                <RotateCcw className="h-3 w-3 mr-1" /> Cerrar Sesión
+              </Button>
+            </div>
+            {session && (
+              <p className="text-xs text-muted-foreground mt-3">
+                Sesión activa: <span className="font-mono">{session.id.slice(0, 8)}…</span> · {events.length} eventos
+              </p>
             )}
           </CardContent>
         </Card>
