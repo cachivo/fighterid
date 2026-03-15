@@ -248,7 +248,7 @@ export default function OrganizationsManagement() {
               <Label>Nombre Completo *</Label>
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ultimate Combat Championship" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>Disciplina</Label>
                 <Select value={form.discipline} onValueChange={v => setForm(f => ({ ...f, discipline: v }))}>
