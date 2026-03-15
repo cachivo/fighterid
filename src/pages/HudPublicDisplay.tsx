@@ -72,7 +72,7 @@ export default function HudPublicDisplay() {
       }
 
       const { data: rounds } = await (supabase as any)
-        .from('rounds')
+        .from('fight_rounds')
         .select('id, number, starts_at, status, duration_seconds')
         .eq('fight_id', fightId)
         .eq('status', 'live')
@@ -86,7 +86,7 @@ export default function HudPublicDisplay() {
     const channel = supabase
       .channel(`hud-rounds-${fightId}`)
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'rounds',
+        event: '*', schema: 'public', table: 'fight_rounds',
         filter: `fight_id=eq.${fightId}`,
       }, (payload) => {
         const r = payload.new as any;
