@@ -10,6 +10,7 @@ import { es } from 'date-fns/locale';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { useAuth } from '@/hooks/useAuth';
+import LiveFightStatsWidget from '@/components/LiveFightStatsWidget';
 
 interface LiveEvent {
   id: string;
