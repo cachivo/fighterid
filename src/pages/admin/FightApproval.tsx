@@ -190,7 +190,7 @@ export default function FightApproval() {
               <DialogTitle>Detalle de Solicitud</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-muted-foreground">Peleador A</p>
                   <p className="font-semibold">{getFighterName(selectedRequest, 'a')}</p>

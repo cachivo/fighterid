@@ -1,55 +1,86 @@
 
-Objetivo: resolver el “sigue igual” con un ajuste completo de mobile en Admin, empezando por el bloqueo real que se ve en `/admin/user-roles` y por el cierre del menú.
 
-Diagnóstico actual (según código + captura):
-1) El problema visible en tu screenshot no es solo sidebar: `UserRoles` no está adaptado a 390px (fila en horizontal con acciones a la derecha, badges sin wrap, botones largos), por eso se “rompe” y da sensación de pantalla bloqueada/negra.
-2) En el sidebar móvil, el auto-cierre existe pero es frágil (depende de `isMobile` en click); además el `Sheet` oculta el botón de cerrar (`[&>button]:hidden`), así que si no se cierra automáticamente la UX queda confusa.
-3) La auditoría previa cubrió 8 módulos, pero todavía quedan varios admin módulos con `grid-cols-2/3` sin breakpoint móvil y algunos flujos con overflow horizontal.
+# Plan: Optimización Mobile del Panel de Administración
 
-Plan de implementación (sin romper funcionalidad):
-1) Endurecer cierre del menú admin en móvil (prioridad UX)
-- Cerrar sidebar móvil de forma incondicional al navegar (no depender de `isMobile` en click).
-- Cerrar también en cambio de ruta (fallback robusto).
-- Mostrar una acción de cierre visible dentro del menú móvil (o dejar visible el close del Sheet) para eliminar el “pantalla negra / no sé cómo salir”.
+## Problema Principal
 
-2) Corregir `/admin/user-roles` para mobile-first (prioridad inmediata, es el módulo que se ve roto)
-- Convertir cada fila de usuario a layout vertical en móvil (`flex-col`) y horizontal solo en `md+`.
-- Mover acciones (“Editar Roles”, “Eliminar”) a bloque propio debajo del contenido en móvil.
-- Permitir wrap en badges de roles y en filtros.
-- Ajustar títulos/textos para que no empujen ancho.
-- Revisar `RoleEditDialog` + `DeleteUserDialog` trigger buttons para no forzar ancho en 390px.
+El módulo **Eventos de Pelea** (`EventosPelea.tsx`) usa una tabla HTML de 7 columnas (Nombre, Disciplina, Estado, Visibilidad, Fecha, Sede, Acciones) que desborda horizontalmente en móvil, creando la barra de scroll que reportas. La columna de "Acciones" sola tiene 4 botones + 1 Select, ocupando ~400px.
 
-3) Completar auditoría de módulos admin pendientes (fase de cierre)
-Aplicar patrón estándar del proyecto:
-- formularios: `grid-cols-1` por defecto y `md:grid-cols-*` en desktop.
-- tablas/listados anchos: `overflow-x-auto -mx-4 px-4`.
-- evitar truncamientos críticos en nombres.
-Módulos pendientes detectados por auditoría estática:
-- `EventosPelea.tsx`
-- `JudgesManagement.tsx`
+Este mismo problema existe en **7 páginas admin más** que usan `<Table>`:
+
+| Página | Columnas | Severidad |
+|--------|----------|-----------|
+| **EventosPelea.tsx** | 7 cols + Acciones con 5 elementos | ALTA |
+| **Betting.tsx** | Tabla de mercados con múltiples cols | ALTA |
+| **Comunidad.tsx** | 2 tablas (testimonios + partners) | MEDIA |
+| **AliadosEstrategicos.tsx** | Tabla de aliados | MEDIA |
+| **OrganizationsManagement.tsx** | Tabla de organizaciones | MEDIA |
+| **RankingsManagement.tsx** | Ya tiene `overflow-x-auto` | BAJA (ya parcheado) |
+| **Configuracion.tsx** | Tabla de configuración | BAJA |
+| **EmailCampaignDetail.tsx** | Tabla de destinatarios | BAJA |
+
+## Solución
+
+### 1. `EventosPelea.tsx` - Reemplazar tabla por tarjetas en móvil (PRIORIDAD)
+
+Reemplazar la `<Table>` de eventos (líneas 1133-1281) por un layout de tarjetas (`Card`) que funcione en móvil:
+
+```text
+┌──────────────────────────────┐
+│ 🏆 Batalla de Gimnasios #2   │
+│ MMA · Borrador · Privado     │
+│ 📅 15/03/2026 · 📍 Arena     │
+│ ┌────┐┌────┐┌────┐┌────┐    │
+│ │Brand││Pelead││Peleas││ ⋮ │    │
+│ └────┘└────┘└────┘└────┘    │
+│ Estado: [Borrador ▾]         │
+└──────────────────────────────┘
+```
+
+- Cada evento será un `Card` con la info apilada verticalmente
+- Botones de acción en una fila con `flex-wrap`
+- Select de estado en su propia fila
+
+### 2. Páginas con tablas secundarias - Agregar `overflow-x-auto`
+
+Para las demás páginas que usan `<Table>`, envolver en `<div className="overflow-x-auto -mx-4 px-4">` para permitir scroll horizontal controlado sin romper el layout del contenedor padre:
+
+- `Betting.tsx`
+- `Comunidad.tsx` (2 tablas)
+- `AliadosEstrategicos.tsx`
 - `OrganizationsManagement.tsx`
-- `FightApproval.tsx`
-- `PendingChangesHub.tsx`
-- `ValidacionLicencias.tsx`
-- (y revisar modales admin asociados que aún usan grids fijos de 2/3 columnas).
+- `Configuracion.tsx`
+- `EmailCampaignDetail.tsx`
 
-4) Validación final en viewport real de uso (390x575)
-Checklist:
-- Abrir menú admin → navegar a cualquier sección → menú se cierra siempre.
-- En `/admin/user-roles`, ningún botón se sale del contenedor.
-- No hay scroll horizontal accidental en páginas auditadas.
-- Acciones críticas (editar rol, eliminar usuario, filtros, búsqueda) siguen funcionando igual.
+### 3. Headers responsivos
 
-Archivos principales a intervenir:
-- `src/components/AdminSidebar.tsx`
-- `src/components/ui/sidebar.tsx` (solo comportamiento de close en mobile)
-- `src/pages/admin/UserRoles.tsx`
-- `src/components/admin/roles/RoleEditDialog.tsx`
-- `src/components/admin/roles/DeleteUserDialog.tsx`
-- Fase 2: `EventosPelea.tsx`, `JudgesManagement.tsx`, `OrganizationsManagement.tsx`, `FightApproval.tsx`, `PendingChangesHub.tsx`, `ValidacionLicencias.tsx`
+Varias páginas tienen headers con `flex justify-between` que se rompen en móvil cuando el título y el botón no caben en una línea:
 
-Detalles técnicos (resumen):
-- Mantener compatibilidad total con flujo actual: solo cambios de layout/UX responsive y control de estado del sidebar.
-- No cambiar lógica de roles ni permisos.
-- No tocar backend/RLS para esta tarea.
-- Estrategia incremental: primero bloqueo UX (sidebar + user-roles), luego sweep de módulos pendientes para cerrar deuda de responsive.
+- `EventosPelea.tsx` líneas 990-996: título + botón "Nuevo Evento"
+- `FightersProfiles.tsx` líneas 158-169: título + botón "Invitar Peleador"
+
+Cambiar a `flex flex-wrap gap-3` para que el botón baje en pantallas pequeñas.
+
+### 4. Dialogs de pelea - Grids de 3 y 2 columnas
+
+Los diálogos internos de `EventosPelea.tsx` usan:
+- `grid-cols-3` (línea 1472) para Número/Tipo/Rounds
+- `grid-cols-2` (líneas 1513, 1598, 1639) para Peleadores A/B e imágenes
+
+En móvil estos se comprimen. Cambiar a `grid-cols-1 md:grid-cols-3` y `grid-cols-1 md:grid-cols-2`.
+
+## Archivos a Modificar
+
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/admin/EventosPelea.tsx` | Reemplazar tabla por cards, headers responsive, grids responsive en dialogs |
+| `src/pages/admin/Betting.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Comunidad.tsx` | Wrap 2 tablas con `overflow-x-auto` |
+| `src/pages/admin/AliadosEstrategicos.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/OrganizationsManagement.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/Configuracion.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/EmailCampaignDetail.tsx` | Wrap tabla con `overflow-x-auto` |
+| `src/pages/admin/FightersProfiles.tsx` | Header responsive con `flex-wrap` |
+
+**8 archivos. Sin migraciones SQL.**
+

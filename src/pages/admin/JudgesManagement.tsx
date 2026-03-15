@@ -162,7 +162,7 @@ export default function JudgesManagement() {
             
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="first_name"
@@ -192,7 +192,7 @@ export default function JudgesManagement() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="license_number"
@@ -237,7 +237,7 @@ export default function JudgesManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Especializaciones</FormLabel>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {specializationOptions.map((spec) => (
                           <label key={spec} className="flex items-center space-x-2 cursor-pointer">
                             <Checkbox
@@ -258,7 +258,7 @@ export default function JudgesManagement() {
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="email"

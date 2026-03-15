@@ -161,10 +161,10 @@ export default function UserRoles() {
             {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors gap-3"
               >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-medium">
                       {user.first_name} {user.last_name}
                     </h3>
@@ -172,8 +172,8 @@ export default function UserRoles() {
                       <Badge variant="outline" className="text-xs">Tú</Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                  <div className="flex gap-2 mt-2">
+                  <p className="text-sm text-muted-foreground break-all">{user.email}</p>
+                  <div className="flex flex-wrap gap-1.5 mt-2">
                     {user.roles.length > 0 ? (
                       user.roles.map(role => getRoleBadge(role))
                     ) : (
@@ -182,7 +182,7 @@ export default function UserRoles() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0">
                   <RoleEditDialog
                     user={user as any}
                     currentUserId={currentUser?.id || ''}

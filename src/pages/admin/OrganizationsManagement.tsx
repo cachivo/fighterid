@@ -234,7 +234,7 @@ export default function OrganizationsManagement() {
             <DialogDescription>Complete los datos de la organización</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>Código *</Label>
                 <Input value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value }))} placeholder="UCC" />
@@ -248,7 +248,7 @@ export default function OrganizationsManagement() {
               <Label>Nombre Completo *</Label>
               <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ultimate Combat Championship" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <Label>Disciplina</Label>
                 <Select value={form.discipline} onValueChange={v => setForm(f => ({ ...f, discipline: v }))}>
@@ -275,7 +275,7 @@ export default function OrganizationsManagement() {
               <Label>Sitio Web</Label>
               <Input value={form.website || ''} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} placeholder="https://..." />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <Label>Contacto</Label>
                 <Input value={form.contact_name || ''} onChange={e => setForm(f => ({ ...f, contact_name: e.target.value }))} placeholder="Nombre" />

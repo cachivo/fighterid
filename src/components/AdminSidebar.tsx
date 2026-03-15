@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -87,8 +88,15 @@ export function AdminSidebar() {
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
 
+  // Robust: always close mobile sidebar on route change
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [currentPath, isMobile, setOpenMobile]);
+
   const handleNavClick = () => {
-    if (isMobile) setOpenMobile(false);
+    setOpenMobile(false);
   };
 
   const isActive = (path: string) => {
