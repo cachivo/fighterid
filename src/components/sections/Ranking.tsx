@@ -281,7 +281,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
               loading={isLoading}
             >
               <div className="space-y-2 xs:space-y-3 sm:space-y-4">
-                {rankings.map((ranking, index) => {
+              {rankings.map((ranking, index) => {
+                  const rankPosition = index + 1;
                   const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
                   const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
                   
