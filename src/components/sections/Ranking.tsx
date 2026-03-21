@@ -125,22 +125,22 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
 
   const estadisticas = [
     {
-      numero: rankingData?.totalCount.toString() || "0",
+      numero: (rankingData?.globalStats?.totalFighters ?? rankingData?.totalCount ?? 0).toString(),
       descripcion: "Peleadores Registrados",
       Icon: Users
     },
     {
-      numero: rankingData?.totalCount.toString() || "0",
-      descripcion: "Peleas Realizadas",
+      numero: (rankingData?.totalCount ?? 0).toString(),
+      descripcion: "En este Ranking",
       Icon: Target
     },
     {
-      numero: rankings.filter(r => r.level === 'Profesional').length.toString(),
+      numero: (rankingData?.globalStats?.totalProfessionals ?? 0).toString(),
       descripcion: "Profesionales Activos",
       Icon: Award
     },
     {
-      numero: rankings.filter(r => r.is_champion).length.toString(),
+      numero: (rankingData?.globalStats?.totalChampions ?? 0).toString(),
       descripcion: "Campeones",
       Icon: TrendingUp
     }
