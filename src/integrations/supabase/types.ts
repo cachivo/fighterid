@@ -2206,6 +2206,7 @@ export type Database = {
       }
       fight_telemetry_sessions: {
         Row: {
+          device_id: string | null
           event_id: string | null
           fight_id: string | null
           fighter_blue_id: string | null
@@ -2219,6 +2220,7 @@ export type Database = {
           vision_connected: boolean | null
         }
         Insert: {
+          device_id?: string | null
           event_id?: string | null
           fight_id?: string | null
           fighter_blue_id?: string | null
@@ -2232,6 +2234,7 @@ export type Database = {
           vision_connected?: boolean | null
         }
         Update: {
+          device_id?: string | null
           event_id?: string | null
           fight_id?: string | null
           fighter_blue_id?: string | null

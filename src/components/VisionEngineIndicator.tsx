@@ -1,13 +1,13 @@
 import { useVisionEngineStatus } from '@/hooks/useVisionEngineStatus';
 import { Badge } from '@/components/ui/badge';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff, Activity, Users } from 'lucide-react';
 
 interface VisionEngineIndicatorProps {
   fightId: string;
 }
 
 export default function VisionEngineIndicator({ fightId }: VisionEngineIndicatorProps) {
-  const { isLive, deviceId } = useVisionEngineStatus(fightId);
+  const { isLive, deviceId, fps, personsDetected } = useVisionEngineStatus(fightId);
 
   if (!isLive && !deviceId) return null;
 
@@ -27,7 +27,21 @@ export default function VisionEngineIndicator({ fightId }: VisionEngineIndicator
             <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
           </span>
           <Wifi className="h-3 w-3" />
-          Motor AI
+          <span className="truncate max-w-[120px]">
+            Motor AI{deviceId && deviceId !== 'unknown' ? ` · ${deviceId}` : ''}
+          </span>
+          {fps !== null && (
+            <span className="flex items-center gap-0.5 text-green-300">
+              <Activity className="h-2.5 w-2.5" />
+              {Math.round(fps)}
+            </span>
+          )}
+          {personsDetected !== null && (
+            <span className="flex items-center gap-0.5 text-green-300">
+              <Users className="h-2.5 w-2.5" />
+              {personsDetected}
+            </span>
+          )}
         </>
       ) : (
         <>

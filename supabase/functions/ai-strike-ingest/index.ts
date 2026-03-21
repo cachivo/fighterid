@@ -110,7 +110,7 @@ serve(async (req) => {
         return json({ error: sessErr.message }, 500);
       }
 
-      // 3. Upsert fight_telemetry_sessions (bridge)
+      // 3. Upsert fight_telemetry_sessions (bridge) — multi-device safe
       await supabase
         .from('fight_telemetry_sessions')
         .upsert({
@@ -120,7 +120,7 @@ serve(async (req) => {
           last_heartbeat: new Date().toISOString(),
           vision_connected: true,
           session_token: session.id,
-        }, { onConflict: 'fight_id' });
+        }, { onConflict: 'fight_id,device_id' });
 
       // 4. Broadcast realtime
       const channel = supabase.channel('fight_sync');
@@ -155,11 +155,19 @@ serve(async (req) => {
       const body = await req.json();
       const fightId = body.fight_id || body.fightId;
       const deviceId = body.device_id || body.deviceId || 'unknown';
+      const fps = body.fps ?? null;
+      const persons = body.persons ?? null;
+      const latencyMs = body.latency_ms ?? null;
 
       if (!fightId) return json({ error: 'fight_id is required' }, 400);
 
       const exists = await validateFightExists(supabase, fightId);
       if (!exists) return json({ error: 'fight_id inválido' }, 400);
+
+      const metadata: Record<string, unknown> = {};
+      if (fps !== null) metadata.fps = fps;
+      if (persons !== null) metadata.persons = persons;
+      if (latencyMs !== null) metadata.latency_ms = latencyMs;
 
       const { data, error } = await supabase
         .from('fight_telemetry_sessions')
@@ -169,7 +177,8 @@ serve(async (req) => {
           status: 'connected',
           last_heartbeat: new Date().toISOString(),
           vision_connected: true,
-        }, { onConflict: 'fight_id' })
+          metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
+        }, { onConflict: 'fight_id,device_id' })
         .select('id')
         .single();
 
@@ -373,7 +382,7 @@ serve(async (req) => {
     // GET /health
     // ═══════════════════════════════════════════
     if (path === 'health' && req.method === 'GET') {
-      return json({ status: 'ok', version: '3.1', timestamp: new Date().toISOString() });
+      return json({ status: 'ok', version: '3.2', timestamp: new Date().toISOString() });
     }
 
     // ═══════════════════════════════════════════
