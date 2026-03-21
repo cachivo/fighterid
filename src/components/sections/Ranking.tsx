@@ -24,6 +24,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
   const [page, setPage] = useState(1);
+  const [accumulatedRankings, setAccumulatedRankings] = useState<typeof rankingDataRef>([]);
   const PAGE_SIZE = 10;
   
   // Realtime subscriptions for automatic sync across modules
@@ -43,14 +44,32 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   
   const navigate = useNavigate();
 
+  // Type reference for accumulated rankings
+  type RankingEntryType = NonNullable<typeof rankingData>['rankings'][number];
+  const rankingDataRef: RankingEntryType[] = [];
+
   const currentOrg = organizations?.find(org => org.code === organizationCode);
   const availableLevels = currentOrg?.allowed_levels || [];
   const availableWeightClasses = rankingData?.weightClasses || [];
 
+  // Accumulate rankings as pages load
+  useEffect(() => {
+    if (rankingData?.rankings) {
+      if (page === 1) {
+        setAccumulatedRankings(rankingData.rankings);
+      } else {
+        setAccumulatedRankings(prev => {
+          const existingIds = new Set(prev.map(r => r.id));
+          const newItems = rankingData.rankings.filter(r => !existingIds.has(r.id));
+          return [...prev, ...newItems];
+        });
+      }
+    }
+  }, [rankingData?.rankings, page]);
+
   // Smart default level selection: Amateur siempre primero
   useEffect(() => {
     if (availableLevels.length > 0 && !selectedLevel) {
-      // Prioridad: Amateur > Semi-profesional > Profesional
       if (availableLevels.includes('Amateur')) {
         setSelectedLevel('Amateur');
       } else if (availableLevels.includes('Semi-profesional')) {
@@ -66,7 +85,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   // Reset page and filters when org changes
   useEffect(() => {
     setPage(1);
-    setSelectedLevel('');  // Reset level so smart selection can run for the new org
+    setAccumulatedRankings([]);
+    setSelectedLevel('');
     setSelectedWeightClass('');
     setSelectedGender('');
   }, [organizationCode]);
@@ -74,9 +94,10 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
+    setAccumulatedRankings([]);
   }, [selectedLevel, selectedWeightClass, selectedGender]);
 
-  const rankings = rankingData?.rankings || [];
+  const rankings = accumulatedRankings;
   const hasMore = rankingData?.hasMore || false;
 
   // Helper function for record fallback logic (discipline-specific → legacy)
