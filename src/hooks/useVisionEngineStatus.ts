@@ -6,39 +6,49 @@ interface VisionEngineStatus {
   deviceId: string | null;
   lastHeartbeat: string | null;
   status: string | null;
+  fps: number | null;
+  personsDetected: number | null;
 }
 
 const HEARTBEAT_THRESHOLD_MS = 10_000;
 const POLL_INTERVAL_MS = 3_000;
 
+interface SessionRow {
+  device_id: string | null;
+  last_heartbeat: string | null;
+  status: string | null;
+  metadata: Record<string, unknown> | null;
+}
+
+function extractMetrics(metadata: Record<string, unknown> | null) {
+  return {
+    fps: typeof metadata?.fps === 'number' ? metadata.fps : null,
+    personsDetected: typeof metadata?.persons === 'number' ? metadata.persons : null,
+  };
+}
+
 export function useVisionEngineStatus(fightId: string | undefined): VisionEngineStatus {
-  const [session, setSession] = useState<{
-    device_id: string | null;
-    last_heartbeat: string | null;
-    status: string | null;
-  } | null>(null);
+  const [session, setSession] = useState<SessionRow | null>(null);
   const [isLive, setIsLive] = useState(false);
 
-  // Fetch initial session
   useEffect(() => {
     if (!fightId) return;
 
     const fetch = async () => {
       const { data } = await supabase
         .from('fight_telemetry_sessions')
-        .select('last_heartbeat, status')
+        .select('device_id, last_heartbeat, status, metadata')
         .eq('fight_id', fightId)
         .order('started_at', { ascending: false })
         .limit(1)
         .maybeSingle() as any;
 
-      if (data) setSession({ device_id: (data as any).device_id ?? null, last_heartbeat: data.last_heartbeat, status: data.status });
+      if (data) setSession(data as SessionRow);
     };
 
     fetch();
   }, [fightId]);
 
-  // Subscribe to realtime changes
   useEffect(() => {
     if (!fightId) return;
 
@@ -59,6 +69,7 @@ export function useVisionEngineStatus(fightId: string | undefined): VisionEngine
               device_id: row.device_id,
               last_heartbeat: row.last_heartbeat,
               status: row.status,
+              metadata: row.metadata,
             });
           }
         }
@@ -70,7 +81,6 @@ export function useVisionEngineStatus(fightId: string | undefined): VisionEngine
     };
   }, [fightId]);
 
-  // Evaluate isLive every 3 seconds
   const evaluate = useCallback(() => {
     if (!session?.last_heartbeat) {
       setIsLive(false);
@@ -86,10 +96,14 @@ export function useVisionEngineStatus(fightId: string | undefined): VisionEngine
     return () => clearInterval(interval);
   }, [evaluate]);
 
+  const metrics = extractMetrics(session?.metadata ?? null);
+
   return {
     isLive,
     deviceId: session?.device_id ?? null,
     lastHeartbeat: session?.last_heartbeat ?? null,
     status: session?.status ?? null,
+    fps: metrics.fps,
+    personsDetected: metrics.personsDetected,
   };
 }
