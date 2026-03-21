@@ -71,7 +71,7 @@ serve(async (req) => {
 
       if (!fight_id) return json({ error: 'fight_id is required' }, 400);
 
-      // 1. Validar que la pelea existe y obtener fighters
+      // 1. Validar pelea y obtener fighters
       const { data: fight, error: fightErr } = await supabase
         .from('fights')
         .select(`
@@ -91,7 +91,7 @@ serve(async (req) => {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
-      // 2. Crear sesión
+      // 2. Crear sesión de inferencia
       const { data: session, error: sessErr } = await supabase
         .from('ai_inference_sessions')
         .insert({
@@ -110,7 +110,19 @@ serve(async (req) => {
         return json({ error: sessErr.message }, 500);
       }
 
-      // 3. Broadcast realtime
+      // 3. Upsert fight_telemetry_sessions (bridge)
+      await supabase
+        .from('fight_telemetry_sessions')
+        .upsert({
+          fight_id,
+          device_id: device_id || 'unknown',
+          status: 'connected',
+          last_heartbeat: new Date().toISOString(),
+          vision_connected: true,
+          session_token: session.id,
+        }, { onConflict: 'fight_id' });
+
+      // 4. Broadcast realtime
       const channel = supabase.channel('fight_sync');
       await channel.send({
         type: 'broadcast',
@@ -119,7 +131,7 @@ serve(async (req) => {
       });
       supabase.removeChannel(channel);
 
-      // 4. Responder con contrato oficial
+      // 5. Responder
       return json({
         session_id: session.id,
         fight_id,
@@ -137,38 +149,70 @@ serve(async (req) => {
     }
 
     // ═══════════════════════════════════════════
+    // POST /heartbeat — Actualizar heartbeat
+    // ═══════════════════════════════════════════
+    if (path === 'heartbeat' && req.method === 'POST') {
+      const body = await req.json();
+      const fightId = body.fight_id || body.fightId;
+      const deviceId = body.device_id || body.deviceId || 'unknown';
+
+      if (!fightId) return json({ error: 'fight_id is required' }, 400);
+
+      const exists = await validateFightExists(supabase, fightId);
+      if (!exists) return json({ error: 'fight_id inválido' }, 400);
+
+      const { data, error } = await supabase
+        .from('fight_telemetry_sessions')
+        .upsert({
+          fight_id: fightId,
+          device_id: deviceId,
+          status: 'connected',
+          last_heartbeat: new Date().toISOString(),
+          vision_connected: true,
+        }, { onConflict: 'fight_id' })
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Error upserting heartbeat:', error);
+        return json({ error: error.message }, 500);
+      }
+
+      return json({ success: true, session_id: data.id });
+    }
+
+    // ═══════════════════════════════════════════
     // POST /event — Registrar golpe (con validación)
     // ═══════════════════════════════════════════
     if (path === 'event' && req.method === 'POST') {
       const body = await req.json();
 
-      // Soportar ambos formatos: contrato nuevo y legacy
       const fightId = body.fight_id || body.fightId;
       const sessionId = body.session_id || null;
       const fighterId = body.fighter_id || null;
-      const fighter = body.fighter || null; // legacy 'A'/'B'
+      const fighter = body.fighter || null;
       const eventType = body.type || body.event || 'strike_attempted';
       const confidence = body.confidence ?? 0.5;
-      const timestampMs = body.timestamp || body.timestamp_ms || Date.now();
+      const rawTimestamp = body.timestamp || body.timestamp_ms || Date.now();
       const roundNumber = body.round || body.round_number || 1;
       const strikeType = body.strike_type || null;
       const modelVersion = body.model_version || 'unknown';
 
       if (!fightId) return json({ error: 'fight_id is required' }, 400);
 
-      // Validar que la pelea existe
       const exists = await validateFightExists(supabase, fightId);
       if (!exists) {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
-      // Validar confidence
       if (confidence < 0 || confidence > 1) {
         return json({ error: 'confidence must be between 0 and 1' }, 400);
       }
 
-      // Determinar fighter label
       const fighterLabel = fighter || (fighterId ? 'A' : 'A');
+
+      // Cast timestamp to integer to prevent bigint insertion errors
+      const timestampMs = Math.round(Number(rawTimestamp));
 
       const { data, error } = await supabase
         .from('ai_strike_events')
@@ -223,6 +267,14 @@ serve(async (req) => {
         return json({ error: error.message }, 500);
       }
 
+      // Also mark telemetry session as disconnected
+      if (body.fight_id) {
+        await supabase
+          .from('fight_telemetry_sessions')
+          .update({ status: 'disconnected', vision_connected: false })
+          .eq('fight_id', body.fight_id);
+      }
+
       return json({ success: true });
     }
 
@@ -275,7 +327,6 @@ serve(async (req) => {
 
       if (resultErr) return json({ error: resultErr.message }, 500);
 
-      // Update fights.ai_result
       await supabase
         .from('fights')
         .update({
@@ -289,6 +340,12 @@ serve(async (req) => {
           },
         })
         .eq('id', fightId);
+
+      // Mark telemetry session as disconnected
+      await supabase
+        .from('fight_telemetry_sessions')
+        .update({ status: 'disconnected', vision_connected: false })
+        .eq('fight_id', fightId);
 
       return json({
         success: true,
@@ -316,7 +373,7 @@ serve(async (req) => {
     // GET /health
     // ═══════════════════════════════════════════
     if (path === 'health' && req.method === 'GET') {
-      return json({ status: 'ok', version: '3.0', timestamp: new Date().toISOString() });
+      return json({ status: 'ok', version: '3.1', timestamp: new Date().toISOString() });
     }
 
     // ═══════════════════════════════════════════
@@ -337,13 +394,14 @@ serve(async (req) => {
     return json({
       error: 'Not found',
       availableEndpoints: [
-        'POST /start  — Iniciar sesión (valida fight_id, devuelve fighters)',
-        'POST /event  — Registrar golpe (valida fight_id)',
-        'POST /stop   — Detener sesión',
-        'POST /end    — Finalizar pelea y calcular stats',
-        'POST /log    — Registrar log',
-        'GET  /health — Health check',
-        'GET  /metrics — Sesiones activas',
+        'POST /start     — Iniciar sesión (valida fight_id, devuelve fighters)',
+        'POST /heartbeat — Heartbeat del motor (upsert telemetry)',
+        'POST /event     — Registrar golpe (valida fight_id)',
+        'POST /stop      — Detener sesión',
+        'POST /end       — Finalizar pelea y calcular stats',
+        'POST /log       — Registrar log',
+        'GET  /health    — Health check',
+        'GET  /metrics   — Sesiones activas',
       ],
     }, 404);
 
