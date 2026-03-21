@@ -24,6 +24,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
   const [page, setPage] = useState(1);
+  const [accumulatedRankings, setAccumulatedRankings] = useState<typeof rankingDataRef>([]);
   const PAGE_SIZE = 10;
   
   // Realtime subscriptions for automatic sync across modules
@@ -43,14 +44,32 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   
   const navigate = useNavigate();
 
+  // Type reference for accumulated rankings
+  type RankingEntryType = NonNullable<typeof rankingData>['rankings'][number];
+  const rankingDataRef: RankingEntryType[] = [];
+
   const currentOrg = organizations?.find(org => org.code === organizationCode);
   const availableLevels = currentOrg?.allowed_levels || [];
   const availableWeightClasses = rankingData?.weightClasses || [];
 
+  // Accumulate rankings as pages load
+  useEffect(() => {
+    if (rankingData?.rankings) {
+      if (page === 1) {
+        setAccumulatedRankings(rankingData.rankings);
+      } else {
+        setAccumulatedRankings(prev => {
+          const existingIds = new Set(prev.map(r => r.id));
+          const newItems = rankingData.rankings.filter(r => !existingIds.has(r.id));
+          return [...prev, ...newItems];
+        });
+      }
+    }
+  }, [rankingData?.rankings, page]);
+
   // Smart default level selection: Amateur siempre primero
   useEffect(() => {
     if (availableLevels.length > 0 && !selectedLevel) {
-      // Prioridad: Amateur > Semi-profesional > Profesional
       if (availableLevels.includes('Amateur')) {
         setSelectedLevel('Amateur');
       } else if (availableLevels.includes('Semi-profesional')) {
@@ -66,7 +85,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   // Reset page and filters when org changes
   useEffect(() => {
     setPage(1);
-    setSelectedLevel('');  // Reset level so smart selection can run for the new org
+    setAccumulatedRankings([]);
+    setSelectedLevel('');
     setSelectedWeightClass('');
     setSelectedGender('');
   }, [organizationCode]);
@@ -74,9 +94,10 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
   // Reset page when filters change
   useEffect(() => {
     setPage(1);
+    setAccumulatedRankings([]);
   }, [selectedLevel, selectedWeightClass, selectedGender]);
 
-  const rankings = rankingData?.rankings || [];
+  const rankings = accumulatedRankings;
   const hasMore = rankingData?.hasMore || false;
 
   // Helper function for record fallback logic (discipline-specific → legacy)
@@ -104,22 +125,22 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
 
   const estadisticas = [
     {
-      numero: rankingData?.totalCount.toString() || "0",
+      numero: (rankingData?.globalStats?.totalFighters ?? rankingData?.totalCount ?? 0).toString(),
       descripcion: "Peleadores Registrados",
       Icon: Users
     },
     {
-      numero: rankingData?.totalCount.toString() || "0",
-      descripcion: "Peleas Realizadas",
+      numero: (rankingData?.totalCount ?? 0).toString(),
+      descripcion: "En este Ranking",
       Icon: Target
     },
     {
-      numero: rankings.filter(r => r.level === 'Profesional').length.toString(),
+      numero: (rankingData?.globalStats?.totalProfessionals ?? 0).toString(),
       descripcion: "Profesionales Activos",
       Icon: Award
     },
     {
-      numero: rankings.filter(r => r.is_champion).length.toString(),
+      numero: (rankingData?.globalStats?.totalChampions ?? 0).toString(),
       descripcion: "Campeones",
       Icon: TrendingUp
     }
@@ -260,9 +281,10 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
               loading={isLoading}
             >
               <div className="space-y-2 xs:space-y-3 sm:space-y-4">
-                {rankings.map((ranking, index) => {
+              {rankings.map((ranking, index) => {
+                  const rankPosition = index + 1;
                   const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
-                  const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
+                  const rankColor = rankPosition <= 3 ? rankColors[rankPosition - 1] : 'text-purple-neon-primary';
                   
                   // Get record with fallback to legacy fields
                   const { wins, losses, draws } = getRecordWithFallback(
@@ -280,7 +302,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                       <div className="flex items-center gap-2 xs:gap-3 sm:gap-4">
                         {/* Ranking Position */}
                         <div className={`text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold ${rankColor} min-w-[28px] xs:min-w-[32px] sm:min-w-[40px] text-center shrink-0`}>
-                          {index < 3 ? <Trophy className="h-5 w-5 xs:h-6 xs:w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 mx-auto" /> : `#${index + 1}`}
+                          {rankPosition <= 3 ? <Trophy className="h-5 w-5 xs:h-6 xs:w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 mx-auto" /> : `#${rankPosition}`}
                         </div>
 
                         {/* Avatar */}
