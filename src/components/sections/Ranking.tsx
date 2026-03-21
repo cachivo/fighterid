@@ -302,7 +302,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
                       <div className="flex items-center gap-2 xs:gap-3 sm:gap-4">
                         {/* Ranking Position */}
                         <div className={`text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold ${rankColor} min-w-[28px] xs:min-w-[32px] sm:min-w-[40px] text-center shrink-0`}>
-                          {index < 3 ? <Trophy className="h-5 w-5 xs:h-6 xs:w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 mx-auto" /> : `#${index + 1}`}
+                          {rankPosition <= 3 ? <Trophy className="h-5 w-5 xs:h-6 xs:w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 mx-auto" /> : `#${rankPosition}`}
                         </div>
 
                         {/* Avatar */}
