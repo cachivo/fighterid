@@ -1,71 +1,65 @@
 
 
-# Script 1: Contrato Oficial del Motor de Visión AI
+# Vision Engine Sync Status: Web ↔ Motor
 
-## Problema Actual
+## What exists today
 
-1. La Edge Function `ai-strike-ingest` no valida que el `fight_id` exista antes de insertar — causa error FK `23503` (visible en los logs)
-2. El endpoint `/start` no devuelve los fighters de la pelea
-3. La tabla `ai_inference_sessions` requiere `source_url` y `model_version` como NOT NULL, pero el contrato nuevo usa `device_id`
-4. La tabla `fights` usa `fighter_a_id` / `fighter_b_id` (no `red_fighter_id` / `blue_fighter_id`) — el contrato del script debe adaptarse a este esquema real
+- **Table `fight_telemetry_sessions`**: Already exists with `id`, `fight_id`, `session_token`, `status`, `hud_connected`, `vision_connected`, `last_heartbeat`, `started_at`. Missing: `device_id`.
+- **Table `ai_inference_sessions`**: Used by `/start` endpoint but does NOT have heartbeat/sync status fields.
+- **Edge Function `ai-strike-ingest`**: Has `/start`, `/event`, `/stop`, `/end` but NO `/heartbeat` endpoint.
+- **Components**: `VisionSyncStatus` and `FightTelemetryPanel` exist but are only used in admin HUD pages, not in the public fight view.
+- **Bug in logs**: `timestamp_ms` column is `bigint` but the motor sends floats like `1774121214.80602` — causing insert errors.
 
-## Cambios
+## Plan
 
-### 1. Migración SQL — Adaptar `ai_inference_sessions`
+### 1. Migration SQL
 
-```sql
--- Agregar device_id, hacer source_url y model_version opcionales
-ALTER TABLE public.ai_inference_sessions
-  ADD COLUMN IF NOT EXISTS device_id text,
-  ALTER COLUMN source_url SET DEFAULT 'unknown',
-  ALTER COLUMN source_url DROP NOT NULL,
-  ALTER COLUMN model_version SET DEFAULT 'unknown',
-  ALTER COLUMN model_version DROP NOT NULL;
-```
+- Add `device_id text` column to `fight_telemetry_sessions`
+- Fix `timestamp_ms` in `ai_strike_events` from `bigint` to `numeric` (or cast to bigint in the edge function) to stop the float insertion errors
 
-### 2. Reescribir Edge Function `ai-strike-ingest/index.ts`
+### 2. Edge Function — Add `/heartbeat` endpoint to `ai-strike-ingest`
 
-Implementar los 4 endpoints del contrato oficial:
+New `POST /heartbeat` handler:
+- Accepts `{ fight_id, device_id }`
+- Upserts `fight_telemetry_sessions`: sets `status = 'connected'`, `last_heartbeat = now()`, `device_id`
+- If no session exists for that `fight_id`, creates one
+- Returns `{ success: true, session_id }`
 
-**POST /start** — Valida fight_id, crea sesión, devuelve fighters
-- Consulta `fights` + join a `fighter_profiles` via `fighter_a_id` / `fighter_b_id`
-- Si fight_id no existe → `400 "fight_id inválido"`
-- Inserta en `ai_inference_sessions` con `device_id` y `status: 'ACTIVE'`
-- Responde con `{ session_id, fight_id, fighters: { red: {id, name}, blue: {id, name} } }`
+Also update `POST /start` to:
+- Create/update a `fight_telemetry_sessions` row alongside the `ai_inference_sessions` row (bridging both tables)
+- Set `status = 'connected'`, `device_id`, `last_heartbeat = now()`
 
-**POST /event** — Valida fight_id antes de insertar
-- Verifica que el fight_id existe en `fights`
-- Inserta en `ai_strike_events` con los campos del contrato
-- Responde `{ success: true, id }`
+Fix `POST /event`:
+- Cast `timestamp_ms` to integer (`Math.round()`) before inserting to prevent the bigint error
 
-**POST /stop** — Detiene sesión
-- Actualiza `ai_inference_sessions` con `status: 'stopped'`
+Update `/health` version to `3.1`.
 
-**POST /end** — Calcula stats finales
-- Mantiene la lógica actual de computar stats por fighter
-- Guarda en `ai_fight_results` y actualiza `fights.ai_result`
+### 3. New hook: `useVisionEngineStatus(fightId)`
 
-Se mantienen los endpoints auxiliares: `/log`, `/health`, `/metrics`.
+Small React hook that:
+- Subscribes to Realtime changes on `fight_telemetry_sessions` filtered by `fight_id`
+- Computes `isLive` based on `Date.now() - last_heartbeat < 10000`
+- Re-evaluates every 3 seconds via `setInterval`
+- Returns `{ isLive, deviceId, lastHeartbeat, status }`
 
-### 3. Mapping de columnas (fights → contrato)
+### 4. New component: `VisionEngineIndicator`
 
-| Contrato (Script)  | Base de datos real     |
-|---------------------|------------------------|
-| `red` fighter       | `fighter_a_id`         |
-| `blue` fighter      | `fighter_b_id`         |
-| `device_id`         | nueva columna          |
-| `session_id`        | `ai_inference_sessions.id` |
+Compact UI badge for the public fight view:
+- `isLive = true` → green dot + "Motor conectado" + device_id
+- `isLive = false` → red dot + "Sin señal"
+- Bonus: shows last strike time and latency if available
 
-### 4. Broadcast Realtime en /start
+### 5. Integrate into fight detail page
 
-Al crear la sesión, emitir un broadcast al canal `fight_sync` con el payload `{ fight_id, status: "ACTIVE" }` para que el HUD y otros clientes se sincronicen automáticamente.
+Add `VisionEngineIndicator` to `EventDetail.tsx` or the fight view, visible when a fight is selected/active.
 
-## Sin cambios en frontend
+## Files affected
 
-El frontend (HUD, VisionDiagnostics) no necesita cambios en esta fase — el contrato es para el Motor de Visión externo (Python).
-
-## Archivos afectados
-
-- `supabase/migrations/[new].sql` — agregar `device_id`, relajar NOT NULL
-- `supabase/functions/ai-strike-ingest/index.ts` — reescribir con contrato oficial
+| File | Change |
+|------|--------|
+| `supabase/migrations/[new].sql` | Add `device_id` to `fight_telemetry_sessions`, fix `timestamp_ms` type |
+| `supabase/functions/ai-strike-ingest/index.ts` | Add `/heartbeat`, bridge `/start` to telemetry sessions, fix timestamp cast |
+| `src/hooks/useVisionEngineStatus.ts` | New hook — Realtime subscription + heartbeat check |
+| `src/components/VisionEngineIndicator.tsx` | New component — live/disconnected badge |
+| `src/pages/EventDetail.tsx` | Mount `VisionEngineIndicator` for active fights |
 
