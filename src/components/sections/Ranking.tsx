@@ -284,7 +284,7 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
               {rankings.map((ranking, index) => {
                   const rankPosition = index + 1;
                   const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
-                  const rankColor = index < 3 ? rankColors[index] : 'text-purple-neon-primary';
+                  const rankColor = rankPosition <= 3 ? rankColors[rankPosition - 1] : 'text-purple-neon-primary';
                   
                   // Get record with fallback to legacy fields
                   const { wins, losses, draws } = getRecordWithFallback(
