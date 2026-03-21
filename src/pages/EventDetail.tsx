@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight, Home, Shield, Tv } from 'lucide-react';
+import VisionEngineIndicator from '@/components/VisionEngineIndicator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -357,6 +358,7 @@ const EventDetail = () => {
                             <Weight className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
                             {fight.weight_class}
                           </Badge>
+                          <VisionEngineIndicator fightId={fight.id} />
                         </div>
                         
                         {fight.scheduled_time && <div className="flex items-center gap-2 text-sm text-gray-200 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
