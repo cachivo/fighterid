@@ -26,13 +26,13 @@ export function useVisionEngineStatus(fightId: string | undefined): VisionEngine
     const fetch = async () => {
       const { data } = await supabase
         .from('fight_telemetry_sessions')
-        .select('device_id, last_heartbeat, status')
+        .select('last_heartbeat, status')
         .eq('fight_id', fightId)
         .order('started_at', { ascending: false })
         .limit(1)
-        .maybeSingle();
+        .maybeSingle() as any;
 
-      if (data) setSession(data);
+      if (data) setSession({ device_id: (data as any).device_id ?? null, last_heartbeat: data.last_heartbeat, status: data.status });
     };
 
     fetch();
