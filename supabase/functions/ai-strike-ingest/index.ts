@@ -87,6 +87,11 @@ serve(async (req) => {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
+      // 1b. Validar lifecycle — no permitir iniciar pelea terminada
+      if (ctx.status === 'finished') {
+        return json({ error: 'La pelea ya finalizó. No se puede iniciar una nueva sesión.' }, 409);
+      }
+
       // 2. Crear sesión de inferencia
       const { data: session, error: sessErr } = await supabase
         .from('ai_inference_sessions')
@@ -118,7 +123,14 @@ serve(async (req) => {
           session_token: session.id,
         }, { onConflict: 'fight_id,device_id' });
 
-      // 4. Broadcast realtime
+      // 4. Activar pelea si no está finished
+      await supabase
+        .from('fights')
+        .update({ status: 'active' })
+        .eq('id', fight_id)
+        .neq('status', 'finished');
+
+      // 5. Broadcast realtime
       const channel = supabase.channel('fight_sync');
       await channel.send({
         type: 'broadcast',
@@ -127,7 +139,7 @@ serve(async (req) => {
       });
       supabase.removeChannel(channel);
 
-      // 5. Responder con datos enriquecidos
+      // 6. Responder con datos enriquecidos
       const formatRecord = (w: number | null, l: number | null, d: number | null) =>
         `${w ?? 0}-${l ?? 0}-${d ?? 0}`;
 
