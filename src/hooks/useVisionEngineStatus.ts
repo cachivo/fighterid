@@ -107,5 +107,6 @@ export function useVisionEngineStatus(fightId: string | undefined): VisionEngine
     status: session?.status ?? null,
     fps: metrics.fps,
     personsDetected: metrics.personsDetected,
+    latencyMs: metrics.latencyMs,
   };
 }
