@@ -18,6 +18,7 @@ import { useAIStrikeEvents } from '@/hooks/useAIStrikeEvents';
 import { useAIInferenceSessions } from '@/hooks/useAIInferenceSessions';
 import { RoundControlPanel } from '@/components/admin/RoundControlPanel';
 import { PrepareFightDialog } from '@/components/admin/PrepareFightDialog';
+import VisionMetricsPanel from '@/components/admin/VisionMetricsPanel';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function LiveEventsControl() {
@@ -183,6 +184,9 @@ export default function LiveEventsControl() {
 
           {/* Round Control Panel */}
           <RoundControlPanel fightId={fight.id} />
+
+          {/* Vision Engine Metrics */}
+          <VisionMetricsPanel fightId={fight.id} />
 
           {/* Real-time Stats */}
           {realtimeData.scorecards.length > 0 && (
