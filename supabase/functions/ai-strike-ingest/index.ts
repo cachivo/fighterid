@@ -71,23 +71,19 @@ serve(async (req) => {
 
       if (!fight_id) return json({ error: 'fight_id is required' }, 400);
 
-      // 1. Validar pelea y obtener fighters
-      const { data: fight, error: fightErr } = await supabase
-        .from('fights')
-        .select(`
-          id,
-          fighter_a:fighter_profiles!fights_fighter_a_id_fkey(id, name),
-          fighter_b:fighter_profiles!fights_fighter_b_id_fkey(id, name)
-        `)
-        .eq('id', fight_id)
+      // 1. Obtener contexto enriquecido desde la vista unificada
+      const { data: ctx, error: ctxErr } = await supabase
+        .from('vision_fight_context')
+        .select('*')
+        .eq('fight_id', fight_id)
         .maybeSingle();
 
-      if (fightErr) {
-        console.error('Error fetching fight:', fightErr);
-        return json({ error: fightErr.message }, 500);
+      if (ctxErr) {
+        console.error('Error fetching fight context:', ctxErr);
+        return json({ error: ctxErr.message }, 500);
       }
 
-      if (!fight) {
+      if (!ctx) {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
@@ -131,19 +127,33 @@ serve(async (req) => {
       });
       supabase.removeChannel(channel);
 
-      // 5. Responder
+      // 5. Responder con datos enriquecidos
+      const formatRecord = (w: number | null, l: number | null, d: number | null) =>
+        `${w ?? 0}-${l ?? 0}-${d ?? 0}`;
+
       return json({
         session_id: session.id,
         fight_id,
         fighters: {
           red: {
-            id: fight.fighter_a?.id || null,
-            name: fight.fighter_a?.name || 'Fighter A',
+            id: ctx.fighter_a_id || null,
+            name: ctx.fighter_a_name || 'Fighter A',
+            nickname: ctx.fighter_a_nickname || null,
+            record: formatRecord(ctx.fighter_a_wins, ctx.fighter_a_losses, ctx.fighter_a_draws),
+            weight_class: ctx.fighter_a_weight || null,
           },
           blue: {
-            id: fight.fighter_b?.id || null,
-            name: fight.fighter_b?.name || 'Fighter B',
+            id: ctx.fighter_b_id || null,
+            name: ctx.fighter_b_name || 'Fighter B',
+            nickname: ctx.fighter_b_nickname || null,
+            record: formatRecord(ctx.fighter_b_wins, ctx.fighter_b_losses, ctx.fighter_b_draws),
+            weight_class: ctx.fighter_b_weight || null,
           },
+        },
+        event: {
+          name: ctx.event_name || null,
+          date: ctx.event_date || null,
+          venue: ctx.event_venue || null,
         },
       });
     }
