@@ -71,23 +71,19 @@ serve(async (req) => {
 
       if (!fight_id) return json({ error: 'fight_id is required' }, 400);
 
-      // 1. Validar pelea y obtener fighters
-      const { data: fight, error: fightErr } = await supabase
-        .from('fights')
-        .select(`
-          id,
-          fighter_a:fighter_profiles!fights_fighter_a_id_fkey(id, name),
-          fighter_b:fighter_profiles!fights_fighter_b_id_fkey(id, name)
-        `)
-        .eq('id', fight_id)
+      // 1. Obtener contexto enriquecido desde la vista unificada
+      const { data: ctx, error: ctxErr } = await supabase
+        .from('vision_fight_context')
+        .select('*')
+        .eq('fight_id', fight_id)
         .maybeSingle();
 
-      if (fightErr) {
-        console.error('Error fetching fight:', fightErr);
-        return json({ error: fightErr.message }, 500);
+      if (ctxErr) {
+        console.error('Error fetching fight context:', ctxErr);
+        return json({ error: ctxErr.message }, 500);
       }
 
-      if (!fight) {
+      if (!ctx) {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
