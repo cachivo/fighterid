@@ -331,8 +331,23 @@ serve(async (req) => {
 
       if (!fightId) return json({ error: 'fight_id is required' }, 400);
 
-      const exists = await validateFightExists(supabase, fightId);
-      if (!exists) return json({ error: 'fight_id inválido' }, 400);
+      // Validar que la pelea existe y está activa
+      const { data: fightCheck, error: fightCheckErr } = await supabase
+        .from('fights')
+        .select('id, status')
+        .eq('id', fightId)
+        .maybeSingle();
+
+      if (fightCheckErr) return json({ error: fightCheckErr.message }, 500);
+      if (!fightCheck) return json({ error: 'fight_id inválido' }, 400);
+
+      if (fightCheck.status === 'finished') {
+        return json({ error: 'La pelea ya fue finalizada.' }, 409);
+      }
+
+      if (fightCheck.status !== 'active') {
+        return json({ error: `No se puede finalizar pelea con status '${fightCheck.status}'. Debe estar 'active'.` }, 409);
+      }
 
       const { data: allEvents, error: evErr } = await supabase
         .from('ai_strike_events')
@@ -371,9 +386,11 @@ serve(async (req) => {
 
       if (resultErr) return json({ error: resultErr.message }, 500);
 
+      // Marcar pelea como finished + guardar ai_result
       await supabase
         .from('fights')
         .update({
+          status: 'finished',
           ai_result: {
             result_id: resultData.id,
             model_version: modelVersion,
