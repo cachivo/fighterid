@@ -1,105 +1,115 @@
 
 
-# Vista Unificada `vision_fight_context` + Enriquecer `/start`
+# Sincronización Completa del Sistema — Vision → Negocio → Web
 
-## Problema
+## Estado actual
 
-El endpoint `/start` hace:
-```sql
-fighter_a:fighter_profiles!fights_fighter_a_id_fkey(id, name)
-```
-La columna `name` es nullable y generalmente vacía. Los nombres reales están en `first_name` + `last_name`. Resultado: el motor recibe `"Fighter A"` siempre.
+- `fights.status` es `TEXT` libre, sin constraint
+- No existe trigger que actualice rankings al insertar en `fight_results`
+- `/start` no valida el estado de la pelea ni lo cambia a `ACTIVE`
+- `/end` no marca la pelea como `finished`
+- Se pueden crear sesiones duplicadas activas para la misma pelea+dispositivo
+- `COALESCE` en la vista ya usa `CONCAT_WS` (NULL-safe) — esto está correcto
+- No hay realtime en rankings (solo en telemetry)
 
 ## Cambios
 
-### 1. Migration — Crear la vista `vision_fight_context`
-
-Adaptada al schema real (columnas correctas):
+### 1. Migration SQL — Lifecycle + Ranking trigger
 
 ```sql
-CREATE OR REPLACE VIEW public.vision_fight_context AS
-SELECT 
-  f.id AS fight_id,
-  f.event_id,
-  f.fight_number,
-  f.status,
-  f.weight_class,
-  
-  -- Fighter A (red corner)
-  fp1.id AS fighter_a_id,
-  COALESCE(fp1.name, fp1.first_name || ' ' || fp1.last_name) AS fighter_a_name,
-  fp1.nickname AS fighter_a_nickname,
-  fp1.weight_class AS fighter_a_weight,
-  fp1.record_wins AS fighter_a_wins,
-  fp1.record_losses AS fighter_a_losses,
-  fp1.record_draws AS fighter_a_draws,
+-- A. Partial unique index: solo 1 sesión activa por fight+device
+CREATE UNIQUE INDEX IF NOT EXISTS idx_telemetry_one_active_per_fight_device
+  ON fight_telemetry_sessions (fight_id, device_id)
+  WHERE status = 'connected';
 
-  -- Fighter B (blue corner)
-  fp2.id AS fighter_b_id,
-  COALESCE(fp2.name, fp2.first_name || ' ' || fp2.last_name) AS fighter_b_name,
-  fp2.nickname AS fighter_b_nickname,
-  fp2.weight_class AS fighter_b_weight,
-  fp2.record_wins AS fighter_b_wins,
-  fp2.record_losses AS fighter_b_losses,
-  fp2.record_draws AS fighter_b_draws,
+-- B. Trigger: al insertar fight_result → actualizar records + ranking + status
+CREATE OR REPLACE FUNCTION public.on_fight_result_inserted()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_fight RECORD;
+  v_loser_id UUID;
+BEGIN
+  -- 1. Marcar pelea como finished
+  UPDATE fights SET status = 'finished', winner_id = NEW.winner_id
+  WHERE id = NEW.fight_id
+  RETURNING * INTO v_fight;
 
-  -- Event
-  e.name AS event_name,
-  e.start_time AS event_date,
-  e.venue AS event_venue
+  IF NOT FOUND THEN RETURN NEW; END IF;
 
-FROM fights f
-LEFT JOIN fighter_profiles fp1 ON f.fighter_a_id = fp1.id
-LEFT JOIN fighter_profiles fp2 ON f.fighter_b_id = fp2.id
-LEFT JOIN bdg_event e ON f.event_id = e.id;
+  -- 2. Actualizar records de peleadores
+  IF NEW.winner_id IS NOT NULL THEN
+    -- Winner: +1 win
+    UPDATE fighter_profiles SET record_wins = COALESCE(record_wins, 0) + 1
+    WHERE id = NEW.winner_id;
+
+    -- Loser: +1 loss
+    v_loser_id := CASE
+      WHEN v_fight.fighter_a_id = NEW.winner_id THEN v_fight.fighter_b_id
+      ELSE v_fight.fighter_a_id
+    END;
+
+    IF v_loser_id IS NOT NULL THEN
+      UPDATE fighter_profiles SET record_losses = COALESCE(record_losses, 0) + 1
+      WHERE id = v_loser_id;
+    END IF;
+
+    -- 3. Ranking: +3 pts winner, -1 pt loser
+    UPDATE fighter_rankings SET points = points + 3, last_fight_date = now()
+    WHERE fighter_id = NEW.winner_id AND is_active = true;
+
+    IF v_loser_id IS NOT NULL THEN
+      UPDATE fighter_rankings SET points = GREATEST(points - 1, 0), last_fight_date = now()
+      WHERE fighter_id = v_loser_id AND is_active = true;
+    END IF;
+  ELSE
+    -- Draw: +1 each
+    UPDATE fighter_profiles SET record_draws = COALESCE(record_draws, 0) + 1
+    WHERE id IN (v_fight.fighter_a_id, v_fight.fighter_b_id);
+
+    UPDATE fighter_rankings SET points = points + 1, last_fight_date = now()
+    WHERE fighter_id IN (v_fight.fighter_a_id, v_fight.fighter_b_id) AND is_active = true;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_fight_result_inserted
+  AFTER INSERT ON fight_results
+  FOR EACH ROW
+  EXECUTE FUNCTION on_fight_result_inserted();
 ```
 
-Nota clave: `COALESCE(name, first_name || ' ' || last_name)` garantiza que si `name` está vacío, se genera el nombre completo.
+### 2. Edge Function `ai-strike-ingest` — Lifecycle en `/start` y `/end`
 
-### 2. Edge Function `ai-strike-ingest` — Usar la vista en `/start`
+**`/start`**:
+- Validar `ctx.status` no sea `'finished'` — rechazar si ya terminó
+- Después de crear sesión: `UPDATE fights SET status = 'active' WHERE id = fight_id AND status != 'finished'`
 
-Cambiar el select del endpoint `/start` para usar la vista en vez de joins manuales:
+**`/end`**:
+- Ya existe y calcula stats, pero actualmente no marca la pelea como `finished` (eso lo hará el trigger al insertar `fight_result`)
+- Agregar: desconectar TODAS las sesiones telemetry del fight (no solo por `fight_id`, usar `device_id` también)
+- Bump version a `3.3`
 
-```ts
-const { data: ctx } = await supabase
-  .from('vision_fight_context')
-  .select('*')
-  .eq('fight_id', fight_id)
-  .maybeSingle();
-```
+### 3. Frontend — Realtime en `fight_results` ya existe
 
-Y devolver datos enriquecidos:
+`useFightRealtime.tsx` ya subscribe a `fight_results` (línea 107). El ranking se actualiza via trigger (server-side), así que el frontend solo necesita refrescar la query de rankings cuando detecta un cambio en `fights.status`.
 
-```json
-{
-  "session_id": "...",
-  "fight_id": "...",
-  "fighters": {
-    "red": {
-      "id": "...",
-      "name": "Juan Pérez",
-      "nickname": "El Tigre",
-      "record": "5-2-0",
-      "weight_class": "welterweight"
-    },
-    "blue": { ... }
-  },
-  "event": {
-    "name": "Batalla Championship 3",
-    "date": "2026-03-22",
-    "venue": "Arena MX"
-  }
-}
-```
-
-### 3. Frontend — Telemetry hook usa nombres reales
-
-El `useFightTelemetry` ya hace queries separadas a `fighter_profiles` con `first_name, last_name`, así que el HUD ya funciona. Pero el `/start` response con nombres correctos beneficia directamente al motor Python (para logging, overlays, etc.).
+No se requiere cambio frontend adicional — el trigger hace todo server-side.
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| Nueva migración SQL | Vista `vision_fight_context` |
-| `supabase/functions/ai-strike-ingest/index.ts` | `/start` usa la vista, devuelve datos enriquecidos |
+| Nueva migración SQL | Trigger `on_fight_result_inserted`, partial unique index |
+| `supabase/functions/ai-strike-ingest/index.ts` | `/start` valida status + actualiza a active; `/end` limpia sesiones; v3.3 |
+
+## Lo que NO se incluye (y por qué)
+
+- **CHECK constraint en `status`**: No se agrega porque hay valores legacy variados en la tabla. El trigger normaliza hacia adelante.
+- **Realtime en rankings**: El trigger actualiza server-side. Los componentes de ranking ya hacen refetch periódico. Agregar un channel Realtime a `fighter_rankings` sería una mejora futura pero no es crítico.
 
