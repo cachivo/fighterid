@@ -185,6 +185,9 @@ export default function LiveEventsControl() {
           {/* Round Control Panel */}
           <RoundControlPanel fightId={fight.id} />
 
+          {/* Vision Engine Metrics */}
+          <VisionMetricsPanel fightId={fight.id} />
+
           {/* Real-time Stats */}
           {realtimeData.scorecards.length > 0 && (
             <div className="border-t pt-3">
