@@ -87,12 +87,32 @@ serve(async (req) => {
         return json({ error: 'fight_id inválido — la pelea no existe' }, 400);
       }
 
-      // 1b. Validar lifecycle — no permitir iniciar pelea terminada
-      if (ctx.status === 'finished') {
-        return json({ error: 'La pelea ya finalizó. No se puede iniciar una nueva sesión.' }, 409);
+      // 1b. Lifecycle estricto — solo scheduled/ready pueden iniciar
+      const allowedStartStatuses = ['scheduled', 'ready', 'active'];
+      if (!allowedStartStatuses.includes(ctx.status)) {
+        return json({ error: `No se puede iniciar pelea con status '${ctx.status}'.` }, 409);
       }
 
-      // 2. Crear sesión de inferencia
+      // 2. Activar pelea con condición estricta (race-condition safe)
+      if (ctx.status !== 'active') {
+        const { data: updatedFight, error: updateErr } = await supabase
+          .from('fights')
+          .update({ status: 'active' })
+          .eq('id', fight_id)
+          .in('status', ['scheduled', 'ready'])
+          .select('id');
+
+        if (updateErr) {
+          console.error('Error activating fight:', updateErr);
+          return json({ error: updateErr.message }, 500);
+        }
+
+        if (!updatedFight || updatedFight.length === 0) {
+          return json({ error: 'Fight already active or in invalid state for activation.' }, 409);
+        }
+      }
+
+      // 3. Crear sesión de inferencia
       const { data: session, error: sessErr } = await supabase
         .from('ai_inference_sessions')
         .insert({
@@ -111,7 +131,7 @@ serve(async (req) => {
         return json({ error: sessErr.message }, 500);
       }
 
-      // 3. Upsert fight_telemetry_sessions (bridge) — multi-device safe
+      // 4. Upsert fight_telemetry_sessions (bridge) — multi-device safe
       await supabase
         .from('fight_telemetry_sessions')
         .upsert({
@@ -122,13 +142,6 @@ serve(async (req) => {
           vision_connected: true,
           session_token: session.id,
         }, { onConflict: 'fight_id,device_id' });
-
-      // 4. Activar pelea si no está finished
-      await supabase
-        .from('fights')
-        .update({ status: 'active' })
-        .eq('id', fight_id)
-        .neq('status', 'finished');
 
       // 5. Broadcast realtime
       const channel = supabase.channel('fight_sync');
@@ -318,8 +331,23 @@ serve(async (req) => {
 
       if (!fightId) return json({ error: 'fight_id is required' }, 400);
 
-      const exists = await validateFightExists(supabase, fightId);
-      if (!exists) return json({ error: 'fight_id inválido' }, 400);
+      // Validar que la pelea existe y está activa
+      const { data: fightCheck, error: fightCheckErr } = await supabase
+        .from('fights')
+        .select('id, status')
+        .eq('id', fightId)
+        .maybeSingle();
+
+      if (fightCheckErr) return json({ error: fightCheckErr.message }, 500);
+      if (!fightCheck) return json({ error: 'fight_id inválido' }, 400);
+
+      if (fightCheck.status === 'finished') {
+        return json({ error: 'La pelea ya fue finalizada.' }, 409);
+      }
+
+      if (fightCheck.status !== 'active') {
+        return json({ error: `No se puede finalizar pelea con status '${fightCheck.status}'. Debe estar 'active'.` }, 409);
+      }
 
       const { data: allEvents, error: evErr } = await supabase
         .from('ai_strike_events')
@@ -358,9 +386,11 @@ serve(async (req) => {
 
       if (resultErr) return json({ error: resultErr.message }, 500);
 
+      // Marcar pelea como finished + guardar ai_result
       await supabase
         .from('fights')
         .update({
+          status: 'finished',
           ai_result: {
             result_id: resultData.id,
             model_version: modelVersion,
@@ -405,7 +435,7 @@ serve(async (req) => {
     // GET /health
     // ═══════════════════════════════════════════
     if (path === 'health' && req.method === 'GET') {
-      return json({ status: 'ok', version: '3.3', timestamp: new Date().toISOString() });
+      return json({ status: 'ok', version: '3.4', timestamp: new Date().toISOString() });
     }
 
     // ═══════════════════════════════════════════
