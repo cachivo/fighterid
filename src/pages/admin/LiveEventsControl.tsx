@@ -300,7 +300,7 @@ export default function LiveEventsControl() {
               <Card variant="neon">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
-                    <span>🔴 {fight.fighterA?.first_name} {fight.fighterA?.last_name}</span>
+                    <span>🔴 {fight.fighter_a_name || 'Fighter A'}</span>
                     <Target className="h-4 w-4 text-muted-foreground" />
                   </CardTitle>
                 </CardHeader>
