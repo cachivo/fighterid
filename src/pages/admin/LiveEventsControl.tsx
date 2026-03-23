@@ -265,7 +265,7 @@ export default function LiveEventsControl() {
               Estadísticas IA en Tiempo Real
             </DialogTitle>
             <DialogDescription>
-              Pelea #{fight.fight_number} • {fight.fighterA?.first_name} {fight.fighterA?.last_name} vs {fight.fighterB?.first_name} {fight.fighterB?.last_name}
+              Pelea #{fight.fight_number} • {fight.fighter_a_name || 'TBD'} vs {fight.fighter_b_name || 'TBD'}
               {currentRound && ` • Round ${currentRound}`}
             </DialogDescription>
           </DialogHeader>
