@@ -61,11 +61,12 @@ export default function Station3RoundControl() {
     if (!fightId) return;
 
     const fetchFighters = async () => {
-      const { data: hud } = await supabase
+      const { data: hudRaw } = await supabase
         .from('fights_hud' as any)
         .select('fighter_a_name, fighter_a_nickname, fighter_b_name, fighter_b_nickname')
         .eq('fight_id', fightId)
         .single();
+      const hud = hudRaw as any;
 
       if (hud) {
         setFighters({

@@ -42,11 +42,12 @@ export default function Station1Scoring() {
     if (!fightId) return;
 
     const fetchFighter = async () => {
-      const { data: hud } = await supabase
+      const { data: hudRaw } = await supabase
         .from('fights_hud' as any)
         .select('fighter_a_name, fighter_a_nickname')
         .eq('fight_id', fightId)
         .single();
+      const hud = hudRaw as any;
 
       if (hud?.fighter_a_name) {
         const name = hud.fighter_a_nickname
