@@ -65,17 +65,42 @@ export default function FightResults() {
   };
 
   const fetchFights = async () => {
-    const { data, error } = await supabase
-      .from('fights')
-      .select(`
-        *,
-        fighterA:fighter_profiles!fighter_a_id(first_name, last_name, nickname),
-        fighterB:fighter_profiles!fighter_b_id(first_name, last_name, nickname),
-        winner:fighter_profiles!winner_id(first_name, last_name),
-        fight_results(*)
-      `)
+    // Get fights from canonical view
+    const { data: fightsData, error } = await supabase
+      .from('fights_full' as any)
+      .select('*')
       .eq('event_id', selectedEvent)
       .order('fight_number');
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudieron cargar las peleas", variant: "destructive" });
+      return;
+    }
+
+    // Also get fight_results for each fight
+    const fightIds = (fightsData || []).map((f: any) => f.id);
+    let resultsMap: Record<string, any[]> = {};
+    if (fightIds.length > 0) {
+      const { data: results } = await supabase
+        .from('fight_results')
+        .select('*')
+        .in('fight_id', fightIds);
+      
+      for (const r of (results || [])) {
+        if (!resultsMap[r.fight_id]) resultsMap[r.fight_id] = [];
+        resultsMap[r.fight_id].push(r);
+      }
+    }
+
+    // Merge results into fights and map field names for compatibility
+    const enriched = (fightsData || []).map((f: any) => ({
+      ...f,
+      fight_results: resultsMap[f.id] || [],
+      fighterA: { first_name: f.fighter_a_name?.split(' ')[0] || '', last_name: f.fighter_a_name?.split(' ').slice(1).join(' ') || '', nickname: f.fighter_a_nickname },
+      fighterB: { first_name: f.fighter_b_name?.split(' ')[0] || '', last_name: f.fighter_b_name?.split(' ').slice(1).join(' ') || '', nickname: f.fighter_b_nickname },
+    }));
+
+    setFights(enriched);
     
     if (error) {
       toast({ title: "Error", description: "No se pudieron cargar las peleas", variant: "destructive" });
