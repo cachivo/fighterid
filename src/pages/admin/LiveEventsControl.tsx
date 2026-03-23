@@ -124,9 +124,9 @@ export default function LiveEventsControl() {
 
           <CardTitle className="text-lg flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              {fight.fighterA?.first_name} {fight.fighterA?.last_name} 
+              {fight.fighter_a_name || 'TBD'} 
               <span className="mx-2 text-primary">VS</span> 
-              {fight.fighterB?.first_name} {fight.fighterB?.last_name}
+              {fight.fighter_b_name || 'TBD'}
             </span>
           </CardTitle>
           
@@ -265,7 +265,7 @@ export default function LiveEventsControl() {
               Estadísticas IA en Tiempo Real
             </DialogTitle>
             <DialogDescription>
-              Pelea #{fight.fight_number} • {fight.fighterA?.first_name} {fight.fighterA?.last_name} vs {fight.fighterB?.first_name} {fight.fighterB?.last_name}
+              Pelea #{fight.fight_number} • {fight.fighter_a_name || 'TBD'} vs {fight.fighter_b_name || 'TBD'}
               {currentRound && ` • Round ${currentRound}`}
             </DialogDescription>
           </DialogHeader>
@@ -300,7 +300,7 @@ export default function LiveEventsControl() {
               <Card variant="neon">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
-                    <span>🔴 {fight.fighterA?.first_name} {fight.fighterA?.last_name}</span>
+                    <span>🔴 {fight.fighter_a_name || 'Fighter A'}</span>
                     <Target className="h-4 w-4 text-muted-foreground" />
                   </CardTitle>
                 </CardHeader>
@@ -324,7 +324,7 @@ export default function LiveEventsControl() {
               <Card variant="neon">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between">
-                    <span>🔵 {fight.fighterB?.first_name} {fight.fighterB?.last_name}</span>
+                    <span>🔵 {fight.fighter_b_name || 'Fighter B'}</span>
                     <Target className="h-4 w-4 text-muted-foreground" />
                   </CardTitle>
                 </CardHeader>

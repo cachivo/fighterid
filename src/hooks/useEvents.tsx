@@ -281,14 +281,8 @@ export function useFights(eventId?: string) {
       console.log('useFights - Fetching fights for eventId:', eventId);
       
       let query = supabase
-        .from('fights')
-        .select(`
-          *,
-          fighter_a:fighter_profiles!fights_fighter_a_id_fkey(*),
-          fighter_b:fighter_profiles!fights_fighter_b_id_fkey(*),
-          fighter_a_external:external_fighters!fights_fighter_a_external_id_fkey(*),
-          fighter_b_external:external_fighters!fights_fighter_b_external_id_fkey(*)
-        `)
+        .from('fights_full' as any)
+        .select('*')
         .order('fight_number', { ascending: true });
 
       if (eventId) {
@@ -301,7 +295,7 @@ export function useFights(eventId?: string) {
       console.log('useFights - Query result:', { data, error, eventId });
 
       if (error) throw error;
-      setFights(data || []);
+      setFights((data as any[]) || []);
       setError(null);
     } catch (err) {
       console.error('useFights - Error:', err);
