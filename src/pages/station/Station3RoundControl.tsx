@@ -61,22 +61,20 @@ export default function Station3RoundControl() {
     if (!fightId) return;
 
     const fetchFighters = async () => {
-      const { data: fight } = await supabase
-        .from('fights')
-        .select(`
-          fighter_profiles_red:fighter_a_id (first_name, last_name, nickname),
-          fighter_profiles_blue:fighter_b_id (first_name, last_name, nickname)
-        `)
-        .eq('id', fightId)
+      const { data: hud } = await supabase
+        .from('fights_hud' as any)
+        .select('fighter_a_name, fighter_a_nickname, fighter_b_name, fighter_b_nickname')
+        .eq('fight_id', fightId)
         .single();
 
-      if (fight) {
-        const red = fight.fighter_profiles_red as any;
-        const blue = fight.fighter_profiles_blue as any;
-
+      if (hud) {
         setFighters({
-          red: red?.nickname ? `${red.first_name} "${red.nickname}" ${red.last_name}` : `${red?.first_name} ${red?.last_name}`,
-          blue: blue?.nickname ? `${blue.first_name} "${blue.nickname}" ${blue.last_name}` : `${blue?.first_name} ${blue?.last_name}`,
+          red: hud.fighter_a_nickname
+            ? `${hud.fighter_a_name?.split(' ')[0]} "${hud.fighter_a_nickname}" ${hud.fighter_a_name?.split(' ').slice(1).join(' ')}`
+            : hud.fighter_a_name || '',
+          blue: hud.fighter_b_nickname
+            ? `${hud.fighter_b_name?.split(' ')[0]} "${hud.fighter_b_nickname}" ${hud.fighter_b_name?.split(' ').slice(1).join(' ')}`
+            : hud.fighter_b_name || '',
         });
       }
     };

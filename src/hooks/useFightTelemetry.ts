@@ -36,38 +36,32 @@ export function useFightTelemetry(fightId?: string) {
 
     const init = async () => {
       try {
-        // 1. Fetch fight data (no joins)
-        const { data: fight } = await supabase
-          .from('fights')
-          .select('id, fight_number, fighter_a_id, fighter_b_id, event_id')
-          .eq('id', fightId)
+        // 1. Fetch fight data from canonical HUD view (single query, no joins)
+        const { data: hud } = await supabase
+          .from('fights_hud' as any)
+          .select('*')
+          .eq('fight_id', fightId)
           .single();
 
-        if (!fight || !isMounted) return;
-
-        // 2. Parallel: event name + fighter names
-        const [eventRes, redRes, blueRes] = await Promise.all([
-          fight.event_id
-            ? supabase.from('bdg_event').select('name').eq('id', fight.event_id).single()
-            : Promise.resolve({ data: null }),
-          fight.fighter_a_id
-            ? supabase.from('fighter_profiles').select('first_name, last_name').eq('id', fight.fighter_a_id).single()
-            : Promise.resolve({ data: null }),
-          fight.fighter_b_id
-            ? supabase.from('fighter_profiles').select('first_name, last_name').eq('id', fight.fighter_b_id).single()
-            : Promise.resolve({ data: null }),
-        ]);
-
-        if (!isMounted) return;
+        if (!hud || !isMounted) return;
 
         const meta: FightMeta = {
-          eventName: eventRes.data?.name || 'Evento',
-          fightNumber: fight.fight_number ?? null,
-          redName: redRes.data ? `${redRes.data.first_name} ${redRes.data.last_name}` : 'Peleador A',
-          blueName: blueRes.data ? `${blueRes.data.first_name} ${blueRes.data.last_name}` : 'Peleador B',
+          eventName: hud.event_name || 'Evento',
+          fightNumber: hud.fight_number ?? null,
+          redName: hud.fighter_a_name || 'Peleador A',
+          blueName: hud.fighter_b_name || 'Peleador B',
           startedAt: new Date().toISOString(),
         };
         setFightMeta(meta);
+
+        // Use hud data for session creation
+        const fight = {
+          id: hud.fight_id,
+          fight_number: hud.fight_number,
+          fighter_a_id: hud.fighter_a_id,
+          fighter_b_id: hud.fighter_b_id,
+          event_id: hud.event_id,
+        };
 
         // 3. Reuse existing active session or create new one
         let session: any = null;

@@ -21,11 +21,8 @@ export function useFighterHistory(fighterId: string | null) {
       if (!fighterId) return [];
       
       const { data, error } = await supabase
-        .from('fights')
-        .select(`
-          *,
-          event:bdg_event(name)
-        `)
+        .from('fights_full' as any)
+        .select('*')
         .or(`fighter_a_id.eq.${fighterId},fighter_b_id.eq.${fighterId}`)
         .eq('status', 'finished');
       

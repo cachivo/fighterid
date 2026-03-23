@@ -49,13 +49,8 @@ export default function DigitalScorecard() {
 
   const fetchFightDetails = async () => {
     const { data, error } = await supabase
-      .from('fights')
-      .select(`
-        *,
-        fighterA:fighter_profiles!fighter_a_id(first_name, last_name, nickname),
-        fighterB:fighter_profiles!fighter_b_id(first_name, last_name, nickname),
-        event:bdg_event(name, state)
-      `)
+      .from('fights_full' as any)
+      .select('*')
       .eq('id', fightId)
       .single();
     
@@ -64,7 +59,12 @@ export default function DigitalScorecard() {
       return;
     }
     
-    setFight(data);
+    // Map to legacy field names for compatibility
+    setFight({
+      ...data,
+      fighterA: { first_name: data.fighter_a_name?.split(' ')[0] || '', last_name: data.fighter_a_name?.split(' ').slice(1).join(' ') || '', nickname: data.fighter_a_nickname },
+      fighterB: { first_name: data.fighter_b_name?.split(' ')[0] || '', last_name: data.fighter_b_name?.split(' ').slice(1).join(' ') || '', nickname: data.fighter_b_nickname },
+    });
   };
 
   const loadSubmittedRounds = async () => {

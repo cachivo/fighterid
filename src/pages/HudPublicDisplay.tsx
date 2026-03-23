@@ -48,26 +48,27 @@ export default function HudPublicDisplay() {
     if (!fightId) return;
 
     const load = async () => {
-      const { data: fight } = await supabase
-        .from('fights')
-        .select('id, fight_number, fighter_a_id, fighter_b_id')
-        .eq('id', fightId)
+      const { data: hud } = await supabase
+        .from('fights_hud' as any)
+        .select('*')
+        .eq('fight_id', fightId)
         .single();
 
-      if (fight) {
-        const result: FightData = { id: fight.id, fight_number: fight.fight_number ?? undefined };
-
-        const [resA, resB] = await Promise.all([
-          fight.fighter_a_id
-            ? supabase.from('fighter_profiles').select('first_name, last_name, nickname').eq('id', fight.fighter_a_id).single()
-            : null,
-          fight.fighter_b_id
-            ? supabase.from('fighter_profiles').select('first_name, last_name, nickname').eq('id', fight.fighter_b_id).single()
-            : null,
-        ]);
-
-        if (resA?.data) result.red_fighter = resA.data;
-        if (resB?.data) result.blue_fighter = resB.data;
+      if (hud) {
+        const result: FightData = {
+          id: hud.fight_id,
+          fight_number: hud.fight_number ?? undefined,
+          red_fighter: hud.fighter_a_name ? {
+            first_name: hud.fighter_a_name.split(' ')[0] || '',
+            last_name: hud.fighter_a_name.split(' ').slice(1).join(' ') || '',
+            nickname: hud.fighter_a_nickname,
+          } : undefined,
+          blue_fighter: hud.fighter_b_name ? {
+            first_name: hud.fighter_b_name.split(' ')[0] || '',
+            last_name: hud.fighter_b_name.split(' ').slice(1).join(' ') || '',
+            nickname: hud.fighter_b_nickname,
+          } : undefined,
+        };
         setFightData(result);
       }
 

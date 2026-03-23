@@ -102,12 +102,6 @@ export default function FightResults() {
 
     setFights(enriched);
     
-    if (error) {
-      toast({ title: "Error", description: "No se pudieron cargar las peleas", variant: "destructive" });
-      return;
-    }
-    
-    setFights(data || []);
   };
 
   const openResultDialog = (fight: any) => {

@@ -87,6 +87,20 @@ export type Database = {
             foreignKeyName: "ai_fight_results_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: true
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_fight_results_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: true
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "ai_fight_results_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: true
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -127,6 +141,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_inference_logs_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_inference_logs_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "ai_inference_logs_fight_id_fkey"
@@ -197,6 +225,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_inference_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_inference_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "ai_inference_sessions_fight_id_fkey"
@@ -290,6 +332,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_strike_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_strike_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "ai_strike_events_fight_id_fkey"
@@ -1512,6 +1568,20 @@ export type Database = {
             foreignKeyName: "fight_control_events_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -1521,6 +1591,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fighter_affected_fkey"
+            columns: ["fighter_affected"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fight_control_events_fighter_affected_fkey"
+            columns: ["fighter_affected"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fight_control_events_fighter_affected_fkey"
@@ -1602,6 +1686,20 @@ export type Database = {
             foreignKeyName: "fight_judges_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_judges_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_judges_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -1658,6 +1756,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_officials_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_officials_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "fight_officials_fight_id_fkey"
@@ -1773,6 +1885,20 @@ export type Database = {
             foreignKeyName: "fight_requests_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -1782,6 +1908,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fight_requests_fighter_a_id_fkey"
@@ -1817,6 +1957,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fight_requests_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fight_requests_fighter_b_id_fkey"
@@ -1960,6 +2114,20 @@ export type Database = {
             foreignKeyName: "fight_results_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: true
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_results_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: true
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_results_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: true
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -1969,6 +2137,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_results_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fight_results_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fight_results_winner_id_fkey"
@@ -2046,6 +2228,20 @@ export type Database = {
             foreignKeyName: "fight_rounds_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_rounds_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_rounds_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -2107,6 +2303,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_scorecards_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_scorecards_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "fight_scorecards_fight_id_fkey"
@@ -2206,6 +2416,20 @@ export type Database = {
             foreignKeyName: "fight_statistics_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -2215,6 +2439,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fight_statistics_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fight_statistics_fighter_id_fkey"
@@ -2290,6 +2528,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_summaries_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fight_summaries_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "fight_summaries_fight_id_fkey"
@@ -2459,6 +2711,20 @@ export type Database = {
             foreignKeyName: "fighter_gym_membership_logs_fighter_id_fkey"
             columns: ["fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_membership_logs_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_membership_logs_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -2566,6 +2832,20 @@ export type Database = {
             foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
             columns: ["fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -2659,6 +2939,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_invitations_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_invitations_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fighter_invitations_fighter_profile_id_fkey"
@@ -2773,6 +3067,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_licenses_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_licenses_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fighter_licenses_fighter_id_fkey"
@@ -3126,6 +3434,20 @@ export type Database = {
             foreignKeyName: "fighter_rankings_fighter_id_fkey"
             columns: ["fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_rankings_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fighter_rankings_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -3205,6 +3527,20 @@ export type Database = {
             foreignKeyName: "fighter_status_updates_fighter_id_fkey"
             columns: ["fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fighter_status_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -3269,6 +3605,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_updates_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fighter_updates_fighter_id_fkey"
@@ -3449,6 +3799,20 @@ export type Database = {
             foreignKeyName: "fights_fighter_a_id_fkey"
             columns: ["fighter_a_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -3486,6 +3850,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fights_fighter_b_id_fkey"
@@ -3549,6 +3927,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fights_winner_id_fkey"
@@ -3641,6 +4033,20 @@ export type Database = {
             foreignKeyName: "fights_history_blue_fighter_id_fkey"
             columns: ["blue_fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_history_blue_fighter_id_fkey"
+            columns: ["blue_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_history_blue_fighter_id_fkey"
+            columns: ["blue_fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -3678,6 +4084,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_history_red_fighter_id_fkey"
+            columns: ["red_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_history_red_fighter_id_fkey"
+            columns: ["red_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fights_history_red_fighter_id_fkey"
@@ -4057,6 +4477,20 @@ export type Database = {
             foreignKeyName: "judge_station_pins_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_station_pins_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "judge_station_pins_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -4110,6 +4544,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_station_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "judge_station_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "judge_station_sessions_fight_id_fkey"
@@ -5071,6 +5519,20 @@ export type Database = {
             foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
             columns: ["fighter_profile_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "profile_change_requests_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -5229,6 +5691,20 @@ export type Database = {
             foreignKeyName: "ranking_point_adjustments_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -5238,6 +5714,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "ranking_point_adjustments_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "ranking_point_adjustments_fighter_id_fkey"
@@ -5528,6 +6018,20 @@ export type Database = {
             foreignKeyName: "sanctions_related_fight_id_fkey"
             columns: ["related_fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sanctions_related_fight_id_fkey"
+            columns: ["related_fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "sanctions_related_fight_id_fkey"
+            columns: ["related_fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -5577,6 +6081,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fights"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scoring_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scoring_events_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
           },
           {
             foreignKeyName: "scoring_events_fight_id_fkey"
@@ -5832,6 +6350,20 @@ export type Database = {
             foreignKeyName: "sparring_requests_from_fighter_id_fkey"
             columns: ["from_fighter_id"]
             isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
+            columns: ["from_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_from_fighter_id_fkey"
+            columns: ["from_fighter_id"]
+            isOneToOne: false
             referencedRelation: "incomplete_fighter_profiles"
             referencedColumns: ["fighter_id"]
           },
@@ -5862,6 +6394,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
+            columns: ["to_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "sparring_requests_to_fighter_id_fkey"
+            columns: ["to_fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "sparring_requests_to_fighter_id_fkey"
@@ -6350,6 +6896,20 @@ export type Database = {
             foreignKeyName: "vision_sync_sessions_fight_id_fkey"
             columns: ["fight_id"]
             isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vision_sync_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "vision_sync_sessions_fight_id_fkey"
+            columns: ["fight_id"]
+            isOneToOne: false
             referencedRelation: "vision_fight_context"
             referencedColumns: ["fight_id"]
           },
@@ -6471,6 +7031,301 @@ export type Database = {
       }
     }
     Views: {
+      fights_full: {
+        Row: {
+          ai_result: Json | null
+          approved_at: string | null
+          approved_by: string | null
+          card_position: string | null
+          created_at: string | null
+          discipline: string | null
+          doctor_id: string | null
+          event_date: string | null
+          event_id: string | null
+          event_name: string | null
+          event_state: string | null
+          fight_number: number | null
+          fight_type: string | null
+          fighter_a_avatar: string | null
+          fighter_a_country: string | null
+          fighter_a_draws: number | null
+          fighter_a_event_image_url: string | null
+          fighter_a_external_id: string | null
+          fighter_a_id: string | null
+          fighter_a_losses: number | null
+          fighter_a_name: string | null
+          fighter_a_nickname: string | null
+          fighter_a_weight_class: string | null
+          fighter_a_wins: number | null
+          fighter_b_avatar: string | null
+          fighter_b_country: string | null
+          fighter_b_draws: number | null
+          fighter_b_event_image_url: string | null
+          fighter_b_external_id: string | null
+          fighter_b_id: string | null
+          fighter_b_losses: number | null
+          fighter_b_name: string | null
+          fighter_b_nickname: string | null
+          fighter_b_weight_class: string | null
+          fighter_b_wins: number | null
+          finish_method: string | null
+          finish_round: number | null
+          finish_time: string | null
+          id: string | null
+          inspector_id: string | null
+          is_championship: boolean | null
+          notes: string | null
+          number_of_rounds: number | null
+          referee_id: string | null
+          rejection_reason: string | null
+          requested_by: string | null
+          round_duration_seconds: number | null
+          scheduled_time: string | null
+          status: string | null
+          timekeeper_id: string | null
+          updated_at: string | null
+          weight_class: string | null
+          winner_id: string | null
+          winner_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fights_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_external_id_fkey"
+            columns: ["fighter_a_external_id"]
+            isOneToOne: false
+            referencedRelation: "external_fighters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_a_id_fkey"
+            columns: ["fighter_a_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_external_id_fkey"
+            columns: ["fighter_b_external_id"]
+            isOneToOne: false
+            referencedRelation: "external_fighters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_fighter_b_id_fkey"
+            columns: ["fighter_b_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_inspector_id_fkey"
+            columns: ["inspector_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_referee_id_fkey"
+            columns: ["referee_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_timekeeper_id_fkey"
+            columns: ["timekeeper_id"]
+            isOneToOne: false
+            referencedRelation: "officials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fights_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+        ]
+      }
+      fights_hud: {
+        Row: {
+          event_id: string | null
+          event_name: string | null
+          fight_id: string | null
+          fight_number: number | null
+          fighter_a_id: string | null
+          fighter_a_name: string | null
+          fighter_a_nickname: string | null
+          fighter_b_id: string | null
+          fighter_b_name: string | null
+          fighter_b_nickname: string | null
+          status: string | null
+          weight_class: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fights_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "bdg_event"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incomplete_fighter_profiles: {
         Row: {
           approved_at: string | null
@@ -6512,6 +7367,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "fighter_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"
+            columns: ["fighter_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fighter_b_id"]
           },
           {
             foreignKeyName: "fighter_gym_memberships_fighter_id_fkey"

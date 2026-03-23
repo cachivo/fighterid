@@ -42,24 +42,16 @@ export default function Station2Scoring() {
     if (!fightId) return;
 
     const fetchFighter = async () => {
-      const { data: fight } = await supabase
-        .from('fights')
-        .select(`
-          fighter_b_id,
-          fighter_profiles:fighter_b_id (
-            first_name,
-            last_name,
-            nickname
-          )
-        `)
-        .eq('id', fightId)
+      const { data: hud } = await supabase
+        .from('fights_hud' as any)
+        .select('fighter_b_name, fighter_b_nickname')
+        .eq('fight_id', fightId)
         .single();
 
-      if (fight?.fighter_profiles) {
-        const fighter = fight.fighter_profiles as any;
-        const name = fighter.nickname 
-          ? `${fighter.first_name} "${fighter.nickname}" ${fighter.last_name}`
-          : `${fighter.first_name} ${fighter.last_name}`;
+      if (hud?.fighter_b_name) {
+        const name = hud.fighter_b_nickname
+          ? `${hud.fighter_b_name.split(' ')[0]} "${hud.fighter_b_nickname}" ${hud.fighter_b_name.split(' ').slice(1).join(' ')}`
+          : hud.fighter_b_name;
         setFighterName(name);
       }
     };
