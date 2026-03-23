@@ -124,9 +124,9 @@ export default function LiveEventsControl() {
 
           <CardTitle className="text-lg flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">
-              {fight.fighterA?.first_name} {fight.fighterA?.last_name} 
+              {fight.fighter_a_name || 'TBD'} 
               <span className="mx-2 text-primary">VS</span> 
-              {fight.fighterB?.first_name} {fight.fighterB?.last_name}
+              {fight.fighter_b_name || 'TBD'}
             </span>
           </CardTitle>
           
