@@ -295,7 +295,7 @@ export function useFights(eventId?: string) {
       console.log('useFights - Query result:', { data, error, eventId });
 
       if (error) throw error;
-      setFights(data || []);
+      setFights((data as any[]) || []);
       setError(null);
     } catch (err) {
       console.error('useFights - Error:', err);

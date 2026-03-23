@@ -48,7 +48,7 @@ export default function DigitalScorecard() {
   }, [getCurrentRound()]);
 
   const fetchFightDetails = async () => {
-    const { data, error } = await supabase
+    const { data: rawData, error } = await supabase
       .from('fights_full' as any)
       .select('*')
       .eq('id', fightId)
@@ -59,11 +59,12 @@ export default function DigitalScorecard() {
       return;
     }
     
+    const d = rawData as any;
     // Map to legacy field names for compatibility
     setFight({
-      ...data,
-      fighterA: { first_name: data.fighter_a_name?.split(' ')[0] || '', last_name: data.fighter_a_name?.split(' ').slice(1).join(' ') || '', nickname: data.fighter_a_nickname },
-      fighterB: { first_name: data.fighter_b_name?.split(' ')[0] || '', last_name: data.fighter_b_name?.split(' ').slice(1).join(' ') || '', nickname: data.fighter_b_nickname },
+      ...d,
+      fighterA: { first_name: d.fighter_a_name?.split(' ')[0] || '', last_name: d.fighter_a_name?.split(' ').slice(1).join(' ') || '', nickname: d.fighter_a_nickname },
+      fighterB: { first_name: d.fighter_b_name?.split(' ')[0] || '', last_name: d.fighter_b_name?.split(' ').slice(1).join(' ') || '', nickname: d.fighter_b_nickname },
     });
   };
 

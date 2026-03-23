@@ -20,14 +20,14 @@ export function useFighterHistory(fighterId: string | null) {
     queryFn: async () => {
       if (!fighterId) return [];
       
-      const { data, error } = await supabase
-        .from('fights_full' as any)
+      const { data, error } = await (supabase as any)
+        .from('fights_full')
         .select('*')
         .or(`fighter_a_id.eq.${fighterId},fighter_b_id.eq.${fighterId}`)
         .eq('status', 'finished');
       
       if (error) throw error;
-      return data || [];
+      return (data as any[]) || [];
     },
   });
 

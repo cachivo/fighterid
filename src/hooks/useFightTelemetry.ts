@@ -37,11 +37,12 @@ export function useFightTelemetry(fightId?: string) {
     const init = async () => {
       try {
         // 1. Fetch fight data from canonical HUD view (single query, no joins)
-        const { data: hud } = await supabase
+        const { data: hudRaw } = await supabase
           .from('fights_hud' as any)
           .select('*')
           .eq('fight_id', fightId)
           .single();
+        const hud = hudRaw as any;
 
         if (!hud || !isMounted) return;
 

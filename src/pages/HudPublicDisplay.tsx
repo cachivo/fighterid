@@ -48,11 +48,12 @@ export default function HudPublicDisplay() {
     if (!fightId) return;
 
     const load = async () => {
-      const { data: hud } = await supabase
+      const { data: hudRaw } = await supabase
         .from('fights_hud' as any)
         .select('*')
         .eq('fight_id', fightId)
         .single();
+      const hud = hudRaw as any;
 
       if (hud) {
         const result: FightData = {
