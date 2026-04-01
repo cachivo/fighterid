@@ -43,6 +43,7 @@ export const FIGHTER_LEVELS = [
   { value: 'Amateur', label: 'Amateur' },
   { value: 'Semi-profesional', label: 'Semi-profesional' },
   { value: 'Profesional', label: 'Profesional' },
+  { value: 'Olímpico', label: 'Olímpico' },
 ] as const;
 
 // Types
