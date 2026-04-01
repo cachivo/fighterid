@@ -71,7 +71,15 @@ import { EventBrandingModal } from '@/components/admin/EventBrandingModal';
 export default function EventosPelea() {
     const { toast } = useToast();
     const { user } = useAuth();
-    const { events, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+    const disciplineCtx = useDisciplineContext();
+    const { events: allEvents, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+    
+    // Filter events by discipline context
+    const events = useMemo(() => {
+      if (!disciplineCtx) return allEvents;
+      return allEvents.filter(e => e.discipline === disciplineCtx.discipline);
+    }, [allEvents, disciplineCtx]);
+    
     console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
     
     // Branding modal state
