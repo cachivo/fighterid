@@ -225,7 +225,7 @@ export default function EventosPelea() {
     const [formData, setFormData] = useState({
      name: '',
      description: '',
-     discipline: disciplineCtx?.discipline || 'MMA',
+     discipline: (disciplineCtx?.discipline || 'MMA') as string,
      venue: '',
      start_time: '',
      end_time: '',
