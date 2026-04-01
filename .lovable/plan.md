@@ -1,82 +1,89 @@
 
 
-# Tests Unitarios con Vitest — Hooks Críticos
+# Separación de Administración por Disciplina + FEDEHBOX
 
-## Setup necesario
+## Resumen
 
-No existe configuración de testing. Se requiere setup completo.
+Crear paneles administrativos separados para MMA (`/admin/mma/*`) y Boxeo (`/admin/boxeo/*`) con sidebars independientes, y reemplazar BDG_PRO por FEDEHBOX-Olímpico en la base de datos.
 
-### 1. Instalar dependencias dev
+## Cambios
 
-`@testing-library/jest-dom`, `@testing-library/react`, `jsdom`, `vitest` en devDependencies.
+### 1. Migration SQL — Reemplazar BDG_PRO por FEDEHBOX
 
-### 2. Crear `vitest.config.ts`
+- `UPDATE ranking_organizations SET code = 'FEDEHBOX', name = 'Federación de Boxeo de Honduras', short_name = 'FEDEHBOX', allowed_levels = ARRAY['Olímpico', 'Profesional', 'Semi-profesional'], description = '...' WHERE code = 'BDG_PRO'`
+- Actualizar `HHF_AMATEUR` description si es necesario
+- Actualizar triggers que referencian `BDG_PRO` → `FEDEHBOX` (trigger `auto_enroll_fighter_ranking`, función `handle_boxing_level_migration`)
+- Agregar `'Olímpico'` como nivel válido donde corresponda
 
-Configuración estándar con `jsdom`, globals, alias `@/`, y setup file.
+### 2. Routing — Paneles separados
 
-### 3. Crear `src/test/setup.ts`
+Estructura nueva:
+```text
+/admin           → Dashboard general (selector de disciplina)
+/admin/mma/*     → Panel MMA (sidebar MMA)
+/admin/boxeo/*   → Panel Boxeo (sidebar Boxeo)
+/admin/system/*  → SuperAdmin (roles, config, assets) — compartido
+```
 
-Import de `@testing-library/jest-dom` y mock de `matchMedia`.
+Cambios en `App.tsx`:
+- Mantener `/admin` como landing con cards de selección MMA / Boxeo
+- Agregar rutas `/admin/mma/*` y `/admin/boxeo/*` que usan layouts con sidebars específicos
+- Las rutas compartidas (email, comunidad, sistema) quedan en ambos o en `/admin/system/*`
 
-### 4. Actualizar `tsconfig.app.json`
+### 3. Sidebar por Disciplina
 
-Agregar `"vitest/globals"` a `compilerOptions.types`.
+Crear `AdminSidebarMMA.tsx` y `AdminSidebarBoxeo.tsx` (o parametrizar el actual):
 
-### 5. Agregar script `"test"` en `package.json`
+**MMA** — items relevantes:
+- Dashboard MMA, Eventos, Peleadores MMA, Rankings MMA, Gimnasios MMA, Control de Peleas, Vision/IA
 
-`"test": "vitest run"`
+**Boxeo** — items relevantes:
+- Dashboard Boxeo, Eventos, Peleadores Boxeo, Rankings Boxeo (HHF/FEDEHBOX), Gimnasios Boxeo
 
----
+**Compartidos** (en ambos sidebars o sección "Sistema"):
+- Licencias, Email, Comunidad, Aliados, Roles, Config
 
-## Tests a crear
+### 4. Layout por Disciplina
 
-### A. `src/hooks/__tests__/useFighterHistory.test.ts`
+Crear `AdminDisciplineLayout.tsx` que recibe `discipline` como prop y renderiza el sidebar correspondiente. Usar `useUserDisciplineAccess` para validar acceso.
 
-Testea la lógica pura de `calculateRecord` sin necesidad de renderizar el hook completo. Se extrae la lógica de cálculo y se testea directamente:
+### 5. Dashboard Admin General
 
-- Record vacío cuando no hay peleas
-- Cuenta wins correctamente (fighter es `winner_id`)
-- Cuenta losses (hay `winner_id` pero no es el fighter)
-- Cuenta draws (no hay `winner_id`)
-- Filtra por `AMATEUR` vs `PROFESSIONAL`
-- Calcula `winPercentage` correctamente (Math.round)
-- Record mixto: 3W-1L-1D = 60% win rate
+Modificar `/admin` (Dashboard) para mostrar dos cards grandes: "MMA" y "Boxeo", que navegan a `/admin/mma` y `/admin/boxeo`. Solo mostrar las disciplinas a las que el usuario tiene acceso.
 
-Este hook tiene la lógica más testeable porque `calculateRecord` es pura.
+### 6. Filtrado automático en páginas
 
-### B. `src/hooks/__tests__/useFights.test.ts`
+Las páginas dentro de `/admin/mma/*` y `/admin/boxeo/*` recibirán la disciplina del contexto (via URL param o context) y filtrarán automáticamente los datos. Ejemplo: Peleadores en `/admin/mma/fighters` solo muestra `discipline = 'MMA'`.
 
-Testea `useFights` con mock de Supabase:
+### 7. Actualización de triggers
 
-- Estado inicial: `loading: true`, `fights: []`
-- Carga peleas correctamente después de fetch
-- Filtra por `eventId` cuando se proporciona
-- Maneja errores de Supabase
-
-### C. `src/hooks/__tests__/useFightTelemetry.test.ts`
-
-Testea la lógica de agregación `strikesByCorner` (extraída como utilidad pura):
-
-- Acumula strikes por corner (red/blue) y tipo
-- Maneja eventos sin `fighter_corner` como "blue" (fallback)
-- Eventos sin `strike_type` se agrupan como "other"
-- Lista vacía retorna `{ red: {}, blue: {} }`
-
----
-
-## Estrategia de mocking
-
-Se creará un mock compartido para Supabase en `src/test/mocks/supabase.ts` que intercepta `.from().select().eq()` etc. con respuestas controladas. Para los tests de lógica pura (calculateRecord, strikesByCorner), no se necesita mock — se testea la función directamente.
+Funciones SQL que referencian `BDG_PRO`:
+- `auto_enroll_fighter_ranking` → cambiar a `FEDEHBOX`
+- `handle_boxing_level_migration` → cambiar a `FEDEHBOX`
+- Cualquier referencia hardcoded a `BDG_PRO`
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `package.json` | Agregar devDependencies de testing + script |
-| `vitest.config.ts` | Nuevo — configuración Vitest |
-| `src/test/setup.ts` | Nuevo — setup de testing |
-| `tsconfig.app.json` | Agregar `vitest/globals` a types |
-| `src/hooks/__tests__/useFighterHistory.test.ts` | Nuevo — tests de calculateRecord |
-| `src/hooks/__tests__/useFights.test.ts` | Nuevo — tests de useFights |
-| `src/hooks/__tests__/useFightTelemetry.test.ts` | Nuevo — tests de strikesByCorner |
+| Nueva migration SQL | Renombrar BDG_PRO→FEDEHBOX, actualizar triggers |
+| `src/App.tsx` | Nuevas rutas `/admin/mma/*`, `/admin/boxeo/*` |
+| `src/components/AdminSidebar.tsx` | Parametrizar por disciplina |
+| `src/components/AdminLayout.tsx` | Crear variante con disciplina |
+| `src/pages/admin/Dashboard.tsx` | Selector de disciplina con cards |
+| Nuevo: `src/components/AdminDisciplineLayout.tsx` | Layout wrapper con contexto de disciplina |
+| Nuevo: `src/contexts/DisciplineContext.tsx` | React context para propagar disciplina activa |
+| `src/pages/admin/FightersProfiles.tsx` | Filtrar por disciplina del contexto |
+| `src/pages/admin/RankingsManagement.tsx` | Pre-seleccionar disciplina del contexto |
+| `src/pages/admin/GimnasiosAdmin.tsx` | Filtrar por disciplina |
+| `src/pages/admin/EventosPelea.tsx` | Filtrar por disciplina |
+
+## Orden de implementación
+
+1. Migration SQL (FEDEHBOX + triggers)
+2. DisciplineContext + AdminDisciplineLayout
+3. Routing en App.tsx
+4. Sidebar parametrizado
+5. Dashboard con selector
+6. Filtrado en páginas admin
 
