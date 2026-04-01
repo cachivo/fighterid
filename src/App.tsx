@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminProtectedRoute from '@/components/AdminProtectedRoute';
 import LicenseProtectedRoute from '@/components/LicenseProtectedRoute';
 import AdminLayout from '@/components/AdminLayout';
+import AdminDisciplineLayout from '@/components/AdminDisciplineLayout';
 import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
 import SuperAdminRoute from './components/SuperAdminRoute';
