@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDisciplineContext } from '@/contexts/DisciplineContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,9 +18,9 @@ import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/us
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
-  // queryClient removed — no longer needed for manual invalidation
-  const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
-  const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
+  const disciplineCtx = useDisciplineContext();
+  const selectedDiscipline = disciplineCtx?.discipline ?? 'MMA';
+  const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +65,13 @@ export default function RankingsManagement() {
 
   const currentOrgs = organizations?.filter(org => org.discipline === selectedDiscipline) || [];
 
+  // Auto-select first org when discipline changes or on mount
+  useEffect(() => {
+    if (currentOrgs.length > 0 && !currentOrgs.find(o => o.code === selectedOrg)) {
+      setSelectedOrg(currentOrgs[0].code);
+    }
+  }, [currentOrgs, selectedOrg]);
+
   const currentOrg = currentOrgs.find(o => o.code === selectedOrg);
 
   const filteredRankings = useMemo(() => {
@@ -76,13 +83,7 @@ export default function RankingsManagement() {
     );
   }, [rankingData?.rankings, searchTerm]);
 
-  const handleDisciplineChange = (discipline: string) => {
-    setSelectedDiscipline(discipline as 'MMA' | 'Boxeo');
-    const orgs = organizations?.filter(org => org.discipline === discipline);
-    if (orgs && orgs.length > 0) {
-      setSelectedOrg(orgs[0].code);
-    }
-  };
+  // handleDisciplineChange removed — discipline comes from context
 
   const openAdjustmentModal = (rankingId: string, fighterName: string, currentPoints: number) => {
     setAdjustmentModal({ open: true, rankingId, fighterName, currentPoints });
@@ -121,19 +122,7 @@ export default function RankingsManagement() {
         </div>
       </div>
 
-      <Tabs value={selectedDiscipline} onValueChange={handleDisciplineChange}>
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="MMA" className="flex items-center gap-2">
-            <Medal className="h-4 w-4" />
-            MMA
-          </TabsTrigger>
-          <TabsTrigger value="Boxeo" className="flex items-center gap-2">
-            <Medal className="h-4 w-4" />
-            Boxeo
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={selectedDiscipline} className="mt-6 space-y-4">
+      <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Organización</CardTitle>
@@ -318,8 +307,7 @@ export default function RankingsManagement() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
 
       {adjustmentModal && (
         <PointAdjustmentModal

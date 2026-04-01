@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDisciplineContext } from '@/contexts/DisciplineContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,7 +71,15 @@ import { EventBrandingModal } from '@/components/admin/EventBrandingModal';
 export default function EventosPelea() {
     const { toast } = useToast();
     const { user } = useAuth();
-    const { events, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+    const disciplineCtx = useDisciplineContext();
+    const { events: allEvents, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
+    
+    // Filter events by discipline context
+    const events = useMemo(() => {
+      if (!disciplineCtx) return allEvents;
+      return allEvents.filter(e => e.discipline === disciplineCtx.discipline);
+    }, [allEvents, disciplineCtx]);
+    
     console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
     
     // Branding modal state
@@ -213,10 +222,10 @@ export default function EventosPelea() {
     };
    
    // Form states
-   const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState({
      name: '',
      description: '',
-     discipline: 'MMA',
+     discipline: (disciplineCtx?.discipline || 'MMA') as string,
      venue: '',
      start_time: '',
      end_time: '',

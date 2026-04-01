@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useDisciplineContext } from '@/contexts/DisciplineContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, Edit, User, Trash2, Eye, Plus, AlertCircle, ChevronLeft, ChevronRight, Building } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -38,11 +39,12 @@ const getRecordDisplay = (fighter: AdminFighterProfile) => {
 export default function FightersProfiles() {
   const navigate = useNavigate();
   const { fighters, loading, error, fetchFighters } = useAdminFighters();
+  const disciplineCtx = useDisciplineContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('name');
   const [showIncomplete, setShowIncomplete] = useState(false);
-   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('all');
+   const selectedDiscipline = disciplineCtx?.discipline ?? 'all';
    const [selectedGymFilter, setSelectedGymFilter] = useState<string>('all');
    const [page, setPage] = useState(1);
   const [editingFighter, setEditingFighter] = useState<AdminFighterProfile | null>(null);
@@ -196,19 +198,21 @@ export default function FightersProfiles() {
                 />
               </div>
             </div>
-             <Select value={selectedDiscipline} onValueChange={handleFilterChange(setSelectedDiscipline)}>
-               <SelectTrigger className="w-full md:w-40">
-                 <SelectValue placeholder="Disciplina" />
-               </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="all">Todas</SelectItem>
-                 {ENABLED_DISCIPLINES.map(d => (
-                   <SelectItem key={d.value} value={d.value}>
-                     {d.label}
-                   </SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
+             {!disciplineCtx && (
+               <Select value={selectedDiscipline} onValueChange={() => {}}>
+                 <SelectTrigger className="w-full md:w-40">
+                   <SelectValue placeholder="Disciplina" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">Todas</SelectItem>
+                   {ENABLED_DISCIPLINES.map(d => (
+                     <SelectItem key={d.value} value={d.value}>
+                       {d.label}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             )}
              <Select value={selectedWeightClass} onValueChange={handleFilterChange(setSelectedWeightClass)}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Categoría" />
