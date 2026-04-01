@@ -122,19 +122,7 @@ export default function RankingsManagement() {
         </div>
       </div>
 
-      <Tabs value={selectedDiscipline} onValueChange={handleDisciplineChange}>
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
-          <TabsTrigger value="MMA" className="flex items-center gap-2">
-            <Medal className="h-4 w-4" />
-            MMA
-          </TabsTrigger>
-          <TabsTrigger value="Boxeo" className="flex items-center gap-2">
-            <Medal className="h-4 w-4" />
-            Boxeo
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value={selectedDiscipline} className="mt-6 space-y-4">
+      <div className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">Organización</CardTitle>
