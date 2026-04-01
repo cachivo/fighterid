@@ -83,13 +83,7 @@ export default function RankingsManagement() {
     );
   }, [rankingData?.rankings, searchTerm]);
 
-  const handleDisciplineChange = (discipline: string) => {
-    setSelectedDiscipline(discipline as 'MMA' | 'Boxeo');
-    const orgs = organizations?.filter(org => org.discipline === discipline);
-    if (orgs && orgs.length > 0) {
-      setSelectedOrg(orgs[0].code);
-    }
-  };
+  // handleDisciplineChange removed — discipline comes from context
 
   const openAdjustmentModal = (rankingId: string, fighterName: string, currentPoints: number) => {
     setAdjustmentModal({ open: true, rankingId, fighterName, currentPoints });
