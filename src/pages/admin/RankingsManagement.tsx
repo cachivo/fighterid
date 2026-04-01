@@ -18,9 +18,9 @@ import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/us
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
-  // queryClient removed — no longer needed for manual invalidation
-  const [selectedDiscipline, setSelectedDiscipline] = useState<'MMA' | 'Boxeo'>('MMA');
-  const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
+  const disciplineCtx = useDisciplineContext();
+  const selectedDiscipline = disciplineCtx?.discipline ?? 'MMA';
+  const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
