@@ -1,276 +1,138 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Download, CheckCircle, Clock, Bot, Shield, Trophy, Eye, Zap } from 'lucide-react';
+import { Swords, Target, Shield, Settings, Users, ImageIcon } from 'lucide-react';
+import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
+import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
-import { useSystemStatus } from '@/hooks/useSystemStatus';
-import AdminLayoutWithAI from '@/components/admin/AIAssistant/AdminLayoutWithAI';
-import AdminAnalytics from '@/components/AdminAnalytics';
 
 export default function Dashboard() {
+  const { hasMMA, hasBoxeo, isLoading: accessLoading } = useUserDisciplineAccess();
+  const { isSuperAdmin } = useSuperAdmin();
   const { stats, isLoading } = useRealTimeStats();
-  const { dbConnected, authActive, lastUpdate } = useSystemStatus();
 
-  const statsConfig = [
-    {
-      title: 'Peleadores Activos',
-      value: stats?.totalFighters?.toString() || '0',
-      description: 'Fighter IDs registrados',
-      icon: Users,
-    },
-    {
-      title: 'Eventos Totales',
-      value: stats?.totalEvents?.toString() || '0',
-      description: 'Eventos de pelea creados',
-      icon: Calendar,
-    },
-    {
-      title: 'Eventos en Vivo',
-      value: stats?.liveEvents?.length?.toString() || '0',
-      description: 'Peleas transmitiendo ahora',
-      icon: Trophy,
-    },
-    {
-      title: 'Licencias Activas',
-      value: stats?.activeLicenses?.toString() || '0',
-      description: 'Fighter IDs vigentes',
-      icon: Shield,
-    },
-  ];
   return (
-    <AdminLayoutWithAI>
-      <div className="space-y-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard Administrativo</h2>
-        </div>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight">Panel de Administración</h2>
+        <p className="text-muted-foreground">Selecciona una disciplina para administrar</p>
+      </div>
 
-        {/* AI Assistant Intro Card - Compact */}
-        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 py-3 px-4">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center shrink-0">
-              <Bot className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <div>
-              <p className="font-medium text-sm">Asistente AI disponible</p>
-              <p className="text-xs text-muted-foreground">
-                Ayuda con torneos, Fighter IDs y más. Esquina inferior derecha.
-              </p>
-            </div>
-          </div>
+      {/* Quick stats */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Peleadores</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : stats?.totalFighters || 0}</div>
+          </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Eventos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : stats?.totalEvents || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">En Vivo</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : stats?.liveEvents?.length || 0}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Licencias</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{isLoading ? '...' : stats?.activeLicenses || 0}</div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {statsConfig.map((stat) => (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className="h-4 w-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {isLoading ? '...' : stat.value}
+      {/* Discipline selector cards */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {hasMMA && (
+          <Link to="/admin/mma" className="group">
+            <Card className="h-full border-2 border-primary/20 hover:border-primary/60 transition-all hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                  <Swords className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
+                <CardTitle className="text-xl">MMA</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-3">
+                <p className="text-muted-foreground text-sm">Artes Marciales Mixtas</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Badge variant="secondary">UCC MMA</Badge>
+                  <Badge variant="outline">Eventos</Badge>
+                  <Badge variant="outline">Rankings</Badge>
+                  <Badge variant="outline">Vision AI</Badge>
+                </div>
               </CardContent>
             </Card>
-          ))}
-        </div>
+          </Link>
+        )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* AI Quick Actions */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Comandos AI Sugeridos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
-                <Users className="h-5 w-5 text-fighter-info" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">"Buscar peleadores activos"</p>
-                  <p className="text-xs text-muted-foreground">Encontrar peleadores por criterios</p>
+        {hasBoxeo && (
+          <Link to="/admin/boxeo" className="group">
+            <Card className="h-full border-2 border-primary/20 hover:border-primary/60 transition-all hover:shadow-lg hover:shadow-primary/10 cursor-pointer">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-2 group-hover:bg-primary/20 transition-colors">
+                  <Target className="h-8 w-8 text-primary" />
                 </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
-                <Trophy className="h-5 w-5 text-fighter-success" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">"Estadísticas del sistema"</p>
-                  <p className="text-xs text-muted-foreground">Ver métricas actuales</p>
+                <CardTitle className="text-xl">Boxeo</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-3">
+                <p className="text-muted-foreground text-sm">Boxeo Profesional y Olímpico</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Badge variant="secondary">HHF Amateur</Badge>
+                  <Badge variant="secondary">FEDEHBOX</Badge>
+                  <Badge variant="outline">Eventos</Badge>
+                  <Badge variant="outline">Rankings</Badge>
                 </div>
-              </div>
-              <div className="flex items-center space-x-3 p-3 rounded-md bg-muted/50 border border-primary/20 border-dashed">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">"Crear torneo de MMA"</p>
-                  <p className="text-xs text-muted-foreground">Asistencia para nuevos eventos</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Acciones Rápidas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
-                <Download className="h-5 w-5" />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Importar Batalla de Gimnasios #1
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Cargar evento completo con 36 peleadores
-                  </p>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/import-event">Importar</Link>
-                </Button>
-              </div>
-              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
-                <Calendar className="h-5 w-5" />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Gestionar Eventos de Pelea
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Crear y administrar eventos MMA
-                  </p>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/admin/eventos-pelea">Gestionar</Link>
-                </Button>
-              </div>
-              <div className="flex items-center space-x-4 rounded-md border border-primary/20 p-4">
-                <Users className="h-5 w-5" />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Gestionar Peleadores
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Fighter IDs y perfiles con AI
-                  </p>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/admin/fighters-profiles">Gestionar</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-              </div>
-              <div className="flex items-center space-x-4 rounded-md border border-primary/30 bg-primary/5 p-4">
-                <Eye className="h-5 w-5 text-primary" />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Motor de Visión AI (Demo)
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Ver estadísticas de golpes en tiempo real (simulación)
-                  </p>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/hud/demo">Ver Demo</Link>
-                </Button>
-              </div>
-              <div className="flex items-center space-x-4 rounded-md border border-primary/30 bg-primary/5 p-4">
-                <Zap className="h-5 w-5 text-primary" />
-                <div className="flex-1 space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    Monitor de Golpes AI
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Panel de control del motor de visión
-                  </p>
-                </div>
-                <Button asChild size="sm">
-                  <Link to="/admin/ai-strike-monitor">Monitor</Link>
-                </Button>
-              </div>
-
-        {/* Advanced Analytics Section */}
-        <AdminAnalytics />
-
-        {/* System Status and Recent Activity */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Estado del Sistema</CardTitle>
-              <CardDescription>
-                Información general del sistema
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-sm">Base de Datos</span>
-                <span className={`text-sm ${
-                  dbConnected === null 
-                    ? 'text-fighter-warning' 
-                    : dbConnected 
-                      ? 'text-fighter-success' 
-                      : 'text-fighter-danger'
-                }`}>
-                  {dbConnected === null ? 'Verificando...' : dbConnected ? 'Conectada' : 'Desconectada'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Autenticación</span>
-                <span className={`text-sm ${authActive ? 'text-fighter-success' : 'text-fighter-danger'}`}>
-                  {authActive ? 'Activa' : 'Inactiva'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Asistente AI</span>
-                <span className="text-sm text-fighter-success">Activo</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm">Última actualización</span>
-                <span className="text-sm text-muted-foreground">{lastUpdate}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Actividad Reciente</CardTitle>
-              <CardDescription>Últimas acciones del sistema</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="h-5 w-5 text-fighter-success" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Asistente AI activado</p>
-                    <p className="text-xs text-muted-foreground">Sistema bilingüe disponible</p>
-                  </div>
-                  <Badge variant="secondary">Nuevo</Badge>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-5 w-5 text-fighter-warning" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Dashboard actualizado</p>
-                    <p className="text-xs text-muted-foreground">Integración AI completada</p>
-                  </div>
-                  <Badge>Hoy</Badge>
-                </div>
-                
-                <div className="flex items-center space-x-3">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Funciones AI disponibles</p>
-                    <p className="text-xs text-muted-foreground">Gestión de torneos y Fighter IDs</p>
-                  </div>
-                  <Badge variant="outline">Listo</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
       </div>
-    </AdminLayoutWithAI>
+
+      {/* Super admin quick links */}
+      {isSuperAdmin && (
+        <div>
+          <h3 className="text-lg font-semibold mb-3">Administración del Sistema</h3>
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+            <Link to="/admin/user-roles">
+              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Gestión de Roles</span>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/admin/system-assets">
+              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <ImageIcon className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Assets del Sistema</span>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link to="/admin/configuracion">
+              <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <Settings className="h-5 w-5 text-primary" />
+                  <span className="text-sm font-medium">Configuración</span>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
