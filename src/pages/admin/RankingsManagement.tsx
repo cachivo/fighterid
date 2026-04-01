@@ -65,6 +65,13 @@ export default function RankingsManagement() {
 
   const currentOrgs = organizations?.filter(org => org.discipline === selectedDiscipline) || [];
 
+  // Auto-select first org when discipline changes or on mount
+  useEffect(() => {
+    if (currentOrgs.length > 0 && !currentOrgs.find(o => o.code === selectedOrg)) {
+      setSelectedOrg(currentOrgs[0].code);
+    }
+  }, [currentOrgs, selectedOrg]);
+
   const currentOrg = currentOrgs.find(o => o.code === selectedOrg);
 
   const filteredRankings = useMemo(() => {
