@@ -7827,6 +7827,10 @@ export type Database = {
           station_number: number
         }[]
       }
+      handle_boxing_level_migration: {
+        Args: { p_fighter_id: string; p_level: string; p_weight_class?: string }
+        Returns: undefined
+      }
       has_any_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
