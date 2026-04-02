@@ -5935,6 +5935,7 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           description: string | null
+          discipline: string | null
           end_date: string | null
           evidence_urls: string[] | null
           fine_amount: number | null
@@ -5958,6 +5959,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           description?: string | null
+          discipline?: string | null
           end_date?: string | null
           evidence_urls?: string[] | null
           fine_amount?: number | null
@@ -5981,6 +5983,7 @@ export type Database = {
           decided_at?: string | null
           decided_by?: string | null
           description?: string | null
+          discipline?: string | null
           end_date?: string | null
           evidence_urls?: string[] | null
           fine_amount?: number | null

@@ -63,12 +63,14 @@ const sanctionIcon = (type: string) => {
 function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
   const { createSanction } = useSanctions();
   const [open, setOpen] = useState(false);
+  const discipline = useDiscipline();
   const [form, setForm] = useState<CreateSanctionInput>({
     target_type: 'fighter',
     target_id: '',
     sanction_type: 'warning',
     severity: 1,
     reason: '',
+    discipline,
   });
   const [submitting, setSubmitting] = useState(false);
 

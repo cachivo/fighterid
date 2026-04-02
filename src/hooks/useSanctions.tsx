@@ -55,6 +55,7 @@ export interface CreateSanctionInput {
   related_fight_id?: string;
   related_event_id?: string;
   notes?: string;
+  discipline?: string;
 }
 
 export function useSanctions() {
