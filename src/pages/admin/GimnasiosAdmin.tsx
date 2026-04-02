@@ -23,8 +23,7 @@ export default function GimnasiosAdmin() {
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
-  const { disciplines: allowedDisciplines, hasFullAccess } = useUserDisciplineAccess();
-  const disciplineCtx = useDisciplineContext();
+  const discipline = useDiscipline();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [sendingInvitation, setSendingInvitation] = useState(false);
