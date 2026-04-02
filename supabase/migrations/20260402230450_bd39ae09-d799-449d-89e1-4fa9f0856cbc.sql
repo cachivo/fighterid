@@ -1,0 +1,1 @@
+ALTER TABLE public.sanctions ADD COLUMN IF NOT EXISTS discipline text DEFAULT 'MMA';

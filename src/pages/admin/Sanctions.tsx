@@ -63,12 +63,14 @@ const sanctionIcon = (type: string) => {
 function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
   const { createSanction } = useSanctions();
   const [open, setOpen] = useState(false);
+  const discipline = useDiscipline();
   const [form, setForm] = useState<CreateSanctionInput>({
     target_type: 'fighter',
     target_id: '',
     sanction_type: 'warning',
     severity: 1,
     reason: '',
+    discipline,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -82,7 +84,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
       await createSanction(form);
       toast.success('Sanción creada exitosamente');
       setOpen(false);
-      setForm({ target_type: 'fighter', target_id: '', sanction_type: 'warning', severity: 1, reason: '' });
+      setForm({ target_type: 'fighter', target_id: '', sanction_type: 'warning', severity: 1, reason: '', discipline });
       onCreated();
     } catch (e: any) {
       toast.error(e.message);
@@ -176,6 +178,7 @@ export default function Sanctions() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
   const filtered = sanctions.filter(s => {
+    if (s.discipline && s.discipline !== discipline) return false;
     if (filterType !== 'all' && s.sanction_type !== filterType) return false;
     if (filterStatus !== 'all' && s.status !== filterStatus) return false;
     if (search && !s.reason.toLowerCase().includes(search.toLowerCase()) && !s.target_id.includes(search)) return false;
