@@ -156,9 +156,15 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
       
       <div className="container mx-auto px-2 xs:px-3 sm:px-4 relative z-10">
         <div className="text-center mb-4 xs:mb-6 sm:mb-8 md:mb-10 animate-slide-up">
-          <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 xs:mb-3 sm:mb-4">
-            Ranking <span className="text-purple-neon-primary">{currentOrg?.short_name || 'OFICIAL'}</span>
-          </h2>
+          <div className="relative inline-block mb-2 xs:mb-3 sm:mb-4">
+            <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <h2 className="relative ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display text-white">
+              RANKING <span className="text-purple-neon-primary">{currentOrg?.short_name || 'OFICIAL'}</span>
+            </h2>
+          </div>
           <p className="text-xs xs:text-sm sm:text-base text-gray-300 max-w-3xl mx-auto leading-relaxed px-2">
             {currentOrg?.description || 'Clasificación oficial de peleadores'}
           </p>

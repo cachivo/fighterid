@@ -48,9 +48,15 @@ const GymShowcase = () => {
   return (
     <section className="py-6 sm:py-8">
       <div className="container mx-auto px-3">
-        <h2 className="text-lg xs:text-xl sm:text-2xl font-bold text-foreground mb-1 text-center">
-          Escuelas de <span className="text-primary">Combate</span>
-        </h2>
+        <div className="relative inline-block mx-auto w-full text-center">
+          <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
+          <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
+          <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
+          <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
+          <h2 className="relative ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display text-foreground mb-1">
+            ESCUELAS DE <span className="text-primary">COMBATE</span>
+          </h2>
+        </div>
         <p className="text-xs text-muted-foreground text-center mb-4">
           Gimnasios y sus peleadores registrados
         </p>
