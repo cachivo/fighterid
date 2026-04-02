@@ -84,7 +84,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
       await createSanction(form);
       toast.success('Sanción creada exitosamente');
       setOpen(false);
-      setForm({ target_type: 'fighter', target_id: '', sanction_type: 'warning', severity: 1, reason: '' });
+      setForm({ target_type: 'fighter', target_id: '', sanction_type: 'warning', severity: 1, reason: '', discipline });
       onCreated();
     } catch (e: any) {
       toast.error(e.message);
