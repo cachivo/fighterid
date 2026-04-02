@@ -545,4 +545,80 @@ img, video {
   .stat-win { color: hsl(142 76% 45%); }
   .stat-loss { color: hsl(0 84% 50%); }
   .stat-draw { color: hsl(43 74% 49%); }
+
+  /* === Swiss-Brutalist Design Utilities === */
+
+  /* Typographic Echo Stack */
+  .echo-stack {
+    position: relative;
+    display: inline-block;
+  }
+  .echo-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+  .echo-1 { transform: translate(-0.04em, -0.04em); color: hsl(0 0% 10%); }
+  .echo-2 { transform: translate(-0.08em, -0.08em); color: hsl(0 0% 8%); }
+  .echo-3 { transform: translate(-0.12em, -0.12em); color: hsl(0 0% 7%); }
+  .echo-4 { transform: translate(-0.16em, -0.16em); color: hsl(0 0% 6%); }
+
+  /* Image reveal animation */
+  .image-reveal {
+    clip-path: inset(100% 0 0 0);
+    animation: clipReveal 700ms cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+  @keyframes clipReveal {
+    to { clip-path: inset(0); }
+  }
+
+  /* Grayscale hover transition */
+  .grayscale-hover {
+    filter: grayscale(20%);
+    transition: filter 400ms ease, transform 400ms ease;
+  }
+  .grayscale-hover:hover {
+    filter: grayscale(0%);
+    transform: scale(1.05);
+  }
+
+  /* Full grayscale → color on hover (for logos) */
+  .grayscale-logo {
+    filter: grayscale(100%) brightness(0.8);
+    transition: filter 500ms ease, transform 400ms ease;
+  }
+  .grayscale-logo:hover {
+    filter: grayscale(0%) brightness(1);
+    transform: scale(1.05);
+  }
+
+  /* Pill button - editorial style */
+  .pill-button {
+    border-radius: 9999px;
+    border: 1px solid hsl(0 0% 100% / 0.2);
+    background: transparent;
+    transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
+  }
+  .pill-button:hover {
+    background: hsl(0 0% 95%);
+    color: hsl(0 0% 5%);
+    border-color: hsl(0 0% 95%);
+  }
+
+  /* Editorial vertical divider */
+  .editorial-divider {
+    width: 1px;
+    background: hsl(0 0% 100% / 0.1);
+    margin: 0 auto;
+  }
+
+  /* Tight tracking for large display text */
+  .tracking-display {
+    letter-spacing: -0.05em;
+  }
+  .tracking-tight-num {
+    letter-spacing: -0.02em;
+  }
 }

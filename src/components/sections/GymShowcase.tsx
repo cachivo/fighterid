@@ -59,7 +59,7 @@ const GymShowcase = () => {
               <CardContent className="p-3">
                 {/* Gym header */}
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30">
+                  <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/30 overflow-hidden grayscale-hover">
                     {gym.logo_url ? (
                       <img src={gym.logo_url} alt={gym.nombre} className="h-10 w-10 rounded-full object-cover" />
                     ) : (

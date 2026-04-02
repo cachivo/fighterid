@@ -53,8 +53,8 @@ const Footer = () => {
           </div>
         </div>
         
-        <div className="border-t border-gray-700 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-gray-400">
-          <p className="text-xs sm:text-sm">&copy; 2025. Todos los derechos reservados.</p>
+        <div className="border-t border-[hsl(0_0%_100%/0.05)] mt-8 sm:mt-10 pt-6 sm:pt-8 text-center">
+          <p className="text-xs text-[hsl(0_0%_95%/0.35)]">&copy; 2025 Fighter ID. Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

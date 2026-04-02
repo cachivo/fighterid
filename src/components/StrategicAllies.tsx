@@ -53,7 +53,7 @@ const StrategicAllies = () => {
             <Card key={partner.id} className="bg-urban-darker border-purple-neon-primary/20 hover:border-purple-neon-primary/40 transition-all duration-300 group animate-slide-up touch-manipulation" style={{ animationDelay: `${index * 100}ms` }}>
               <div className="p-4 sm:p-6 text-center">
                 <div className="mb-4 flex justify-center">
-                  <div className="w-full max-w-[140px] h-20 sm:h-24 bg-white/10 rounded-lg flex items-center justify-center p-2 sm:p-3 group-hover:bg-white/20 transition-colors">
+                  <div className="w-full max-w-[140px] h-20 sm:h-24 bg-white/10 rounded-lg flex items-center justify-center p-2 sm:p-3 group-hover:bg-white/20 transition-colors grayscale-logo">
                     {partner.logo ? (
                       <OptimizedImage
                         src={partner.logo}
