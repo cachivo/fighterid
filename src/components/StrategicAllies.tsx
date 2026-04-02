@@ -41,9 +41,15 @@ const StrategicAllies = () => {
   return (
     <section className="py-8 sm:py-10 md:py-12 px-4 bg-gradient-to-b from-black to-urban-dark">
       <div className="container mx-auto">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-3 sm:mb-4 text-white animate-slide-up">
-          Aliados Estratégicos
-        </h2>
+        <div className="relative inline-block mx-auto w-full text-center mb-3 sm:mb-4 animate-slide-up">
+          <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
+          <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
+          <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
+          <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
+          <h2 className="relative ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display text-white">
+            ALIADOS <span className="text-primary">ESTRATÉGICOS</span>
+          </h2>
+        </div>
         <p className="text-gray-400 text-center mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto animate-fade-in text-xs sm:text-sm md:text-base">
           Trabajamos con los mejores gimnasios y organizaciones para llevar el combate al siguiente nivel
         </p>
