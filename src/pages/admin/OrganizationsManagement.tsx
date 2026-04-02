@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,11 +32,18 @@ const emptyForm: OrganizationFormData = {
 };
 
 export default function OrganizationsManagement() {
-  const { organizations, loading, createOrganization, updateOrganization, toggleOrganizationActive, verifyOrganization } = useOrganizations();
+  const discipline = useDiscipline();
+  const { organizations: allOrganizations, loading, createOrganization, updateOrganization, toggleOrganizationActive, verifyOrganization } = useOrganizations();
   const [search, setSearch] = useState('');
   const [showDialog, setShowDialog] = useState(false);
   const [editingOrg, setEditingOrg] = useState<string | null>(null);
-  const [form, setForm] = useState<OrganizationFormData>(emptyForm);
+  const [form, setForm] = useState<OrganizationFormData>({ ...emptyForm, discipline });
+
+  // Filter organizations by discipline context
+  const organizations = useMemo(() => 
+    allOrganizations.filter(o => o.discipline === discipline),
+    [allOrganizations, discipline]
+  );
 
   const filtered = useMemo(() => {
     if (!search) return organizations;

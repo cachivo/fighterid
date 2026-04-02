@@ -1,13 +1,12 @@
-import { useDisciplineContext } from '@/contexts/DisciplineContext';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Calendar, Trophy, Shield } from 'lucide-react';
 import AdminAnalytics from '@/components/AdminAnalytics';
 
 export default function DisciplineDashboard() {
-  const ctx = useDisciplineContext();
-  const discipline = ctx?.discipline || 'MMA';
-  const { stats, isLoading } = useRealTimeStats();
+  const discipline = useDiscipline();
+  const { stats, isLoading } = useRealTimeStats(discipline);
 
   const label = discipline === 'MMA' ? 'MMA' : 'Boxeo';
 

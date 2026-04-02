@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -168,6 +169,7 @@ function CreateSanctionDialog({ onCreated }: { onCreated: () => void }) {
 }
 
 export default function Sanctions() {
+  const discipline = useDiscipline();
   const { sanctions, loading, refetch, updateSanctionStatus } = useSanctions();
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<string>('all');

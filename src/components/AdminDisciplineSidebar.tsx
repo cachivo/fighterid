@@ -59,8 +59,7 @@ const boxeoItems = [
   { title: 'Sanciones', url: 'sanctions', icon: Shield },
   { title: 'Organizaciones', url: 'organizations', icon: Building2 },
   { title: 'Peleadores Boxeo', url: 'fighters-profiles', icon: Users },
-  { title: 'Rankings HHF Amateur', url: 'rankings', icon: Medal },
-  { title: 'Rankings FEDEHBOX', url: 'rankings', icon: Trophy },
+  { title: 'Rankings Boxeo', url: 'rankings', icon: Medal },
   { title: 'Gimnasios Boxeo', url: 'gimnasios', icon: Briefcase },
   { title: 'Staff de Gimnasios', url: 'entrenadores', icon: Users },
 ];

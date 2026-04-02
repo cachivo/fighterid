@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,9 +25,16 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 };
 
 export default function FightApproval() {
+  const discipline = useDiscipline();
   const [activeTab, setActiveTab] = useState('submitted');
-  const { requests, loading, reviewRequest, validateEligibility } = useFightRequests(activeTab === 'all' ? undefined : activeTab);
+  const { requests: allRequests, loading, reviewRequest, validateEligibility } = useFightRequests(activeTab === 'all' ? undefined : activeTab);
   const { appUserId } = useAppUserId();
+
+  // Filter requests by discipline context
+  const requests = useMemo(() => 
+    allRequests.filter(r => r.discipline === discipline),
+    [allRequests, discipline]
+  );
   const [selectedRequest, setSelectedRequest] = useState<FightRequestWithDetails | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
