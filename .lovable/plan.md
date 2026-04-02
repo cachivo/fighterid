@@ -1,53 +1,75 @@
 
 
-# Completar Fase 1: Filtrado por Disciplina en Sanctions
+# Fase 2: Migrar useDisciplineContext() a useDiscipline()
 
-## Estado Actual
+## Contexto
 
-6 de 7 páginas ya tienen filtrado por disciplina implementado. Solo **Sanctions** falta — importa `useDiscipline()` pero no lo usa en el filtrado.
+3 archivos aun usan `useDisciplineContext()` con null-checks manuales. Dentro de los paneles de disciplina, el contexto siempre existe, asi que deben usar `useDiscipline()` directamente. `RankingsManagement` ya usa `useDiscipline()` pero aun importa `useDisciplineContext` sin usarlo.
 
-## Problema
+## Cambios
 
-La tabla `sanctions` no tiene columna `discipline`. Usa `target_type` (fighter/coach/gym/etc.) y `target_id` como referencia indirecta.
+### 1. `src/pages/admin/FightersProfiles.tsx`
 
-## Solución
+- Quitar import de `useDisciplineContext`
+- Reemplazar lineas 42-43 y 48:
+  ```typescript
+  // ANTES
+  const disciplineCtx = useDisciplineContext();
+  const discipline = disciplineCtx ? disciplineCtx.discipline : undefined;
+  const selectedDiscipline = discipline ?? 'all';
 
-### 1. Migración: agregar columna `discipline` a `sanctions`
+  // DESPUES
+  const discipline = useDiscipline();
+  const selectedDiscipline = discipline;
+  ```
+- Actualizar filtrado que dependa de `discipline` siendo `undefined`
 
-```sql
-ALTER TABLE public.sanctions 
-ADD COLUMN discipline text DEFAULT 'MMA';
-```
+### 2. `src/pages/admin/EventosPelea.tsx`
 
-Esto permite filtrado directo sin joins complejos. Valor default `'MMA'` para registros existentes.
+- Quitar import de `useDisciplineContext`
+- Reemplazar lineas 74 y 78-81:
+  ```typescript
+  // ANTES
+  const disciplineCtx = useDisciplineContext();
+  const events = useMemo(() => {
+    if (!disciplineCtx) return allEvents;
+    return allEvents.filter(e => e.discipline === disciplineCtx.discipline);
+  }, [allEvents, disciplineCtx]);
 
-### 2. `src/pages/admin/Sanctions.tsx`
+  // DESPUES
+  const discipline = useDiscipline();
+  const events = useMemo(() => {
+    return allEvents.filter(e => e.discipline === discipline);
+  }, [allEvents, discipline]);
+  ```
 
-Agregar filtro por discipline en la función `filtered`:
+### 3. `src/pages/admin/GimnasiosAdmin.tsx`
 
-```typescript
-const filtered = sanctions.filter(s => {
-  if (s.discipline && s.discipline !== discipline) return false;  // NEW
-  if (filterType !== 'all' && s.sanction_type !== filterType) return false;
-  if (filterStatus !== 'all' && s.status !== filterStatus) return false;
-  if (search && !s.reason.toLowerCase().includes(search.toLowerCase()) && !s.target_id.includes(search)) return false;
-  return true;
-});
-```
+- Quitar import de `useDisciplineContext`
+- Reemplazar linea 28 y simplificar filtrado (lineas 38-55):
+  ```typescript
+  // ANTES
+  const disciplineCtx = useDisciplineContext();
+  if (disciplineCtx) { ... } else { ... }
 
-### 3. `src/pages/admin/Sanctions.tsx` — CreateSanctionDialog
+  // DESPUES
+  const discipline = useDiscipline();
+  result = result.filter(g =>
+    g.disciplinas?.some(d => d === discipline)
+  );
+  ```
+- Eliminar fallback por `useUserDisciplineAccess` (ya no necesario dentro del panel)
 
-Pre-llenar el campo discipline al crear sanciones nuevas con el valor del contexto activo, para que las sanciones creadas desde el panel MMA tengan `discipline: 'MMA'` y viceversa.
+### 4. `src/pages/admin/RankingsManagement.tsx`
 
-### 4. `src/hooks/useSanctions.tsx`
-
-Actualizar el tipo `Sanction` para incluir `discipline?: string` y actualizar `CreateSanctionInput` igualmente.
+- Quitar `useDisciplineContext` del import (solo dejar `useDiscipline`)
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| Migración SQL | Agregar columna `discipline` a `sanctions` |
-| `src/hooks/useSanctions.tsx` | Agregar `discipline` a interfaces |
-| `src/pages/admin/Sanctions.tsx` | Filtrar por discipline + pre-llenar en creación |
+| `FightersProfiles.tsx` | Reemplazar ctx nullable por `useDiscipline()` |
+| `EventosPelea.tsx` | Idem, simplificar filtrado |
+| `GimnasiosAdmin.tsx` | Idem, eliminar fallback innecesario |
+| `RankingsManagement.tsx` | Limpiar import no usado |
 
