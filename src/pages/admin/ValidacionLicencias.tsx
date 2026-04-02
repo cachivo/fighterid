@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { useAdmin } from '@/hooks/useAdmin';
 import { useAdminLicenseActions } from '@/hooks/useLicenseSystem';
 import { DeleteLicenseDialog } from '@/components/admin/DeleteLicenseDialog';
@@ -22,6 +23,7 @@ import { LicenseCard } from '@/components/admin/LicenseCard';
 const DISCIPLINES = ['MMA','Boxeo','Judo','JiuJitsu','Kickboxing','MuayThai','Grappling','Otro'];
 
 export default function ValidacionLicencias() {
+  const discipline = useDiscipline();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isAdmin, loading: loadingAdmin } = useAdmin();
@@ -34,7 +36,7 @@ export default function ValidacionLicencias() {
 
   // Fetch pending license requests
   const { data: pendingLicenses, refetch: refetchPending, isLoading: isLoadingPending } = useQuery({
-    queryKey: ['pending_licenses', searchTerm],
+    queryKey: ['pending_licenses', searchTerm, discipline],
     queryFn: async () => {
       let query = supabase
         .from('fighter_licenses')
@@ -47,6 +49,7 @@ export default function ValidacionLicencias() {
           license_documents!license_documents_license_id_fkey(id, file_path, document_type, file_name, created_at, mime_type)
         `)
         .eq('status', 'PENDING_REVIEW')
+        .eq('discipline', discipline)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
@@ -61,7 +64,7 @@ export default function ValidacionLicencias() {
 
   // Fetch licenses with Fighter IDs (ACTIVE and SUSPENDED only)
   const { data: licenses, refetch, isLoading } = useQuery({
-    queryKey: ['admin_licenses', searchTerm],
+    queryKey: ['admin_licenses', searchTerm, discipline],
     queryFn: async () => {
       let query = supabase
         .from('fighter_licenses')
@@ -81,6 +84,7 @@ export default function ValidacionLicencias() {
           )
         `)
         .in('status', ['ACTIVE', 'SUSPENDED'])
+        .eq('discipline', discipline)
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
