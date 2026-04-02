@@ -47,7 +47,7 @@ export default function GimnasiosAdmin() {
       g.pais?.toLowerCase().includes(q) ||
       g.disciplinas?.some(d => d.toLowerCase().includes(q))
     );
-  }, [gyms, searchQuery, hasFullAccess, allowedDisciplines, disciplineCtx]);
+  }, [gyms, searchQuery, discipline]);
 
   const toggleDiscipline = (id: string) => {
     setSelectedDisciplines(prev =>
