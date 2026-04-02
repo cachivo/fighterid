@@ -105,6 +105,9 @@ const Header = () => {
           <Button variant="ghost" size="sm" asChild>
             <Link to="/fighters">Peleadores</Link>
           </Button>
+          <Link to="/contacto" className="pill-button px-4 py-1.5 text-xs uppercase tracking-[0.12em] font-medium text-foreground/70 ml-2">
+            Contacto
+          </Link>
         </div>
 
         {/* Simplified Navigation for Medium Screens */}

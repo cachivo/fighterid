@@ -37,10 +37,18 @@ const Hero = () => {
           {/* Red accent line */}
           <div className="w-16 h-1 bg-primary mx-auto mb-6 animate-fade-in" />
 
-          {/* Title */}
-          <h1 className="ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-widest text-white mb-3 animate-fade-in-up">
-            FIGHTER <span className="text-primary">ID</span>
-          </h1>
+          {/* Title with Echo Stack */}
+          <div className="relative inline-block animate-fade-in-up">
+            {/* Echo layers */}
+            <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-display">FIGHTER ID</span>
+            <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-display">FIGHTER ID</span>
+            <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-display">FIGHTER ID</span>
+            <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-display">FIGHTER ID</span>
+            {/* Foreground */}
+            <h1 className="relative ufc-label text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-display text-white mb-3">
+              FIGHTER <span className="text-primary">ID</span>
+            </h1>
+          </div>
 
           {/* Subtitle */}
           <p className="text-sm sm:text-base md:text-lg text-white/80 mb-8 max-w-lg mx-auto animate-fade-in-up" style={{ animationDelay: '100ms' }}>
