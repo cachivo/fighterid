@@ -82,7 +82,7 @@ export default function FightersProfiles() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesWeight = selectedWeightClass === 'all' || fighter.weight_class === selectedWeightClass;
-       const matchesDiscipline = selectedDiscipline === 'all' || fighter.discipline === selectedDiscipline;
+       const matchesDiscipline = fighter.discipline === selectedDiscipline;
       const completionScore = (fighter as any).completion_score || 0;
       const matchesCompletion = !showIncomplete || completionScore < 70;
       
