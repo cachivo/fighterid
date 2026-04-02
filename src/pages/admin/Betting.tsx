@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -86,12 +87,19 @@ const outcomeSchema = z.object({
 });
 
 export default function AdminBetting() {
+  const discipline = useDiscipline();
   const [loading, setLoading] = useState(false);
-  const [events, setEvents] = useState<BDGEvent[]>([]);
+  const [allEvents, setAllEvents] = useState<BDGEvent[]>([]);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [activeTab, setActiveTab] = useState('events');
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter events by discipline context
+  const events = useMemo(() => 
+    allEvents.filter(e => e.discipline === discipline),
+    [allEvents, discipline]
+  );
   
   // Dialog states
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
@@ -141,7 +149,7 @@ export default function AdminBetting() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setEvents(data || []);
+      setAllEvents(data || []);
     } catch (error) {
       toast({
         title: 'Error',

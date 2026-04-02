@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useAllGymStaff } from '@/hooks/gyms';
 import { useGyms } from '@/hooks/useGyms';
-import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,7 @@ const ROLE_LABELS: Record<string, { label: string; variant: 'default' | 'seconda
 export default function EntrenadoresAdmin() {
   const { data: allStaff, isLoading } = useAllGymStaff();
   const { data: gyms } = useGyms();
-  const { disciplines: allowedDisciplines, hasFullAccess } = useUserDisciplineAccess();
+  const discipline = useDiscipline();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGym, setSelectedGym] = useState('');
@@ -102,7 +102,7 @@ export default function EntrenadoresAdmin() {
                   <SelectTrigger><SelectValue placeholder="Selecciona un gimnasio" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Seleccionar...</SelectItem>
-                    {(hasFullAccess ? gyms : gyms?.filter(g => g.disciplinas?.some(d => allowedDisciplines.includes(d as any))))?.map(gym => (
+                    {gyms?.filter(g => g.disciplinas?.some(d => d === discipline))?.map(gym => (
                       <SelectItem key={gym.id} value={gym.id}>{gym.nombre}</SelectItem>
                     ))}
                   </SelectContent>
@@ -180,10 +180,10 @@ export default function EntrenadoresAdmin() {
         <p>Cargando...</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(hasFullAccess ? allStaff : allStaff?.filter(s => {
+          {allStaff?.filter(s => {
             const gym = gyms?.find(g => g.id === (s as any).gym_id);
-            return gym?.disciplinas?.some(d => allowedDisciplines.includes(d as any));
-          }))?.map(staff => {
+            return gym?.disciplinas?.some(d => d === discipline);
+          })?.map(staff => {
             const roleInfo = ROLE_LABELS[staff.role] || ROLE_LABELS.ASSISTANT_COACH;
             const gymName = (staff as any).gyms?.nombre || 'Sin gimnasio';
             return (

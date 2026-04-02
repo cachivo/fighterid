@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useDisciplineContext } from '@/contexts/DisciplineContext';
+import { useDiscipline, useDisciplineContext } from '@/contexts/DisciplineContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,8 +18,7 @@ import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from '@/hooks/us
 
 export default function RankingsManagement() {
   const { data: organizations, isLoading: loadingOrgs } = useRankingOrganizations();
-  const disciplineCtx = useDisciplineContext();
-  const selectedDiscipline = disciplineCtx?.discipline ?? 'MMA';
+  const selectedDiscipline = useDiscipline();
   const [selectedOrg, setSelectedOrg] = useState<string>('');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
