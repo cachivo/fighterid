@@ -198,21 +198,6 @@ export default function FightersProfiles() {
                 />
               </div>
             </div>
-             {!disciplineCtx && (
-               <Select value={selectedDiscipline} onValueChange={() => {}}>
-                 <SelectTrigger className="w-full md:w-40">
-                   <SelectValue placeholder="Disciplina" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   <SelectItem value="all">Todas</SelectItem>
-                   {ENABLED_DISCIPLINES.map(d => (
-                     <SelectItem key={d.value} value={d.value}>
-                       {d.label}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
-             )}
              <Select value={selectedWeightClass} onValueChange={handleFilterChange(setSelectedWeightClass)}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Categoría" />
