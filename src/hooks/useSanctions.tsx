@@ -22,6 +22,7 @@ export interface Sanction {
   decided_by: string | null;
   decided_at: string | null;
   notes: string | null;
+  discipline: string | null;
   created_at: string;
   updated_at: string;
 }
