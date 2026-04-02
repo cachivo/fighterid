@@ -1,87 +1,53 @@
 
 
-# Auditoría del Sistema de Disciplinas — Hallazgos y Mejoras
+# Completar Fase 1: Filtrado por Disciplina en Sanctions
 
 ## Estado Actual
 
-El sistema separa MMA y Boxeo en paneles independientes (`/admin/mma/*`, `/admin/boxeo/*`) con `DisciplineContext`. Las 4 páginas principales (FightersProfiles, EventosPelea, GimnasiosAdmin, RankingsManagement) usan `useDisciplineContext()` para filtrar datos. El acceso se valida en `AdminDisciplineLayout`.
+6 de 7 páginas ya tienen filtrado por disciplina implementado. Solo **Sanctions** falta — importa `useDiscipline()` pero no lo usa en el filtrado.
 
-## Problemas Encontrados
+## Problema
 
-### 1. Páginas sin filtrado por disciplina (CRÍTICO)
+La tabla `sanctions` no tiene columna `discipline`. Usa `target_type` (fighter/coach/gym/etc.) y `target_id` como referencia indirecta.
 
-Estas páginas están dentro del panel de disciplina pero **no filtran por contexto**:
+## Solución
 
-| Página | Problema |
-|--------|----------|
-| **FightApproval** | Muestra solicitudes de pelea de TODAS las disciplinas. Debería filtrar por `discipline` del contexto. |
-| **Sanctions** | Muestra sanciones de todos los peleadores sin filtrar. Debería mostrar solo sanciones relacionadas a fighters/eventos de la disciplina activa. |
-| **Betting** | Carga eventos de todas las disciplinas. Debería filtrar `bdg_event` por disciplina. |
-| **DisciplineDashboard** | Usa el contexto pero `useRealTimeStats()` no filtra por disciplina — muestra stats globales en ambos paneles. |
-| **OrganizationsManagement** | Muestra todas las organizaciones sin filtrar por disciplina del panel. |
-| **ValidacionLicencias** | Lista licencias de todas las disciplinas. |
-| **EntrenadoresAdmin** | Filtra por `useUserDisciplineAccess` pero NO por el contexto de disciplina del panel activo. |
+### 1. Migración: agregar columna `discipline` a `sanctions`
 
-### 2. Uso inconsistente del contexto
+```sql
+ALTER TABLE public.sanctions 
+ADD COLUMN discipline text DEFAULT 'MMA';
+```
 
-- Todas las páginas usan `useDisciplineContext()` (nullable) en vez de `useDiscipline()` (throws si no hay contexto). Dentro del panel de disciplina, el contexto **siempre existe**, por lo que deberían usar `useDiscipline()` directamente y eliminar los fallbacks `?? 'MMA'`.
+Esto permite filtrado directo sin joins complejos. Valor default `'MMA'` para registros existentes.
 
-### 3. Sidebar duplica URLs
+### 2. `src/pages/admin/Sanctions.tsx`
 
-- En `boxeoItems`, hay dos entradas para rankings con la **misma URL** `rankings`:
-  ```
-  { title: 'Rankings HHF Amateur', url: 'rankings', icon: Medal },
-  { title: 'Rankings FEDEHBOX', url: 'rankings', icon: Trophy },
-  ```
-  Ambas van a la misma página. Debería ser una sola entrada o URLs distintas.
+Agregar filtro por discipline en la función `filtered`:
 
-### 4. Filtrado client-side ineficiente
+```typescript
+const filtered = sanctions.filter(s => {
+  if (s.discipline && s.discipline !== discipline) return false;  // NEW
+  if (filterType !== 'all' && s.sanction_type !== filterType) return false;
+  if (filterStatus !== 'all' && s.status !== filterStatus) return false;
+  if (search && !s.reason.toLowerCase().includes(search.toLowerCase()) && !s.target_id.includes(search)) return false;
+  return true;
+});
+```
 
-- FightersProfiles, EventosPelea y GimnasiosAdmin cargan **todos** los registros y filtran en el cliente con `useMemo`. Para datos que crecen, esto es ineficiente. Los hooks deberían aceptar `discipline` como parámetro de query.
+### 3. `src/pages/admin/Sanctions.tsx` — CreateSanctionDialog
 
-### 5. `useRealTimeStats` no es discipline-aware
+Pre-llenar el campo discipline al crear sanciones nuevas con el valor del contexto activo, para que las sanciones creadas desde el panel MMA tengan `discipline: 'MMA'` y viceversa.
 
-El dashboard de disciplina muestra exactamente las mismas estadísticas en MMA y Boxeo porque el hook no recibe filtro de disciplina.
+### 4. `src/hooks/useSanctions.tsx`
 
-## Plan de Mejoras
+Actualizar el tipo `Sanction` para incluir `discipline?: string` y actualizar `CreateSanctionInput` igualmente.
 
-### Fase 1 — Completar filtrado (prioridad alta)
-
-1. **FightApproval**: Importar `useDiscipline()`, filtrar `fightRequests` por `discipline`.
-2. **Sanctions**: Agregar join con fighter_profiles para filtrar por disciplina, o agregar campo `discipline` a la tabla de sanciones.
-3. **Betting**: Filtrar eventos por `discipline` del contexto.
-4. **OrganizationsManagement**: Filtrar organizaciones por `discipline` del contexto.
-5. **ValidacionLicencias**: Filtrar licencias por `discipline`.
-6. **EntrenadoresAdmin**: Reemplazar filtrado por `useUserDisciplineAccess` con `useDiscipline()` del contexto.
-7. **DisciplineDashboard**: Modificar `useRealTimeStats` para aceptar parámetro `discipline` y filtrar las queries.
-
-### Fase 2 — Consistencia del código
-
-8. **Migrar `useDisciplineContext()` → `useDiscipline()`** en las 5 páginas que ya lo usan. Eliminar nullchecks innecesarios y fallbacks `?? 'MMA'`.
-
-### Fase 3 — Optimización
-
-9. **Mover filtrado al servidor**: Modificar `useAdminFighters`, `useEvents`, `useGyms` para aceptar `discipline` como parámetro y agregar `.eq('discipline', discipline)` a las queries de Supabase.
-
-### Fase 4 — Sidebar fix
-
-10. **Deduplicar rankings en sidebar de Boxeo**: Combinar en una sola entrada "Rankings Boxeo" o crear sub-rutas distintas por organización.
-
-## Archivos Afectados
+## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/admin/FightApproval.tsx` | Agregar filtrado por disciplina |
-| `src/pages/admin/Sanctions.tsx` | Agregar filtrado por disciplina |
-| `src/pages/admin/Betting.tsx` | Filtrar eventos por disciplina |
-| `src/pages/admin/OrganizationsManagement.tsx` | Filtrar orgs por disciplina |
-| `src/pages/admin/ValidacionLicencias.tsx` | Filtrar licencias por disciplina |
-| `src/pages/admin/EntrenadoresAdmin.tsx` | Usar contexto de disciplina |
-| `src/pages/admin/DisciplineDashboard.tsx` | Pasar discipline a stats hook |
-| `src/hooks/useRealTimeStats.tsx` | Agregar param discipline |
-| `src/pages/admin/FightersProfiles.tsx` | `useDisciplineContext` → `useDiscipline` |
-| `src/pages/admin/EventosPelea.tsx` | Idem |
-| `src/pages/admin/GimnasiosAdmin.tsx` | Idem |
-| `src/pages/admin/RankingsManagement.tsx` | Idem |
-| `src/components/AdminDisciplineSidebar.tsx` | Deduplicar rankings boxeo |
+| Migración SQL | Agregar columna `discipline` a `sanctions` |
+| `src/hooks/useSanctions.tsx` | Agregar `discipline` a interfaces |
+| `src/pages/admin/Sanctions.tsx` | Filtrar por discipline + pre-llenar en creación |
 
