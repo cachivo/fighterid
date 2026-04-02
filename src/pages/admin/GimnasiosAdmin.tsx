@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useGyms, useCreateGym, useCheckGymDuplicate } from '@/hooks/useGyms';
 import { useAllDisciplines } from '@/hooks/gyms';
-import { useDiscipline, useDisciplineContext } from '@/contexts/DisciplineContext';
+import { useDiscipline } from '@/contexts/DisciplineContext';
 import { AdminGymCard } from '@/components/admin/AdminGymCard';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
