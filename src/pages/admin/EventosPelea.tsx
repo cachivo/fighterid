@@ -72,12 +72,7 @@ export default function EventosPelea() {
     const { toast } = useToast();
     const { user } = useAuth();
     const discipline = useDiscipline();
-    const { events: allEvents, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents();
-    
-    // Filter events by discipline context
-    const events = useMemo(() => {
-      return allEvents.filter(e => e.discipline === discipline);
-    }, [allEvents, discipline]);
+    const { events, loading, createEvent, updateEvent, updateEventState, updateEventMeta, togglePublishEvent, deleteEvent, refreshEvents } = useEvents(discipline);
     
     console.log('[EventosPelea] loading:', loading, 'events:', events?.length);
     

@@ -81,7 +81,6 @@ export default function FightersProfiles() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
       const matchesWeight = selectedWeightClass === 'all' || fighter.weight_class === selectedWeightClass;
-       const matchesDiscipline = fighter.discipline === selectedDiscipline;
       const completionScore = (fighter as any).completion_score || 0;
       const matchesCompletion = !showIncomplete || completionScore < 70;
       
@@ -93,7 +92,7 @@ export default function FightersProfiles() {
         matchesGym = (activeMemberships || []).some(m => m.fighter_id === fighter.id && m.gym_id === selectedGymFilter);
       }
       
-       return matchesSearch && matchesWeight && matchesDiscipline && matchesCompletion && matchesGym;
+       return matchesSearch && matchesWeight && matchesCompletion && matchesGym;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -108,7 +107,7 @@ export default function FightersProfiles() {
         default:
           return a.first_name.localeCompare(b.first_name);
       }
-     }), [fighters, searchTerm, selectedWeightClass, selectedDiscipline, selectedGymFilter, activeMemberships, showIncomplete, sortBy]);
+     }), [fighters, searchTerm, selectedWeightClass, selectedGymFilter, activeMemberships, showIncomplete, sortBy]);
 
    // Pagination
    const totalPages = Math.ceil(filteredFighters.length / PAGE_SIZE);

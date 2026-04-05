@@ -35,19 +35,14 @@ export default function GimnasiosAdmin() {
 
   const filteredGyms = useMemo(() => {
     if (!gyms) return [];
-    let result = gyms.filter(g =>
-      g.disciplinas?.some(d => d === discipline)
-    );
-    // Then filter by search query
-    if (!searchQuery.trim()) return result;
+    if (!searchQuery.trim()) return gyms;
     const q = searchQuery.toLowerCase();
-    return result.filter(g =>
+    return gyms.filter(g =>
       g.nombre.toLowerCase().includes(q) ||
       g.ciudad?.toLowerCase().includes(q) ||
-      g.pais?.toLowerCase().includes(q) ||
-      g.disciplinas?.some(d => d.toLowerCase().includes(q))
+      g.pais?.toLowerCase().includes(q)
     );
-  }, [gyms, searchQuery, discipline]);
+  }, [gyms, searchQuery]);
 
   const toggleDiscipline = (id: string) => {
     setSelectedDisciplines(prev =>
