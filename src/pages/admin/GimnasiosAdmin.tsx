@@ -19,11 +19,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function GimnasiosAdmin() {
+  const discipline = useDiscipline();
   const { data: gyms, isLoading } = useGyms(discipline);
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
-  const discipline = useDiscipline();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [sendingInvitation, setSendingInvitation] = useState(false);
