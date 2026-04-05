@@ -178,6 +178,7 @@ export function useEvents(discipline?: string) {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedEvent = payload.new as BdgEvent;
+            if (discipline && updatedEvent.discipline !== discipline) return;
             setEvents(prev => {
               // Si el evento ya está en la lista, actualizarlo
               const exists = prev.some(e => e.id === updatedEvent.id);

@@ -4,15 +4,18 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import type { Gym, GymWithCoaches } from '@/types/gyms';
 
-export function useGyms() {
+export function useGyms(discipline?: string) {
   return useQuery({
-    queryKey: ['gyms'],
+    queryKey: ['gyms', discipline],
     queryFn: async (): Promise<Gym[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('gyms')
         .select('*')
-        .eq('activo', true)
-        .order('nombre');
+        .eq('activo', true);
+      if (discipline) {
+        query = query.contains('disciplinas', [discipline]);
+      }
+      const { data, error } = await query.order('nombre');
       
       if (error) throw error;
       return data as Gym[];

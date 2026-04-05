@@ -41,8 +41,8 @@ export interface AdminFighterProfile {
   martial_arts?: string[];
 }
 
-export function useAdminFighters() {
-  const { data, isLoading, error: queryError, refetch } = useFightersQuery({ active: true });
+export function useAdminFighters(discipline?: string) {
+  const { data, isLoading, error: queryError, refetch } = useFightersQuery({ active: true, discipline });
   const adminUpdate = useAdminUpdateFighter();
   const deleteLicenseMutation = useDeleteFighterLicense();
 
