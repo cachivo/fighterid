@@ -1,75 +1,82 @@
 
 
-# Fase 2: Migrar useDisciplineContext() a useDiscipline()
+# Fase 3: Filtrado por Disciplina en el Servidor
 
-## Contexto
+## Resumen
 
-3 archivos aun usan `useDisciplineContext()` con null-checks manuales. Dentro de los paneles de disciplina, el contexto siempre existe, asi que deben usar `useDiscipline()` directamente. `RankingsManagement` ya usa `useDiscipline()` pero aun importa `useDisciplineContext` sin usarlo.
+Mover el filtrado client-side (`useMemo`) al servidor agregando `discipline` como parámetro opcional a los 3 hooks principales. Los consumidores no-admin (Events.tsx, Gimnasios.tsx, etc.) siguen funcionando sin cambios.
 
 ## Cambios
 
-### 1. `src/pages/admin/FightersProfiles.tsx`
+### 1. `src/hooks/useAdminFighters.tsx`
 
-- Quitar import de `useDisciplineContext`
-- Reemplazar lineas 42-43 y 48:
-  ```typescript
-  // ANTES
-  const disciplineCtx = useDisciplineContext();
-  const discipline = disciplineCtx ? disciplineCtx.discipline : undefined;
-  const selectedDiscipline = discipline ?? 'all';
+Agregar parámetro `discipline?: string` a `useAdminFighters()` y pasarlo a `useFightersQuery`:
 
-  // DESPUES
-  const discipline = useDiscipline();
-  const selectedDiscipline = discipline;
-  ```
-- Actualizar filtrado que dependa de `discipline` siendo `undefined`
+```typescript
+export function useAdminFighters(discipline?: string) {
+  const { data, isLoading, error: queryError, refetch } = useFightersQuery({ 
+    active: true,
+    discipline 
+  });
+  // ... rest unchanged
+}
+```
 
-### 2. `src/pages/admin/EventosPelea.tsx`
+`useFightersQuery` ya tiene soporte para `discipline` en la query de Supabase (línea 36-38), así que no necesita cambios.
 
-- Quitar import de `useDisciplineContext`
-- Reemplazar lineas 74 y 78-81:
-  ```typescript
-  // ANTES
-  const disciplineCtx = useDisciplineContext();
-  const events = useMemo(() => {
-    if (!disciplineCtx) return allEvents;
-    return allEvents.filter(e => e.discipline === disciplineCtx.discipline);
-  }, [allEvents, disciplineCtx]);
+### 2. `src/hooks/useEvents.tsx`
 
-  // DESPUES
-  const discipline = useDiscipline();
-  const events = useMemo(() => {
-    return allEvents.filter(e => e.discipline === discipline);
-  }, [allEvents, discipline]);
-  ```
+Agregar parámetro opcional `discipline` a `useEvents()` y aplicar `.eq('discipline', discipline)` en `fetchEvents`:
 
-### 3. `src/pages/admin/GimnasiosAdmin.tsx`
+```typescript
+export function useEvents(discipline?: string) {
+  // In fetchEvents:
+  let query = supabase.from('bdg_event').select('*');
+  if (discipline) {
+    query = query.eq('discipline', discipline);
+  }
+  query = query.order('start_time', { ascending: true });
+```
 
-- Quitar import de `useDisciplineContext`
-- Reemplazar linea 28 y simplificar filtrado (lineas 38-55):
-  ```typescript
-  // ANTES
-  const disciplineCtx = useDisciplineContext();
-  if (disciplineCtx) { ... } else { ... }
+También filtrar en el handler realtime para no insertar eventos de otra disciplina.
 
-  // DESPUES
-  const discipline = useDiscipline();
-  result = result.filter(g =>
-    g.disciplinas?.some(d => d === discipline)
-  );
-  ```
-- Eliminar fallback por `useUserDisciplineAccess` (ya no necesario dentro del panel)
+### 3. `src/hooks/useGyms.tsx`
 
-### 4. `src/pages/admin/RankingsManagement.tsx`
+Agregar parámetro opcional `discipline` a `useGyms()`. Como `gyms.disciplinas` es un array text[], usar `.contains('disciplinas', [discipline])`:
 
-- Quitar `useDisciplineContext` del import (solo dejar `useDiscipline`)
+```typescript
+export function useGyms(discipline?: string) {
+  return useQuery({
+    queryKey: ['gyms', discipline],
+    queryFn: async (): Promise<Gym[]> => {
+      let query = supabase.from('gyms').select('*').eq('activo', true);
+      if (discipline) {
+        query = query.contains('disciplinas', [discipline]);
+      }
+      // ...
+```
+
+### 4. Actualizar consumidores admin
+
+| Archivo | Cambio |
+|---------|--------|
+| `FightersProfiles.tsx` | `useAdminFighters(discipline)` — eliminar `useMemo` de filtrado |
+| `EventosPelea.tsx` | `useEvents(discipline)` — eliminar `useMemo` que filtra `allEvents` |
+| `GimnasiosAdmin.tsx` | `useGyms(discipline)` — simplificar `filteredGyms` memo |
+| `EntrenadoresAdmin.tsx` | `useGyms(discipline)` si aplica |
+
+### 5. Consumidores no-admin (sin cambios)
+
+`Events.tsx`, `Gimnasios.tsx`, `EventDetail.tsx`, `LiveEventsControl.tsx`, `FighterProfileForm.tsx`, etc. llaman sin parámetro y siguen recibiendo todos los datos.
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `FightersProfiles.tsx` | Reemplazar ctx nullable por `useDiscipline()` |
-| `EventosPelea.tsx` | Idem, simplificar filtrado |
-| `GimnasiosAdmin.tsx` | Idem, eliminar fallback innecesario |
-| `RankingsManagement.tsx` | Limpiar import no usado |
+| `src/hooks/useAdminFighters.tsx` | Aceptar `discipline` param, pasar a query |
+| `src/hooks/useEvents.tsx` | Aceptar `discipline` param, filtrar en Supabase |
+| `src/hooks/useGyms.tsx` | Aceptar `discipline` param, usar `.contains()` |
+| `src/pages/admin/FightersProfiles.tsx` | Pasar discipline al hook, eliminar filtrado client |
+| `src/pages/admin/EventosPelea.tsx` | Pasar discipline al hook, eliminar `useMemo` filtro |
+| `src/pages/admin/GimnasiosAdmin.tsx` | Pasar discipline al hook, simplificar memo |
 
