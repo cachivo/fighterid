@@ -358,6 +358,67 @@ export default function VisionDiagnostics() {
           </CardContent>
         </Card>
 
+        {/* Session History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historial de Sesiones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sessionHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No hay sesiones registradas.</p>
+            ) : (
+              <div className="overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Device</TableHead>
+                      <TableHead>Fight</TableHead>
+                      <TableHead>Token</TableHead>
+                      <TableHead>Started</TableHead>
+                      <TableHead>Heartbeat</TableHead>
+                      <TableHead>Events</TableHead>
+                      <TableHead>Fighters</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sessionHistory.map((s) => {
+                      const statusVariant =
+                        s.status === 'connected' || s.status === 'active' ? 'success' as const :
+                        s.status === 'ended' ? 'outline' as const :
+                        s.status === 'disconnected' ? 'destructive' as const :
+                        'secondary' as const;
+                      return (
+                        <TableRow key={s.id}>
+                          <TableCell>
+                            <Badge variant={statusVariant}>{s.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-xs font-mono">{s.device_id ?? '—'}</TableCell>
+                          <TableCell className="text-xs font-mono">{s.fight_id ? s.fight_id.slice(0, 8) + '…' : '—'}</TableCell>
+                          <TableCell className="text-xs font-mono">{s.session_token.slice(0, 8)}…</TableCell>
+                          <TableCell className="text-xs">{s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</TableCell>
+                          <TableCell className="text-xs">{heartbeatAge(s.last_heartbeat)}</TableCell>
+                          <TableCell className="text-xs font-semibold">{s.event_count}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {s.fighter_red_id ? <Badge variant="destructive" className="text-[10px] px-1.5 py-0">🔴</Badge> : null}
+                              {s.fighter_blue_id ? <Badge variant="default" className="text-[10px] px-1.5 py-0">🔵</Badge> : null}
+                              {!s.fighter_red_id && !s.fighter_blue_id && <span className="text-xs text-muted-foreground">—</span>}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Simulation Panel */}
         <Card className="border-dashed border-2 border-muted-foreground/30">
           <CardHeader>
