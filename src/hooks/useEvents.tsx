@@ -54,7 +54,7 @@ export interface Fight {
   fighter_b_external?: any;
 }
 
-export function useEvents() {
+export function useEvents(discipline?: string) {
   const [events, setEvents] = useState<BdgEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,11 +62,15 @@ export function useEvents() {
 
   const fetchEvents = async () => {
     try {
-      console.log('[EVENTS] Fetching events...');
+      console.log('[EVENTS] Fetching events...', discipline ? `discipline=${discipline}` : 'all');
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('bdg_event')
-        .select('*')
+        .select('*');
+      if (discipline) {
+        query = query.eq('discipline', discipline);
+      }
+      const { data, error } = await query
         .order('start_time', { ascending: true });
 
       console.log('[EVENTS] Query result:', { data, error, count: data?.length });
