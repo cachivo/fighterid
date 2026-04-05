@@ -2660,7 +2660,36 @@ export type Database = {
           status?: string | null
           vision_connected?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_telemetry_session_fight"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_telemetry_session_fight"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_full"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_telemetry_session_fight"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "fights_hud"
+            referencedColumns: ["fight_id"]
+          },
+          {
+            foreignKeyName: "fk_telemetry_session_fight"
+            columns: ["fight_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fight_id"]
+          },
+        ]
       }
       fighter_gym_membership_logs: {
         Row: {
