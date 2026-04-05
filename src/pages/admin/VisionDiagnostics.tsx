@@ -77,6 +77,7 @@ function randomStrike(sessionId: string) {
 export default function VisionDiagnostics() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<HistorySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastPoll, setLastPoll] = useState<Date>(new Date());
   const [simLoading, setSimLoading] = useState(false);
@@ -107,6 +108,34 @@ export default function VisionDiagnostics() {
         setEvents(evts ?? []);
       } else {
         setEvents([]);
+      }
+
+      // Fetch session history (all statuses, last 20)
+      const { data: allSessions } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .select('id, session_token, fight_id, status, hud_connected, vision_connected, last_heartbeat, started_at, fighter_red_id, fighter_blue_id, device_id')
+        .order('started_at', { ascending: false })
+        .limit(20);
+
+      if (allSessions && allSessions.length > 0) {
+        // Get event counts grouped by session
+        const sessionIds = allSessions.map((s: any) => s.id);
+        const { data: countRows } = await (supabase as any)
+          .from('fight_telemetry_events')
+          .select('session_id')
+          .in('session_id', sessionIds);
+
+        const countMap: Record<string, number> = {};
+        (countRows ?? []).forEach((r: any) => {
+          countMap[r.session_id] = (countMap[r.session_id] || 0) + 1;
+        });
+
+        setSessionHistory(allSessions.map((s: any) => ({
+          ...s,
+          event_count: countMap[s.id] || 0,
+        })));
+      } else {
+        setSessionHistory([]);
       }
     } catch (e) {
       console.error('Vision diagnostics poll error:', e);
