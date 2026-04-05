@@ -102,7 +102,7 @@ export default function EntrenadoresAdmin() {
                   <SelectTrigger><SelectValue placeholder="Selecciona un gimnasio" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Seleccionar...</SelectItem>
-                    {gyms?.filter(g => g.disciplinas?.some(d => d === discipline))?.map(gym => (
+                    {gyms?.map(gym => (
                       <SelectItem key={gym.id} value={gym.id}>{gym.nombre}</SelectItem>
                     ))}
                   </SelectContent>
