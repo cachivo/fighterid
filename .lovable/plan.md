@@ -1,82 +1,45 @@
 
 
-# Fase 3: Filtrado por Disciplina en el Servidor
+# Clean Up Orphaned Telemetry Sessions
 
-## Resumen
+## Problem
 
-Mover el filtrado client-side (`useMemo`) al servidor agregando `discipline` como parámetro opcional a los 3 hooks principales. Los consumidores no-admin (Events.tsx, Gimnasios.tsx, etc.) siguen funcionando sin cambios.
+Both telemetry sessions in the database reference fights that no longer exist:
+- `60e4f89e...` → fight `238314f9...` (0 events, vision_engine_01)
+- `ac05e3f4...` → fight `563d8558...` (278 events, simulation data)
 
-## Cambios
+## Actions
 
-### 1. `src/hooks/useAdminFighters.tsx`
+### 1. Delete orphaned data (SQL via insert tool)
 
-Agregar parámetro `discipline?: string` a `useAdminFighters()` y pasarlo a `useFightersQuery`:
+Run in order:
+```sql
+DELETE FROM fight_telemetry_events WHERE session_id IN (
+  SELECT s.id FROM fight_telemetry_sessions s
+  LEFT JOIN fights f ON f.id = s.fight_id
+  WHERE f.id IS NULL
+);
 
-```typescript
-export function useAdminFighters(discipline?: string) {
-  const { data, isLoading, error: queryError, refetch } = useFightersQuery({ 
-    active: true,
-    discipline 
-  });
-  // ... rest unchanged
-}
+DELETE FROM fight_telemetry_sessions s
+WHERE NOT EXISTS (SELECT 1 FROM fights f WHERE f.id = s.fight_id);
 ```
 
-`useFightersQuery` ya tiene soporte para `discipline` en la query de Supabase (línea 36-38), así que no necesita cambios.
+This removes 278 events + 2 orphaned sessions.
 
-### 2. `src/hooks/useEvents.tsx`
+### 2. Prevent future orphans (migration)
 
-Agregar parámetro opcional `discipline` a `useEvents()` y aplicar `.eq('discipline', discipline)` en `fetchEvents`:
+Add an `ON DELETE CASCADE` foreign key from `fight_telemetry_sessions.fight_id` to `fights.id`. This way, deleting a fight automatically cleans up its telemetry sessions. Similarly, `fight_telemetry_events` already cascades from sessions.
 
-```typescript
-export function useEvents(discipline?: string) {
-  // In fetchEvents:
-  let query = supabase.from('bdg_event').select('*');
-  if (discipline) {
-    query = query.eq('discipline', discipline);
-  }
-  query = query.order('start_time', { ascending: true });
+```sql
+ALTER TABLE fight_telemetry_sessions
+  ADD CONSTRAINT fk_telemetry_session_fight
+  FOREIGN KEY (fight_id) REFERENCES fights(id) ON DELETE CASCADE;
 ```
 
-También filtrar en el handler realtime para no insertar eventos de otra disciplina.
+### Files affected
 
-### 3. `src/hooks/useGyms.tsx`
-
-Agregar parámetro opcional `discipline` a `useGyms()`. Como `gyms.disciplinas` es un array text[], usar `.contains('disciplinas', [discipline])`:
-
-```typescript
-export function useGyms(discipline?: string) {
-  return useQuery({
-    queryKey: ['gyms', discipline],
-    queryFn: async (): Promise<Gym[]> => {
-      let query = supabase.from('gyms').select('*').eq('activo', true);
-      if (discipline) {
-        query = query.contains('disciplinas', [discipline]);
-      }
-      // ...
-```
-
-### 4. Actualizar consumidores admin
-
-| Archivo | Cambio |
-|---------|--------|
-| `FightersProfiles.tsx` | `useAdminFighters(discipline)` — eliminar `useMemo` de filtrado |
-| `EventosPelea.tsx` | `useEvents(discipline)` — eliminar `useMemo` que filtra `allEvents` |
-| `GimnasiosAdmin.tsx` | `useGyms(discipline)` — simplificar `filteredGyms` memo |
-| `EntrenadoresAdmin.tsx` | `useGyms(discipline)` si aplica |
-
-### 5. Consumidores no-admin (sin cambios)
-
-`Events.tsx`, `Gimnasios.tsx`, `EventDetail.tsx`, `LiveEventsControl.tsx`, `FighterProfileForm.tsx`, etc. llaman sin parámetro y siguen recibiendo todos los datos.
-
-## Archivos afectados
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useAdminFighters.tsx` | Aceptar `discipline` param, pasar a query |
-| `src/hooks/useEvents.tsx` | Aceptar `discipline` param, filtrar en Supabase |
-| `src/hooks/useGyms.tsx` | Aceptar `discipline` param, usar `.contains()` |
-| `src/pages/admin/FightersProfiles.tsx` | Pasar discipline al hook, eliminar filtrado client |
-| `src/pages/admin/EventosPelea.tsx` | Pasar discipline al hook, eliminar `useMemo` filtro |
-| `src/pages/admin/GimnasiosAdmin.tsx` | Pasar discipline al hook, simplificar memo |
+| Target | Change |
+|--------|--------|
+| SQL (insert tool) | Delete orphaned events + sessions |
+| SQL (migration) | Add CASCADE foreign key to prevent recurrence |
 
