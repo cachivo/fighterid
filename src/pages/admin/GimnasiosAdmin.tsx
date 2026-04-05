@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function GimnasiosAdmin() {
-  const { data: gyms, isLoading } = useGyms();
+  const { data: gyms, isLoading } = useGyms(discipline);
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
