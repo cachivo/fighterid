@@ -168,6 +168,8 @@ export function useEvents(discipline?: string) {
           
           if (payload.eventType === 'INSERT') {
             const newEvent = payload.new as BdgEvent;
+            // Skip if filtering by discipline and event doesn't match
+            if (discipline && newEvent.discipline !== discipline) return;
             // Verificar si el evento es visible para el usuario actual
             if (newEvent.published || newEvent.created_by === user?.id) {
               setEvents(prev => [...prev, newEvent].sort((a, b) => 
