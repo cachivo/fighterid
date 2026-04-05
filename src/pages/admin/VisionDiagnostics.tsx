@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Zap, Play, RotateCcw, FlameKindling } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Zap, Play, RotateCcw, FlameKindling, History } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const EXPECTED_PROJECT_ID = 'eeshomcqztvjkvycdfwi';
@@ -34,6 +34,11 @@ interface TelemetryEvent {
   body_hit: boolean | null;
   face_hit: boolean | null;
   speed_ms: number | null;
+}
+
+interface HistorySession extends SessionData {
+  event_count: number;
+  device_id: string | null;
 }
 
 type Status = 'ok' | 'warn' | 'error';
@@ -72,6 +77,7 @@ function randomStrike(sessionId: string) {
 export default function VisionDiagnostics() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [events, setEvents] = useState<TelemetryEvent[]>([]);
+  const [sessionHistory, setSessionHistory] = useState<HistorySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastPoll, setLastPoll] = useState<Date>(new Date());
   const [simLoading, setSimLoading] = useState(false);
@@ -102,6 +108,34 @@ export default function VisionDiagnostics() {
         setEvents(evts ?? []);
       } else {
         setEvents([]);
+      }
+
+      // Fetch session history (all statuses, last 20)
+      const { data: allSessions } = await (supabase as any)
+        .from('fight_telemetry_sessions')
+        .select('id, session_token, fight_id, status, hud_connected, vision_connected, last_heartbeat, started_at, fighter_red_id, fighter_blue_id, device_id')
+        .order('started_at', { ascending: false })
+        .limit(20);
+
+      if (allSessions && allSessions.length > 0) {
+        // Get event counts grouped by session
+        const sessionIds = allSessions.map((s: any) => s.id);
+        const { data: countRows } = await (supabase as any)
+          .from('fight_telemetry_events')
+          .select('session_id')
+          .in('session_id', sessionIds);
+
+        const countMap: Record<string, number> = {};
+        (countRows ?? []).forEach((r: any) => {
+          countMap[r.session_id] = (countMap[r.session_id] || 0) + 1;
+        });
+
+        setSessionHistory(allSessions.map((s: any) => ({
+          ...s,
+          event_count: countMap[s.id] || 0,
+        })));
+      } else {
+        setSessionHistory([]);
       }
     } catch (e) {
       console.error('Vision diagnostics poll error:', e);
@@ -317,6 +351,67 @@ export default function VisionDiagnostics() {
                         <TableCell className="text-xs">{new Date(e.created_at).toLocaleTimeString()}</TableCell>
                       </TableRow>
                     ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Session History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm flex items-center gap-2">
+              <History className="h-4 w-4" />
+              Historial de Sesiones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {sessionHistory.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No hay sesiones registradas.</p>
+            ) : (
+              <div className="overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Device</TableHead>
+                      <TableHead>Fight</TableHead>
+                      <TableHead>Token</TableHead>
+                      <TableHead>Started</TableHead>
+                      <TableHead>Heartbeat</TableHead>
+                      <TableHead>Events</TableHead>
+                      <TableHead>Fighters</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sessionHistory.map((s) => {
+                      const statusVariant =
+                        s.status === 'connected' || s.status === 'active' ? 'success' as const :
+                        s.status === 'ended' ? 'outline' as const :
+                        s.status === 'disconnected' ? 'destructive' as const :
+                        'secondary' as const;
+                      return (
+                        <TableRow key={s.id}>
+                          <TableCell>
+                            <Badge variant={statusVariant}>{s.status}</Badge>
+                          </TableCell>
+                          <TableCell className="text-xs font-mono">{s.device_id ?? '—'}</TableCell>
+                          <TableCell className="text-xs font-mono">{s.fight_id ? s.fight_id.slice(0, 8) + '…' : '—'}</TableCell>
+                          <TableCell className="text-xs font-mono">{s.session_token.slice(0, 8)}…</TableCell>
+                          <TableCell className="text-xs">{s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</TableCell>
+                          <TableCell className="text-xs">{heartbeatAge(s.last_heartbeat)}</TableCell>
+                          <TableCell className="text-xs font-semibold">{s.event_count}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {s.fighter_red_id ? <Badge variant="destructive" className="text-[10px] px-1.5 py-0">🔴</Badge> : null}
+                              {s.fighter_blue_id ? <Badge variant="default" className="text-[10px] px-1.5 py-0">🔵</Badge> : null}
+                              {!s.fighter_red_id && !s.fighter_blue_id && <span className="text-xs text-muted-foreground">—</span>}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
