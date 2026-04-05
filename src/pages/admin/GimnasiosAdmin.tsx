@@ -19,11 +19,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function GimnasiosAdmin() {
-  const { data: gyms, isLoading } = useGyms();
+  const discipline = useDiscipline();
+  const { data: gyms, isLoading } = useGyms(discipline);
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
-  const discipline = useDiscipline();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [sendingInvitation, setSendingInvitation] = useState(false);
@@ -35,19 +35,14 @@ export default function GimnasiosAdmin() {
 
   const filteredGyms = useMemo(() => {
     if (!gyms) return [];
-    let result = gyms.filter(g =>
-      g.disciplinas?.some(d => d === discipline)
-    );
-    // Then filter by search query
-    if (!searchQuery.trim()) return result;
+    if (!searchQuery.trim()) return gyms;
     const q = searchQuery.toLowerCase();
-    return result.filter(g =>
+    return gyms.filter(g =>
       g.nombre.toLowerCase().includes(q) ||
       g.ciudad?.toLowerCase().includes(q) ||
-      g.pais?.toLowerCase().includes(q) ||
-      g.disciplinas?.some(d => d.toLowerCase().includes(q))
+      g.pais?.toLowerCase().includes(q)
     );
-  }, [gyms, searchQuery, discipline]);
+  }, [gyms, searchQuery]);
 
   const toggleDiscipline = (id: string) => {
     setSelectedDisciplines(prev =>

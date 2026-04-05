@@ -54,7 +54,7 @@ export interface Fight {
   fighter_b_external?: any;
 }
 
-export function useEvents() {
+export function useEvents(discipline?: string) {
   const [events, setEvents] = useState<BdgEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,11 +62,15 @@ export function useEvents() {
 
   const fetchEvents = async () => {
     try {
-      console.log('[EVENTS] Fetching events...');
+      console.log('[EVENTS] Fetching events...', discipline ? `discipline=${discipline}` : 'all');
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('bdg_event')
-        .select('*')
+        .select('*');
+      if (discipline) {
+        query = query.eq('discipline', discipline);
+      }
+      const { data, error } = await query
         .order('start_time', { ascending: true });
 
       console.log('[EVENTS] Query result:', { data, error, count: data?.length });
@@ -164,6 +168,8 @@ export function useEvents() {
           
           if (payload.eventType === 'INSERT') {
             const newEvent = payload.new as BdgEvent;
+            // Skip if filtering by discipline and event doesn't match
+            if (discipline && newEvent.discipline !== discipline) return;
             // Verificar si el evento es visible para el usuario actual
             if (newEvent.published || newEvent.created_by === user?.id) {
               setEvents(prev => [...prev, newEvent].sort((a, b) => 
@@ -172,6 +178,7 @@ export function useEvents() {
             }
           } else if (payload.eventType === 'UPDATE') {
             const updatedEvent = payload.new as BdgEvent;
+            if (discipline && updatedEvent.discipline !== discipline) return;
             setEvents(prev => {
               // Si el evento ya está en la lista, actualizarlo
               const exists = prev.some(e => e.id === updatedEvent.id);

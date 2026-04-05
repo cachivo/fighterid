@@ -23,8 +23,8 @@ const ROLE_LABELS: Record<string, { label: string; variant: 'default' | 'seconda
 
 export default function EntrenadoresAdmin() {
   const { data: allStaff, isLoading } = useAllGymStaff();
-  const { data: gyms } = useGyms();
   const discipline = useDiscipline();
+  const { data: gyms } = useGyms(discipline);
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGym, setSelectedGym] = useState('');
@@ -102,7 +102,7 @@ export default function EntrenadoresAdmin() {
                   <SelectTrigger><SelectValue placeholder="Selecciona un gimnasio" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Seleccionar...</SelectItem>
-                    {gyms?.filter(g => g.disciplinas?.some(d => d === discipline))?.map(gym => (
+                    {gyms?.map(gym => (
                       <SelectItem key={gym.id} value={gym.id}>{gym.nombre}</SelectItem>
                     ))}
                   </SelectContent>
