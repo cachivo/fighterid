@@ -36,6 +36,11 @@ interface TelemetryEvent {
   speed_ms: number | null;
 }
 
+interface HistorySession extends SessionData {
+  event_count: number;
+  device_id: string | null;
+}
+
 type Status = 'ok' | 'warn' | 'error';
 
 const StatusIcon = ({ s }: { s: Status }) =>
