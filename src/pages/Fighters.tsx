@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { PageHeader } from '@/components/ui/page-header';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
+import { useRankingOrganizations } from '@/hooks/useRankingOrganizations';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy, CheckCircle, Gem } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
