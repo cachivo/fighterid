@@ -72,6 +72,8 @@ const RECORD_TYPES = [
 ];
 
 export default function Fighters() {
+  const [searchParams] = useSearchParams();
+  const orgCodeParam = searchParams.get('org');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState('Todos');
   const [selectedDiscipline, setSelectedDiscipline] = useState('Todas');
@@ -91,8 +93,19 @@ export default function Fighters() {
   // Realtime subscription for automatic sync when fighter levels change
   useRealtimeFighterUpdates();
   
+  const { data: rankingOrgs } = useRankingOrganizations();
   const { fighters, loading, loadingUserProfile, getUserFighterProfile, fetchFighters, fetchFightersWithReadyStatus } = useFighterProfiles();
   const { user } = useAuth();
+
+  // Pre-select discipline filter when arriving from ?org=<code> on home page
+  useEffect(() => {
+    if (orgCodeParam && rankingOrgs) {
+      const org = rankingOrgs.find(o => o.code === orgCodeParam);
+      if (org?.discipline) {
+        setSelectedDiscipline(org.discipline);
+      }
+    }
+  }, [orgCodeParam, rankingOrgs]);
 
   const handleCreateSuccess = useCallback(() => {
     setIsCreateDialogOpen(false);
