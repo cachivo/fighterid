@@ -1,65 +1,85 @@
 
 
-# Auditoría de Rankings — Corregir visibilidad de HHF y separar FEDEHBOX
+# Refinar nomenclatura y jerarquía de ligas
 
-## Hallazgos de la auditoría
+## Lógica oficial confirmada
 
-| Problema | Causa raíz |
-|----------|------------|
-| HHF no aparece en el feed | El home arranca en `UCC_MMA` (MMA). Para ver HHF hay que cambiar a la pestaña BOXEO; muchos usuarios nunca lo hacen. |
-| HHF y FEDEHBOX se muestran como pestañas pequeñas | En `LeagueSelector` ambas organizaciones de Boxeo aparecen como toggles compactos, sin jerarquía visual clara. |
-| FEDEHBOX no es percibida como ranking independiente | Comparte selector con HHF. Visualmente parece "una variante" de la misma liga. |
-| Datos en DB están correctos | HHF_AMATEUR: 17 peleadores activos · FEDEHBOX: 3 · UCC_MMA: 57 |
+| Código | Nombre completo | Tipo | Niveles | Disciplina |
+|--------|-----------------|------|---------|------------|
+| `FEDEHBOX` | Federación Hondureña de Boxeo Amateur | **Liga Nacional Olímpica** (oficial) | Olímpico, Profesional, Semi-profesional | Boxeo |
+| `HHF_AMATEUR` | Honduras Hood Fights | **Minor League** (eventos de barrio) | Amateur | Boxeo |
+| `UCC_MMA` | Ultimate Combat Championship Honduras | Liga oficial MMA | Amateur, Semi-profesional, Profesional | MMA |
 
-## Solución propuesta
+La lógica de auto-inscripción ya funciona correctamente (migraciones `20260401233043` y `20260205050724`):
+- Boxeo Amateur → HHF_AMATEUR
+- Boxeo Olímpico/Pro/Semi → FEDEHBOX
+- MMA → UCC_MMA
 
-Renderizar **un listado por organización** en el home (UCC_MMA, HHF_AMATEUR, FEDEHBOX), cada uno como su propia sección con encabezado, stats y tabla. El selector de disciplina/liga deja de ser obligatorio para descubrir rankings.
+Solo faltan ajustes de **nomenclatura visible** y **jerarquía visual**.
 
-### Cambios
+## Cambios
 
-**1. `src/pages/Index.tsx`**
-- Eliminar el estado `selectedOrg` y el `LeagueSelector` del home.
-- Renderizar tres componentes `<Ranking>` en orden: `UCC_MMA`, `HHF_AMATEUR`, `FEDEHBOX`.
-- Cada sección queda separada por un divisor sutil; cada una mantiene su propio título grande ("RANKING UCC MMA", "RANKING HHF AMATEUR", "RANKING FEDEHBOX") gracias al texto dinámico ya existente.
+### 1. Migración SQL — Actualizar nombres y descripciones
 
-**2. `src/components/sections/Ranking.tsx`**
-- Recibir prop opcional `compact?: boolean` (default `false`). Cuando `true`:
-  - Muestra solo top 5 peleadores (sin infinite scroll).
-  - Oculta filtros de peso/género (mantiene tabs de nivel solo si la org tiene >1 nivel).
-  - Botón "Ver ranking completo" navega a `/fighters?org=<code>`.
-- En el home se usa `compact` para los tres bloques, evitando una página gigante.
-- Cuando `compact=false` (uso desde otras páginas), todo sigue igual.
+```sql
+UPDATE ranking_organizations
+SET 
+  name = 'Federación Hondureña de Boxeo Amateur',
+  description = 'Liga Nacional Olímpica oficial de Honduras — niveles Olímpico, Profesional y Semi-profesional'
+WHERE code = 'FEDEHBOX';
 
-**3. `src/components/sections/LeagueSelector.tsx`**
-- Sigue existiendo; se mueve a la página `/fighters` (donde ya tiene sentido el filtrado profundo). No se elimina código, solo se desacopla del home.
+UPDATE ranking_organizations
+SET 
+  name = 'Honduras Hood Fights',
+  short_name = 'HHF',
+  description = 'Minor League — boxeo amateur de barrio'
+WHERE code = 'HHF_AMATEUR';
 
-**4. `src/pages/Fighters.tsx`**
-- Aceptar query param `?org=<code>` para preseleccionar la organización al venir desde un botón "Ver ranking completo" del home.
+UPDATE ranking_organizations
+SET 
+  description = 'Ranking oficial de MMA en Honduras (disciplina independiente)'
+WHERE code = 'UCC_MMA';
+```
 
-## Layout resultante en el home
+### 2. `src/pages/Index.tsx` — Reordenar y agregar separadores temáticos
+
+Reordenar para que la jerarquía sea evidente:
 
 ```text
-[HERO]
-[FighterIDCallToAction / QuickStats]
-
-────── RANKING UCC MMA ──────
-   [stats] [top 5] [Ver ranking completo →]
-
-────── RANKING HHF AMATEUR ──────
-   [stats] [top 5] [Ver ranking completo →]
-
-────── RANKING FEDEHBOX ──────
-   [stats] [top 5] [Ver ranking completo →]
-
-[GymShowcase] [StrategicAllies] [Footer]
+RANKING UCC MMA          ← Disciplina MMA (independiente)
+─────────────────────
+[Sección Boxeo]
+RANKING FEDEHBOX         ← Liga Nacional Olímpica (oficial)
+RANKING HHF              ← Minor League
 ```
+
+Agregar un encabezado de sección "BOXEO" que agrupe visualmente FEDEHBOX y HHF, dejando MMA como disciplina aparte arriba.
+
+### 3. `src/pages/admin/Dashboard.tsx`
+
+Actualizar el card de "Boxeo" para reflejar la jerarquía:
+- Reemplazar "Boxeo Profesional y Olímpico" por "Liga Nacional Olímpica + Minor League"
+- Badges: `FEDEHBOX (Oficial)` y `HHF (Minor League)`
+
+### 4. `src/components/sections/LeagueSelector.tsx`
+
+En la página `/fighters`, cuando se selecciona Boxeo, mostrar un subtítulo aclaratorio sobre cada org:
+- FEDEHBOX → "Liga Nacional Olímpica"
+- HHF → "Minor League Amateur"
+
+(Ya se muestra `org.description` debajo, así que el cambio en DB se refleja automáticamente.)
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Index.tsx` | Quitar `LeagueSelector`/`selectedOrg`; renderizar 3 `<Ranking compact>` |
-| `src/components/sections/Ranking.tsx` | Agregar prop `compact` (top 5, sin filtros de peso/género, botón "ver completo") |
-| `src/pages/Fighters.tsx` | Leer `?org=` de la URL para preseleccionar liga |
-| `src/components/sections/LeagueSelector.tsx` | Sin cambios funcionales (sigue usándose en `/fighters`) |
+| Migración SQL | Actualizar `name`, `short_name` y `description` de las 3 organizaciones |
+| `src/pages/Index.tsx` | Encabezado "BOXEO" agrupando FEDEHBOX + HHF; MMA arriba como disciplina aparte |
+| `src/pages/admin/Dashboard.tsx` | Badges y subtítulos del card de Boxeo |
+
+## Lo que NO cambia
+
+- La lógica de auto-inscripción y migración de niveles (ya funciona).
+- Los códigos internos (`FEDEHBOX`, `HHF_AMATEUR`, `UCC_MMA`) — solo cambian etiquetas visibles.
+- La separación MMA / Boxeo en el sistema admin segregado por disciplina.
 
