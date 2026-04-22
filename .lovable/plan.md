@@ -1,85 +1,83 @@
 
 
-# Refinar nomenclatura y jerarquía de ligas
+# Auditoría de código — Limpieza, formularios y emails
 
-## Lógica oficial confirmada
+## Hallazgos
 
-| Código | Nombre completo | Tipo | Niveles | Disciplina |
-|--------|-----------------|------|---------|------------|
-| `FEDEHBOX` | Federación Hondureña de Boxeo Amateur | **Liga Nacional Olímpica** (oficial) | Olímpico, Profesional, Semi-profesional | Boxeo |
-| `HHF_AMATEUR` | Honduras Hood Fights | **Minor League** (eventos de barrio) | Amateur | Boxeo |
-| `UCC_MMA` | Ultimate Combat Championship Honduras | Liga oficial MMA | Amateur, Semi-profesional, Profesional | MMA |
+### 1. Código muerto / archivos sin uso
 
-La lógica de auto-inscripción ya funciona correctamente (migraciones `20260401233043` y `20260205050724`):
-- Boxeo Amateur → HHF_AMATEUR
-- Boxeo Olímpico/Pro/Semi → FEDEHBOX
-- MMA → UCC_MMA
+| Archivo / Ruta | Estado | Acción |
+|---|---|---|
+| `src/components/admin/QuickUpdateRandyImage.tsx` | 0 referencias en todo el código | Eliminar |
+| `src/pages/TestNewsFunction.tsx` + ruta `/test-news` en `App.tsx` | Página de debug expuesta en producción (sin protección) | Eliminar página y ruta |
+| `supabase/functions/bet-delay-processor/` | No hay cron job configurado, ni invocaciones | Mantener pero documentar — es para sistema de apuestas futuro |
+| `supabase/functions/process-email-queue/` | No hay cron job ni invocaciones | Mantener — infraestructura preparada |
 
-Solo faltan ajustes de **nomenclatura visible** y **jerarquía visual**.
+### 2. Formularios con campos mal inicializados (viola `numeric-field-sanitization`)
 
-## Cambios
+`src/components/FighterProfileForm.tsx` usa `undefined` para campos numéricos opcionales:
+- Líneas 43-45: estado inicial con `height_cm: undefined, weight_kg: undefined, reach_cm: undefined`
+- Líneas 369, 385, 396: handlers que envían `undefined` cuando el input está vacío
 
-### 1. Migración SQL — Actualizar nombres y descripciones
+**Estándar requerido**: usar `null` explícito para campos físicos opcionales vacíos. `undefined` rompe `react-hook-form`-style controlled components y la columna en Postgres.
 
-```sql
-UPDATE ranking_organizations
-SET 
-  name = 'Federación Hondureña de Boxeo Amateur',
-  description = 'Liga Nacional Olímpica oficial de Honduras — niveles Olímpico, Profesional y Semi-profesional'
-WHERE code = 'FEDEHBOX';
+### 3. Formularios sin react-hook-form / zod (deuda técnica)
 
-UPDATE ranking_organizations
-SET 
-  name = 'Honduras Hood Fights',
-  short_name = 'HHF',
-  description = 'Minor League — boxeo amateur de barrio'
-WHERE code = 'HHF_AMATEUR';
+| Formulario | Estado actual | Recomendación |
+|---|---|---|
+| `ContactForm.tsx` | `useState` plano, sin validación zod | Migrar a `react-hook-form` + zod (regla de seguridad de input validation) |
+| `FighterProfileForm.tsx` | `useState` plano, validación manual | Migrar a `react-hook-form` + zod |
+| `AdminFighterForm.tsx` | `useState` plano | Migrar a `react-hook-form` + zod |
 
-UPDATE ranking_organizations
-SET 
-  description = 'Ranking oficial de MMA en Honduras (disciplina independiente)'
-WHERE code = 'UCC_MMA';
-```
+Los formularios modernos (`UserProfileForm`, `UserFighterProfileEditForm`) ya usan el patrón correcto. Esta migración alinea el código con el estándar.
 
-### 2. `src/pages/Index.tsx` — Reordenar y agregar separadores temáticos
+### 4. Console.logs en producción
 
-Reordenar para que la jerarquía sea evidente:
+46 `console.log` en `src/components/` y `src/pages/` (excluyendo errores). Limpiar los de debug, conservar los que ayudan a diagnosticar.
 
-```text
-RANKING UCC MMA          ← Disciplina MMA (independiente)
-─────────────────────
-[Sección Boxeo]
-RANKING FEDEHBOX         ← Liga Nacional Olímpica (oficial)
-RANKING HHF              ← Minor League
-```
+### 5. Sistema de emails — Todo OK
 
-Agregar un encabezado de sección "BOXEO" que agrupe visualmente FEDEHBOX y HHF, dejando MMA como disciplina aparte arriba.
+Las 8 funciones edge de email (`send-fighter-invitation`, `send-gym-invitation`, `send-license-approval`, `send-mass-email`, `send-password-recovery`, `send-signup-confirmation`, `notify-admin-pending`, `process-email-queue`) usan correctamente `sendEmailWithFallback` y `EmailTemplates.wrap` del módulo compartido. Cumplen `EMAIL_BEST_PRACTICES.md`.
 
-### 3. `src/pages/admin/Dashboard.tsx`
+## Plan de cambios
 
-Actualizar el card de "Boxeo" para reflejar la jerarquía:
-- Reemplazar "Boxeo Profesional y Olímpico" por "Liga Nacional Olímpica + Minor League"
-- Badges: `FEDEHBOX (Oficial)` y `HHF (Minor League)`
+### Fase 1 — Eliminar código muerto
+- Borrar `src/components/admin/QuickUpdateRandyImage.tsx`
+- Borrar `src/pages/TestNewsFunction.tsx`
+- Quitar import (línea 53) y ruta `/test-news` (línea 190) de `src/App.tsx`
 
-### 4. `src/components/sections/LeagueSelector.tsx`
+### Fase 2 — Saneamiento numérico (`FighterProfileForm.tsx`)
+- Cambiar inicialización de `height_cm`, `weight_kg`, `reach_cm` de `undefined` a `null`
+- Actualizar handlers `onChange` para enviar `null` cuando el input está vacío en vez de `undefined`
+- Verificar que el `onSubmit` no envía claves con valor `undefined` a Supabase
 
-En la página `/fighters`, cuando se selecciona Boxeo, mostrar un subtítulo aclaratorio sobre cada org:
-- FEDEHBOX → "Liga Nacional Olímpica"
-- HHF → "Minor League Amateur"
+### Fase 3 — Migrar `ContactForm.tsx` a react-hook-form + zod
+- Crear schema zod con: `name (1-100)`, `email (RFC + max 255)`, `subject (1-200)`, `message (1-1000)`
+- Reemplazar `useState({...})` por `useForm({ resolver: zodResolver(schema) })`
+- Mostrar errores inline con `<FormMessage />`
 
-(Ya se muestra `org.description` debajo, así que el cambio en DB se refleja automáticamente.)
+### Fase 4 — Limpieza de console.logs
+- Eliminar `console.log` de debug en componentes y páginas (solo conservar los que loguean errores capturados)
+
+### Fase 5 — Verificación final
+- Confirmar que rutas eliminadas no se referencian en otros lados
+- Confirmar que los formularios siguen funcionando con los cambios
+
+## Lo que NO se toca
+
+- Las funciones edge de email (ya cumplen estándar)
+- Los formularios `UserProfileForm` y `UserFighterProfileEditForm` (ya usan el patrón correcto)
+- `AdminFighterForm` (más complejo — se deja para una fase posterior si lo apruebas)
+- `bet-delay-processor` y `process-email-queue` (infraestructura preparada, no es código muerto real)
 
 ## Archivos afectados
 
 | Archivo | Cambio |
-|---------|--------|
-| Migración SQL | Actualizar `name`, `short_name` y `description` de las 3 organizaciones |
-| `src/pages/Index.tsx` | Encabezado "BOXEO" agrupando FEDEHBOX + HHF; MMA arriba como disciplina aparte |
-| `src/pages/admin/Dashboard.tsx` | Badges y subtítulos del card de Boxeo |
-
-## Lo que NO cambia
-
-- La lógica de auto-inscripción y migración de niveles (ya funciona).
-- Los códigos internos (`FEDEHBOX`, `HHF_AMATEUR`, `UCC_MMA`) — solo cambian etiquetas visibles.
-- La separación MMA / Boxeo en el sistema admin segregado por disciplina.
+|---|---|
+| `src/components/admin/QuickUpdateRandyImage.tsx` | Eliminar |
+| `src/pages/TestNewsFunction.tsx` | Eliminar |
+| `src/App.tsx` | Quitar import y ruta `/test-news` |
+| `src/components/FighterProfileForm.tsx` | `undefined` → `null` en campos numéricos |
+| `src/components/ContactForm.tsx` | Migrar a react-hook-form + zod |
+| `src/components/` y `src/pages/` (varios) | Limpieza de `console.log` de debug |
 
