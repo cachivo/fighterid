@@ -1,83 +1,118 @@
 
 
-# Auditoría de código — Limpieza, formularios y emails
+# Cola de aprobación admin — Gimnasios, Peleadores y Eventos
 
-## Hallazgos
+## Contexto
 
-### 1. Código muerto / archivos sin uso
+Actualmente las tres entidades se publican inmediatamente al crearse:
+- **Gimnasios**: `gyms` no tiene campo de estado de aprobación.
+- **Peleadores**: `fighter_profiles` se crea directo sin moderación (vía `FighterProfileForm`, `AdminFighterForm`, onboarding de licencia).
+- **Eventos**: `bdg_event` se publica vía `EventImporter` y panel admin sin revisión.
 
-| Archivo / Ruta | Estado | Acción |
-|---|---|---|
-| `src/components/admin/QuickUpdateRandyImage.tsx` | 0 referencias en todo el código | Eliminar |
-| `src/pages/TestNewsFunction.tsx` + ruta `/test-news` en `App.tsx` | Página de debug expuesta en producción (sin protección) | Eliminar página y ruta |
-| `supabase/functions/bet-delay-processor/` | No hay cron job configurado, ni invocaciones | Mantener pero documentar — es para sistema de apuestas futuro |
-| `supabase/functions/process-email-queue/` | No hay cron job ni invocaciones | Mantener — infraestructura preparada |
+Ya existe `PendingChangesHub` para *cambios* a perfiles existentes (vía `useProfileChangeRequests`), pero NO hay flujo de aprobación para *creaciones nuevas*.
 
-### 2. Formularios con campos mal inicializados (viola `numeric-field-sanitization`)
+## Diseño
 
-`src/components/FighterProfileForm.tsx` usa `undefined` para campos numéricos opcionales:
-- Líneas 43-45: estado inicial con `height_cm: undefined, weight_kg: undefined, reach_cm: undefined`
-- Líneas 369, 385, 396: handlers que envían `undefined` cuando el input está vacío
+### 1. Migración SQL — Estado de moderación unificado
 
-**Estándar requerido**: usar `null` explícito para campos físicos opcionales vacíos. `undefined` rompe `react-hook-form`-style controlled components y la columna en Postgres.
+Agregar columna `moderation_status` a las tres tablas con enum compartido:
 
-### 3. Formularios sin react-hook-form / zod (deuda técnica)
+```sql
+CREATE TYPE moderation_status AS ENUM ('pending', 'approved', 'rejected');
 
-| Formulario | Estado actual | Recomendación |
-|---|---|---|
-| `ContactForm.tsx` | `useState` plano, sin validación zod | Migrar a `react-hook-form` + zod (regla de seguridad de input validation) |
-| `FighterProfileForm.tsx` | `useState` plano, validación manual | Migrar a `react-hook-form` + zod |
-| `AdminFighterForm.tsx` | `useState` plano | Migrar a `react-hook-form` + zod |
+ALTER TABLE gyms ADD COLUMN moderation_status moderation_status DEFAULT 'approved';
+ALTER TABLE fighter_profiles ADD COLUMN moderation_status moderation_status DEFAULT 'approved';
+ALTER TABLE bdg_event ADD COLUMN moderation_status moderation_status DEFAULT 'approved';
 
-Los formularios modernos (`UserProfileForm`, `UserFighterProfileEditForm`) ya usan el patrón correcto. Esta migración alinea el código con el estándar.
+-- Auditoría
+ALTER TABLE gyms ADD COLUMN moderation_reviewed_by uuid, ADD COLUMN moderation_reviewed_at timestamptz, ADD COLUMN moderation_notes text;
+-- (mismas columnas para fighter_profiles y bdg_event)
+```
 
-### 4. Console.logs en producción
+**Default `approved`** para no romper datos existentes. Las nuevas inserciones desde formularios públicos/usuarios serán marcadas `pending` explícitamente.
 
-46 `console.log` en `src/components/` y `src/pages/` (excluyendo errores). Limpiar los de debug, conservar los que ayudan a diagnosticar.
+### 2. Lógica de marcado al crear
 
-### 5. Sistema de emails — Todo OK
+Quién crea → estado:
+- Admin/SuperAdmin crea → `approved` (omitir cola)
+- Usuario regular / coach / formulario de invitación → `pending`
 
-Las 8 funciones edge de email (`send-fighter-invitation`, `send-gym-invitation`, `send-license-approval`, `send-mass-email`, `send-password-recovery`, `send-signup-confirmation`, `notify-admin-pending`, `process-email-queue`) usan correctamente `sendEmailWithFallback` y `EmailTemplates.wrap` del módulo compartido. Cumplen `EMAIL_BEST_PRACTICES.md`.
+Aplicar en:
+- `useCreateGym` → si no es admin, `pending`
+- `useFighterMutations` (`useUserUpdateFighter` para auto-creación), `FighterProfileForm` submit, edge function `send-fighter-invitation` (cuando el invitado completa registro)
+- `EventImporter` y creación manual de eventos → `pending` salvo admin
 
-## Plan de cambios
+### 3. Filtros en lecturas públicas
 
-### Fase 1 — Eliminar código muerto
-- Borrar `src/components/admin/QuickUpdateRandyImage.tsx`
-- Borrar `src/pages/TestNewsFunction.tsx`
-- Quitar import (línea 53) y ruta `/test-news` (línea 190) de `src/App.tsx`
+Las queries que alimentan la web pública deben filtrar `moderation_status = 'approved'`:
+- `useGyms`, `useGymsList`, `useGymsWithFighters` (público)
+- `useFightersQuery`, `useFighterByIdQuery` (cuando no es contexto admin)
+- `useEvents` (público)
 
-### Fase 2 — Saneamiento numérico (`FighterProfileForm.tsx`)
-- Cambiar inicialización de `height_cm`, `weight_kg`, `reach_cm` de `undefined` a `null`
-- Actualizar handlers `onChange` para enviar `null` cuando el input está vacío en vez de `undefined`
-- Verificar que el `onSubmit` no envía claves con valor `undefined` a Supabase
+Hooks admin (`useAdminFighters`, `GimnasiosAdmin` con `isSuperAdmin`) muestran todo.
 
-### Fase 3 — Migrar `ContactForm.tsx` a react-hook-form + zod
-- Crear schema zod con: `name (1-100)`, `email (RFC + max 255)`, `subject (1-200)`, `message (1-1000)`
-- Reemplazar `useState({...})` por `useForm({ resolver: zodResolver(schema) })`
-- Mostrar errores inline con `<FormMessage />`
+### 4. RLS
 
-### Fase 4 — Limpieza de console.logs
-- Eliminar `console.log` de debug en componentes y páginas (solo conservar los que loguean errores capturados)
+Actualizar políticas SELECT públicas para requerir `moderation_status = 'approved' OR has_role(auth.uid(), 'admin')`.
 
-### Fase 5 — Verificación final
-- Confirmar que rutas eliminadas no se referencian en otros lados
-- Confirmar que los formularios siguen funcionando con los cambios
+### 5. Nueva página: `/admin/cola-aprobacion`
 
-## Lo que NO se toca
+Archivo: `src/pages/admin/ApprovalQueue.tsx`
 
-- Las funciones edge de email (ya cumplen estándar)
-- Los formularios `UserProfileForm` y `UserFighterProfileEditForm` (ya usan el patrón correcto)
-- `AdminFighterForm` (más complejo — se deja para una fase posterior si lo apruebas)
-- `bet-delay-processor` y `process-email-queue` (infraestructura preparada, no es código muerto real)
+Estructura: tabs `Gimnasios | Peleadores | Eventos`, cada uno con badge contador.
+
+Por cada item pendiente, una `Card` con:
+- Datos clave (nombre, ciudad, disciplina, creador, fecha)
+- Botón "Ver detalles" → modal con todos los campos
+- Botones "Aprobar" / "Rechazar"
+- Campo opcional de notas para rechazo
+
+Acciones mutan `moderation_status`, `moderation_reviewed_by = auth.uid()`, `moderation_reviewed_at = now()`, `moderation_notes`.
+
+### 6. Hook nuevo: `useApprovalQueue`
+
+`src/hooks/useApprovalQueue.tsx` con queries:
+- `usePendingGyms()`, `usePendingFighters()`, `usePendingEvents()`
+- Mutaciones `approveItem(table, id, notes?)`, `rejectItem(table, id, notes)`
+- Realtime subscription para refresco automático
+
+### 7. Navegación admin
+
+- Añadir entrada "Cola de Aprobación" en `AdminSidebar` con badge del total pendiente.
+- Añadir card resumen en `AdminDashboard` con conteos por tipo.
+- Ruta nueva en `App.tsx`: `/admin/cola-aprobacion` protegida con `AdminProtectedRoute`.
+
+### 8. Notificaciones (mínimas)
+
+- Al rechazar peleador/gimnasio creado vía invitación → email al creador con notas (reutilizar `send-fighter-invitation` patrón con plantilla nueva `notify-submission-rejected`).
+- Al aprobar → toast en panel + opcional email de bienvenida.
+
+Fase 1 incluye solo el toast; el email queda como mejora opcional.
 
 ## Archivos afectados
 
 | Archivo | Cambio |
 |---|---|
-| `src/components/admin/QuickUpdateRandyImage.tsx` | Eliminar |
-| `src/pages/TestNewsFunction.tsx` | Eliminar |
-| `src/App.tsx` | Quitar import y ruta `/test-news` |
-| `src/components/FighterProfileForm.tsx` | `undefined` → `null` en campos numéricos |
-| `src/components/ContactForm.tsx` | Migrar a react-hook-form + zod |
-| `src/components/` y `src/pages/` (varios) | Limpieza de `console.log` de debug |
+| Migración SQL | Crear enum `moderation_status`, agregar columnas a `gyms`, `fighter_profiles`, `bdg_event`, actualizar RLS |
+| `src/hooks/useApprovalQueue.tsx` | **Nuevo**: queries y mutaciones de la cola |
+| `src/pages/admin/ApprovalQueue.tsx` | **Nuevo**: página con tabs y tarjetas de revisión |
+| `src/hooks/useGyms.tsx` | Marcar `pending` si no admin; filtrar `approved` en lectura pública |
+| `src/hooks/fighters/useFighterMutations.ts` | Marcar `pending` en creación de usuario |
+| `src/hooks/fighters/useFightersQuery.ts` | Filtrar `approved` por defecto |
+| `src/hooks/useEvents.tsx` | Marcar `pending` en creación no-admin; filtrar `approved` |
+| `src/components/EventImporter.tsx` | Set `moderation_status: 'pending'` |
+| `src/components/AdminSidebar.tsx` | Nueva entrada con badge contador |
+| `src/pages/admin/Dashboard.tsx` | Card con totales pendientes |
+| `src/App.tsx` | Ruta `/admin/cola-aprobacion` |
+
+## Lo que NO cambia
+
+- `useProfileChangeRequests` y `PendingChangesHub` siguen para *cambios* a perfiles existentes (uso distinto).
+- Datos existentes: todos quedan `approved` por defecto.
+- Los formularios desde admin omiten la cola (creación directa).
+
+## Riesgos / consideraciones
+
+- Las RLS necesitan revisión cuidadosa para no romper accesos de dueños viendo sus propias entidades pendientes.
+- `bdg_event` tiene mucho código que asume visibilidad inmediata (HUD, transmisiones); validar que eventos `pending` no aparezcan en HUD público pero sí en panel admin.
 
