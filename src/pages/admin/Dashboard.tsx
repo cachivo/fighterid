@@ -88,10 +88,10 @@ export default function Dashboard() {
                 <CardTitle className="text-xl">Boxeo</CardTitle>
               </CardHeader>
               <CardContent className="text-center space-y-3">
-                <p className="text-muted-foreground text-sm">Boxeo Profesional y Olímpico</p>
+                <p className="text-muted-foreground text-sm">Liga Nacional Olímpica + Minor League</p>
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Badge variant="secondary">HHF Amateur</Badge>
-                  <Badge variant="secondary">FEDEHBOX</Badge>
+                  <Badge variant="secondary">FEDEHBOX (Oficial)</Badge>
+                  <Badge variant="secondary">HHF (Minor League)</Badge>
                   <Badge variant="outline">Eventos</Badge>
                   <Badge variant="outline">Rankings</Badge>
                 </div>
