@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { FighterCard } from '@/components/FighterCard';
 import { FighterProfileForm } from '@/components/FighterProfileForm';
 import { PageHeader } from '@/components/ui/page-header';
 import { useFighterProfiles, FighterProfile } from '@/hooks/useFighterProfiles';
+import { useRankingOrganizations } from '@/hooks/useRankingOrganizations';
 import { useAuth } from '@/hooks/useAuth';
 import { Search, Plus, Filter, ArrowUpDown, Users, Target, Eye, Trophy, CheckCircle, Gem } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,6 +72,8 @@ const RECORD_TYPES = [
 ];
 
 export default function Fighters() {
+  const [searchParams] = useSearchParams();
+  const orgCodeParam = searchParams.get('org');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWeightClass, setSelectedWeightClass] = useState('Todos');
   const [selectedDiscipline, setSelectedDiscipline] = useState('Todas');
@@ -89,8 +93,19 @@ export default function Fighters() {
   // Realtime subscription for automatic sync when fighter levels change
   useRealtimeFighterUpdates();
   
+  const { data: rankingOrgs } = useRankingOrganizations();
   const { fighters, loading, loadingUserProfile, getUserFighterProfile, fetchFighters, fetchFightersWithReadyStatus } = useFighterProfiles();
   const { user } = useAuth();
+
+  // Pre-select discipline filter when arriving from ?org=<code> on home page
+  useEffect(() => {
+    if (orgCodeParam && rankingOrgs) {
+      const org = rankingOrgs.find(o => o.code === orgCodeParam);
+      if (org?.discipline) {
+        setSelectedDiscipline(org.discipline);
+      }
+    }
+  }, [orgCodeParam, rankingOrgs]);
 
   const handleCreateSuccess = useCallback(() => {
     setIsCreateDialogOpen(false);

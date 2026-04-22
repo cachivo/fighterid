@@ -17,15 +17,16 @@ import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 interface RankingProps {
   organizationCode?: string;
+  compact?: boolean;
 }
 
-const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
+const Ranking = ({ organizationCode = 'UCC_MMA', compact = false }: RankingProps) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('Amateur');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
   const [page, setPage] = useState(1);
   const [accumulatedRankings, setAccumulatedRankings] = useState<typeof rankingDataRef>([]);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = compact ? 5 : 10;
   
   // Realtime subscriptions for automatic sync across modules
   useRealtimeFighterUpdates();
@@ -205,8 +206,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
             Top Peleadores <span className="text-purple-neon-primary">{currentOrg?.discipline || ''}</span>
           </h3>
           
-          {/* Tabs de nivel - Mobile optimized */}
-          {availableLevels.length > 0 && (
+          {/* Tabs de nivel - mostrar solo si hay >1 nivel disponible */}
+          {availableLevels.length > 1 && (
             <div className="flex justify-center mb-3 xs:mb-4 px-2">
               <Tabs value={selectedLevel} onValueChange={setSelectedLevel}>
                 <TabsList className="bg-black/60 border border-purple-neon-primary/30 h-10 xs:h-11">
@@ -224,8 +225,8 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
             </div>
           )}
 
-          {/* Filtros de peso y género - Mobile optimized */}
-          <div className="flex flex-wrap justify-center gap-2 mb-4 xs:mb-6 px-2">
+          {/* Filtros de peso y género - ocultar en modo compact */}
+          <div className={`flex flex-wrap justify-center gap-2 mb-4 xs:mb-6 px-2 ${compact ? 'hidden' : ''}`}>
             {/* Filtro de Peso */}
             <Select 
               value={selectedWeightClass || '__all__'} 
@@ -283,11 +284,11 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
           ) : rankings.length > 0 ? (
             <InfiniteScrollContainer
               onLoadMore={loadMore}
-              hasMore={hasMore}
+              hasMore={compact ? false : hasMore}
               loading={isLoading}
             >
               <div className="space-y-2 xs:space-y-3 sm:space-y-4">
-              {rankings.map((ranking, index) => {
+              {(compact ? rankings.slice(0, 5) : rankings).map((ranking, index) => {
                   const rankPosition = index + 1;
                   const rankColors = ['text-yellow-400', 'text-gray-300', 'text-orange-400'];
                   const rankColor = rankPosition <= 3 ? rankColors[rankPosition - 1] : 'text-purple-neon-primary';
@@ -405,10 +406,10 @@ const Ranking = ({ organizationCode = 'UCC_MMA' }: RankingProps) => {
         <div className="text-center px-2">
           <Button 
             size="lg" 
-            onClick={() => navigate('/fighters')}
+            onClick={() => navigate(compact ? `/fighters?org=${organizationCode}` : '/fighters')}
             className="w-full xs:w-auto bg-purple-neon-primary hover:bg-purple-neon-secondary text-black font-bold px-4 xs:px-6 sm:px-8 py-3 xs:py-4 text-sm xs:text-base sm:text-lg animate-glow-neon min-h-[48px] touch-manipulation"
           >
-            Ver Todos los Peleadores
+            {compact ? `Ver ranking completo de ${currentOrg?.short_name || ''}` : 'Ver Todos los Peleadores'}
           </Button>
         </div>
       </div>

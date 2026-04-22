@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, lazy, Suspense, memo } from "react";
+import { useEffect, lazy, Suspense, memo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,6 @@ import Hero from "@/components/Hero";
 import { QuickStats } from "@/components/QuickStats";
 import Ranking from "@/components/sections/Ranking";
 import UrbanDecorations from "@/components/UrbanDecorations";
-import LeagueSelector from "@/components/sections/LeagueSelector";
 
 // Lazy load non-critical below-fold components
 const StrategicAllies = lazy(() => import("@/components/StrategicAllies"));
@@ -22,11 +21,6 @@ const MemoHero = memo(Hero);
 const Index = () => {
   const queryClient = useQueryClient();
   const { user, loading } = useAuth();
-  const [selectedOrg, setSelectedOrg] = useState<string>('UCC_MMA');
-
-  const handleOrgChange = useCallback((value: string) => {
-    setSelectedOrg(value);
-  }, []);
 
   useEffect(() => {
     queryClient.prefetchQuery({
@@ -82,8 +76,9 @@ const Index = () => {
         {user && <FighterIDCallToAction />}
       </Suspense>
       {!user && <QuickStats />}
-      <LeagueSelector value={selectedOrg} onChange={handleOrgChange} />
-      <Ranking organizationCode={selectedOrg} />
+      <Ranking organizationCode="UCC_MMA" compact />
+      <Ranking organizationCode="HHF_AMATEUR" compact />
+      <Ranking organizationCode="FEDEHBOX" compact />
       <Suspense fallback={null}>
         <GymShowcase />
         <StrategicAllies />
