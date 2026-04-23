@@ -18,7 +18,7 @@ export interface Gym {
   website?: string;
   owner_id?: string;
   activo: boolean;
-  moderation_status?: string;
+  moderation_status?: 'approved' | 'pending' | 'rejected';
   created_at: string;
   updated_at: string;
 }
