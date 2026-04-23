@@ -43,7 +43,7 @@ export function useUserDisciplineAccess() {
     hasFullAccess,
     hasMMA: hasFullAccess || disciplines.includes('MMA'),
     hasBoxeo: hasFullAccess || disciplines.includes('Boxeo'),
-    isLoading: query.isLoading,
+    isLoading: query.isLoading || rolesLoading,
     refetch: query.refetch,
   };
 }
