@@ -23,7 +23,8 @@ import {
   Medal,
   ImageIcon,
   Building2,
-  Tv
+  Tv,
+  ClipboardCheck
 } from 'lucide-react';
 import {
   Sidebar,
@@ -39,12 +40,15 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useApprovalCounts } from '@/hooks/useApprovalQueue';
 
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
+  { title: 'Cola de Aprobación', url: '/admin/cola-aprobacion', icon: ClipboardCheck, showApprovalBadge: true },
   { title: 'Centro de Moderación', url: '/admin/pending-changes', icon: Activity },
   { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Calendar },
   { title: 'Aprobación de Peleas', url: '/admin/fight-approval', icon: Gavel },
@@ -87,6 +91,7 @@ export function AdminSidebar() {
   const { signOut, user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
   const isMobile = useIsMobile();
+  const approval = useApprovalCounts();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
 
@@ -139,7 +144,16 @@ export function AdminSidebar() {
                       onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && (
+                        <span className="flex-1 flex items-center justify-between">
+                          <span>{item.title}</span>
+                          {item.showApprovalBadge && approval.total > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 ml-2">
+                              {approval.total}
+                            </Badge>
+                          )}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

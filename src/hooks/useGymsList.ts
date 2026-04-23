@@ -16,6 +16,7 @@ export function useGymsList() {
         .from('gyms')
         .select('id, nombre, logo_url, slug')
         .eq('activo', true)
+        .eq('moderation_status', 'approved')
         .order('nombre');
       if (error) throw error;
       return data as GymOption[];

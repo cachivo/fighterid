@@ -119,6 +119,7 @@ const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsMa
 const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
 const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
+const ApprovalQueue = lazy(() => import("./pages/admin/ApprovalQueue"));
 
 // Gym pages
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
@@ -333,6 +334,7 @@ const App = () => {
                   <AdminLayout>
                     <Routes>
                       <Route path="/" element={<Dashboard />} />
+                      <Route path="cola-aprobacion" element={<ApprovalQueue />} />
                       <Route path="configuracion" element={<SuperAdminRoute><Configuracion /></SuperAdminRoute>} />
                       <Route path="user-roles" element={<SuperAdminRoute><UserRoles /></SuperAdminRoute>} />
                       <Route path="system-assets" element={<SuperAdminRoute><SystemAssets /></SuperAdminRoute>} />

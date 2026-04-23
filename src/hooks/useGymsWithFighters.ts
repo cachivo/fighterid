@@ -22,18 +22,20 @@ export const useGymsWithFighters = () => {
   return useQuery({
     queryKey: ["gyms-with-fighters"],
     queryFn: async () => {
-      // Get gyms with fighter count
+      // Get gyms with fighter count (only approved)
       const { data: gyms, error: gymsError } = await supabase
         .from("gyms")
         .select("id, nombre, slug, ciudad, logo_url, disciplinas")
-        .eq("activo", true);
+        .eq("activo", true)
+        .eq("moderation_status", "approved");
 
       if (gymsError) throw gymsError;
 
-      // Get fighters grouped by gym
+      // Get fighters grouped by gym (only approved)
       const { data: fighters, error: fightersError } = await supabase
         .from("fighter_profiles")
         .select("id, first_name, last_name, nickname, avatar_url, gym_id")
+        .eq("moderation_status", "approved")
         .not("gym_id", "is", null);
 
       if (fightersError) throw fightersError;

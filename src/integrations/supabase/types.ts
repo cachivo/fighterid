@@ -449,6 +449,10 @@ export type Database = {
           end_time: string | null
           id: string
           meta: Json | null
+          moderation_notes: string | null
+          moderation_reviewed_at: string | null
+          moderation_reviewed_by: string | null
+          moderation_status: Database["public"]["Enums"]["moderation_status"]
           name: string
           organization_id: string | null
           poster_url: string | null
@@ -474,6 +478,10 @@ export type Database = {
           end_time?: string | null
           id?: string
           meta?: Json | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name: string
           organization_id?: string | null
           poster_url?: string | null
@@ -499,6 +507,10 @@ export type Database = {
           end_time?: string | null
           id?: string
           meta?: Json | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name?: string
           organization_id?: string | null
           poster_url?: string | null
@@ -2972,6 +2984,10 @@ export type Database = {
           mma_record_draws: number | null
           mma_record_losses: number | null
           mma_record_wins: number | null
+          moderation_notes: string | null
+          moderation_reviewed_at: string | null
+          moderation_reviewed_by: string | null
+          moderation_status: Database["public"]["Enums"]["moderation_status"]
           name: string | null
           nickname: string | null
           organization_id: string | null
@@ -2988,6 +3004,7 @@ export type Database = {
           semi_pro_losses: number | null
           semi_pro_wins: number | null
           stance: string | null
+          submitted_by: string | null
           tapology_url: string | null
           updated_at: string | null
           user_id: string | null
@@ -3041,6 +3058,10 @@ export type Database = {
           mma_record_draws?: number | null
           mma_record_losses?: number | null
           mma_record_wins?: number | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name?: string | null
           nickname?: string | null
           organization_id?: string | null
@@ -3057,6 +3078,7 @@ export type Database = {
           semi_pro_losses?: number | null
           semi_pro_wins?: number | null
           stance?: string | null
+          submitted_by?: string | null
           tapology_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -3110,6 +3132,10 @@ export type Database = {
           mma_record_draws?: number | null
           mma_record_losses?: number | null
           mma_record_wins?: number | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name?: string | null
           nickname?: string | null
           organization_id?: string | null
@@ -3126,6 +3152,7 @@ export type Database = {
           semi_pro_losses?: number | null
           semi_pro_wins?: number | null
           stance?: string | null
+          submitted_by?: string | null
           tapology_url?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -4066,10 +4093,15 @@ export type Database = {
           id: string
           instagram: string | null
           logo_url: string | null
+          moderation_notes: string | null
+          moderation_reviewed_at: string | null
+          moderation_reviewed_by: string | null
+          moderation_status: Database["public"]["Enums"]["moderation_status"]
           nombre: string
           owner_id: string | null
           pais: string | null
           slug: string
+          submitted_by: string | null
           telefono: string | null
           tiktok: string | null
           updated_at: string | null
@@ -4089,10 +4121,15 @@ export type Database = {
           id?: string
           instagram?: string | null
           logo_url?: string | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           nombre: string
           owner_id?: string | null
           pais?: string | null
           slug: string
+          submitted_by?: string | null
           telefono?: string | null
           tiktok?: string | null
           updated_at?: string | null
@@ -4112,10 +4149,15 @@ export type Database = {
           id?: string
           instagram?: string | null
           logo_url?: string | null
+          moderation_notes?: string | null
+          moderation_reviewed_at?: string | null
+          moderation_reviewed_by?: string | null
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           nombre?: string
           owner_id?: string | null
           pais?: string | null
           slug?: string
+          submitted_by?: string | null
           telefono?: string | null
           tiktok?: string | null
           updated_at?: string | null
@@ -7388,6 +7430,7 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: never; Returns: boolean }
+      is_admin_or_super: { Args: { _user_id: string }; Returns: boolean }
       is_app_admin: { Args: { _user_id: string }; Returns: boolean }
       is_assigned_judge: { Args: { p_fight_id: string }; Returns: boolean }
       is_assigned_referee: { Args: { p_fight_id: string }; Returns: boolean }
@@ -7648,6 +7691,7 @@ export type Database = {
         | "REVOKED"
         | "EXPIRED"
       membership_status: "ACTIVE" | "INACTIVE" | "TRANSFERRED" | "SUSPENDED"
+      moderation_status: "pending" | "approved" | "rejected"
       request_status:
         | "pending"
         | "accepted"
@@ -7852,6 +7896,7 @@ export const Constants = {
         "EXPIRED",
       ],
       membership_status: ["ACTIVE", "INACTIVE", "TRANSFERRED", "SUSPENDED"],
+      moderation_status: ["pending", "approved", "rejected"],
       request_status: [
         "pending",
         "accepted",

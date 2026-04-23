@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Swords, Target, Shield, Settings, Users, ImageIcon } from 'lucide-react';
+import { Swords, Target, Shield, Settings, Users, ImageIcon, ClipboardCheck } from 'lucide-react';
 import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
+import { useApprovalCounts } from '@/hooks/useApprovalQueue';
 
 export default function Dashboard() {
   const { hasMMA, hasBoxeo, isLoading: accessLoading } = useUserDisciplineAccess();
   const { isSuperAdmin } = useSuperAdmin();
   const { stats, isLoading } = useRealTimeStats();
+  const approval = useApprovalCounts();
 
   return (
     <div className="space-y-6">
@@ -53,6 +55,30 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Approval Queue summary */}
+      <Link to="/admin/cola-aprobacion" className="block">
+        <Card className={`border-2 transition-all hover:shadow-lg cursor-pointer ${approval.total > 0 ? 'border-destructive/40 hover:border-destructive' : 'border-border hover:border-primary/40'}`}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className={`h-12 w-12 rounded-full flex items-center justify-center ${approval.total > 0 ? 'bg-destructive/10' : 'bg-muted'}`}>
+              <ClipboardCheck className={`h-6 w-6 ${approval.total > 0 ? 'text-destructive' : 'text-muted-foreground'}`} />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold flex items-center gap-2">
+                Cola de Aprobación
+                {approval.total > 0 && (
+                  <Badge variant="destructive">{approval.total} pendiente{approval.total !== 1 ? 's' : ''}</Badge>
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {approval.total === 0
+                  ? 'No hay solicitudes pendientes.'
+                  : `${approval.gyms} gimnasio${approval.gyms !== 1 ? 's' : ''} · ${approval.fighters} peleador${approval.fighters !== 1 ? 'es' : ''} · ${approval.events} evento${approval.events !== 1 ? 's' : ''}`}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
 
       {/* Discipline selector cards */}
       <div className="grid gap-6 md:grid-cols-2">
