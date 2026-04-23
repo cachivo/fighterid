@@ -91,6 +91,7 @@ export function AdminSidebar() {
   const { signOut, user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
   const isMobile = useIsMobile();
+  const approval = useApprovalCounts();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
 
