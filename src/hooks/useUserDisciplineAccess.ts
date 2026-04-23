@@ -11,7 +11,7 @@ export type Discipline = 'MMA' | 'Boxeo';
  */
 export function useUserDisciplineAccess() {
   const { user } = useAuth();
-  const { isAdmin, isSuperAdmin } = useUserRole();
+  const { isAdmin, isSuperAdmin, loading: rolesLoading } = useUserRole();
 
   const query = useQuery<Discipline[]>({
     queryKey: ['user-discipline-access', user?.id],
