@@ -125,23 +125,37 @@ export function AdminSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="ufc-label text-xs">Control de Peleas</SidebarGroupLabel>
+          <SidebarGroupLabel className="ufc-label text-xs">Disciplinas</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {fightControlItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {hasMMA && (
+                <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={`min-h-[44px] ${getNavCls(item.url)}`}
+                    <NavLink
+                      to="/admin/mma"
+                      className={`min-h-[44px] ${getNavCls('/admin/mma')}`}
                       onClick={handleNavClick}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <Swords className="h-4 w-4" />
+                      {!collapsed && <span>Panel MMA</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              ))}
+              )}
+              {hasBoxeo && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/boxeo"
+                      className={`min-h-[44px] ${getNavCls('/admin/boxeo')}`}
+                      onClick={handleNavClick}
+                    >
+                      <Target className="h-4 w-4" />
+                      {!collapsed && <span>Panel Boxeo</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
