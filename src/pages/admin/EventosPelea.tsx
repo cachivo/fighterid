@@ -16,6 +16,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { Switch } from '@/components/ui/switch';
 import { WEIGHT_CLASSES } from '@/lib/constants/disciplines';
 import { EventBrandingModal } from '@/components/admin/EventBrandingModal';
+import { ModerationStatusBadge } from '@/components/admin/ModerationStatusBadge';
  
  import {
    Table,
@@ -1178,9 +1179,10 @@ export default function EventosPelea() {
                 {events.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <EventIcon className="h-5 w-5" />
                         {event.name}
+                        <ModerationStatusBadge status={(event as any).moderation_status} />
                       </div>
                     </TableCell>
                     <TableCell>
@@ -1345,6 +1347,7 @@ export default function EventosPelea() {
                    <div className="flex flex-wrap gap-1.5">
                      <Badge variant="outline">{event.discipline}</Badge>
                      <Badge className={getStateColor(event.state)}>{getStateText(event.state)}</Badge>
+                     <ModerationStatusBadge status={(event as any).moderation_status} />
                    </div>
 
                    <div className="text-sm text-muted-foreground space-y-1">

@@ -15,6 +15,7 @@ import { OptimizedImage } from '@/components/ui/optimized-image';
 import { FighterEditModal } from '@/components/admin/FighterEditModal';
 import { DeleteFighterDialog } from '@/components/admin/DeleteFighterDialog';
 import { FighterDetailModal } from '@/components/admin/FighterDetailModal';
+import { ModerationStatusBadge } from '@/components/admin/ModerationStatusBadge';
 import { useAdminFighters, AdminFighterProfile } from '@/hooks/useAdminFighters';
 import { FighterProfile } from '@/hooks/useFighterProfiles';
 import { useRealtimeFighterUpdates } from '@/hooks/useRealtimeFighterUpdates';
@@ -278,6 +279,9 @@ export default function FightersProfiles() {
                         "{fighter.nickname}"
                       </p>
                     )}
+                    <div className="mt-1">
+                      <ModerationStatusBadge status={(fighter as any).moderation_status} />
+                    </div>
                   </div>
                 </div>
                 {/* Row 2: Action buttons — full width, evenly spaced */}

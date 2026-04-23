@@ -39,10 +39,16 @@ export interface AdminFighterProfile {
   discipline?: 'MMA' | 'Boxeo' | 'Judo' | 'JiuJitsu' | 'Kickboxing' | 'MuayThai' | 'Grappling' | 'Otro';
   level?: string;
   martial_arts?: string[];
+  moderation_status?: string;
 }
 
 export function useAdminFighters(discipline?: string) {
-  const { data, isLoading, error: queryError, refetch } = useFightersQuery({ active: true, discipline });
+  // Admin context: include unapproved (pending/rejected) so admins can see and act on them
+  const { data, isLoading, error: queryError, refetch } = useFightersQuery({
+    active: true,
+    discipline,
+    includeUnapproved: true,
+  });
   const adminUpdate = useAdminUpdateFighter();
   const deleteLicenseMutation = useDeleteFighterLicense();
 

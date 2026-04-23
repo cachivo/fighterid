@@ -4,15 +4,23 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import type { Gym, GymWithCoaches } from '@/types/gyms';
 
-export function useGyms(discipline?: string) {
+interface UseGymsOptions {
+  /** Set true in admin contexts to include pending/rejected gyms */
+  includeUnapproved?: boolean;
+}
+
+export function useGyms(discipline?: string, options?: UseGymsOptions) {
+  const includeUnapproved = options?.includeUnapproved ?? false;
   return useQuery({
-    queryKey: ['gyms', discipline],
+    queryKey: ['gyms', discipline, includeUnapproved],
     queryFn: async (): Promise<Gym[]> => {
       let query = supabase
         .from('gyms')
         .select('*')
-        .eq('activo', true)
-        .eq('moderation_status', 'approved');
+        .eq('activo', true);
+      if (!includeUnapproved) {
+        query = query.eq('moderation_status', 'approved');
+      }
       if (discipline) {
         query = query.contains('disciplinas', [discipline]);
       }
