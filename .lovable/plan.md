@@ -1,69 +1,98 @@
 
 
-# Fix urgente: pestañas admin no muestran perfiles + soporte para pendientes
+# Fix urgente: enlaces rotos del sidebar admin + falso "Sin acceso" para super_admin
 
 ## Diagnóstico
 
-Tras la migración de `moderation_status`, los hooks que alimentan los paneles admin filtran por `moderation_status = 'approved'` en el cliente, **sin excepción para administradores**. Resultado:
+Hay **dos bugs** que combinados producen el problema reportado:
 
-- Cualquier perfil/gimnasio/evento creado vía formulario público queda en `pending` y **desaparece del panel admin** (solo aparece en la nueva Cola de Aprobación).
-- Hoy todos los datos existentes están `approved` (77 peleadores, 29 gimnasios, 1 evento), así que técnicamente se ven, pero apenas creen un perfil nuevo durante el demo, **no aparecerá en la pantalla principal del admin**.
-- Esto rompe el flujo de demo: crearán perfiles, los admins no los verán en sus pantallas habituales y parecerá que el sistema "no carga".
+### Bug 1 — Race condition en `useUserDisciplineAccess` (causa del toast)
 
-El RLS ya está bien (admin ve todo). El bug está en los **filtros del cliente**.
+`useUserDisciplineAccess` solo expone `isLoading: query.isLoading` (la query de `user_discipline_access`), pero **no espera a que `useUserRole` termine de cargar los roles**.
+
+Resultado en el primer render de `/admin/mma/*` o `/admin/boxeo/*`:
+1. `useUserRole.loading = true` → `isAdmin = false, isSuperAdmin = false`
+2. `hasFullAccess = false`
+3. `user_discipline_access` devuelve `[]` (el usuario es super_admin, nunca le insertaron filas en esa tabla)
+4. `query.isLoading` pasa a `false` rápido
+5. `AdminDisciplineLayout` ve `isLoading=false && hasAccess=false` → dispara toast "No tienes acceso al panel de MMA" y redirige a `/admin`
+6. Milisegundos después `useUserRole` termina y reconoce que es super_admin, pero ya redirigió
+
+Esto le pasa al usuario `cachivo@gmail.com`, que en BD tiene los roles `admin, super_admin, moderator, user` correctamente asignados.
+
+### Bug 2 — Rutas inexistentes en el AdminLayout general
+
+El `AdminSidebar` (que se renderiza en `/admin/*` general) tiene enlaces a URLs como:
+
+- `/admin/licencias` → `ValidacionLicencias`
+- `/admin/entrenadores`, `/admin/sanctions`, `/admin/organizations`
+- `/admin/aliados-estrategicos`, `/admin/pending-changes`, `/admin/fight-approval`
+- `/admin/betting`, `/admin/email-monitoring`, `/admin/email-campaigns`, `/admin/email-campaigns/editor`
+- `/admin/comunidad`, `/admin/officials`, `/admin/judges`, `/admin/scoring/stations`
+- `/admin/live-events`, `/admin/live-streaming`, `/admin/fight-results`
+- `/admin/ai-strike-monitor`, `/admin/ai-strike-test`, `/admin/vision-diagnostics`
+
+Pero en `App.tsx`, el bloque `/admin/*` solo define rutas para: `cola-aprobacion`, `configuracion`, `user-roles`, `system-assets`, `inbox` y 5 redirects legacy a `/admin/mma/*` (`eventos-pelea`, `fighters-profiles`, `fighters`, `rankings`, `gimnasios`).
+
+Resultado al hacer clic en "Licencias Fighter ID": URL `/admin/licencias` no matchea ninguna ruta interna → cae al `<Routes>` interno sin match → AdminLayout queda vacío. El usuario percibe "no carga" o, si previamente intentó `/admin/mma/licencias`, ve el toast de la disciplina.
 
 ## Solución
 
-Los hooks admin deben pasar una bandera `includeUnapproved` que omita el filtro `moderation_status` cuando se llama desde un contexto admin. Los hooks públicos siguen igual (filtran solo `approved`).
+### Cambio 1 — Arreglar el race condition
 
-### Cambios
+`src/hooks/useUserDisciplineAccess.ts`:
+- Importar `loading` de `useUserRole` y combinarlo en el `isLoading` retornado.
+- Cuando `useUserRole.loading=true`, no concluir `hasAccess=false`. El layout debe seguir mostrando el spinner.
 
-| Archivo | Cambio |
-|---|---|
-| `src/hooks/useAdminFighters.tsx` | Pasar `includeUnapproved: true` a `useFightersQuery` |
-| `src/hooks/useGyms.tsx` | Agregar parámetro opcional `includeUnapproved` a `useGyms()`. Por defecto `false` (público filtra). Cuando `true`, omite `.eq('moderation_status', 'approved')` |
-| `src/pages/admin/GimnasiosAdmin.tsx` | Llamar `useGyms(discipline, { includeUnapproved: true })` |
-| `src/hooks/useGymsList.ts` | Mismo patrón: parámetro `includeUnapproved` opcional |
-| `src/hooks/useGymsWithFighters.ts` | Mismo patrón |
+```ts
+const { isAdmin, isSuperAdmin, loading: rolesLoading } = useUserRole();
+// ...
+isLoading: query.isLoading || rolesLoading,
+```
 
-Eventos (`useEvents`) **no necesita cambios**: no filtra por moderation en cliente y el RLS ya da acceso a admin.
+Esto garantiza que `AdminDisciplineLayout` espere a que se resuelvan los roles antes de decidir.
 
-### Indicador visual de pendientes en paneles admin
+### Cambio 2 — Arquitectura de navegación: redirigir TODO a las disciplinas
 
-Para que durante el demo sea claro qué perfiles están pendientes vs aprobados:
+El admin general (`/admin`) es solo un **selector de disciplina** + funciones cross-discipline (cola de aprobación, system-assets, user-roles, inbox). El resto de la operación vive bajo `/admin/mma/*` y `/admin/boxeo/*`.
 
-- En `FightersProfiles.tsx`, `GimnasiosAdmin.tsx` y `EventosPelea.tsx`: agregar un `Badge` de estado (Pendiente / Aprobado / Rechazado) en cada card cuando `moderation_status !== 'approved'`.
-- Color: amarillo para `pending`, rojo para `rejected`, sin badge para `approved`.
+Por lo tanto, el sidebar `AdminSidebar` no tiene sentido en el contexto general — debería estar simplificado. Pero hoy se usa en el AdminLayout general. Dos opciones:
 
-### Filtro adicional (opcional pero útil para el demo)
+**Opción A (recomendada y rápida para el demo)**: Reescribir `AdminSidebar` para que solo muestre los items que SÍ existen en el bloque general:
+- Dashboard (`/admin`)
+- Cola de Aprobación (`/admin/cola-aprobacion`)
+- Inbox de Contacto (`/admin/inbox`)
+- Sección Cuenta Maestra: System Assets, User Roles, Configuración (solo super_admin)
+- Quitar todos los demás items de `adminItems` y `fightControlItems`. La gestión operativa se hace seleccionando disciplina desde el Dashboard (DisciplineSidebar ya tiene todos esos enlaces).
 
-En cada panel admin, agregar un `Select` para filtrar por estado de moderación:
-- Todos (por defecto)
-- Solo aprobados
-- Solo pendientes
-- Solo rechazados
+**Opción B**: Agregar todas las rutas faltantes como redirects al panel MMA por defecto (siguiendo el patrón ya existente de líneas 343-347).
 
-## Lo que NO se toca
+Voy con la **Opción A** porque:
+- Mantiene la separación clara: admin general = selector + ajustes; disciplina = operación.
+- Evita confusión durante el demo (clicks en el sidebar general no llevarían a un panel MMA inesperado).
+- Es coherente con `AdminDisciplineSidebar` que sí tiene todos esos enlaces bajo su disciplina.
 
-- **RLS**: ya funciona correctamente, admin ve todo.
-- **Cola de Aprobación** (`/admin/cola-aprobacion`): sigue siendo el punto centralizado para aprobar/rechazar.
-- **Filtros públicos** (`useFightersQuery` por defecto, `useGyms` por defecto): siguen mostrando solo aprobados.
-- **`useEvents`**: ya funciona para admin sin cambios.
+Adicionalmente, agregar al **Dashboard de admin** dos botones grandes "Entrar a Panel MMA" / "Entrar a Panel Boxeo" si no existen ya, para que la navegación a la disciplina sea obvia.
 
-## Resultado esperado
+### Cambio 3 — Verificación rápida
 
-1. Las pestañas admin de Peleadores y Gimnasios muestran TODOS los registros (aprobados + pendientes + rechazados).
-2. Cada card pendiente lleva un badge amarillo claro indicando "Pendiente de aprobación".
-3. Durante el demo, cuando un usuario cree un perfil, aparecerá inmediatamente en el panel admin marcado como pendiente, y simultáneamente en la Cola de Aprobación para aprobar con un click.
-4. La web pública sigue mostrando solo perfiles aprobados (no se filtra contenido sin moderar).
+Después del fix:
+1. Login como `cachivo@gmail.com` → ir a `/admin` → ver dashboard.
+2. Clic en "Panel MMA" → cargar `/admin/mma` sin toast de error.
+3. Clic en "Licencias Fighter ID" dentro del sidebar de disciplina → cargar `ValidacionLicencias`.
+4. Volver a `/admin` → el sidebar general muestra solo Dashboard / Cola Aprobación / Inbox / (super-admin items).
 
 ## Archivos afectados
 
-- `src/hooks/useAdminFighters.tsx`
-- `src/hooks/useGyms.tsx`
-- `src/hooks/useGymsList.ts`
-- `src/hooks/useGymsWithFighters.ts`
-- `src/pages/admin/FightersProfiles.tsx`
-- `src/pages/admin/GimnasiosAdmin.tsx`
-- `src/pages/admin/EventosPelea.tsx`
+| Archivo | Cambio |
+|---|---|
+| `src/hooks/useUserDisciplineAccess.ts` | Combinar `useUserRole.loading` en `isLoading` para evitar falso negativo de `hasAccess` |
+| `src/components/AdminSidebar.tsx` | Reducir `adminItems` y `fightControlItems` a solo las rutas que realmente existen en el bloque `/admin/*` general (Dashboard, Cola de Aprobación, Inbox). Mantener sección super-admin |
+| `src/pages/admin/Dashboard.tsx` | Verificar/agregar dos CTA grandes a "Panel MMA" y "Panel Boxeo" |
+
+## Lo que NO cambia
+
+- `AdminDisciplineSidebar` (sidebar de MMA/Boxeo) ya tiene todos los enlaces correctos dentro de su disciplina.
+- RLS, `useUserRole`, `useAdmin`, `AdminProtectedRoute`: todos funcionan bien.
+- Las rutas de `/admin/mma/*` y `/admin/boxeo/*`: intactas.
 
