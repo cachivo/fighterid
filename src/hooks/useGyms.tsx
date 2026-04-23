@@ -11,7 +11,8 @@ export function useGyms(discipline?: string) {
       let query = supabase
         .from('gyms')
         .select('*')
-        .eq('activo', true);
+        .eq('activo', true)
+        .eq('moderation_status', 'approved');
       if (discipline) {
         query = query.contains('disciplinas', [discipline]);
       }
@@ -57,18 +58,43 @@ export function useCreateGym() {
   
   return useMutation({
     mutationFn: async (gymData: Partial<Gym>) => {
+      // Determine if current user is admin/super_admin
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      let isAdmin = false;
+      if (userId) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .in('role', ['admin', 'super_admin'])
+          .limit(1);
+        isAdmin = !!(roles && roles.length > 0);
+      }
+
+      const payload: any = {
+        ...gymData,
+        moderation_status: isAdmin ? 'approved' : 'pending',
+        submitted_by: userId ?? null,
+      };
+
       const { data, error } = await supabase
         .from('gyms')
-        .insert(gymData as any)
+        .insert(payload)
         .select()
         .single();
       
       if (error) throw error;
       return data as Gym;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['gyms'] });
-      toast.success('Gimnasio creado exitosamente');
+      queryClient.invalidateQueries({ queryKey: ['approval-queue'] });
+      if ((data as any)?.moderation_status === 'pending') {
+        toast.success('Gimnasio enviado para aprobación');
+      } else {
+        toast.success('Gimnasio creado exitosamente');
+      }
     },
     onError: (error: any) => {
       toast.error('Error al crear gimnasio: ' + error.message);

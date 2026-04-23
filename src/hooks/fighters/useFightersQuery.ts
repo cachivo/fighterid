@@ -9,6 +9,8 @@ export interface FighterFilters {
   active?: boolean;
   page?: number;
   pageSize?: number;
+  /** Set to true in admin contexts to bypass moderation filtering */
+  includeUnapproved?: boolean;
 }
 
 export function useFightersQuery(filters?: FighterFilters) {
@@ -20,14 +22,19 @@ export function useFightersQuery(filters?: FighterFilters) {
     active = true,
     page = 1,
     pageSize = 100,
+    includeUnapproved = false,
   } = filters || {};
 
   return useQuery({
-    queryKey: ['fighters', { discipline, level, weightClass, search, active, page, pageSize }],
+    queryKey: ['fighters', { discipline, level, weightClass, search, active, page, pageSize, includeUnapproved }],
     queryFn: async () => {
       let query = supabase
         .from('fighter_profiles')
         .select('*, gym:gyms!gym_id(id, nombre, logo_url, slug)', { count: 'exact' });
+
+      if (!includeUnapproved) {
+        query = query.eq('moderation_status', 'approved');
+      }
 
       if (active !== undefined) {
         query = query.eq('active', active);

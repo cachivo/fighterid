@@ -104,8 +104,17 @@ export function useEvents(discipline?: string) {
     if (!user) throw new Error('Usuario no autenticado');
 
     try {
+      // Determine admin status to choose moderation status
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'super_admin'])
+        .limit(1);
+      const isAdmin = !!(roles && roles.length > 0);
+
       // Prepare data with proper timestamp handling
-      const insertData = {
+      const insertData: any = {
         name: eventData.name,
         description: eventData.description || null,
         discipline: eventData.discipline,
@@ -119,6 +128,7 @@ export function useEvents(discipline?: string) {
         country: eventData.country || null,
         poster_url: eventData.poster_url || null,
         rules_document_url: eventData.rules_document_url || null,
+        moderation_status: isAdmin ? 'approved' : 'pending',
       };
 
       const { data, error } = await supabase
