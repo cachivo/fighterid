@@ -6,18 +6,27 @@ export interface GymOption {
   nombre: string;
   logo_url: string | null;
   slug: string;
+  moderation_status?: string;
 }
 
-export function useGymsList() {
+interface UseGymsListOptions {
+  /** Set true in admin contexts to include pending/rejected gyms */
+  includeUnapproved?: boolean;
+}
+
+export function useGymsList(options?: UseGymsListOptions) {
+  const includeUnapproved = options?.includeUnapproved ?? false;
   return useQuery({
-    queryKey: ['gyms-list'],
+    queryKey: ['gyms-list', includeUnapproved],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('gyms')
-        .select('id, nombre, logo_url, slug')
-        .eq('activo', true)
-        .eq('moderation_status', 'approved')
-        .order('nombre');
+        .select('id, nombre, logo_url, slug, moderation_status')
+        .eq('activo', true);
+      if (!includeUnapproved) {
+        query = query.eq('moderation_status', 'approved');
+      }
+      const { data, error } = await query.order('nombre');
       if (error) throw error;
       return data as GymOption[];
     },

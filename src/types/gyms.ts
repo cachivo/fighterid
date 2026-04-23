@@ -18,6 +18,7 @@ export interface Gym {
   website?: string;
   owner_id?: string;
   activo: boolean;
+  moderation_status?: string;
   created_at: string;
   updated_at: string;
 }

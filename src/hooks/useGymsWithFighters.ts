@@ -18,25 +18,37 @@ export interface GymWithFighters {
   }[];
 }
 
-export const useGymsWithFighters = () => {
+interface UseGymsWithFightersOptions {
+  /** Set true in admin contexts to include pending/rejected records */
+  includeUnapproved?: boolean;
+}
+
+export const useGymsWithFighters = (options?: UseGymsWithFightersOptions) => {
+  const includeUnapproved = options?.includeUnapproved ?? false;
   return useQuery({
-    queryKey: ["gyms-with-fighters"],
+    queryKey: ["gyms-with-fighters", includeUnapproved],
     queryFn: async () => {
-      // Get gyms with fighter count (only approved)
-      const { data: gyms, error: gymsError } = await supabase
+      // Get gyms with fighter count
+      let gymsQuery = supabase
         .from("gyms")
         .select("id, nombre, slug, ciudad, logo_url, disciplinas")
-        .eq("activo", true)
-        .eq("moderation_status", "approved");
+        .eq("activo", true);
+      if (!includeUnapproved) {
+        gymsQuery = gymsQuery.eq("moderation_status", "approved");
+      }
+      const { data: gyms, error: gymsError } = await gymsQuery;
 
       if (gymsError) throw gymsError;
 
-      // Get fighters grouped by gym (only approved)
-      const { data: fighters, error: fightersError } = await supabase
+      // Get fighters grouped by gym
+      let fightersQuery = supabase
         .from("fighter_profiles")
         .select("id, first_name, last_name, nickname, avatar_url, gym_id")
-        .eq("moderation_status", "approved")
         .not("gym_id", "is", null);
+      if (!includeUnapproved) {
+        fightersQuery = fightersQuery.eq("moderation_status", "approved");
+      }
+      const { data: fighters, error: fightersError } = await fightersQuery;
 
       if (fightersError) throw fightersError;
 
