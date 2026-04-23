@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { Swords, Target, Shield, Settings, Users, ImageIcon } from 'lucide-react';
+import { Swords, Target, Shield, Settings, Users, ImageIcon, ClipboardCheck } from 'lucide-react';
 import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useRealTimeStats } from '@/hooks/useRealTimeStats';
+import { useApprovalCounts } from '@/hooks/useApprovalQueue';
 
 export default function Dashboard() {
   const { hasMMA, hasBoxeo, isLoading: accessLoading } = useUserDisciplineAccess();
   const { isSuperAdmin } = useSuperAdmin();
   const { stats, isLoading } = useRealTimeStats();
+  const approval = useApprovalCounts();
 
   return (
     <div className="space-y-6">
