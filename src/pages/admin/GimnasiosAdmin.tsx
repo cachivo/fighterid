@@ -7,6 +7,7 @@ import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,7 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export default function GimnasiosAdmin() {
   const discipline = useDiscipline();
-  const { data: gyms, isLoading } = useGyms(discipline);
+  const { data: gyms, isLoading } = useGyms(discipline, { includeUnapproved: true });
   const { data: disciplines } = useAllDisciplines();
   const createGym = useCreateGym();
   const { isSuperAdmin } = useSuperAdmin();
@@ -28,6 +29,7 @@ export default function GimnasiosAdmin() {
   const [selectedDisciplines, setSelectedDisciplines] = useState<string[]>([]);
   const [sendingInvitation, setSendingInvitation] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending' | 'rejected'>('all');
   const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
   
   const watchedNombre = useWatch({ control, name: 'nombre', defaultValue: '' });
@@ -35,14 +37,23 @@ export default function GimnasiosAdmin() {
 
   const filteredGyms = useMemo(() => {
     if (!gyms) return [];
-    if (!searchQuery.trim()) return gyms;
+    let list = gyms;
+    if (statusFilter !== 'all') {
+      list = list.filter(g => (g.moderation_status || 'approved') === statusFilter);
+    }
+    if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
-    return gyms.filter(g =>
+    return list.filter(g =>
       g.nombre.toLowerCase().includes(q) ||
       g.ciudad?.toLowerCase().includes(q) ||
       g.pais?.toLowerCase().includes(q)
     );
-  }, [gyms, searchQuery]);
+  }, [gyms, searchQuery, statusFilter]);
+
+  const pendingCount = useMemo(
+    () => (gyms || []).filter(g => g.moderation_status === 'pending').length,
+    [gyms]
+  );
 
   const toggleDiscipline = (id: string) => {
     setSelectedDisciplines(prev =>
