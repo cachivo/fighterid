@@ -144,7 +144,16 @@ export function AdminSidebar() {
                       onClick={handleNavClick}
                     >
                       <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && (
+                        <span className="flex-1 flex items-center justify-between">
+                          <span>{item.title}</span>
+                          {item.showApprovalBadge && approval.total > 0 && (
+                            <Badge variant="destructive" className="h-5 px-1.5 ml-2">
+                              {approval.total}
+                            </Badge>
+                          )}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
