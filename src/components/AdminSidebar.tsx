@@ -51,6 +51,7 @@ export function AdminSidebar() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const { isSuperAdmin } = useSuperAdmin();
+  const { hasMMA, hasBoxeo } = useUserDisciplineAccess();
   const isMobile = useIsMobile();
   const approval = useApprovalCounts();
   const currentPath = location.pathname;
