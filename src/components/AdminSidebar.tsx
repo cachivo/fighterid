@@ -1,30 +1,15 @@
 import { useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Monitor, 
-  Briefcase, 
-  TrendingUp, 
-  Users, 
+import {
+  LayoutDashboard,
   Settings,
-  DollarSign,
   LogOut,
   Shield,
-  HandHeart,
-  Gavel,
-  Radio,
-  Trophy,
-  Activity,
-  TestTube2,
-  Eye,
   Mail,
-  Send,
-  Medal,
   ImageIcon,
-  Building2,
-  Tv,
-  ClipboardCheck
+  ClipboardCheck,
+  Swords,
+  Target,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -45,26 +30,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useSuperAdmin } from '@/hooks/useSuperAdmin';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useApprovalCounts } from '@/hooks/useApprovalQueue';
+import { useUserDisciplineAccess } from '@/hooks/useUserDisciplineAccess';
 
+// Cross-discipline items that exist as actual routes under /admin/*
 const adminItems = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
   { title: 'Cola de Aprobación', url: '/admin/cola-aprobacion', icon: ClipboardCheck, showApprovalBadge: true },
-  { title: 'Centro de Moderación', url: '/admin/pending-changes', icon: Activity },
-  { title: 'Eventos de Pelea', url: '/admin/eventos-pelea', icon: Calendar },
-  { title: 'Aprobación de Peleas', url: '/admin/fight-approval', icon: Gavel },
-  { title: 'Sanciones', url: '/admin/sanctions', icon: Shield },
-  { title: 'Organizaciones', url: '/admin/organizations', icon: Building2 },
-  { title: 'Aliados Estratégicos', url: '/admin/aliados-estrategicos', icon: HandHeart },
-  { title: 'Perfiles de Peleadores', url: '/admin/fighters-profiles', icon: Users },
-  { title: 'Gestión de Rankings', url: '/admin/rankings', icon: Medal },
-  { title: 'Gimnasios / Escuelas', url: '/admin/gimnasios', icon: Briefcase },
-  { title: 'Staff de Gimnasios', url: '/admin/entrenadores', icon: Users },
-  { title: 'Licencias Fighter ID', url: '/admin/licencias', icon: Shield },
-  { title: 'Betting & Markets', url: '/admin/betting', icon: DollarSign },
-  { title: 'Monitor de Emails', url: '/admin/email-monitoring', icon: Mail },
-  { title: 'Campañas de Email', url: '/admin/email-campaigns', icon: Mail },
-  { title: 'Editor de Emails', url: '/admin/email-campaigns/editor', icon: Send },
-  { title: 'Comunidad', url: '/admin/comunidad', icon: Users },
+  { title: 'Inbox de Contacto', url: '/admin/inbox', icon: Mail },
 ];
 
 const superAdminItems = [
@@ -73,17 +45,6 @@ const superAdminItems = [
   { title: 'Configuración', url: '/admin/configuracion', icon: Settings },
 ];
 
-const fightControlItems = [
-  { title: 'Oficiales del Sistema', url: '/admin/officials', icon: Gavel },
-  { title: 'Jueces (Legacy)', url: '/admin/judges', icon: Gavel },
-  { title: 'Estaciones de Scoring', url: '/admin/scoring/stations', icon: Monitor },
-  { title: 'Control de Peleas', url: '/admin/live-events', icon: Radio },
-  { title: 'Transmisiones En Vivo', url: '/admin/live-streaming', icon: Tv },
-  { title: 'Resultados & Stats', url: '/admin/fight-results', icon: Trophy },
-  { title: 'Monitor de IA', url: '/admin/ai-strike-monitor', icon: Activity },
-  { title: '🧪 Pruebas IA', url: '/admin/ai-strike-test', icon: TestTube2 },
-  { title: 'Vision Diagnostics', url: '/admin/vision-diagnostics', icon: Eye },
-];
 
 export function AdminSidebar() {
   const { state, setOpenMobile } = useSidebar();
