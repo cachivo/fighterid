@@ -147,13 +147,28 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  // Global error handler for unhandled promise rejections
+  // Global error handler for unhandled promise rejections.
+  // We still call preventDefault to avoid noisy browser overlays, but we
+  // surface the error via sonner so users + devs see something happened
+  // instead of the previous silent swallow.
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('[GLOBAL ERROR] Unhandled promise rejection:', event.reason);
+      const reason = event.reason;
+      const message = reason?.message ?? String(reason);
+      // Skip noisy auth refresh errors that recover automatically
+      const isBenign = /AbortError|Failed to fetch|NetworkError/i.test(message);
+      console.error('[GLOBAL ERROR] Unhandled promise rejection:', reason);
+      if (!isBenign && import.meta.env.PROD) {
+        // dynamic import to avoid pulling sonner into the critical path
+        import('sonner').then(({ toast }) => {
+          toast.error('Algo salió mal. Intenta de nuevo.', {
+            description: message?.slice(0, 120),
+          });
+        }).catch(() => {});
+      }
       event.preventDefault();
     };
-    
+
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
   }, []);
