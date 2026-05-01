@@ -83,43 +83,15 @@ const Station1Scoring = lazy(() => import('@/pages/station/Station1Scoring'));
 const Station2Scoring = lazy(() => import('@/pages/station/Station2Scoring'));
 const Station3RoundControl = lazy(() => import('@/pages/station/Station3RoundControl'));
 
-// Admin pages
+// Admin pages — only those used directly inside App.tsx (general /admin/* surface).
+// Discipline-specific pages are lazy-loaded inside @/routes/adminDisciplineRoutes.
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const DisciplineDashboard = lazy(() => import("./pages/admin/DisciplineDashboard"));
-const EventosPelea = lazy(() => import("./pages/admin/EventosPelea"));
-const LiveStreaming = lazy(() => import("./pages/admin/LiveStreaming"));
-const LiveEventsControl = lazy(() => import('./pages/admin/LiveEventsControl'));
-const AdminFightersProfiles = lazy(() => import('./pages/admin/FightersProfiles'));
-const FightersProfilesInvite = lazy(() => import('./pages/admin/FightersProfilesInvite'));
-const FightersProfilesCreate = lazy(() => import('./pages/admin/FightersProfilesCreate'));
-const JudgesManagement = lazy(() => import('./pages/admin/JudgesManagement'));
-const PendingChangesHub = lazy(() => import('./pages/admin/PendingChangesHub'));
-const AIStrikeMonitor = lazy(() => import('./pages/admin/AIStrikeMonitor'));
-const AIStrikeTestPanel = lazy(() => import('./pages/admin/AIStrikeTestPanel'));
-const VisionDiagnostics = lazy(() => import('./pages/admin/VisionDiagnostics'));
-const ValidacionLicencias = lazy(() => import('./pages/admin/ValidacionLicencias'));
-const AliadosEstrategicos = lazy(() => import("./pages/admin/AliadosEstrategicos"));
-const Comunidad = lazy(() => import("./pages/admin/Comunidad"));
 const Configuracion = lazy(() => import("./pages/admin/Configuracion"));
-const Betting = lazy(() => import("./pages/admin/Betting"));
-const EmailMonitoring = lazy(() => import("./pages/admin/EmailMonitoring"));
-const EmailValidation = lazy(() => import("./pages/admin/EmailValidation"));
-const EmailCampaigns = lazy(() => import("./pages/admin/EmailCampaigns"));
-const EmailCampaignDetail = lazy(() => import("./pages/admin/EmailCampaignDetail"));
-const EmailCampaignEditor = lazy(() => import("./pages/admin/EmailCampaignEditor"));
-const GimnasiosAdmin = lazy(() => import("./pages/admin/GimnasiosAdmin"));
-const EntrenadoresAdmin = lazy(() => import("./pages/admin/EntrenadoresAdmin"));
-const FightResults = lazy(() => import('./pages/admin/FightResults'));
 const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
-const JudgeStationsSetup = lazy(() => import('./pages/admin/JudgeStationsSetup'));
-const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
 const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
-const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement"));
-const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
-const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
-const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 const ApprovalQueue = lazy(() => import("./pages/admin/ApprovalQueue"));
+const EmailValidation = lazy(() => import("./pages/admin/EmailValidation"));
 
 // Gym pages
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
