@@ -20,11 +20,13 @@ export async function logEvent(
   }
 
   try {
-    const { error } = await supabase.from('work_session_events').insert({
-      session_id: sessionId,
-      event_type: type,
-      payload,
-    });
+    const { error } = await supabase.from('work_session_events').insert([
+      {
+        session_id: sessionId,
+        event_type: type,
+        payload: payload as any,
+      },
+    ]);
     if (error) {
       console.warn('[event.logger] insert failed', error.message);
       return false;
