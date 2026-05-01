@@ -256,42 +256,13 @@ const App = () => {
               {/* Admin Cert */}
               <Route path="/admin-cert/*" element={<AdminProtectedRoute><AdminCertLayout /></AdminProtectedRoute>} />
 
-              {/* Admin — Discipline Panels */}
+              {/* Admin — Discipline Panels (MMA + Boxeo share the same surface) */}
               <Route path="/admin/mma" element={
                 <AdminProtectedRoute>
                   <AdminDisciplineLayout discipline="MMA" />
                 </AdminProtectedRoute>
               }>
-                <Route index element={<DisciplineDashboard />} />
-                <Route path="eventos-pelea" element={<EventosPelea />} />
-                <Route path="fighters-profiles" element={<AdminFightersProfiles />} />
-                <Route path="fighters-profiles/invite" element={<FightersProfilesInvite />} />
-                <Route path="fighters-profiles/create" element={<FightersProfilesCreate />} />
-                <Route path="rankings" element={<RankingsManagement />} />
-                <Route path="gimnasios" element={<GimnasiosAdmin />} />
-                <Route path="entrenadores" element={<EntrenadoresAdmin />} />
-                <Route path="pending-changes" element={<PendingChangesHub />} />
-                <Route path="fight-approval" element={<FightApproval />} />
-                <Route path="sanctions" element={<Sanctions />} />
-                <Route path="organizations" element={<OrganizationsManagement />} />
-                <Route path="officials" element={<OfficialsManagement />} />
-                <Route path="judges" element={<JudgesManagement />} />
-                <Route path="scoring/stations" element={<JudgeStationsSetup />} />
-                <Route path="live-events" element={<LiveEventsControl />} />
-                <Route path="live-streaming" element={<LiveStreaming />} />
-                <Route path="fight-results" element={<FightResults />} />
-                <Route path="ai-strike-monitor" element={<AIStrikeMonitor />} />
-                <Route path="ai-strike-test" element={<AIStrikeTestPanel />} />
-                <Route path="vision-diagnostics" element={<VisionDiagnostics />} />
-                <Route path="licencias" element={<ValidacionLicencias />} />
-                <Route path="email-monitoring" element={<EmailMonitoring />} />
-                <Route path="email-campaigns" element={<EmailCampaigns />} />
-                <Route path="email-campaigns/:id" element={<EmailCampaignDetail />} />
-                <Route path="email-campaigns/editor" element={<EmailCampaignEditor />} />
-                <Route path="email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
-                <Route path="comunidad" element={<Comunidad />} />
-                <Route path="aliados-estrategicos" element={<AliadosEstrategicos />} />
-                <Route path="betting" element={<Betting />} />
+                {adminDisciplineRoutes({ includeAi: true })}
               </Route>
 
               <Route path="/admin/boxeo" element={
@@ -299,33 +270,7 @@ const App = () => {
                   <AdminDisciplineLayout discipline="Boxeo" />
                 </AdminProtectedRoute>
               }>
-                <Route index element={<DisciplineDashboard />} />
-                <Route path="eventos-pelea" element={<EventosPelea />} />
-                <Route path="fighters-profiles" element={<AdminFightersProfiles />} />
-                <Route path="fighters-profiles/invite" element={<FightersProfilesInvite />} />
-                <Route path="fighters-profiles/create" element={<FightersProfilesCreate />} />
-                <Route path="rankings" element={<RankingsManagement />} />
-                <Route path="gimnasios" element={<GimnasiosAdmin />} />
-                <Route path="entrenadores" element={<EntrenadoresAdmin />} />
-                <Route path="pending-changes" element={<PendingChangesHub />} />
-                <Route path="fight-approval" element={<FightApproval />} />
-                <Route path="sanctions" element={<Sanctions />} />
-                <Route path="organizations" element={<OrganizationsManagement />} />
-                <Route path="officials" element={<OfficialsManagement />} />
-                <Route path="judges" element={<JudgesManagement />} />
-                <Route path="scoring/stations" element={<JudgeStationsSetup />} />
-                <Route path="live-events" element={<LiveEventsControl />} />
-                <Route path="live-streaming" element={<LiveStreaming />} />
-                <Route path="fight-results" element={<FightResults />} />
-                <Route path="licencias" element={<ValidacionLicencias />} />
-                <Route path="email-monitoring" element={<EmailMonitoring />} />
-                <Route path="email-campaigns" element={<EmailCampaigns />} />
-                <Route path="email-campaigns/:id" element={<EmailCampaignDetail />} />
-                <Route path="email-campaigns/editor" element={<EmailCampaignEditor />} />
-                <Route path="email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
-                <Route path="comunidad" element={<Comunidad />} />
-                <Route path="aliados-estrategicos" element={<AliadosEstrategicos />} />
-                <Route path="betting" element={<Betting />} />
+                {adminDisciplineRoutes({ includeAi: false })}
               </Route>
 
               {/* Admin — General (selector + system) */}
