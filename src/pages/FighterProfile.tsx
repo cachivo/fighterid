@@ -1,4 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useUuidParam } from '@/hooks/useUuidParam';
 import { useEffect, useState, useCallback } from 'react';
 import { useFighterProfiles, FighterProfile as FighterProfileType } from '@/hooks/useFighterProfiles';
 import { useCombinedFighterRecord } from '@/hooks/useCombinedFighterRecord';
@@ -22,7 +23,8 @@ import { DigitalFighterToken } from '@/components/DigitalFighterToken';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 export default function FighterProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { value: id, redirect } = useUuidParam('id');
+  if (redirect) return redirect;
   const { getFighterById } = useFighterProfiles();
   const { getDisciplineRecord, fighterProfile: recordProfile, isLoading: isLoadingRecord } = useCombinedFighterRecord(id || null);
   const { data: activeLeagues, isLoading: isLoadingLeagues } = useFighterActiveLeagues(id || null);

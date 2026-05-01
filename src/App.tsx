@@ -14,8 +14,8 @@ import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
 import SuperAdminRoute from './components/SuperAdminRoute';
 import { lazy, Suspense, useEffect } from 'react';
-import React from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { adminDisciplineRoutes } from '@/routes/adminDisciplineRoutes';
 
 // === ALL pages lazy-loaded for optimal code splitting ===
 
@@ -83,43 +83,15 @@ const Station1Scoring = lazy(() => import('@/pages/station/Station1Scoring'));
 const Station2Scoring = lazy(() => import('@/pages/station/Station2Scoring'));
 const Station3RoundControl = lazy(() => import('@/pages/station/Station3RoundControl'));
 
-// Admin pages
+// Admin pages — only those used directly inside App.tsx (general /admin/* surface).
+// Discipline-specific pages are lazy-loaded inside @/routes/adminDisciplineRoutes.
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
-const DisciplineDashboard = lazy(() => import("./pages/admin/DisciplineDashboard"));
-const EventosPelea = lazy(() => import("./pages/admin/EventosPelea"));
-const LiveStreaming = lazy(() => import("./pages/admin/LiveStreaming"));
-const LiveEventsControl = lazy(() => import('./pages/admin/LiveEventsControl'));
-const AdminFightersProfiles = lazy(() => import('./pages/admin/FightersProfiles'));
-const FightersProfilesInvite = lazy(() => import('./pages/admin/FightersProfilesInvite'));
-const FightersProfilesCreate = lazy(() => import('./pages/admin/FightersProfilesCreate'));
-const JudgesManagement = lazy(() => import('./pages/admin/JudgesManagement'));
-const PendingChangesHub = lazy(() => import('./pages/admin/PendingChangesHub'));
-const AIStrikeMonitor = lazy(() => import('./pages/admin/AIStrikeMonitor'));
-const AIStrikeTestPanel = lazy(() => import('./pages/admin/AIStrikeTestPanel'));
-const VisionDiagnostics = lazy(() => import('./pages/admin/VisionDiagnostics'));
-const ValidacionLicencias = lazy(() => import('./pages/admin/ValidacionLicencias'));
-const AliadosEstrategicos = lazy(() => import("./pages/admin/AliadosEstrategicos"));
-const Comunidad = lazy(() => import("./pages/admin/Comunidad"));
 const Configuracion = lazy(() => import("./pages/admin/Configuracion"));
-const Betting = lazy(() => import("./pages/admin/Betting"));
-const EmailMonitoring = lazy(() => import("./pages/admin/EmailMonitoring"));
-const EmailValidation = lazy(() => import("./pages/admin/EmailValidation"));
-const EmailCampaigns = lazy(() => import("./pages/admin/EmailCampaigns"));
-const EmailCampaignDetail = lazy(() => import("./pages/admin/EmailCampaignDetail"));
-const EmailCampaignEditor = lazy(() => import("./pages/admin/EmailCampaignEditor"));
-const GimnasiosAdmin = lazy(() => import("./pages/admin/GimnasiosAdmin"));
-const EntrenadoresAdmin = lazy(() => import("./pages/admin/EntrenadoresAdmin"));
-const FightResults = lazy(() => import('./pages/admin/FightResults'));
 const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
-const JudgeStationsSetup = lazy(() => import('./pages/admin/JudgeStationsSetup'));
-const RankingsManagement = lazy(() => import("./pages/admin/RankingsManagement"));
 const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
-const OfficialsManagement = lazy(() => import("./pages/admin/OfficialsManagement"));
-const OrganizationsManagement = lazy(() => import("./pages/admin/OrganizationsManagement"));
-const FightApproval = lazy(() => import("./pages/admin/FightApproval"));
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
-const Sanctions = lazy(() => import("./pages/admin/Sanctions"));
 const ApprovalQueue = lazy(() => import("./pages/admin/ApprovalQueue"));
+
 
 // Gym pages
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
@@ -147,13 +119,28 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  // Global error handler for unhandled promise rejections
+  // Global error handler for unhandled promise rejections.
+  // We still call preventDefault to avoid noisy browser overlays, but we
+  // surface the error via sonner so users + devs see something happened
+  // instead of the previous silent swallow.
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('[GLOBAL ERROR] Unhandled promise rejection:', event.reason);
+      const reason = event.reason;
+      const message = reason?.message ?? String(reason);
+      // Skip noisy auth refresh errors that recover automatically
+      const isBenign = /AbortError|Failed to fetch|NetworkError/i.test(message);
+      console.error('[GLOBAL ERROR] Unhandled promise rejection:', reason);
+      if (!isBenign && import.meta.env.PROD) {
+        // dynamic import to avoid pulling sonner into the critical path
+        import('sonner').then(({ toast }) => {
+          toast.error('Algo salió mal. Intenta de nuevo.', {
+            description: message?.slice(0, 120),
+          });
+        }).catch(() => {});
+      }
       event.preventDefault();
     };
-    
+
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
     return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
   }, []);
@@ -256,42 +243,13 @@ const App = () => {
               {/* Admin Cert */}
               <Route path="/admin-cert/*" element={<AdminProtectedRoute><AdminCertLayout /></AdminProtectedRoute>} />
 
-              {/* Admin — Discipline Panels */}
+              {/* Admin — Discipline Panels (MMA + Boxeo share the same surface) */}
               <Route path="/admin/mma" element={
                 <AdminProtectedRoute>
                   <AdminDisciplineLayout discipline="MMA" />
                 </AdminProtectedRoute>
               }>
-                <Route index element={<DisciplineDashboard />} />
-                <Route path="eventos-pelea" element={<EventosPelea />} />
-                <Route path="fighters-profiles" element={<AdminFightersProfiles />} />
-                <Route path="fighters-profiles/invite" element={<FightersProfilesInvite />} />
-                <Route path="fighters-profiles/create" element={<FightersProfilesCreate />} />
-                <Route path="rankings" element={<RankingsManagement />} />
-                <Route path="gimnasios" element={<GimnasiosAdmin />} />
-                <Route path="entrenadores" element={<EntrenadoresAdmin />} />
-                <Route path="pending-changes" element={<PendingChangesHub />} />
-                <Route path="fight-approval" element={<FightApproval />} />
-                <Route path="sanctions" element={<Sanctions />} />
-                <Route path="organizations" element={<OrganizationsManagement />} />
-                <Route path="officials" element={<OfficialsManagement />} />
-                <Route path="judges" element={<JudgesManagement />} />
-                <Route path="scoring/stations" element={<JudgeStationsSetup />} />
-                <Route path="live-events" element={<LiveEventsControl />} />
-                <Route path="live-streaming" element={<LiveStreaming />} />
-                <Route path="fight-results" element={<FightResults />} />
-                <Route path="ai-strike-monitor" element={<AIStrikeMonitor />} />
-                <Route path="ai-strike-test" element={<AIStrikeTestPanel />} />
-                <Route path="vision-diagnostics" element={<VisionDiagnostics />} />
-                <Route path="licencias" element={<ValidacionLicencias />} />
-                <Route path="email-monitoring" element={<EmailMonitoring />} />
-                <Route path="email-campaigns" element={<EmailCampaigns />} />
-                <Route path="email-campaigns/:id" element={<EmailCampaignDetail />} />
-                <Route path="email-campaigns/editor" element={<EmailCampaignEditor />} />
-                <Route path="email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
-                <Route path="comunidad" element={<Comunidad />} />
-                <Route path="aliados-estrategicos" element={<AliadosEstrategicos />} />
-                <Route path="betting" element={<Betting />} />
+                {adminDisciplineRoutes({ includeAi: true })}
               </Route>
 
               <Route path="/admin/boxeo" element={
@@ -299,33 +257,7 @@ const App = () => {
                   <AdminDisciplineLayout discipline="Boxeo" />
                 </AdminProtectedRoute>
               }>
-                <Route index element={<DisciplineDashboard />} />
-                <Route path="eventos-pelea" element={<EventosPelea />} />
-                <Route path="fighters-profiles" element={<AdminFightersProfiles />} />
-                <Route path="fighters-profiles/invite" element={<FightersProfilesInvite />} />
-                <Route path="fighters-profiles/create" element={<FightersProfilesCreate />} />
-                <Route path="rankings" element={<RankingsManagement />} />
-                <Route path="gimnasios" element={<GimnasiosAdmin />} />
-                <Route path="entrenadores" element={<EntrenadoresAdmin />} />
-                <Route path="pending-changes" element={<PendingChangesHub />} />
-                <Route path="fight-approval" element={<FightApproval />} />
-                <Route path="sanctions" element={<Sanctions />} />
-                <Route path="organizations" element={<OrganizationsManagement />} />
-                <Route path="officials" element={<OfficialsManagement />} />
-                <Route path="judges" element={<JudgesManagement />} />
-                <Route path="scoring/stations" element={<JudgeStationsSetup />} />
-                <Route path="live-events" element={<LiveEventsControl />} />
-                <Route path="live-streaming" element={<LiveStreaming />} />
-                <Route path="fight-results" element={<FightResults />} />
-                <Route path="licencias" element={<ValidacionLicencias />} />
-                <Route path="email-monitoring" element={<EmailMonitoring />} />
-                <Route path="email-campaigns" element={<EmailCampaigns />} />
-                <Route path="email-campaigns/:id" element={<EmailCampaignDetail />} />
-                <Route path="email-campaigns/editor" element={<EmailCampaignEditor />} />
-                <Route path="email-campaigns/editor/:id" element={<EmailCampaignEditor />} />
-                <Route path="comunidad" element={<Comunidad />} />
-                <Route path="aliados-estrategicos" element={<AliadosEstrategicos />} />
-                <Route path="betting" element={<Betting />} />
+                {adminDisciplineRoutes({ includeAi: false })}
               </Route>
 
               {/* Admin — General (selector + system) */}
