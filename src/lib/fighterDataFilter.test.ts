@@ -29,14 +29,14 @@ describe('fighterDataFilter — security boundary', () => {
   };
 
   it('strips every sensitive field from filtered output', () => {
-    const filtered = filterPublicFighterData(fullProfile) as Record<string, unknown>;
+    const filtered = filterPublicFighterData(fullProfile) as unknown as Record<string, unknown>;
     for (const f of SENSITIVE_FIGHTER_FIELDS) {
       expect(filtered[f]).toBeUndefined();
     }
   });
 
   it('preserves all public fields that exist on the source', () => {
-    const filtered = filterPublicFighterData(fullProfile) as Record<string, unknown>;
+    const filtered = filterPublicFighterData(fullProfile) as unknown as Record<string, unknown>;
     expect(filtered.id).toBe('abc');
     expect(filtered.first_name).toBe('Juan');
     expect(filtered.nickname).toBe('El Toro');
