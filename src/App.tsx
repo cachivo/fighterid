@@ -14,8 +14,8 @@ import LicenseLayout from '@/components/LicenseLayout';
 import AdminCertLayout from '@/components/AdminCertLayout';
 import SuperAdminRoute from './components/SuperAdminRoute';
 import { lazy, Suspense, useEffect } from 'react';
-import React from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { adminDisciplineRoutes } from '@/routes/adminDisciplineRoutes';
 
 // === ALL pages lazy-loaded for optimal code splitting ===
 
