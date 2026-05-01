@@ -91,7 +91,7 @@ const UserRoles = lazy(() => import('./pages/admin/UserRoles'));
 const SystemAssets = lazy(() => import("./pages/admin/SystemAssets"));
 const ContactInbox = lazy(() => import("./pages/admin/ContactInbox"));
 const ApprovalQueue = lazy(() => import("./pages/admin/ApprovalQueue"));
-const EmailValidation = lazy(() => import("./pages/admin/EmailValidation"));
+
 
 // Gym pages
 const GymDashboard = lazy(() => import("./pages/gym/GymDashboard"));
