@@ -4364,6 +4364,72 @@ export type Database = {
           },
         ]
       }
+      knowledge_embeddings: {
+        Row: {
+          content: string
+          created_at: string
+          embedding: string | null
+          fighter_profile_id: string | null
+          id: string
+          source_id: string
+          source_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          embedding?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          source_id: string
+          source_type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          source_id?: string
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_embeddings_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_embeddings_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "knowledge_embeddings_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "knowledge_embeddings_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "knowledge_embeddings_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+        ]
+      }
       license_audit_log: {
         Row: {
           action: string
@@ -6669,6 +6735,190 @@ export type Database = {
           },
         ]
       }
+      work_session_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          session_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload?: Json
+          session_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_session_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "work_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_sessions: {
+        Row: {
+          app_user_id: string
+          client_meta: Json
+          context: string
+          ended_at: string | null
+          fighter_profile_id: string | null
+          id: string
+          started_at: string
+        }
+        Insert: {
+          app_user_id: string
+          client_meta?: Json
+          context: string
+          ended_at?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          started_at?: string
+        }
+        Update: {
+          app_user_id?: string
+          client_meta?: Json
+          context?: string
+          ended_at?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_sessions_app_user_id_fkey"
+            columns: ["app_user_id"]
+            isOneToOne: false
+            referencedRelation: "app_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_sessions_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_sessions_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "work_sessions_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "work_sessions_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "work_sessions_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+        ]
+      }
+      work_updates: {
+        Row: {
+          blocking_reasons: string[]
+          can_advance: boolean
+          completed_tasks: Json
+          created_at: string
+          current_phase: string | null
+          fighter_profile_id: string | null
+          id: string
+          session_id: string
+          summary: string
+        }
+        Insert: {
+          blocking_reasons?: string[]
+          can_advance?: boolean
+          completed_tasks?: Json
+          created_at?: string
+          current_phase?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          session_id: string
+          summary?: string
+        }
+        Update: {
+          blocking_reasons?: string[]
+          can_advance?: boolean
+          completed_tasks?: Json
+          created_at?: string
+          current_phase?: string | null
+          fighter_profile_id?: string | null
+          id?: string
+          session_id?: string
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_updates_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "fighter_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_updates_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "incomplete_fighter_profiles"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "work_updates_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "v_fighters_current_gym"
+            referencedColumns: ["fighter_id"]
+          },
+          {
+            foreignKeyName: "work_updates_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_a_id"]
+          },
+          {
+            foreignKeyName: "work_updates_fighter_profile_id_fkey"
+            columns: ["fighter_profile_id"]
+            isOneToOne: false
+            referencedRelation: "vision_fight_context"
+            referencedColumns: ["fighter_b_id"]
+          },
+          {
+            foreignKeyName: "work_updates_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: true
+            referencedRelation: "work_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       fights_full: {
@@ -7177,6 +7427,21 @@ export type Database = {
         Args: { days_to_keep?: number }
         Returns: number
       }
+      close_work_session: {
+        Args: {
+          p_blocking_reasons?: string[]
+          p_can_advance?: boolean
+          p_current_phase?: string
+          p_session_id: string
+          p_summary: string
+        }
+        Returns: {
+          fighter_profile_id: string
+          summary: string
+          task_count: number
+          work_update_id: string
+        }[]
+      }
       confirm_bet_after_delay: {
         Args: { p_ticket_id: string }
         Returns: undefined
@@ -7272,6 +7537,7 @@ export type Database = {
         Returns: string
       }
       expire_old_licenses: { Args: never; Returns: undefined }
+      extract_completed_tasks: { Args: { p_session_id: string }; Returns: Json }
       generate_license_number: { Args: never; Returns: string }
       generate_license_qr_token: {
         Args: { p_license_id: string }
@@ -7444,6 +7710,22 @@ export type Database = {
         Returns: boolean
       }
       is_judge: { Args: { _user_id: string }; Returns: boolean }
+      match_knowledge_embeddings: {
+        Args: {
+          match_count?: number
+          p_fighter_profile_id?: string
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          created_at: string
+          fighter_profile_id: string
+          id: string
+          similarity: number
+          source_id: string
+          source_type: string
+        }[]
+      }
       moderate_fighter_update: {
         Args: {
           p_admin_notes?: string
