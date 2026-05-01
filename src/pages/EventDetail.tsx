@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useUuidParam } from '@/hooks/useUuidParam';
 import { Calendar, MapPin, ArrowLeft, Trophy, Clock, Weight, Home, Shield, Tv } from 'lucide-react';
 import VisionEngineIndicator from '@/components/VisionEngineIndicator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,11 +78,8 @@ const getEventBranding = (event: any): EventBranding => {
 };
 
 const EventDetail = () => {
-  const {
-    eventId
-  } = useParams<{
-    eventId: string;
-  }>();
+  const { value: eventId, redirect } = useUuidParam('eventId');
+  if (redirect) return redirect;
   const {
     events,
     loading: eventsLoading
