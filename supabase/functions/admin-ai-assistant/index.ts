@@ -12,6 +12,18 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Sanitize search input to prevent PostgREST .or() filter injection.
+// Strips characters that are special in PostgREST filter strings: , ( ) " '
+// Also removes wildcard chars (% _) to keep ilike intent stable.
+function sanitizeSearchInput(input: unknown): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .replace(/[,()"'%_\\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+}
+
 // Language detection
 function detectLanguage(text: string): 'es' | 'en' {
   const spanishKeywords = [
@@ -137,7 +149,8 @@ async function searchFighters(criteria: any) {
       .select('id, first_name, last_name, nickname, country, weight_class, record_wins, record_losses, record_draws, license_number, license_status');
 
     if (criteria.name) {
-      query = query.or(`first_name.ilike.%${criteria.name}%,last_name.ilike.%${criteria.name}%,nickname.ilike.%${criteria.name}%`);
+      const n = sanitizeSearchInput(criteria.name);
+      if (n) query = query.or(`first_name.ilike.%${n}%,last_name.ilike.%${n}%,nickname.ilike.%${n}%`);
     }
     if (criteria.country) query = query.eq('country', criteria.country);
     if (criteria.weight_class) query = query.eq('weight_class', criteria.weight_class);
@@ -179,15 +192,18 @@ async function advancedSearchFighters(criteria: any) {
     if (criteria.document_number) query = query.eq('document_number', criteria.document_number);
     
     if (criteria.full_name) {
-      const parts = criteria.full_name.toLowerCase().split(' ');
-      const first = parts[0];
-      const last = parts[parts.length - 1];
-      query = query.or(`first_name.ilike.%${first}%,last_name.ilike.%${last}%,nickname.ilike.%${criteria.full_name}%`);
+      const fullSan = sanitizeSearchInput(criteria.full_name);
+      if (fullSan) {
+        const parts = fullSan.toLowerCase().split(' ');
+        const first = parts[0];
+        const last = parts[parts.length - 1];
+        query = query.or(`first_name.ilike.%${first}%,last_name.ilike.%${last}%,nickname.ilike.%${fullSan}%`);
+      }
     }
-    
-    if (criteria.first_name) query = query.ilike('first_name', `%${criteria.first_name}%`);
-    if (criteria.last_name) query = query.ilike('last_name', `%${criteria.last_name}%`);
-    if (criteria.nickname) query = query.ilike('nickname', `%${criteria.nickname}%`);
+
+    if (criteria.first_name) { const v = sanitizeSearchInput(criteria.first_name); if (v) query = query.ilike('first_name', `%${v}%`); }
+    if (criteria.last_name)  { const v = sanitizeSearchInput(criteria.last_name);  if (v) query = query.ilike('last_name', `%${v}%`); }
+    if (criteria.nickname)   { const v = sanitizeSearchInput(criteria.nickname);   if (v) query = query.ilike('nickname', `%${v}%`); }
     if (criteria.birthdate) query = query.eq('birthdate', criteria.birthdate);
     if (criteria.birthdate_from) query = query.gte('birthdate', criteria.birthdate_from);
     if (criteria.birthdate_to) query = query.lte('birthdate', criteria.birthdate_to);
