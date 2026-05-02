@@ -50,6 +50,24 @@ These are recorded in `SECURITY_FIGHTER_DATA.md` and in security memory.
 ---
 
 
+## [2026-05-02c] — Landing section header unification + HHF rebrand
+
+### UI — added
+- **`src/components/landing/SectionDivider.tsx`** — Reusable section header (hairlines + uppercase title + uppercase tracked subtitle) extracted from the Boxeo block, now the single source of truth for landing section dividers.
+
+### UI — changed
+- **`src/pages/Index.tsx`** — `BoxeoBlock` refactored to use `<SectionDivider>`. New MMA divider added before the UCC ranking (`title="MMA"`, subtitle pulled from `ranking_organizations.description`).
+- **`src/components/sections/GymShowcase.tsx`**, **`src/components/StrategicAllies.tsx`**, **`src/components/landing/HowItWorks.tsx`** — Replaced bespoke `ufc-label` echo headers with `<SectionDivider>` for consistent hierarchy across landing sections.
+
+### Data — changed
+- **`ranking_organizations.description`** — `HHF_AMATEUR` updated from `"Minor League — boxeo amateur de barrio"` to `"Boxeo Honduras Hood Fights"` so the HHF ranking subtitle on the landing reads as the user requested.
+
+### Out of scope
+- Internal page headers (`PageHeader` on sub-routes) keep their own style.
+
+---
+
+
 ## [2026-05-02] — Landing page rescue for low-end mobile (Honduras)
 
 > **Context**: Most users in Honduras are on 2–3 GB RAM Android phones (Moto E, Tecno Spark, Adreno 5xx / Mali-G52) on 3G or congested 4G. The landing was unusable — heavy parallax, fixed blur orbs, three eager Ranking sections each opening their own WebSocket subscriptions, and a 226 KB PNG hero.
