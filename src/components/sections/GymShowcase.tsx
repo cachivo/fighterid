@@ -13,18 +13,10 @@ const GymShowcase = () => {
 
   if (isLoading) {
     return (
-      <section className="py-6 sm:py-8">
-        <div className="container mx-auto px-3">
-          <div className="relative inline-block mx-auto w-full text-center">
-            <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
-            <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
-            <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
-            <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
-            <h2 className="relative ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display text-foreground">
-              ESCUELAS DE <span className="text-primary">COMBATE</span>
-            </h2>
-          </div>
-          <div className="space-y-3">
+      <>
+        <SectionDivider title="Escuelas de Combate" subtitle="Gimnasios y sus peleadores registrados" />
+        <section className="py-6 sm:py-8">
+          <div className="container mx-auto px-3 space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Card key={i} className="bg-card border-primary/20">
                 <CardContent className="p-3">
@@ -39,16 +31,18 @@ const GymShowcase = () => {
               </Card>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      </>
     );
   }
 
   if (!gyms || gyms.length === 0) return null;
 
   return (
-    <section className="py-6 sm:py-8">
-      <div className="container mx-auto px-3">
+    <>
+      <SectionDivider title="Escuelas de Combate" subtitle="Gimnasios y sus peleadores registrados" />
+      <section className="py-6 sm:py-8">
+        <div className="container mx-auto px-3">
         <div className="relative inline-block mx-auto w-full text-center">
           <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
           <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-lg xs:text-xl sm:text-2xl font-bold tracking-display">ESCUELAS DE COMBATE</span>
