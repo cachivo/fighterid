@@ -17,15 +17,9 @@ import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from "@/hooks/us
 interface RankingProps {
   organizationCode?: string;
   compact?: boolean;
-  /**
-   * When false the section renders shell-only without firing data fetches or
-   * realtime subscriptions. Used by the landing page to defer below-fold
-   * Rankings until the user scrolls near them.
-   */
-  enabled?: boolean;
 }
 
-const Ranking = ({ organizationCode = 'UCC_MMA', compact = false, enabled = true }: RankingProps) => {
+const Ranking = ({ organizationCode = 'UCC_MMA', compact = false }: RankingProps) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('Amateur');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
@@ -33,10 +27,11 @@ const Ranking = ({ organizationCode = 'UCC_MMA', compact = false, enabled = true
   const [accumulatedRankings, setAccumulatedRankings] = useState<typeof rankingDataRef>([]);
   const PAGE_SIZE = compact ? 5 : 10;
   
-  // Realtime subscriptions for automatic sync across modules
+  // Realtime subscriptions for automatic sync across modules.
+  // (When this section is rendered behind <LazyMount>, these only fire once
+  // the user scrolls near it — no off-screen WebSocket churn on landing.)
   useRealtimeFighterUpdates();
   useRealtimeRankingUpdates();
-  const { rankingBgUrl } = useSystemAssets();
   
   const { data: organizations } = useRankingOrganizations();
   const { data: rankingData, isLoading } = useOrganizationRanking(
