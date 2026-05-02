@@ -13,7 +13,6 @@ import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { useNavigate } from "react-router-dom";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from "@/hooks/useRealtimeFighterUpdates";
-import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 interface RankingProps {
   organizationCode?: string;
@@ -28,10 +27,11 @@ const Ranking = ({ organizationCode = 'UCC_MMA', compact = false }: RankingProps
   const [accumulatedRankings, setAccumulatedRankings] = useState<typeof rankingDataRef>([]);
   const PAGE_SIZE = compact ? 5 : 10;
   
-  // Realtime subscriptions for automatic sync across modules
+  // Realtime subscriptions for automatic sync across modules.
+  // (When this section is rendered behind <LazyMount>, these only fire once
+  // the user scrolls near it — no off-screen WebSocket churn on landing.)
   useRealtimeFighterUpdates();
   useRealtimeRankingUpdates();
-  const { rankingBgUrl } = useSystemAssets();
   
   const { data: organizations } = useRankingOrganizations();
   const { data: rankingData, isLoading } = useOrganizationRanking(
@@ -149,19 +149,26 @@ const Ranking = ({ organizationCode = 'UCC_MMA', compact = false }: RankingProps
 
   return (
     <section id="ranking" className="py-4 xs:py-6 sm:py-8 md:py-12 lg:py-16 relative overflow-hidden">
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-fixed opacity-80"
-        style={{ backgroundImage: `url(${rankingBgUrl})` }}
+      {/* Pure-CSS backdrop replaces a 200KB+ image with bg-fixed (heavy on
+          low-end Android GPUs). Same visual mood, zero network/scroll cost. */}
+      <div
+        className="absolute inset-0 opacity-80"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse 80% 60% at 50% 0%, hsl(var(--primary) / 0.15), transparent 70%),' +
+            'linear-gradient(180deg, #0a0a0a 0%, #050505 100%)',
+        }}
       />
       <div className="absolute inset-0 bg-black/20" />
-      
+
       <div className="container mx-auto px-2 xs:px-3 sm:px-4 relative z-10">
-        <div className="text-center mb-4 xs:mb-6 sm:mb-8 md:mb-10 animate-slide-up">
+        <div className="text-center mb-4 xs:mb-6 sm:mb-8 md:mb-10">
           <div className="relative inline-block mb-2 xs:mb-3 sm:mb-4">
-            <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
-            <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
-            <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
-            <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            {/* Echo stack: only on md+ where it's free. Mobile renders one paint. */}
+            <span aria-hidden="true" className="hidden md:inline echo-layer echo-4 ufc-label text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="hidden md:inline echo-layer echo-3 ufc-label text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="hidden md:inline echo-layer echo-2 ufc-label text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
+            <span aria-hidden="true" className="hidden md:inline echo-layer echo-1 ufc-label text-3xl lg:text-4xl font-bold tracking-display">RANKING {currentOrg?.short_name || 'OFICIAL'}</span>
             <h2 className="relative ufc-label text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-display text-white">
               RANKING <span className="text-purple-neon-primary">{currentOrg?.short_name || 'OFICIAL'}</span>
             </h2>
