@@ -981,8 +981,34 @@ serve(async (req) => {
   }
 
   try {
+    // --- AuthN/AuthZ: require a signed-in admin user ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const { data: isAdminFlag, error: roleErr } = await supabase.rpc('has_role', {
+      _user_id: user.id, _role: 'admin'
+    });
+    if (roleErr || !isAdminFlag) {
+      return new Response(JSON.stringify({ error: 'Admin role required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { message, conversation_history = [] } = await req.json();
-    
+
     if (!message) {
       throw new Error('Message is required');
     }
@@ -992,7 +1018,7 @@ serve(async (req) => {
     const systemPrompt = getSystemPrompt(language);
 
     console.log(`Detected language: ${language}`);
-    console.log(`Processing message: ${message}`);
+    console.log(`Processing admin message (${message.length} chars)`);
 
     // Prepare messages for OpenAI
     const messages = [
