@@ -20,39 +20,35 @@ const STEPS = [
   },
 ];
 
+import { SectionDivider } from "./SectionDivider";
+
 export function HowItWorks() {
   return (
-    <section className="relative py-10 sm:py-14 px-4 border-y border-primary/15 bg-black/40">
-      <div className="container mx-auto max-w-5xl">
-        <div className="mb-8 sm:mb-10 text-center">
-          <p className="ufc-label text-[11px] sm:text-xs tracking-[0.25em] text-primary mb-2">
-            CÓMO FUNCIONA
-          </p>
-          <h2 className="ufc-label text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-display text-white">
-            Tu carrera, en <span className="text-primary">3 pasos</span>
-          </h2>
+    <>
+      <SectionDivider title="Cómo Funciona" subtitle="Tu carrera en 3 pasos" />
+      <section className="relative py-8 sm:py-12 px-4 bg-black/40">
+        <div className="container mx-auto max-w-5xl">
+          <ol className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
+            {STEPS.map((s) => (
+              <li
+                key={s.n}
+                className="combat-cut relative bg-black/60 border border-white/10 p-5 sm:p-6"
+              >
+                <div className="ufc-label text-4xl sm:text-5xl font-extrabold text-primary/30 leading-none mb-3">
+                  {s.n}
+                </div>
+                <h3 className="ufc-label text-base sm:text-lg font-bold text-white mb-1.5 tracking-wider">
+                  {s.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
+                  {s.body}
+                </p>
+              </li>
+            ))}
+          </ol>
         </div>
-
-        <ol className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-          {STEPS.map((s) => (
-            <li
-              key={s.n}
-              className="combat-cut relative bg-black/60 border border-white/10 p-5 sm:p-6"
-            >
-              <div className="ufc-label text-4xl sm:text-5xl font-extrabold text-primary/30 leading-none mb-3">
-                {s.n}
-              </div>
-              <h3 className="ufc-label text-base sm:text-lg font-bold text-white mb-1.5 tracking-wider">
-                {s.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/70 leading-relaxed">
-                {s.body}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
 
