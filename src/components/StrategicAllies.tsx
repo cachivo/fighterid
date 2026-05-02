@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { StrategicAlliesSkeleton } from "@/components/ui/strategic-allies-skeleton";
 import { Dumbbell, Trophy } from "lucide-react";
+import { SectionDivider } from "@/components/landing/SectionDivider";
 
 const StrategicAllies = () => {
   const { data: partners, isLoading, error } = useQuery({
