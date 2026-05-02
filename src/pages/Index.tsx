@@ -8,6 +8,7 @@ import { QuickStats } from "@/components/QuickStats";
 import Ranking from "@/components/sections/Ranking";
 import UrbanDecorations from "@/components/UrbanDecorations";
 import { LazyMount } from "@/components/LazyMount";
+import { SectionDivider } from "@/components/landing/SectionDivider";
 
 // Lazy-load non-critical below-fold components
 const StrategicAllies = lazy(() => import("@/components/StrategicAllies"));
@@ -30,20 +31,7 @@ const MemoHero = memo(Hero);
 function BoxeoBlock() {
   return (
     <>
-      <section className="relative py-8 px-4 bg-gradient-to-b from-transparent via-primary/5 to-transparent border-y border-primary/20">
-        <div className="container mx-auto max-w-6xl text-center">
-          <div className="flex items-center justify-center gap-4">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/40" />
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-foreground uppercase">
-              Boxeo
-            </h2>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/40" />
-          </div>
-          <p className="text-sm md:text-base text-muted-foreground mt-2 uppercase tracking-widest">
-            Liga Nacional Olímpica · Minor League
-          </p>
-        </div>
-      </section>
+      <SectionDivider title="Boxeo" subtitle="Liga Nacional Olímpica · Minor League" />
       <Ranking organizationCode="FEDEHBOX" compact />
       <Ranking organizationCode="HHF_AMATEUR" compact />
     </>
@@ -119,6 +107,7 @@ const Index = () => {
       )}
 
       {/* MMA — eager (above the fold of the rankings area) */}
+      <SectionDivider title="MMA" subtitle="Ultimate Combat Championship Honduras" />
       <Ranking organizationCode="UCC_MMA" compact />
 
       {/* Boxeo block — lazy mount only when the user scrolls near it.

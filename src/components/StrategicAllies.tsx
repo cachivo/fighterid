@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 import { StrategicAlliesSkeleton } from "@/components/ui/strategic-allies-skeleton";
 import { Dumbbell, Trophy } from "lucide-react";
+import { SectionDivider } from "@/components/landing/SectionDivider";
 
 const StrategicAllies = () => {
   const { data: partners, isLoading, error } = useQuery({
@@ -39,20 +40,12 @@ const StrategicAllies = () => {
   }
 
   return (
-    <section className="py-8 sm:py-10 md:py-12 px-4 bg-gradient-to-b from-black to-urban-dark">
-      <div className="container mx-auto">
-        <div className="relative inline-block mx-auto w-full text-center mb-3 sm:mb-4 animate-slide-up">
-          <span aria-hidden="true" className="echo-layer echo-4 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
-          <span aria-hidden="true" className="echo-layer echo-3 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
-          <span aria-hidden="true" className="echo-layer echo-2 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
-          <span aria-hidden="true" className="echo-layer echo-1 ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display">ALIADOS ESTRATÉGICOS</span>
-          <h2 className="relative ufc-label text-xl sm:text-2xl md:text-3xl font-bold tracking-display text-white">
-            ALIADOS <span className="text-primary">ESTRATÉGICOS</span>
-          </h2>
-        </div>
-        <p className="text-gray-400 text-center mb-6 sm:mb-8 md:mb-10 max-w-2xl mx-auto animate-fade-in text-xs sm:text-sm md:text-base">
-          Trabajamos con los mejores gimnasios y organizaciones para llevar el combate al siguiente nivel
-        </p>
+    <section className="bg-gradient-to-b from-black to-urban-dark">
+      <SectionDivider
+        title="Aliados Estratégicos"
+        subtitle="Gimnasios y organizaciones que llevan el combate al siguiente nivel"
+      />
+      <div className="container mx-auto px-4 py-6 sm:py-8 md:py-10">
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-4xl mx-auto">
           {partners.map((partner, index) => (

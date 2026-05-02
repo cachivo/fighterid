@@ -1,97 +1,63 @@
-## Pase 2 — Corrección de hallazgos Críticos y Altos
+## Goal
 
-Objetivo: cerrar los 1 crítico + 25 altos detectados por `bug_hunter.py` sin romper funcionalidades. Cambios quirúrgicos, reversibles, con verificación post-cambio.
-
----
-
-### 1. Crítico — `.env` rastreado en git
-
-- Crear `scripts/untrack-env.sh` documentando el comando que el usuario debe correr local: `git rm --cached .env && git commit -m "chore: untrack .env"`.
-- Confirmar que `.env` ya esté listado en `.gitignore` (añadirlo si falta).
-- Rotar la clave: la `SUPABASE_PUBLISHABLE_KEY` actual es la **anon/publishable**, segura para frontend (ya se usa con prefijo `VITE_`). No requiere rotación. Documentarlo en `SECURITY_FIGHTER_DATA.md` para evitar falsa alarma futura.
-- Acción real: **mantener `.env` (Lovable lo regenera)** + añadir nota en `.gitignore` y en README sobre por qué la anon key es pública.
-
-### 2. Alto — CORS wildcard en 17 edge functions
-
-Estrategia: helper compartido `supabase/functions/_shared/cors.ts` que devuelve cabeceras CORS basadas en una **allowlist** de orígenes:
-
-```
-https://fighter-id.org
-https://fighterid.lovable.app
-https://id-preview--c4add1c8-f68d-4715-9b10-5a9613b9085b.lovable.app
-http://localhost:5173, http://localhost:8080  (dev)
-```
-
-Comportamiento:
-- Lee `Origin` del request, lo compara con la allowlist, devuelve ese origen exacto en `Access-Control-Allow-Origin` (no `*`).
-- Si el origen no está permitido → responde 403 en preflight.
-- **Excepciones que deben mantener `*`** (webhooks/integraciones server-to-server sin origin de browser):
-  - `ai-strike-ingest` (motor IA externo)
-  - `bet-delay-processor` (cron)
-  - `finalize-fight-auto` (cron/trigger)
-  - `process-email-queue` (cron)
-  - `vision-start-session` `/telemetry` endpoint (motor IA externo)
-  
-  Estas mantienen `*` pero se documentan como intencionales en `SECURITY_FIGHTER_DATA.md` y se ignoran en el security memory.
-
-Edge functions a refactorizar al helper (12):
-`admin-ai-assistant`, `check-email-exists`, `delete-user`, `fetch-link-metadata`, `fetch-sports-news`, `notify-admin-pending`, `populate-batalla-gimnasios`, `publish-news-to-social`, `receive-contact`, `remove-image-background`, `send-fighter-invitation`, `send-gym-invitation`, `send-license-approval`, `send-mass-email`, `send-password-recovery`, `send-signup-confirmation`, `ai-strike-test-simulator`.
-
-Patrón aplicado a cada función:
-```ts
-import { buildCorsHeaders } from "../_shared/cors.ts";
-const corsHeaders = buildCorsHeaders(req);
-if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
-```
-
-### 3. Alto — React/TS patches del dry-run (6 archivos)
-
-Aplicar manualmente con tipos correctos (no `unknown`):
-- `src/components/EventImporter.tsx` — tipar `useState` con interfaz local del payload importado.
-- `src/components/FighterIDModal.tsx` — tipar `useState` con `FighterProfile | null`.
-- `src/pages/EventDetail.tsx` — tipar `useState` con tipo del evento de `useEvents`.
-- `src/system/events/event.logger.ts` — anotar return `Promise<void>` y envolver en try/catch silencioso.
-- `src/system/rag/retrieval.service.ts` — anotar return `Promise<void>` y propagar errores tipados.
-- `src/system/session/session.service.ts` — anotar return `Promise<void>` con manejo idempotente.
-
-### 4. Verificación
-
-- Re-ejecutar `python3 scripts/bug_hunter.py` y confirmar:
-  - Críticos: 0
-  - Altos de seguridad CORS: solo los 5 webhooks documentados como intencionales.
-- Ejecutar `bunx vitest run` (tests existentes no deben regresionar).
-- Probar smoke vía `supabase--curl_edge_functions` en una función refactorizada (`receive-contact` con `OPTIONS`).
-- Actualizar security memory con la decisión sobre los 5 webhooks que mantienen `*`.
-
-### 5. Documentación
-
-- Actualizar `CHANGELOG.md` con sección "Security hardening — CORS allowlist + dry-run patches applied".
-- Actualizar `SECURITY_FIGHTER_DATA.md` con:
-  - Allowlist de orígenes
-  - Lista de funciones server-to-server que conservan `*` y por qué
-  - Aclaración: anon key (publishable) es pública por diseño.
-- Regenerar `bug_report.md` post-fix.
-
-### Detalles técnicos
+Make every landing-page section share the same title/subtitle pattern as the Boxeo block (the one you said you like):
 
 ```text
-supabase/functions/
-├── _shared/
-│   └── cors.ts          ← NUEVO helper allowlist
-├── admin-ai-assistant/  ← refactor
-├── ...                  ← 16 más refactor
-└── ai-strike-ingest/    ← se mantiene * (documentado)
+─────  TÍTULO  ─────
+   subtítulo en mayúsculas
 ```
 
-`_shared/cors.ts` (interfaz):
-```ts
-export const ALLOWED_ORIGINS = [...];
-export function buildCorsHeaders(req: Request): Record<string,string>;
-export function isAllowedOrigin(origin: string | null): boolean;
+Reference (already live in `src/pages/Index.tsx`, `BoxeoBlock`):
+
+- `<section>` with `border-y border-primary/20`, gradient background
+- `<h2 class="text-3xl md:text-5xl font-black tracking-tighter uppercase">`
+- Horizontal hairlines flanking the title
+- Subtitle: `text-sm md:text-base text-muted-foreground uppercase tracking-widest`
+
+Today only the Boxeo block uses it. MMA goes straight into a `Ranking` with no header, and the lower sections (Escuelas de Combate, Aliados, Cómo Funciona) use a different `ufc-label` echo style. Result: inconsistent hierarchy on landing.
+
+## Changes
+
+### 1. Create a reusable `SectionDivider` component
+`src/components/landing/SectionDivider.tsx` — extracts the Boxeo header so every section uses one source of truth.
+
+```tsx
+<SectionDivider title="MMA" subtitle="Ultimate Combat Championship · Amateur · Pro" />
 ```
 
-### No tocar en este pase
+Props: `title: string`, `subtitle?: string`, optional `className`.
 
-- 493 medianos (TypeScript `any`, useEffect deps menores) → próximo pase.
-- 269 a11y (alt, aria) → pase dedicado de accesibilidad.
-- Logic (78) → revisar caso por caso, no en bulk.
+### 2. Refactor `BoxeoBlock` in `src/pages/Index.tsx`
+Replace the inline `<section>` with `<SectionDivider title="Boxeo" subtitle="Liga Nacional Olímpica · Minor League" />`. Visual output unchanged.
+
+### 3. Add an MMA divider before the MMA ranking in `Index.tsx`
+```tsx
+<SectionDivider title="MMA" subtitle="Ultimate Combat Championship Honduras" />
+<Ranking organizationCode="UCC_MMA" compact />
+```
+Subtitle pulled from the org's `description` field in `ranking_organizations` (verified via DB: `Ultimate Combat Championship Honduras` / `UCC MMA`).
+
+### 4. Unify the lower landing sections
+Replace the `ufc-label` echo-layer headers with `<SectionDivider>` in:
+
+- `src/components/sections/GymShowcase.tsx` — `title="Escuelas de Combate"`, `subtitle="Gimnasios y sus peleadores registrados"` (move current `<p>` into the subtitle slot, drop the duplicate header in the loading state by reusing the same component).
+- `src/components/StrategicAllies.tsx` — `title="Aliados Estratégicos"` (keep existing subtitle text if any, else omit).
+- `src/components/landing/HowItWorks.tsx` — wrap its current `<h2>` with `SectionDivider` using the same copy.
+
+`Hero` (`<h1>`) is the page's only H1 and stays untouched — it's the brand title, not a section divider.
+
+### 5. No DB / route / behavior changes
+Pure presentational refactor. No new dependencies.
+
+## Files touched
+
+- new: `src/components/landing/SectionDivider.tsx`
+- edit: `src/pages/Index.tsx` (add MMA divider, refactor `BoxeoBlock`)
+- edit: `src/components/sections/GymShowcase.tsx`
+- edit: `src/components/StrategicAllies.tsx`
+- edit: `src/components/landing/HowItWorks.tsx`
+
+## Out of scope
+
+- Internal page headers (`PageHeader` on routes like `/social/discover`) — those use `<h1>` and a different gradient style appropriate for sub-pages, not landing sections. Happy to unify in a follow-up if you want one global standard.
+- Copy/wording changes beyond what's needed to fit the title/subtitle slots.
