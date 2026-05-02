@@ -1,0 +1,1 @@
+UPDATE ranking_organizations SET description = 'Boxeo Honduras Hood Fights' WHERE code = 'HHF_AMATEUR';
