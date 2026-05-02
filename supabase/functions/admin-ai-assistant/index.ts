@@ -12,6 +12,18 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Sanitize search input to prevent PostgREST .or() filter injection.
+// Strips characters that are special in PostgREST filter strings: , ( ) " '
+// Also removes wildcard chars (% _) to keep ilike intent stable.
+function sanitizeSearchInput(input: unknown): string {
+  if (typeof input !== 'string') return '';
+  return input
+    .replace(/[,()"'%_\\]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80);
+}
+
 // Language detection
 function detectLanguage(text: string): 'es' | 'en' {
   const spanishKeywords = [
@@ -130,14 +142,15 @@ If you need more information to complete a request, ask specifically what data i
 // Specialized functions for fighter and tournament management (Connected to Real DB)
 async function searchFighters(criteria: any) {
   try {
-    console.log('[AI] Searching fighters:', criteria);
+    console.log('[AI] Searching fighters');
     
     let query = supabase
       .from('fighter_profiles')
       .select('id, first_name, last_name, nickname, country, weight_class, record_wins, record_losses, record_draws, license_number, license_status');
 
     if (criteria.name) {
-      query = query.or(`first_name.ilike.%${criteria.name}%,last_name.ilike.%${criteria.name}%,nickname.ilike.%${criteria.name}%`);
+      const n = sanitizeSearchInput(criteria.name);
+      if (n) query = query.or(`first_name.ilike.%${n}%,last_name.ilike.%${n}%,nickname.ilike.%${n}%`);
     }
     if (criteria.country) query = query.eq('country', criteria.country);
     if (criteria.weight_class) query = query.eq('weight_class', criteria.weight_class);
@@ -162,7 +175,7 @@ async function searchFighters(criteria: any) {
 // Advanced search with multiple criteria
 async function advancedSearchFighters(criteria: any) {
   try {
-    console.log('[AI] Advanced search:', criteria);
+    console.log('[AI] Advanced search');
     
     let query = supabase
       .from('fighter_profiles')
@@ -179,15 +192,18 @@ async function advancedSearchFighters(criteria: any) {
     if (criteria.document_number) query = query.eq('document_number', criteria.document_number);
     
     if (criteria.full_name) {
-      const parts = criteria.full_name.toLowerCase().split(' ');
-      const first = parts[0];
-      const last = parts[parts.length - 1];
-      query = query.or(`first_name.ilike.%${first}%,last_name.ilike.%${last}%,nickname.ilike.%${criteria.full_name}%`);
+      const fullSan = sanitizeSearchInput(criteria.full_name);
+      if (fullSan) {
+        const parts = fullSan.toLowerCase().split(' ');
+        const first = parts[0];
+        const last = parts[parts.length - 1];
+        query = query.or(`first_name.ilike.%${first}%,last_name.ilike.%${last}%,nickname.ilike.%${fullSan}%`);
+      }
     }
-    
-    if (criteria.first_name) query = query.ilike('first_name', `%${criteria.first_name}%`);
-    if (criteria.last_name) query = query.ilike('last_name', `%${criteria.last_name}%`);
-    if (criteria.nickname) query = query.ilike('nickname', `%${criteria.nickname}%`);
+
+    if (criteria.first_name) { const v = sanitizeSearchInput(criteria.first_name); if (v) query = query.ilike('first_name', `%${v}%`); }
+    if (criteria.last_name)  { const v = sanitizeSearchInput(criteria.last_name);  if (v) query = query.ilike('last_name', `%${v}%`); }
+    if (criteria.nickname)   { const v = sanitizeSearchInput(criteria.nickname);   if (v) query = query.ilike('nickname', `%${v}%`); }
     if (criteria.birthdate) query = query.eq('birthdate', criteria.birthdate);
     if (criteria.birthdate_from) query = query.gte('birthdate', criteria.birthdate_from);
     if (criteria.birthdate_to) query = query.lte('birthdate', criteria.birthdate_to);
@@ -233,7 +249,7 @@ async function advancedSearchFighters(criteria: any) {
 
 async function getFighterDetails(fighterId: string) {
   try {
-    console.log('[AI] Getting fighter details:', fighterId);
+    console.log('[AI] Getting fighter details');
     
     const { data, error } = await supabase
       .from('fighter_profiles')
@@ -269,7 +285,7 @@ async function getFighterDetails(fighterId: string) {
 
 async function updateFighterProfile(fighterId: string, updates: any) {
   try {
-    console.log('[AI] Updating fighter:', fighterId, updates);
+    console.log('[AI] Updating fighter');
     
     const allowedFields = ['nickname', 'weight_class', 'gym_name', 'bio'];
     const sanitizedUpdates: any = {};
@@ -304,7 +320,7 @@ async function updateFighterProfile(fighterId: string, updates: any) {
 
 async function validateLicense(licenseId: string) {
   try {
-    console.log('[AI] Validating license:', licenseId);
+    console.log('[AI] Validating license');
     
     const { data, error } = await supabase
       .from('fighter_licenses')
@@ -349,7 +365,7 @@ async function validateLicense(licenseId: string) {
 
 async function createTournament(tournamentData: any) {
   try {
-    console.log('[AI] Creating tournament:', tournamentData);
+    console.log('[AI] Creating tournament');
     
     const requiredFields = ['name', 'start_time', 'venue'];
     for (const field of requiredFields) {
@@ -677,7 +693,7 @@ async function getPendingLicenses() {
 
 async function approveLicense(licenseId: string, level: string = 'AMATEUR') {
   try {
-    console.log('[AI] Approving license:', licenseId);
+    console.log('[AI] Approving license');
     const { error } = await supabase.rpc('approve_license', {
       p_license_id: licenseId,
       p_level: level
@@ -692,7 +708,7 @@ async function approveLicense(licenseId: string, level: string = 'AMATEUR') {
 
 async function suspendLicense(licenseId: string, reason: string, until?: string) {
   try {
-    console.log('[AI] Suspending license:', licenseId);
+    console.log('[AI] Suspending license');
     const { error } = await supabase.rpc('suspend_license', {
       p_license_id: licenseId,
       p_reason: reason,
@@ -708,7 +724,7 @@ async function suspendLicense(licenseId: string, reason: string, until?: string)
 
 async function reactivateLicense(licenseId: string) {
   try {
-    console.log('[AI] Reactivating license:', licenseId);
+    console.log('[AI] Reactivating license');
     const { error } = await supabase
       .from('fighter_licenses')
       .update({ status: 'ACTIVE', suspension_reason: null, suspension_until: null })
@@ -724,7 +740,7 @@ async function reactivateLicense(licenseId: string) {
 // Fighter Management Functions
 async function createFighter(fighterData: any) {
   try {
-    console.log('[AI] Creating fighter:', fighterData);
+    console.log('[AI] Creating fighter');
     if (!fighterData.first_name || !fighterData.last_name) {
       return { success: false, error: 'Nombre y apellido son requeridos' };
     }
@@ -750,7 +766,7 @@ async function createFighter(fighterData: any) {
 
 async function updateFighterComplete(fighterId: string, updates: any) {
   try {
-    console.log('[AI] Updating fighter complete:', fighterId);
+    console.log('[AI] Updating fighter complete');
     const { error } = await supabase.rpc('admin_update_fighter_profile', {
       p_fighter_id: fighterId,
       p_profile_data: updates
@@ -765,7 +781,7 @@ async function updateFighterComplete(fighterId: string, updates: any) {
 
 async function deleteFighter(fighterId: string) {
   try {
-    console.log('[AI] Deleting fighter:', fighterId);
+    console.log('[AI] Deleting fighter');
     const { error } = await supabase.rpc('admin_delete_fighter_profile', {
       p_fighter_id: fighterId
     });
@@ -779,7 +795,7 @@ async function deleteFighter(fighterId: string) {
 
 async function getFighterSensitiveData(fighterId: string) {
   try {
-    console.log('[AI] Getting sensitive data:', fighterId);
+    console.log('[AI] Getting sensitive data');
     const { data, error } = await supabase.rpc('get_fighter_sensitive_data', {
       p_fighter_id: fighterId
     });
@@ -965,8 +981,34 @@ serve(async (req) => {
   }
 
   try {
+    // --- AuthN/AuthZ: require a signed-in admin user ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const authClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userErr } = await authClient.auth.getUser();
+    if (userErr || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const { data: isAdminFlag, error: roleErr } = await supabase.rpc('has_role', {
+      _user_id: user.id, _role: 'admin'
+    });
+    if (roleErr || !isAdminFlag) {
+      return new Response(JSON.stringify({ error: 'Admin role required' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     const { message, conversation_history = [] } = await req.json();
-    
+
     if (!message) {
       throw new Error('Message is required');
     }
@@ -976,7 +1018,7 @@ serve(async (req) => {
     const systemPrompt = getSystemPrompt(language);
 
     console.log(`Detected language: ${language}`);
-    console.log(`Processing message: ${message}`);
+    console.log(`Processing admin message (${message.length} chars)`);
 
     // Prepare messages for OpenAI
     const messages = [

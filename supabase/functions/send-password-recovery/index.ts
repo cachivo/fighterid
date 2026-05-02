@@ -134,7 +134,7 @@ serve(async (req) => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      console.log("[RECOVERY] Invalid email format:", { email, ip: clientIp });
+      console.log("[RECOVERY] Invalid email format from ip:", clientIp);
       // Always return success to prevent user enumeration
       return new Response(
         JSON.stringify({ 
@@ -150,7 +150,7 @@ serve(async (req) => {
     const rateLimitCheck = checkRateLimit(rateLimitKey);
 
     if (!rateLimitCheck.allowed) {
-      console.log("[RECOVERY] Rate limit exceeded:", { email, ip: clientIp, retryAfter: rateLimitCheck.retryAfter });
+      console.log("[RECOVERY] Rate limit exceeded for ip:", clientIp, "retryAfter:", rateLimitCheck.retryAfter);
       return new Response(
         JSON.stringify({ 
           error: "Demasiados intentos. Por favor, espera antes de intentar nuevamente.",
@@ -167,11 +167,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("[RECOVERY] Request received:", { 
-      email: email.replace(/(?<=.{2}).(?=.*@)/g, '*'), 
-      ip: clientIp,
-      timestamp: new Date().toISOString()
-    });
+    console.log("[RECOVERY] Request received from ip:", clientIp, "at", new Date().toISOString());
 
     // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -192,11 +188,7 @@ serve(async (req) => {
       }
     } catch {}
     
-    console.log("[RECOVERY] Generating link with redirect:", {
-      receivedRedirectTo: redirectTo,
-      finalRedirect,
-      siteUrl: siteBase
-    });
+    console.log("[RECOVERY] Generating link with redirect path:", finalRedirect.replace(siteBase, ''));
     
     const { data: recoveryData, error: recoveryError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
@@ -209,10 +201,7 @@ serve(async (req) => {
     // If user doesn't exist, Supabase returns an error
     // But we still return success to prevent user enumeration
     if (recoveryError || !recoveryData) {
-      console.log("[RECOVERY] Recovery link generation failed:", { 
-        email: email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
-        error: recoveryError?.message || "No data returned"
-      });
+      console.log("[RECOVERY] Recovery link generation failed:", recoveryError?.message || "No data returned");
       
       // Add artificial delay to prevent timing attacks
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -237,10 +226,7 @@ serve(async (req) => {
       from: getEmailFrom(),
     });
 
-    console.log("[RECOVERY] ✓ Email sent successfully:", { 
-      email: email.replace(/(?<=.{2}).(?=.*@)/g, '*'),
-      timestamp: new Date().toISOString()
-    });
+    console.log("[RECOVERY] ✓ Email sent successfully at", new Date().toISOString());
 
     // Always return generic success message
     return new Response(
