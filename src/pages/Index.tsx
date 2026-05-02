@@ -8,6 +8,7 @@ import { QuickStats } from "@/components/QuickStats";
 import Ranking from "@/components/sections/Ranking";
 import UrbanDecorations from "@/components/UrbanDecorations";
 import { LazyMount } from "@/components/LazyMount";
+import { SectionDivider } from "@/components/landing/SectionDivider";
 
 // Lazy-load non-critical below-fold components
 const StrategicAllies = lazy(() => import("@/components/StrategicAllies"));
