@@ -13,14 +13,19 @@ import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
 import { useNavigate } from "react-router-dom";
 import { InfiniteScrollContainer } from "@/components/InfiniteScrollContainer";
 import { useRealtimeFighterUpdates, useRealtimeRankingUpdates } from "@/hooks/useRealtimeFighterUpdates";
-import { useSystemAssets } from "@/hooks/useSystemAssets";
 
 interface RankingProps {
   organizationCode?: string;
   compact?: boolean;
+  /**
+   * When false the section renders shell-only without firing data fetches or
+   * realtime subscriptions. Used by the landing page to defer below-fold
+   * Rankings until the user scrolls near them.
+   */
+  enabled?: boolean;
 }
 
-const Ranking = ({ organizationCode = 'UCC_MMA', compact = false }: RankingProps) => {
+const Ranking = ({ organizationCode = 'UCC_MMA', compact = false, enabled = true }: RankingProps) => {
   const [selectedLevel, setSelectedLevel] = useState<string>('Amateur');
   const [selectedWeightClass, setSelectedWeightClass] = useState<string>('');
   const [selectedGender, setSelectedGender] = useState<string>('');
