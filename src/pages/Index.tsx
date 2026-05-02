@@ -107,6 +107,7 @@ const Index = () => {
       )}
 
       {/* MMA — eager (above the fold of the rankings area) */}
+      <SectionDivider title="MMA" subtitle="Ultimate Combat Championship Honduras" />
       <Ranking organizationCode="UCC_MMA" compact />
 
       {/* Boxeo block — lazy mount only when the user scrolls near it.
