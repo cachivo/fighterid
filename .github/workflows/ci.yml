@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  bug-hunter:
+    name: Bug Hunter (security)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run security scan
+        run: python scripts/bug_hunter.py --category security
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bug-report
+          path: bug_report.md
+          if-no-files-found: ignore
+
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: tsc --noEmit
+        run: npx tsc --noEmit
+
+  tests:
+    name: Vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - name: Install
+        run: bun install --frozen-lockfile
+      - name: Run tests
+        run: bunx vitest run --reporter=dot
