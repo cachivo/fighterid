@@ -1,104 +1,80 @@
-# Landing page: low-end mobile rescue + engagement uplift
+# Fighter ID — Developer Bug-Fix Toolkit
 
-**Audience**: Budget Android phones in Honduras (2–3 GB RAM, 3G/slow-4G, Adreno 5xx / Mali-G52). Goal: First Contentful Paint under 2s on a Moto E / Tecno Spark, smooth 60fps scroll, no functionality removed.
+Conservative, dry-run-by-default Python toolkit committed to `scripts/`, plus a CI workflow and a real first-run report.
 
-## Why the page is slow today (audit results)
+## Deliverables
 
-1. **Image weight**: hero uses a 226 KB PNG; `public/lovable-uploads/` ships ~10 MB of unused logos; `src/assets/blue-arena.jpg` is 2.2 MB and `mma-cage-4k.png` 891 KB.
-2. **`bg-fixed` + `blur-3xl`**: Ranking section uses `bg-fixed` (parallax) which forces full-screen repaints on every scroll frame. `UrbanDecorations` paints four 350–500 px `blur-3xl` orbs as `position: fixed` — catastrophic on mid-range GPUs.
-3. **3 Ranking sections** render eagerly on `/` (UCC_MMA, FEDEHBOX, HHF_AMATEUR). Each: own data fetch, own background image, two realtime subscriptions, and a 4× layered "echo-stack" title.
-4. **`Cache-Control: no-cache, no-store`** in `index.html` forces re-downloading every asset on each visit — disastrous on slow connections.
-5. **Google Fonts**: 3 families with many weights, render-blocking.
-6. **Eager realtime subscriptions** in below-fold sections fire WebSocket churn before the user scrolls.
+### 1. `scripts/bug_hunter.py`
+Pure-stdlib Python (no pip deps) AST + regex scanner.
 
-## What we'll change (no features removed)
+- **CLI**: `--category {typescript,react,security,logic,a11y,all}` (default `all`), `--fix` (only safe fixes: `console.log` removal, `<button>` `type="button"`, `<img>` `alt=""` placeholder), `--path <dir>` (default repo root), `--out bug_report.md`.
+- **Scope**: walks `src/`, `supabase/functions/`, `index.html`, `tsconfig*.json`, `.env*`. Honors `.gitignore` basics (skips `node_modules`, `dist`, `.lovable`, `mem://`).
+- **Rules** (each tagged severity 🔴/🟠/🟡/🔵):
+  - TS: `strict: false`, `: any` annotations, untyped function params, `useState(` without generic.
+  - React: `useEffect` with empty deps but referenced vars; direct `document.`/`window.` mutation; `.map(` without `key=`; inline arrows in JSX props (info only); early-return inside hook body; component file >300 LOC.
+  - Security: `.env` tracked (checks `git ls-files`), `Access-Control-Allow-Origin: *` in edge functions, `localStorage.setItem('token'|'session'|'auth'`, regex for hardcoded keys (`sk_live_`, `eyJ…` JWTs, `SUPABASE_SERVICE_ROLE`).
+  - Logic: `async` function bodies without `try`/`catch` or `.catch(`; `useEffect(async` or async IIFE without `AbortController`; component prop count ≥8; pages without `<ErrorBoundary>` ancestor (heuristic on `src/pages/`).
+  - A11y: `<img` missing `alt`, `<button` missing `type`, `<img` missing `loading="lazy"` outside hero.
+- **Output**: `bug_report.md` with summary table + grouped findings (file:line, snippet, suggested fix).
 
-### 1. Asset diet
-- Convert hero background `mma-cage-background.png` (226 KB) to **WebP + AVIF** at mobile/desktop sizes via `<picture>` (target ~25 KB mobile).
-- Delete unused files in `public/lovable-uploads/` (the ~12 redundant `fighter-id-logo-*.png`, `mma-cage-4k.png`, `blue-arena.jpg`). Audit with `rg` to confirm zero references before deletion. Keep canonical logo only.
-- Replace the Ranking section background image with a **CSS gradient** (no network cost, identical visual mood).
-- Trim Google Fonts to **2 families, 3 weights total** (`Barlow Condensed 700` + `Inter 400/600`) with `&display=swap`.
+### 2. `scripts/react_logic_fixer.py`
+AST-light line-based rewriter. **Dry-run by default** → writes unified diffs to `react_fixes_patches/*.patch` and `react_fixes_report.md`. `--apply` writes in place. `--file <path>` scopes to one file.
 
-### 2. Kill GPU-killers
-- Remove `bg-fixed` from `Ranking.tsx` (replace with normal `bg-cover` or gradient).
-- Replace `UrbanDecorations` blurred orbs with a single static **CSS radial-gradient** painted into `body::before`. Zero DOM nodes, zero blur cost.
-- Drop the 4-layer **echo-stack title** in Ranking on mobile (`md:` breakpoint guard) — keep on desktop where it's free.
+- AbortController scaffolding around `useEffect(() => { ... fetch/supabase ... })`.
+- Wrap unguarded `async` function bodies in `try { … } catch (err) { console.error(err); }`.
+- Wrap obvious `arr.sort(`/`.filter(`/`.reduce(` on inline arrays inside components in `useMemo`.
+- Add `<unknown>` (flagged for manual review) generic to `useState(null|[]|{})`.
+- Add `key={…id ?? index}` to `.map(` JSX without `key`.
+- Replace `useState(undefined)` / `useState()` with typed empty defaults per pattern (`''`, `null`, `[]`, `false`).
+- Add `: Promise<void>` to exported `async function` lacking return annotation.
 
-### 3. Smarter loading on `/`
-- Render **only one Ranking section above the fold** (UCC_MMA). Mount the Boxeo block (FEDEHBOX + HHF_AMATEUR) behind a `<LazyMount>` using `IntersectionObserver` so its data fetch + realtime subs only fire when the user scrolls near it.
-- Move the Boxeo "section divider" + both Boxeo Rankings into a single lazy chunk (`React.lazy` + `Suspense`).
-- Gate `useRealtimeFighterUpdates` / `useRealtimeRankingUpdates` inside Ranking on an `inView` flag, so off-screen Rankings don't open WebSockets.
-- Use `useDeviceCapability().isLowEnd` to **skip animations** (`animate-fade-in-up`, `hover:scale-105`, `animate-pulse-purple-neon`) and to render `compact` rankings with 3 entries instead of 5 on low-end.
+Safety: never touches files under `supabase/functions/_shared/`, `src/integrations/supabase/`, `*.test.ts`, or `*.d.ts`. All rewrites are reversible via the emitted patch.
 
-### 4. Cache & network
-- Remove the `no-cache / no-store / Expires: 0` meta tags from `index.html`. Vite already fingerprints built assets; these headers actively hurt repeat visits.
-- Add `<link rel="preload" as="image" type="image/webp" href="...hero-mobile.webp" media="(max-width: 768px)">` for the hero.
-- Add `fetchpriority="high"` to the hero `<img>` and `loading="lazy" decoding="async"` to all below-fold images.
+### 3. `scripts/preflight.py`
+Local + git-hook validator.
 
-### 5. Engagement uplift (the hero)
-The current logged-out hero is a static title + stats chip + two buttons. Re-design as a **single-screen, 60fps, conversion-focused hero**:
+- Aborts if `.env` is staged or tracked.
+- Greps staged diff for hardcoded secrets and stray `console.log`.
+- Asserts `tsconfig.json` (or `.app.json`) sets `"strict": true` (warns, doesn't block — current repo is loose).
+- Warns when `.tsx`/`.ts` source is modified without a corresponding `*.test.ts`.
+- Runs `npx tsc --noEmit` and `bunx vitest run --reporter=dot` (skippable via `--no-types` / `--no-tests` for speed).
+- Exit code propagates to git pre-commit.
+
+### 4. `scripts/README.md`
+The toolkit doc you provided, trimmed to match actual flags + repo paths.
+
+### 5. `.github/workflows/ci.yml`
+Job matrix: `bug-hunter` (security category, non-blocking artifact upload of `bug_report.md`), `typecheck` (`npx tsc --noEmit`), `tests` (`bunx vitest run`). Triggers: PR + push to default branch.
+
+### 6. First-run artifacts (run after build)
+- Execute `python scripts/bug_hunter.py` → commit `bug_report.md` at repo root and copy to `/mnt/documents/bug_report.md` for download.
+- Execute `python scripts/react_logic_fixer.py` (dry-run) → emit `react_fixes_report.md` + `react_fixes_patches/` (gitignored, surfaced as a downloadable zip in `/mnt/documents/`).
+- Do **not** auto-apply any fix in this loop. Findings are reviewed by you before any follow-up patch loop.
+
+## Out of scope (this loop)
+- Applying any patch to `src/` (beyond the toolkit + CI files themselves).
+- Installing the git hook automatically — `scripts/README.md` documents the one-liner.
+- Fixing findings the scanner surfaces (separate loop, prioritized by severity).
+
+## File map
 
 ```text
-┌───────────────────────────────────────────┐
-│  [LIVE pill or NEXT EVENT pill]           │  ← dynamic if data
-│                                           │
-│        FIGHTER  ID                        │  ← 1 paint, no echo on mobile
-│        ───────                            │
-│  Tu carrera de combate, certificada.      │  ← clearer value prop
-│                                           │
-│  ▶  Crea tu Fighter ID  (primary, big)    │  ← single dominant CTA
-│     Iniciar sesión  ·  Explorar           │  ← secondary text-links
-│                                           │
-│  ── Trusted by ──                         │
-│  [12k peleadores] [320 gimnasios]         │  ← live counters, animate once
-│  [48 eventos]    [3 EN VIVO ●]            │
-└───────────────────────────────────────────┘
+scripts/
+├── bug_hunter.py
+├── react_logic_fixer.py
+├── preflight.py
+└── README.md
+.github/workflows/ci.yml
+.gitignore                      # +react_fixes_patches/, +bug_report.md (optional)
+bug_report.md                   # generated, committed
+/mnt/documents/bug_report.md    # downloadable copy
+/mnt/documents/react_fixes_patches.zip
 ```
 
-Specifics:
-- **One dominant CTA** (`Crea tu Fighter ID`) instead of two equal buttons → higher signup rate.
-- **Live ticker pill** at top: shows EN VIVO event if any, otherwise next event countdown — instant proof of life.
-- **Trust strip**: four real-time counters as a horizontal scroll on small screens (already a pattern in `QuickStats`), animated only once on entry, never on scroll.
-- **Background**: WebP hero image + CSS gradient overlay; no fixed attachment.
-- **Section below hero (logged-out)**: keep `QuickStats`, then a new compact **"Cómo funciona"** 3-step strip (Regístrate → Verifica → Compite) using emoji-free, Swiss-brutalist numbered blocks. No new images, pure CSS — adds engagement without payload.
+## Acceptance
+- All three scripts run with `python scripts/<name>.py --help` and exit 0 on a clean tree.
+- `bug_report.md` has the summary table from your spec, populated with real counts.
+- CI workflow parses (`actionlint`-clean) and references existing `bun`/`npm` setup.
+- No source files in `src/` modified.
 
-### 6. Logged-in hero
-Already lighter; apply the same image swap, drop the echo title, and reduce `min-h` by one step on mobile. No structural change.
-
-## Files to touch
-
-**Edit**
-- `index.html` — remove no-cache metas, trim Google Fonts, add hero preload.
-- `src/components/Hero.tsx` — restructure logged-out variant, single CTA, swap to `<picture>` with WebP/AVIF, drop echo on mobile, gate animations on `isLowEnd`.
-- `src/components/UrbanDecorations.tsx` — replace fixed blur orbs with a single CSS gradient layer.
-- `src/components/sections/Ranking.tsx` — remove `bg-fixed`, drop echo on mobile, gate realtime subscriptions on `inView`, accept `enabled` prop for lazy fetching.
-- `src/pages/Index.tsx` — render only UCC_MMA Ranking eagerly; lazy-mount the Boxeo block via `IntersectionObserver`; add new `HowItWorks` strip for logged-out users.
-- `src/index.css` — small additions for the new gradient backdrop and reduced-motion guards.
-
-**New**
-- `src/components/LazyMount.tsx` — tiny wrapper: render children only after element enters viewport (200 px rootMargin).
-- `src/components/landing/HowItWorks.tsx` — 3-step Swiss-brutalist strip, pure CSS, ~2 KB.
-- `src/assets/hero-cage.webp` and `hero-cage.avif` — generated from existing PNG (mobile + desktop sizes), via a one-shot script in `code--exec` using ImageMagick.
-
-**Delete (after `rg` confirms no references)**
-- Unused `public/lovable-uploads/fighter-id-logo-*` variants (~5 MB).
-- `src/assets/blue-arena.jpg` (2.2 MB), `src/assets/mma-cage-4k.png` (891 KB) — verify unused first.
-
-## Expected impact
-
-| Metric | Before (est.) | After (target) |
-|---|---|---|
-| Landing transferred bytes (mobile, cold) | ~3.2 MB | ~600 KB |
-| Hero image | 226 KB PNG | ~25 KB WebP |
-| FCP on Moto E (3G) | ~5–7 s | ~1.8 s |
-| Scroll jank (Ranking) | severe (`bg-fixed`+blur) | none |
-| Realtime WebSockets at landing | 6 (3 sections × 2) | 2 (1 section) |
-| Repeat-visit cache | broken (no-store) | full HTTP cache |
-
-## Out of scope (kept intact)
-- All routes, all navigation items, all Rankings (Boxeo simply mounts on scroll).
-- `useRealTimeStats`, all data hooks, realtime functionality.
-- Admin, license, and gym flows.
-- Brand identity (Swiss-brutalist + UFC red preserved).
-
-After approval I'll generate the WebP/AVIF assets, apply the edits, and verify with `browser--performance_profile` at 390×844 to confirm the FCP and scroll metrics.
+Approve and I'll build + run.
