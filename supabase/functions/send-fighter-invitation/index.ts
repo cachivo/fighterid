@@ -99,8 +99,8 @@ const handler = async (req: Request): Promise<Response> => {
     const inviteToken = crypto.randomUUID();
     const registrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/license/auth?mode=signup&invite=${inviteToken}`;
 
-    console.log("[INVITATION] Creating invitation for:", email);
-    console.info("[INVITATION] Generated link:", registrationLink);
+    console.log("[INVITATION] Creating invitation");
+    console.info("[INVITATION] Invitation link generated");
 
     // Insertar invitación en la base de datos
     const { data: invitation, error: dbError } = await supabaseClient
@@ -187,7 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         const finalRegistrationLink = `${Deno.env.get("SITE_URL") || "https://fighter-id.org"}/license/auth?mode=signup&invite=${linkToken}`;
-        console.info("[INVITATION] Resending with link:", finalRegistrationLink);
+        console.info("[INVITATION] Resending invitation link");
 
         // Reenviar correo con el enlace activo (reutilizado o renovado)
         try {
@@ -214,7 +214,7 @@ const handler = async (req: Request): Promise<Response> => {
         `),
             from: getEmailFrom(),
           });
-          console.log("[INVITATION] Email re-sent successfully:", emailResult);
+          console.log("[INVITATION] Email re-sent successfully");
         } catch (emailError: any) {
           console.error("[INVITATION] Failed to re-send invitation email:", emailError);
           // Continuamos para retornar el link aunque falle el correo
@@ -278,7 +278,7 @@ const handler = async (req: Request): Promise<Response> => {
         from: getEmailFrom(),
       });
 
-      console.log("[INVITATION] Email sent successfully:", emailResult);
+      console.log("[INVITATION] Email sent successfully");
     } catch (emailError: any) {
       console.error("[INVITATION] Failed to send invitation email:", emailError);
       throw new Error(`Failed to send invitation email: ${emailError.message}`);
