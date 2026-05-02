@@ -44,7 +44,7 @@ const Hero = () => {
           alt=""
           className="w-full h-full object-cover"
           loading="eager"
-          fetchPriority="high"
+          {...({ fetchpriority: 'high' } as any)}
           decoding="async"
         />
       </picture>
