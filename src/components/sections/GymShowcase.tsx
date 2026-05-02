@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, Users, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { EnhancedSkeleton } from "@/components/ui/enhanced-skeleton";
+import { SectionDivider } from "@/components/landing/SectionDivider";
 
 const GymShowcase = () => {
   const { data: gyms, isLoading } = useGymsWithFighters();
