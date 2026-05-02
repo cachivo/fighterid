@@ -142,7 +142,7 @@ If you need more information to complete a request, ask specifically what data i
 // Specialized functions for fighter and tournament management (Connected to Real DB)
 async function searchFighters(criteria: any) {
   try {
-    console.log('[AI] Searching fighters:', criteria);
+    console.log('[AI] Searching fighters');
     
     let query = supabase
       .from('fighter_profiles')
@@ -175,7 +175,7 @@ async function searchFighters(criteria: any) {
 // Advanced search with multiple criteria
 async function advancedSearchFighters(criteria: any) {
   try {
-    console.log('[AI] Advanced search:', criteria);
+    console.log('[AI] Advanced search');
     
     let query = supabase
       .from('fighter_profiles')
@@ -249,7 +249,7 @@ async function advancedSearchFighters(criteria: any) {
 
 async function getFighterDetails(fighterId: string) {
   try {
-    console.log('[AI] Getting fighter details:', fighterId);
+    console.log('[AI] Getting fighter details');
     
     const { data, error } = await supabase
       .from('fighter_profiles')
@@ -285,7 +285,7 @@ async function getFighterDetails(fighterId: string) {
 
 async function updateFighterProfile(fighterId: string, updates: any) {
   try {
-    console.log('[AI] Updating fighter:', fighterId, updates);
+    console.log('[AI] Updating fighter');
     
     const allowedFields = ['nickname', 'weight_class', 'gym_name', 'bio'];
     const sanitizedUpdates: any = {};
@@ -320,7 +320,7 @@ async function updateFighterProfile(fighterId: string, updates: any) {
 
 async function validateLicense(licenseId: string) {
   try {
-    console.log('[AI] Validating license:', licenseId);
+    console.log('[AI] Validating license');
     
     const { data, error } = await supabase
       .from('fighter_licenses')
@@ -365,7 +365,7 @@ async function validateLicense(licenseId: string) {
 
 async function createTournament(tournamentData: any) {
   try {
-    console.log('[AI] Creating tournament:', tournamentData);
+    console.log('[AI] Creating tournament');
     
     const requiredFields = ['name', 'start_time', 'venue'];
     for (const field of requiredFields) {
@@ -693,7 +693,7 @@ async function getPendingLicenses() {
 
 async function approveLicense(licenseId: string, level: string = 'AMATEUR') {
   try {
-    console.log('[AI] Approving license:', licenseId);
+    console.log('[AI] Approving license');
     const { error } = await supabase.rpc('approve_license', {
       p_license_id: licenseId,
       p_level: level
@@ -708,7 +708,7 @@ async function approveLicense(licenseId: string, level: string = 'AMATEUR') {
 
 async function suspendLicense(licenseId: string, reason: string, until?: string) {
   try {
-    console.log('[AI] Suspending license:', licenseId);
+    console.log('[AI] Suspending license');
     const { error } = await supabase.rpc('suspend_license', {
       p_license_id: licenseId,
       p_reason: reason,
@@ -724,7 +724,7 @@ async function suspendLicense(licenseId: string, reason: string, until?: string)
 
 async function reactivateLicense(licenseId: string) {
   try {
-    console.log('[AI] Reactivating license:', licenseId);
+    console.log('[AI] Reactivating license');
     const { error } = await supabase
       .from('fighter_licenses')
       .update({ status: 'ACTIVE', suspension_reason: null, suspension_until: null })
@@ -740,7 +740,7 @@ async function reactivateLicense(licenseId: string) {
 // Fighter Management Functions
 async function createFighter(fighterData: any) {
   try {
-    console.log('[AI] Creating fighter:', fighterData);
+    console.log('[AI] Creating fighter');
     if (!fighterData.first_name || !fighterData.last_name) {
       return { success: false, error: 'Nombre y apellido son requeridos' };
     }
@@ -766,7 +766,7 @@ async function createFighter(fighterData: any) {
 
 async function updateFighterComplete(fighterId: string, updates: any) {
   try {
-    console.log('[AI] Updating fighter complete:', fighterId);
+    console.log('[AI] Updating fighter complete');
     const { error } = await supabase.rpc('admin_update_fighter_profile', {
       p_fighter_id: fighterId,
       p_profile_data: updates
@@ -781,7 +781,7 @@ async function updateFighterComplete(fighterId: string, updates: any) {
 
 async function deleteFighter(fighterId: string) {
   try {
-    console.log('[AI] Deleting fighter:', fighterId);
+    console.log('[AI] Deleting fighter');
     const { error } = await supabase.rpc('admin_delete_fighter_profile', {
       p_fighter_id: fighterId
     });
@@ -795,7 +795,7 @@ async function deleteFighter(fighterId: string) {
 
 async function getFighterSensitiveData(fighterId: string) {
   try {
-    console.log('[AI] Getting sensitive data:', fighterId);
+    console.log('[AI] Getting sensitive data');
     const { data, error } = await supabase.rpc('get_fighter_sensitive_data', {
       p_fighter_id: fighterId
     });
