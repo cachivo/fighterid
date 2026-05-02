@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Bug-fix toolkit artifacts
+react_fixes_patches/
+react_fixes_report.md
